@@ -8,19 +8,35 @@ class Verb:
 	word = ""
 	hasDobj = False
 	hasIobj = False
+	impDobj = False
+	impIobj = False
+	preposition = False
 	syntax = []
-	scope = "room" # "room" or "inv"
+	dscope = "room" # "knows", "room" or "inv"
+	iscope = "room"
 	
 	def __init__(self, word):
-		vocab.verbDict[word] = self	
+		if word in vocab.verbDict:
+			vocab.verbDict[word].append(self)
+		else:
+			vocab.verbDict[word] = [self]
 		self.word = word
-		self.scope = "room"
+		self.dscope = "room"
 		
 	def addSynonym(self, word):
-		vocab.verbDict[word] = self	
+		if word in vocab.verbDict:
+			vocab.verbDict[word].append(self)
+		else:
+			vocab.verbDict[word] = [self]
 	
 	def verbFunc(self, dobj):
 		print("You " + self.word + "the " + dobj.verbose_name + ".")
+		
+	def getImpDobj(self):
+		print("Error: no implicit direct object defined")
+
+	def getImpIobj(self):
+		print("Error: no implicit indirect object defined")
 
 
 # Below are IntFicPy's built in verbs
@@ -43,7 +59,7 @@ getVerb.verbFunc = getVerbFunc
 dropVerb = Verb("drop")
 dropVerb.syntax = [["drop", "<dobj>"]]
 dropVerb.hasDobj = True
-dropVerb.scope = "inv"
+dropVerb.dscope = "inv"
 
 def dropVerbFunc(dobj):
 	print("You drop the " + dobj.verbose_name + ".")
@@ -105,13 +121,29 @@ askVerb = Verb("ask")
 askVerb.syntax = [["ask", "<dobj>", "about", "<iobj>"]]
 askVerb.hasDobj = True
 askVerb.hasIobj = True
+askVerb.iscope = "knows"
+askVerb.impDobj = True
+
+def getImpAsk():
+	people = []
+	for p in game.me.location.contains:
+		if isinstance(p, actor.Actor):
+			people.append(p)
+	if len(people)==0:
+		print("There's no one here to ask.")
+	elif len(people)==1:
+		return people[0]
+	else:
+		print("Please specify a person to ask.")
+
+askVerb.getImpDobj = getImpAsk
 
 def askVerbFunc(dobj, iobj):
 	if isinstance(dobj, actor.Actor):
 		if iobj in dobj.ask_topics:
 			dobj.ask_topics[iobj].func()
 		else:
-			dobj.default_topic.func()
+			dobj.defaultTopic()
 	else:
 		print "You cannot talk to that."
 

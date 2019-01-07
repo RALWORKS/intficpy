@@ -9,7 +9,20 @@ class Actor(Thing):
 	ask_topics = {}
 	tell_topics = {}
 	default_topic = "No response."
-	
+
+	def __init__(self, name):
+		self.name = name
+		self.verbose_name = name
+		self.desc = name + " is here."
+		if name not in vocab.nounDict:
+			vocab.nounDict[name] = [self]
+		elif self not in vocab.nounDict[name]:
+			vocab.nounDict[name].append(self)
+		
+		self.ask_topics = {}
+		self.tell_topics = {}
+		self.default_topic = "No response."
+
 	def makeProper(self, name):
 		self.name = name
 		self.desc = name + " is here."
@@ -29,6 +42,9 @@ class Actor(Thing):
 			self.tell_topics[thing] = topic
 		else:
 		 self.default_topic = topic
+	
+	def defaultTopic(self):
+		print(self.default_topic)
 	
 class Topic:
 	text = ""

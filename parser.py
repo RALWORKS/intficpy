@@ -38,13 +38,28 @@ def getDirection(input_tokens):
 def getVerb(input_tokens):
 	# look up first word in verb dictionary
 	if input_tokens[0] in vocab.verbDict:
-		cur_verb = vocab.verbDict[input_tokens[0]]
-	# if not present, error "I don't understand," return -1
+		verbs = list(vocab.verbDict[input_tokens[0]])
+		verbs = matchPrepositions(verbs, input_tokens)
 	else:
-		print("I don't understand")
+		print("I don't understand: " + input_tokens[0])
 		return False
-	# else return  verb object
-	return cur_verb
+	if len(verbs)==1:
+		return verbs[0]
+	else:
+		print("Please rephrase")
+		return False
+
+def matchPrepositions(verbs, input_tokens):
+	prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across"]
+	remove_verb = []
+	for p in prepositions:
+		if p in input_tokens:
+			for verb in verbs:
+				if not verb.preposition==p:
+					remove_verb.append(verb)
+	for verb in remove_verb:
+		verbs.remove(verb)
+	return verbs
 
 # match tokens in input with tokens in verb syntax forms to choose which syntax to assume
 def getVerbSyntax(cur_verb, input_tokens):
@@ -60,7 +75,7 @@ def getVerbSyntax(cur_verb, input_tokens):
 				i = i - 1
 		if i==0:
 			return form
-	print("I don't understand")
+	print("I don't understand. Try rephrasing.")
 	return False
 # analyse input using verb syntax form to find any objects
 def getGrammarObj(cur_verb, input_tokens):
@@ -78,8 +93,15 @@ def getGrammarObj(cur_verb, input_tokens):
 		else:
 			after_d = False
 		dobj = getObjWords(before_d, after_d, input_tokens)
-		if not dobj:
+		if not dobj and not cur_verb.impDobj:
+			print("I don't understand. Please be more specific.")
 			return False
+		elif not dobj:
+			dobj = cur_verb.getImpDobj()
+			if not dobj:
+				return False
+			else:
+				dobj = [dobj.name]
 	else:
 		dobj = False
 	if cur_verb.hasIobj:	
@@ -90,8 +112,15 @@ def getGrammarObj(cur_verb, input_tokens):
 		else:
 			after_i = False
 		iobj = getObjWords(before_i, after_i, input_tokens)
-		if not iobj:
+		if not iobj and not cur_verb.impIobj:
+			print("I don't understand. Please be more specific.")
 			return False
+		elif not iobj:
+			iobj = cur_verb.getImpIobj()
+			if not iobj:
+				return False
+			else:
+				iobj = [iobj.name]
 	else:
 		iobj = False
 	return [dobj, iobj]
@@ -107,7 +136,7 @@ def getObjWords(before, after, input_tokens):
 	else:
 		obj_words = input_tokens[low_bound:]
 	if len(obj_words) == 0:
-		print("I don't undertand")
+		#print("I don't undertand. Please be more specific.")
 		return False
 	return obj_words
 
@@ -117,6 +146,10 @@ def checkRange(things, scope):
 	if scope=="room":
 		for thing in things:
 			if thing not in game.me.location.contains:
+				out_range.append(thing)
+	elif scope=="knows":
+		for thing in things:
+			if thing not in game.me.knows_about:
 				out_range.append(thing)
 	else:
 		# assume scope equals "inv"
@@ -140,6 +173,9 @@ def getThing(noun_adj_arr, scope):
 		if scope=="room":
 			print("I don't see any " + noun + " here.")
 			return False
+		elif scope=="knows":
+			print("You don't know of any " + noun + ".")
+			return False
 		else:
 			# assuming scope = "inv"
 			print("You don't have any " + noun + ".")
@@ -149,6 +185,10 @@ def getThing(noun_adj_arr, scope):
 	if len(things) == 0:
 		if scope=="room":
 			print("I don't see any " + noun + " here.")
+			return False
+		elif scope=="knows":
+			# assuming scope = "inv"
+			print("You don't know of any " + noun + ".")
 			return False
 		else:
 			# assuming scope = "inv"
@@ -193,11 +233,11 @@ def checkAdjectives(noun_adj_arr, noun, things, scope):
 # callVerb calls getThing to get the Thing objects (if any) referred to in input, then calls the verb function
 def callVerb(cur_verb, obj_words):
 	if cur_verb.hasDobj and obj_words[0]:
-		cur_dobj = getThing(obj_words[0], cur_verb.scope)
+		cur_dobj = getThing(obj_words[0], cur_verb.dscope)
 		if cur_dobj == False:
 			return 0
 		if cur_verb.hasIobj and obj_words[1]:
-			cur_iobj = getThing(obj_words[1], cur_verb.scope)
+			cur_iobj = getThing(obj_words[1], cur_verb.iscope)
 			if cur_iobj==False:
 				return 0
 			# add later: check if cur_dobj is within range
