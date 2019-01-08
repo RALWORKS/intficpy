@@ -1,4 +1,5 @@
 import vocab
+from string import capitalize
 
 class Thing:
 	def __init__(self, n):
@@ -6,11 +7,7 @@ class Thing:
 		self.verbose_name = n
 		self.ask = False
 		self.tell = False
-		
-		if self.verbose_name[0] in ["a", "e", "i", "o", "u"]:
-			self.desc = "There is an " + self.verbose_name + " here."
-		else:
-			self.desc = "There is a " + self.verbose_name + " here."
+		self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.xdesc = self.desc
 		# add name to list of nouns
 		if n in vocab.nounDict:
@@ -18,9 +15,11 @@ class Thing:
 		else:
 			vocab.nounDict[n] = [self]
 	isPlural = False
-	preposition = "a"
+	hasArticle = True
+	isDefinite = False
 	invItem = True
 	adjectives = []
+	cannotTakeMsg = "You cannot take that."
 	
 	def addSynonym(self, word):
 		if word in vocab.nounDict:
@@ -32,8 +31,20 @@ class Thing:
 		self.adjectives = adj_list
 		self.verbose_name = " ".join(adj_list) + " " + self.name
 		if update_desc:
+			self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
+			
+	def getArticle(self, definite=False):
+		if not self.hasArticle:
+			return ""
+		elif definite or self.isDefinite:
+			return "the "
+		else:
 			if self.verbose_name[0] in ["a", "e", "i", "o", "u"]:
-				self.desc = "There is an " + self.verbose_name + " here."
+				return "an "
 			else:
-				self.desc = "There is a " + self.verbose_name + " here."
-			self.xdesc = self.desc
+				return "a "
+	
+	def makeUnique(self):
+		self.isDefinite = True
+		self.desc = capitalize(self.getArticle()) + self.verbose_name + " is here."
+

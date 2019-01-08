@@ -1,7 +1,7 @@
 import settings
 from thing import Thing
 import vocab
-from string import lower
+from string import lower, capitalize
 
 class Actor(Thing):
 	invItem = False
@@ -9,11 +9,14 @@ class Actor(Thing):
 	ask_topics = {}
 	tell_topics = {}
 	default_topic = "No response."
+	hasArticle = True
+	isDefinite = False
 
 	def __init__(self, name):
 		self.name = name
 		self.verbose_name = name
-		self.desc = name + " is here."
+		self.desc = capitalize(self.getArticle()) + name + " is here."
+		self.cannotTakeMsg = "You cannot take a person."
 		if name not in vocab.nounDict:
 			vocab.nounDict[name] = [self]
 		elif self not in vocab.nounDict[name]:
@@ -26,7 +29,7 @@ class Actor(Thing):
 	def makeProper(self, name):
 		self.name = name
 		self.desc = name + " is here."
-		prepsition = ""
+		self.hasArticle = False
 		
 		name = lower(name)
 		

@@ -13,7 +13,14 @@ import settings
 ############### PARSER.PY - the parser for IntFicPy ##################
 #### Contains the input loop and parsing functions for the framework #####
 ##############################################################
-#game.me.location = game.startroom
+# used for disambiguation mode
+class TurnInfo:
+	ambiguous = False
+	verb = False
+	dobj = False
+	iobj = False
+	
+lastTurn = TurnInfo
 
 # convert input to a list of tokens
 def tokenize(input_string):
@@ -41,7 +48,8 @@ def getVerb(input_tokens):
 		verbs = list(vocab.verbDict[input_tokens[0]])
 		verbs = matchPrepositions(verbs, input_tokens)
 	else:
-		print("I don't understand: " + input_tokens[0])
+		if not lastTurn.ambiguous:
+			print("I don't understand: " + input_tokens[0])
 		return False
 	if len(verbs)==1:
 		return verbs[0]
@@ -77,6 +85,7 @@ def getVerbSyntax(cur_verb, input_tokens):
 			return form
 	print("I don't understand. Try rephrasing.")
 	return False
+
 # analyse input using verb syntax form to find any objects
 def getGrammarObj(cur_verb, input_tokens):
 	# first, choose the correct syntax
@@ -95,12 +104,16 @@ def getGrammarObj(cur_verb, input_tokens):
 		dobj = getObjWords(before_d, after_d, input_tokens)
 		if not dobj and not cur_verb.impDobj:
 			print("I don't understand. Please be more specific.")
+			lastTurn.dobj = dobj
 			return False
 		elif not dobj:
 			dobj = cur_verb.getImpDobj()
+			lastTurn.dobj = dobj
 			if not dobj:
+				lastTurn.dobj = dobj
 				return False
 			else:
+				lastTurn.dobj = dobj
 				dobj = [dobj.name]
 	else:
 		dobj = False
@@ -108,10 +121,11 @@ def getGrammarObj(cur_verb, input_tokens):
 		iobj_i = form.index("<iobj>")
 		before_i = form[iobj_i - 1]
 		if iobj_i+1<len(form):
-			after_i = form[dobj_i + 1]
+			after_i = form[iobj_i + 1]
 		else:
 			after_i = False
 		iobj = getObjWords(before_i, after_i, input_tokens)
+		lastTurn.iobj = iobj
 		if not iobj and not cur_verb.impIobj:
 			print("I don't understand. Please be more specific.")
 			return False
@@ -120,6 +134,7 @@ def getGrammarObj(cur_verb, input_tokens):
 			if not iobj:
 				return False
 			else:
+				lastTurn.iobj = iobj
 				iobj = [iobj.name]
 	else:
 		iobj = False
@@ -221,6 +236,8 @@ def checkAdjectives(noun_adj_arr, noun, things, scope):
 		return things[0]
 	elif len(things) >1:
 		print("Which " + noun + " do you mean?") # will be modified to allow for input of just noun/adjective pair
+		# turn ON disambiguation mode for next turn
+		lastTurn.ambiguous = True
 		return False
 	else:
 		if scope=="room":
@@ -234,22 +251,33 @@ def checkAdjectives(noun_adj_arr, noun, things, scope):
 def callVerb(cur_verb, obj_words):
 	if cur_verb.hasDobj and obj_words[0]:
 		cur_dobj = getThing(obj_words[0], cur_verb.dscope)
+		lastTurn.dobj = cur_dobj
 		if cur_dobj == False:
 			return 0
 		if cur_verb.hasIobj and obj_words[1]:
 			cur_iobj = getThing(obj_words[1], cur_verb.iscope)
+			lastTurn.iobj = cur_iobj
 			if cur_iobj==False:
 				return 0
-			# add later: check if cur_dobj is within range
-			#if not, error "I don't see any <dobj phrase> here", abort
 			cur_verb.verbFunc(cur_dobj, cur_iobj)
 		else:
-			# add later: check if cur_dobj is within range
-			#if not, error "I don't see any <dobj phrase> here", abort
 			cur_verb.verbFunc(cur_dobj)
 	else:
 		cur_verb.verbFunc()
 
+def disambig(input_tokens):
+	dobj = lastTurn.dobj
+	iobj = lastTurn.iobj
+	cur_verb = lastTurn.verb
+	
+	if not dobj and cur_verb.hasDobj:
+		dobj = input_tokens
+	elif not iobj and cur_verb.hasIobj:
+		iobj = input_tokens
+	
+	obj_words = [dobj, iobj]		
+	callVerb(cur_verb, obj_words)
+	
 def roomDescribe():
 	game = __import__(settings.main_file)
 	game.me.location.describe()
@@ -263,10 +291,17 @@ def parseInput(input_string):
 		return 0
 	cur_verb = getVerb(input_tokens)
 	if not cur_verb:
+		if lastTurn.ambiguous:
+			disambig(input_tokens)
+			return 0
 		return 0
+	else:
+		lastTurn.verb = cur_verb
 	obj_words = getGrammarObj(cur_verb, input_tokens)
 	if not obj_words:
 		return False
+	# turn OFF disambiguation mode for next turn
+	lastTurn.ambiguous = False
 	callVerb(cur_verb, obj_words)
 	return 0
 
@@ -282,7 +317,7 @@ while not quit:
 	input_string = re.sub(r'[^\w\s]','',input_string)
 	# check for quit command
 	if(input_string=="q" or input_string=="quit"):
-		print "Goodbye."
+		print("Goodbye.")
 		quit = True
 	else:
 		# parse string

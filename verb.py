@@ -1,6 +1,7 @@
 import vocab
 import settings
 import actor
+import thing
 game = __import__(settings.main_file)
 
 # Class for IntFicPy verbs
@@ -30,7 +31,7 @@ class Verb:
 			vocab.verbDict[word] = [self]
 	
 	def verbFunc(self, dobj):
-		print("You " + self.word + "the " + dobj.verbose_name + ".")
+		print("You " + self.word + dobj.getArticlce(True) + dobj.verbose_name + ".")
 		
 	def getImpDobj(self):
 		print("Error: no implicit direct object defined")
@@ -49,9 +50,12 @@ getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"]]
 getVerb.hasDobj = True
 
 def getVerbFunc(dobj):
-	print("You take the " + dobj.verbose_name + ".")
-	game.me.location.removeThing(dobj)
-	game.me.inventory.append(dobj)
+	if dobj.invItem:
+		print("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
+		game.me.location.removeThing(dobj)
+		game.me.inventory.append(dobj)
+	else:
+		print(dobj.cannotTakeMsg)
 
 getVerb.verbFunc = getVerbFunc
 
@@ -62,7 +66,7 @@ dropVerb.hasDobj = True
 dropVerb.dscope = "inv"
 
 def dropVerbFunc(dobj):
-	print("You drop the " + dobj.verbose_name + ".")
+	print("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
 	game.me.location.addThing(dobj)
 	game.me.inventory.remove(dobj)
 
@@ -80,10 +84,7 @@ def invVerbFunc():
 	else:
 		invdesc = "You have "
 		for thing in game.me.inventory:
-			if thing.verbose_name[0] in ["a", "e", "i", "o", "u"]:
-				invdesc = invdesc + "an " + thing.verbose_name
-			else:
-				invdesc = invdesc + "a " + thing.verbose_name
+			invdesc = invdesc + thing.getArticle() + thing.verbose_name
 			if thing is game.me.inventory[-1]:
 				invdesc = invdesc + "."
 			elif thing is game.me.inventory[-2]:
@@ -125,6 +126,7 @@ askVerb.iscope = "knows"
 askVerb.impDobj = True
 
 def getImpAsk():
+	import parser
 	people = []
 	for p in game.me.location.contains:
 		if isinstance(p, actor.Actor):
@@ -133,6 +135,8 @@ def getImpAsk():
 		print("There's no one here to ask.")
 	elif len(people)==1:
 		return people[0]
+	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		return parser.lastTurn.dobj
 	else:
 		print("Please specify a person to ask.")
 
@@ -145,6 +149,6 @@ def askVerbFunc(dobj, iobj):
 		else:
 			dobj.defaultTopic()
 	else:
-		print "You cannot talk to that."
+		print("You cannot talk to that.")
 
 askVerb.verbFunc = askVerbFunc
