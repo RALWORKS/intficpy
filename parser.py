@@ -6,7 +6,6 @@ import vocab
 import verb
 import thing
 import travel
-import settings
 
 
 ##############################################################
@@ -30,13 +29,13 @@ def tokenize(input_string):
 	return tokens
 
 # check for direction statement as in "west" or "ne"
-def getDirection(input_tokens):
+def getDirection(me, input_tokens):
 	d = input_tokens[0]
 	# if first word is "go", skip first word, assume next word is a direction
 	if input_tokens[0]=="go" and len(input_tokens) > 0:
 		d = input_tokens[1]
 	if d in travel.directionDict:
-		travel.directionDict[d]()
+		travel.directionDict[d](me)
 		return True
 	else:
 		return False
@@ -87,59 +86,66 @@ def getVerbSyntax(cur_verb, input_tokens):
 	return False
 
 # analyse input using verb syntax form to find any objects
-def getGrammarObj(cur_verb, input_tokens):
+def getGrammarObj(me, cur_verb, input_tokens):
 	# first, choose the correct syntax
 	form = getVerbSyntax(cur_verb, input_tokens)
 	if not form:
 		return False
 	# if verb_object.hasDobj, search verb.syntax for <dobj>, get index
+	# get Dobj
 	if cur_verb.hasDobj:
-		# get words before and after
-		dobj_i = form.index("<dobj>")
-		before_d = form[dobj_i - 1]
-		if dobj_i+1<len(form):
-			after_d = form[dobj_i + 1]
-		else:
-			after_d = False
-		dobj = getObjWords(before_d, after_d, input_tokens)
-		if not dobj and not cur_verb.impDobj:
-			print("I don't understand. Please be more specific.")
-			lastTurn.dobj = dobj
-			return False
-		elif not dobj:
-			dobj = cur_verb.getImpDobj()
-			lastTurn.dobj = dobj
-			if not dobj:
-				lastTurn.dobj = dobj
-				return False
-			else:
-				lastTurn.dobj = dobj
-				dobj = [dobj.name]
+		dobj = analyzeSyntax(form, "<dobj>", input_tokens)
 	else:
 		dobj = False
+	# get Iobj
 	if cur_verb.hasIobj:	
-		iobj_i = form.index("<iobj>")
-		before_i = form[iobj_i - 1]
-		if iobj_i+1<len(form):
-			after_i = form[iobj_i + 1]
-		else:
-			after_i = False
-		iobj = getObjWords(before_i, after_i, input_tokens)
-		lastTurn.iobj = iobj
-		if not iobj and not cur_verb.impIobj:
-			print("I don't understand. Please be more specific.")
-			return False
-		elif not iobj:
-			iobj = cur_verb.getImpIobj()
-			if not iobj:
-				return False
-			else:
-				lastTurn.iobj = iobj
-				iobj = [iobj.name]
+		iobj = analyzeSyntax(form, "<iobj>", input_tokens)
 	else:
 		iobj = False
-	return [dobj, iobj]
+	return checkObj(me, cur_verb, dobj, iobj)
 
+def analyzeSyntax(verb_form, tag, input_tokens):
+	# get words before and after
+	if tag in verb_form:
+		obj_i = verb_form.index(tag)
+	else:
+		print("ERROR: Inconsistent verb definitition.")
+		return False
+	before = verb_form[obj_i - 1]
+	if obj_i+1<len(verb_form):
+		after = verb_form[obj_i + 1]
+	else:
+		after = False
+	return getObjWords(before, after, input_tokens)
+
+def checkObj(me, cur_verb, dobj, iobj):
+	missing = False
+	if cur_verb.hasDobj and not dobj:
+		if cur_verb.impDobj:
+			dobj = cur_verb.getImpDobj(me)
+			if not dobj:
+				missing = True
+			else:
+				dobj = [dobj.verbose_name]
+		else:
+			print("Please be more specific")
+			return False
+	if cur_verb.hasIobj and not iobj:
+		if cur_verb.impIobj:
+			iobj = cur_verb.getImpIobj(me)
+			if not iobj:
+				missing = True
+			else:
+				iobj = [iobj.verbose_name]
+		else:
+			print("Please be more specific")
+			missing = True
+	lastTurn.dobj = dobj
+	lastTurn.iobj = iobj
+	if missing:
+		return False
+	return [dobj, iobj]
+	
 # create an array of all nouns and adjectives referring to a direct or indirect object
 def getObjWords(before, after, input_tokens):
 	low_bound = input_tokens.index(before)
@@ -155,28 +161,27 @@ def getObjWords(before, after, input_tokens):
 		return False
 	return obj_words
 
-def checkRange(things, scope):
-	game = __import__(settings.main_file)
+def checkRange(me, things, scope):
 	out_range = []
 	if scope=="room":
 		for thing in things:
-			if thing not in game.me.location.contains:
+			if thing not in me.location.contains:
 				out_range.append(thing)
 	elif scope=="knows":
 		for thing in things:
-			if thing not in game.me.knows_about:
+			if thing not in me.knows_about:
 				out_range.append(thing)
 	else:
 		# assume scope equals "inv"
 		for thing in things:
-			if thing not in game.me.inventory:
+			if thing not in me.inventory:
 				out_range.append(thing)
 	for thing in out_range:
 		things.remove(thing)
 	
 	return things
 
-def getThing(noun_adj_arr, scope):
+def getThing(me, noun_adj_arr, scope):
 	# get noun (last word)
 	noun = noun_adj_arr[-1]
 	# get list of associated Things
@@ -196,7 +201,7 @@ def getThing(noun_adj_arr, scope):
 			print("You don't have any " + noun + ".")
 			return False
 	# check if things are in range
-	things = checkRange(things, scope)
+	things = checkRange(me, things, scope)
 	if len(things) == 0:
 		if scope=="room":
 			print("I don't see any " + noun + " here.")
@@ -243,83 +248,108 @@ def checkAdjectives(noun_adj_arr, noun, things, scope):
 		if scope=="room":
 			print("I don't see any " + " ".join(noun_adj_arr)  + " here.")
 			return False
+		elif scope=="knows":
+			print("You don't know of any " + noun + ".")
+			return False
 		else:
 			# assuming scope is "inv"
 			print("You don't have any " + " ".join(noun_adj_arr)  + ".")
 			return False
 # callVerb calls getThing to get the Thing objects (if any) referred to in input, then calls the verb function
-def callVerb(cur_verb, obj_words):
+def callVerb(me, cur_verb, obj_words):
 	if cur_verb.hasDobj and obj_words[0]:
-		cur_dobj = getThing(obj_words[0], cur_verb.dscope)
+		cur_dobj = getThing(me, obj_words[0], cur_verb.dscope)
 		lastTurn.dobj = cur_dobj
-		if cur_dobj == False:
-			return 0
-		if cur_verb.hasIobj and obj_words[1]:
-			cur_iobj = getThing(obj_words[1], cur_verb.iscope)
-			lastTurn.iobj = cur_iobj
-			if cur_iobj==False:
-				return 0
-			cur_verb.verbFunc(cur_dobj, cur_iobj)
-		else:
-			cur_verb.verbFunc(cur_dobj)
 	else:
-		cur_verb.verbFunc()
+		cur_dobj = False
+		lastTurn.dobj = False
+	if cur_verb.hasIobj and obj_words[1]:
+			cur_iobj = getThing(me, obj_words[1], cur_verb.iscope)
+			lastTurn.iobj = cur_iobj
+	else:
+		cur_iobj = False
+		lastTurn.iobj = False
+	# apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
+	if cur_verb.hasIobj:
+		if not cur_dobj or not cur_iobj:
+			return False
+		else:
+			cur_verb.verbFunc(me, cur_dobj, cur_iobj)
+	elif cur_verb.hasDobj:
+		if not cur_dobj:
+			return False
+		else:
+			cur_verb.verbFunc(me, cur_dobj)
+	else:
+		cur_verb.verbFunc(me)
 
-def disambig(input_tokens):
+def disambig(me, input_tokens):
 	dobj = lastTurn.dobj
 	iobj = lastTurn.iobj
 	cur_verb = lastTurn.verb
-	
+	if isinstance(dobj, list):
+		dobj = getThing(me, dobj, cur_verb.dscope)
+	if isinstance(iobj, list):
+		iobj = getThing(me, iobj, cur_verb.iscope)
+		
 	if not dobj and cur_verb.hasDobj:
 		dobj = input_tokens
+		if iobj!=False:
+			iobj = [iobj.name]
 	elif not iobj and cur_verb.hasIobj:
 		iobj = input_tokens
+		if dobj!=False:
+			dobj = [dobj.name]
+	obj_words = [dobj, iobj]	
+	lastTurn.ambiguous = False
+	if not obj_words:
+		return False
+	callVerb(me, cur_verb, obj_words)
 	
-	obj_words = [dobj, iobj]		
-	callVerb(cur_verb, obj_words)
-	
-def roomDescribe():
-	game = __import__(settings.main_file)
-	game.me.location.describe()
+def roomDescribe(me):
+	me.location.describe(me)
 
-def parseInput(input_string):
+def parseInput(me, input_string):
 	# tokenize at spaces
 	input_tokens = tokenize(input_string)
 	# if input is a travel command, move player 
-	d = getDirection(input_tokens)
+	d = getDirection(me, input_tokens)
 	if d:
 		return 0
 	cur_verb = getVerb(input_tokens)
 	if not cur_verb:
 		if lastTurn.ambiguous:
-			disambig(input_tokens)
+			disambig(me, input_tokens)
 			return 0
 		return 0
 	else:
 		lastTurn.verb = cur_verb
-	obj_words = getGrammarObj(cur_verb, input_tokens)
+	obj_words = getGrammarObj(me, cur_verb, input_tokens)
 	if not obj_words:
 		return False
 	# turn OFF disambiguation mode for next turn
 	lastTurn.ambiguous = False
-	callVerb(cur_verb, obj_words)
+	callVerb(me, cur_verb, obj_words)
 	return 0
 
 # main input loop
-quit = False
-roomDescribe()
-while not quit:
-	# first, print room description
-	#game.me.location.describe()
-	input_string = raw_input("> ")
-	# clean string
-	input_string = string.lower(input_string)
-	input_string = re.sub(r'[^\w\s]','',input_string)
-	# check for quit command
-	if(input_string=="q" or input_string=="quit"):
-		print("Goodbye.")
-		quit = True
-	else:
-		# parse string
-		parseInput(input_string)
-	print("") # empty line for output formatting
+def mainLoop(me):
+	quit = False
+	roomDescribe(me)
+	while not quit:
+		# first, print room description
+		#me.location.describe()
+		input_string = raw_input("> ")
+		# clean string
+		input_string = string.lower(input_string)
+		input_string = re.sub(r'[^\w\s]','',input_string)
+		# check for quit command
+		if(input_string=="q" or input_string=="quit"):
+			print("Goodbye.")
+			quit = True
+		elif len(input_string)==0:
+			continue
+		else:
+			# parse string
+			parseInput(me, input_string)
+		print("") # empty line for output formatting

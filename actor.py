@@ -1,4 +1,3 @@
-import settings
 from thing import Thing
 import vocab
 from string import lower, capitalize

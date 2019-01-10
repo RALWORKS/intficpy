@@ -1,8 +1,6 @@
 import vocab
-import settings
 import actor
 import thing
-game = __import__(settings.main_file)
 
 # Class for IntFicPy verbs
 class Verb:
@@ -30,13 +28,13 @@ class Verb:
 		else:
 			vocab.verbDict[word] = [self]
 	
-	def verbFunc(self, dobj):
+	def verbFunc(self, me, dobj):
 		print("You " + self.word + dobj.getArticlce(True) + dobj.verbose_name + ".")
 		
-	def getImpDobj(self):
+	def getImpDobj(self, me):
 		print("Error: no implicit direct object defined")
 
-	def getImpIobj(self):
+	def getImpIobj(self, me):
 		print("Error: no implicit indirect object defined")
 
 
@@ -49,11 +47,11 @@ getVerb.addSynonym("take")
 getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"]]
 getVerb.hasDobj = True
 
-def getVerbFunc(dobj):
+def getVerbFunc(me, dobj):
 	if dobj.invItem:
 		print("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
-		game.me.location.removeThing(dobj)
-		game.me.inventory.append(dobj)
+		me.location.removeThing(dobj)
+		me.inventory.append(dobj)
 	else:
 		print(dobj.cannotTakeMsg)
 
@@ -65,10 +63,10 @@ dropVerb.syntax = [["drop", "<dobj>"]]
 dropVerb.hasDobj = True
 dropVerb.dscope = "inv"
 
-def dropVerbFunc(dobj):
+def dropVerbFunc(me, dobj):
 	print("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
-	game.me.location.addThing(dobj)
-	game.me.inventory.remove(dobj)
+	me.location.addThing(dobj)
+	me.inventory.remove(dobj)
 
 dropVerb.verbFunc = dropVerbFunc
 
@@ -78,16 +76,16 @@ invVerb.addSynonym("i")
 invVerb.syntax = [["inventory"], ["i"]]
 invVerb.hasDobj = False
 
-def invVerbFunc():
-	if len(game.me.inventory)==0:
+def invVerbFunc(me):
+	if len(me.inventory)==0:
 		print("You don't have anything with you.")
 	else:
 		invdesc = "You have "
-		for thing in game.me.inventory:
+		for thing in me.inventory:
 			invdesc = invdesc + thing.getArticle() + thing.verbose_name
-			if thing is game.me.inventory[-1]:
+			if thing is me.inventory[-1]:
 				invdesc = invdesc + "."
-			elif thing is game.me.inventory[-2]:
+			elif thing is me.inventory[-2]:
 				invdesc = invdesc + " and "
 			else:
 				invdesc = invdesc + ", "
@@ -101,8 +99,8 @@ lookVerb.addSynonym("l")
 lookVerb.syntax = [["look"], ["l"]]
 lookVerb.hasDobj = False
 
-def lookVerbFunc():
-	game.me.location.describe()
+def lookVerbFunc(me):
+	me.location.describe(me)
 
 lookVerb.verbFunc = lookVerbFunc
 
@@ -112,7 +110,7 @@ examineVerb.addSynonym("x")
 examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"]]
 examineVerb.hasDobj = True
 
-def examineVerbFunc(dobj):
+def examineVerbFunc(me, dobj):
 	print (dobj.xdesc)
 
 examineVerb.verbFunc = examineVerbFunc
@@ -125,10 +123,10 @@ askVerb.hasIobj = True
 askVerb.iscope = "knows"
 askVerb.impDobj = True
 
-def getImpAsk():
+def getImpAsk(me):
 	import parser
 	people = []
-	for p in game.me.location.contains:
+	for p in me.location.contains:
 		if isinstance(p, actor.Actor):
 			people.append(p)
 	if len(people)==0:
@@ -139,10 +137,11 @@ def getImpAsk():
 		return parser.lastTurn.dobj
 	else:
 		print("Please specify a person to ask.")
+		parser.lastTurn.ambiguous = True
 
 askVerb.getImpDobj = getImpAsk
 
-def askVerbFunc(dobj, iobj):
+def askVerbFunc(me, dobj, iobj):
 	if isinstance(dobj, actor.Actor):
 		if iobj in dobj.ask_topics:
 			dobj.ask_topics[iobj].func()

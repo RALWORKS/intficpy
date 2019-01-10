@@ -1,70 +1,68 @@
-from settings import main_file
-game = __import__(main_file)
 # travel functions, called by getDirection in parser
 
-def travelN():
-	if not game.me.location.north:
+def travelN(me):
+	if not me.location.north:
 		print("You cannot go north from here.")
 	else:
-		game.me.location = game.me.location.north
+		me.location = me.location.north
 		print("You go north.")
-		game.me.location.describe()
+		me.location.describe(me)
 
-def travelNE():
-	if not game.me.location.northeast:
+def travelNE(me):
+	if not me.location.northeast:
 		print("You cannot go northeast from here.")
 	else:
-		game.me.location = game.me.location.northeast
+		me.location = me.location.northeast
 		print("You go northeast.")
-		game.me.location.describe()
+		me.location.describe(me)
 
-def travelE():
-	if not game.me.location.east:
+def travelE(me):
+	if not me.location.east:
 		print("You cannot go east from here.")
 	else:
-		game.me.location = game.me.location.east
+		me.location = me.location.east
 		print("You go east.")
-		game.me.location.describe()
+		me.location.describe(me)
 
-def travelSE():
-	if not game.me.location.southeast:
+def travelSE(me):
+	if not me.location.southeast:
 		print("You cannot go southeast from here.")
 	else:
-		game.me.location = game.me.location.southeast
+		me.location = me.location.southeast
 		print("You go southeast.")
-		game.me.location.describe()
+		me.location.describe(me)
 
-def travelS():
-	if not game.me.location.south:
+def travelS(me):
+	if not me.location.south:
 		print("You cannot go south from here.")
 	else:
-		game.me.location = game.me.location.south
+		me.location = me.location.south
 		print("You go south.")
-		game.me.location.describe()
+		me.location.describe(me)
 
-def travelSW():
-	if not game.me.location.southwest:
+def travelSW(me):
+	if not me.location.southwest:
 		print("You cannot go southwest from here.")
 	else:
-		game.me.location = game.me.location.southwest
+		me.location = me.location.southwest
 		print("You go southwest.")
-		game.me.location.describe()
+		me.location.describe(me)
 
-def travelW():
-	if not game.me.location.west:
+def travelW(me):
+	if not me.location.west:
 		print("You cannot go west from here.")
 	else:
-		game.me.location = game.me.location.west
+		me.location = me.location.west
 		print("You go west.")
-		game.me.location.describe()
+		me.location.describe(me)
 
-def travelNW():
-	if not game.me.location.northwest:
+def travelNW(me):
+	if not me.location.northwest:
 		print("You cannot go northwest from here.")
 	else:
-		game.me.location = game.me.location.northwest
+		me.location = me.location.northwest
 		print("You go northwest.")
-		game.me.location.describe()
+		me.location.describe(me)
 
 
 # maps user input to travel functions
