@@ -3,6 +3,7 @@ import thing
 class Room:
 	hasWalls = True
 	contains = []
+	sub_contains = []
 	
 	north = False
 	northeast = False
@@ -20,9 +21,11 @@ class Room:
 		
 	def addThing(self, thing):
 		self.contains.append(thing)
+		thing.location = self
 		
 	def removeThing(self, thing):
 		self.contains.remove(thing)
+		thing.location = False
 	
 	def describe(self, me):
 		self.fulldesc = self.desc

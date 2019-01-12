@@ -1,7 +1,7 @@
 import vocab
 import actor
 import thing
-
+from string import lower
 # Class for IntFicPy verbs
 class Verb:
 	word = ""
@@ -11,7 +11,7 @@ class Verb:
 	impIobj = False
 	preposition = False
 	syntax = []
-	dscope = "room" # "knows", "room" or "inv"
+	dscope = "room" # "knows", "near", "room" or "inv"
 	iscope = "room"
 	
 	def __init__(self, word):
@@ -50,7 +50,13 @@ getVerb.hasDobj = True
 def getVerbFunc(me, dobj):
 	if dobj.invItem:
 		print("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
-		me.location.removeThing(dobj)
+		for thing in dobj.containsIn:
+			dobj.location.sub_contains.remove(thing)
+			me.sub_inventory.append(thing)
+		for thing in dobj.containsOn:
+			dobj.location.sub_contains.remove(thing)
+			me.sub_inventory.append(thing)
+		dobj.location.removeThing(dobj)
 		me.inventory.append(dobj)
 	else:
 		print(dobj.cannotTakeMsg)
@@ -65,10 +71,54 @@ dropVerb.dscope = "inv"
 
 def dropVerbFunc(me, dobj):
 	print("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
+	for thing in dobj.containsIn:
+		me.location.sub_contains.append(thing)
+	for thing in dobj.containsOn:
+		me.location.sub_contains.append(thing)
 	me.location.addThing(dobj)
 	me.inventory.remove(dobj)
 
 dropVerb.verbFunc = dropVerbFunc
+
+# PUT/SET ON
+setOnVerb = Verb("set")
+setOnVerb.addSynonym("put")
+setOnVerb.syntax = [["put", "<dobj>", "on", "<iobj>"], ["set", "<dobj>", "on", "<iobj>"]]
+setOnVerb.hasDobj = True
+setOnVerb.dscope = "inv"
+setOnVerb.hasIobj = True
+setOnVerb.iscope = "room"
+setOnVerb.preposition = "on"
+
+def setOnVerbFunc(me, dobj, iobj):
+	if isinstance(iobj, thing.Surface):
+		print("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
+		me.inventory.remove(dobj)
+		iobj.addOn(dobj)
+	else:
+		print("There is no surface to set it on.")
+
+setOnVerb.verbFunc = setOnVerbFunc
+
+# PUT/SET IN
+setInVerb = Verb("set")
+setInVerb.addSynonym("put")
+setInVerb.syntax = [["put", "<dobj>", "in", "<iobj>"], ["set", "<dobj>", "in", "<iobj>"]]
+setInVerb.hasDobj = True
+setInVerb.dscope = "inv"
+setInVerb.hasIobj = True
+setInVerb.iscope = "room"
+setInVerb.preposition = "in"
+
+def setInVerbFunc(me, dobj, iobj):
+	if isinstance(iobj, thing.Container):
+		print("You set " + dobj.getArticle(True) + dobj.verbose_name + " in " + iobj.getArticle(True) + iobj.verbose_name + ".")
+		me.inventory.remove(dobj)
+		iobj.addIn(dobj)
+	else:
+		print("There is no way to put it inside.")
+
+setInVerb.verbFunc = setInVerbFunc
 
 # VIEW INVENTORY
 invVerb = Verb("inventory")
@@ -83,6 +133,10 @@ def invVerbFunc(me):
 		invdesc = "You have "
 		for thing in me.inventory:
 			invdesc = invdesc + thing.getArticle() + thing.verbose_name
+			if len(thing.containsIn) > 0:
+				c = lower(thing.containsDesc)
+				c =c[1:-1]
+				invdesc = invdesc + " (" + c + ")"
 			if thing is me.inventory[-1]:
 				invdesc = invdesc + "."
 			elif thing is me.inventory[-2]:
@@ -109,6 +163,7 @@ examineVerb = Verb("examine")
 examineVerb.addSynonym("x")
 examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"]]
 examineVerb.hasDobj = True
+examineVerb.dscope = "near"
 
 def examineVerbFunc(me, dobj):
 	print (dobj.xdesc)

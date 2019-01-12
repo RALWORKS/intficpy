@@ -1,6 +1,7 @@
 class Player:
 	location = False
 	inventory = []
+	sub_inventory = []
 	wearing = []
 	inv_max = 100
 	desc=""

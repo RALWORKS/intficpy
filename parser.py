@@ -57,7 +57,7 @@ def getVerb(input_tokens):
 		return False
 
 def matchPrepositions(verbs, input_tokens):
-	prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across"]
+	prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with"]
 	remove_verb = []
 	for p in prepositions:
 		if p in input_tokens:
@@ -165,16 +165,20 @@ def checkRange(me, things, scope):
 	out_range = []
 	if scope=="room":
 		for thing in things:
-			if thing not in me.location.contains:
+			if (thing not in me.location.contains) and (thing not in me.location.sub_contains):
 				out_range.append(thing)
 	elif scope=="knows":
 		for thing in things:
 			if thing not in me.knows_about:
 				out_range.append(thing)
+	elif scope=="near":
+		for thing in things:
+			if (thing not in me.location.contains) and (thing not in me.location.sub_contains) and (thing not in me.inventory) and (thing not in me.sub_inventory):
+				out_range.append(thing)
 	else:
 		# assume scope equals "inv"
 		for thing in things:
-			if thing not in me.inventory:
+			if (thing not in me.inventory) and (thing not in me.sub_inventory):
 				out_range.append(thing)
 	for thing in out_range:
 		things.remove(thing)
@@ -203,7 +207,7 @@ def getThing(me, noun_adj_arr, scope):
 	# check if things are in range
 	things = checkRange(me, things, scope)
 	if len(things) == 0:
-		if scope=="room":
+		if scope=="room" or scope =="near":
 			print("I don't see any " + noun + " here.")
 			return False
 		elif scope=="knows":
@@ -270,6 +274,17 @@ def callVerb(me, cur_verb, obj_words):
 		cur_iobj = False
 		lastTurn.iobj = False
 	# apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
+	
+	if cur_dobj in me.sub_inventory:
+		print("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
+		cur_dobj.location.removeThing(cur_dobj)
+		me.inventory.append(cur_dobj)
+	
+	if cur_iobj in me.sub_inventory:
+		print("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
+		cur_iobj.location.removeThing(cur_iobj)
+		me.inventory.append(cur_iobj)
+	
 	if cur_verb.hasIobj:
 		if not cur_dobj or not cur_iobj:
 			return False
