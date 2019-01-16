@@ -15,4 +15,7 @@ I created the Thing class (with subclasses Surface, Container and Actor) to repr
 At present, it is possible to develop a fully featured interactive fiction game in intficpy, but it will be easier to do so once intficpy is more fleshed out.
 
 # Installation
-intficpy can be downloaded, and used as a Python library.
+intficpy can be downloaded, and used as a Python library. intficpy has a PyQt5 GUI, athough it is possible to run games directly in the terminal as well.
+
+# License
+intficpy is distributed with a GPL license
