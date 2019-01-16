@@ -1,4 +1,4 @@
-import thing
+from . import thing
 
 class Room:
 	hasWalls = True
@@ -27,15 +27,14 @@ class Room:
 		self.contains.remove(thing)
 		thing.location = False
 	
-	def describe(self, me):
+	def describe(self, me, app):
 		self.fulldesc = self.desc
 		for thing in self.contains:
 			self.fulldesc = self.fulldesc + " " + thing.desc
 			# give player "knowledge" of a thing upon having it described
 			if thing not in me.knows_about:
 				me.knows_about.append(thing)
-		print("") # line break before title
-		print('\033[1m' + self.name + '\033[0m')
-		print(self.fulldesc)
-		print("")
+		#app.printToGUI("") # line break before title
+		app.printToGUI(self.name, True)
+		app.printToGUI(self.fulldesc)
 	

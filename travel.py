@@ -1,68 +1,68 @@
 # travel functions, called by getDirection in parser
 
-def travelN(me):
+def travelN(me, app):
 	if not me.location.north:
-		print("You cannot go north from here.")
+		app.printToGUI("You cannot go north from here.")
 	else:
 		me.location = me.location.north
-		print("You go north.")
-		me.location.describe(me)
+		app.printToGUI("You go north.")
+		me.location.describe(me, app)
 
-def travelNE(me):
+def travelNE(me, app):
 	if not me.location.northeast:
-		print("You cannot go northeast from here.")
+		app.printToGUI("You cannot go northeast from here.")
 	else:
 		me.location = me.location.northeast
-		print("You go northeast.")
-		me.location.describe(me)
+		app.printToGUI("You go northeast.")
+		me.location.describe(me, app)
 
-def travelE(me):
+def travelE(me, app):
 	if not me.location.east:
-		print("You cannot go east from here.")
+		app.printToGUI("You cannot go east from here.")
 	else:
 		me.location = me.location.east
-		print("You go east.")
-		me.location.describe(me)
+		app.printToGUI("You go east.")
+		me.location.describe(me, app)
 
-def travelSE(me):
+def travelSE(me, app):
 	if not me.location.southeast:
-		print("You cannot go southeast from here.")
+		app.printToGUI("You cannot go southeast from here.")
 	else:
 		me.location = me.location.southeast
-		print("You go southeast.")
-		me.location.describe(me)
+		app.printToGUI("You go southeast.")
+		me.location.describe(me, app)
 
-def travelS(me):
+def travelS(me, app):
 	if not me.location.south:
-		print("You cannot go south from here.")
+		app.printToGUI("You cannot go south from here.")
 	else:
 		me.location = me.location.south
-		print("You go south.")
-		me.location.describe(me)
+		app.printToGUI("You go south.")
+		me.location.describe(me, app)
 
-def travelSW(me):
+def travelSW(me, app):
 	if not me.location.southwest:
-		print("You cannot go southwest from here.")
+		app.printToGUI("You cannot go southwest from here.")
 	else:
 		me.location = me.location.southwest
-		print("You go southwest.")
-		me.location.describe(me)
+		app.printToGUI("You go southwest.")
+		me.location.describe(me, app)
 
-def travelW(me):
+def travelW(me, app):
 	if not me.location.west:
-		print("You cannot go west from here.")
+		app.printToGUI("You cannot go west from here.")
 	else:
 		me.location = me.location.west
-		print("You go west.")
-		me.location.describe(me)
+		app.printToGUI("You go west.")
+		me.location.describe(me, app)
 
-def travelNW(me):
+def travelNW(me, app):
 	if not me.location.northwest:
-		print("You cannot go northwest from here.")
+		app.printToGUI("You cannot go northwest from here.")
 	else:
 		me.location = me.location.northwest
-		print("You go northwest.")
-		me.location.describe(me)
+		app.printToGUI("You go northwest.")
+		me.location.describe(me, app)
 
 
 # maps user input to travel functions

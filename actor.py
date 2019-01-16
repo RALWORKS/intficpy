@@ -1,6 +1,6 @@
-from thing import Thing
-import vocab
-from string import lower, capitalize
+from .thing import Thing
+from . import vocab
+#from string import lower, capitalize
 
 class Actor(Thing):
 	invItem = False
@@ -14,7 +14,7 @@ class Actor(Thing):
 	def __init__(self, name):
 		self.name = name
 		self.verbose_name = name
-		self.desc = capitalize(self.getArticle()) + name + " is here."
+		self.desc = self.getArticle().capitalize() + name + " is here."
 		self.cannotTakeMsg = "You cannot take a person."
 		if name not in vocab.nounDict:
 			vocab.nounDict[name] = [self]
@@ -30,7 +30,7 @@ class Actor(Thing):
 		self.desc = name + " is here."
 		self.hasArticle = False
 		
-		name = lower(name)
+		name = name.lower()
 		
 		if name not in vocab.nounDict:
 			vocab.nounDict[name] = [self]
@@ -45,8 +45,8 @@ class Actor(Thing):
 		else:
 		 self.default_topic = topic
 	
-	def defaultTopic(self):
-		print(self.default_topic)
+	def defaultTopic(self, app):
+		app.printToGUI(self.default_topic)
 	
 class Topic:
 	text = ""
@@ -54,6 +54,6 @@ class Topic:
 	def __init__(self, t):
 		self.text = t
 	
-	def func(self):
-		print(self.text)
+	def func(self, app):
+		app.printToGUI(self.text)
 		

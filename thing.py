@@ -1,5 +1,5 @@
-import vocab
-from string import capitalize
+from . import vocab
+#from string import capitalize
 
 class Thing:
 	def __init__(self, n):
@@ -23,6 +23,7 @@ class Thing:
 	cannotTakeMsg = "You cannot take that."
 	containsOn = []
 	containsIn = []
+	wearable = False
 	
 	def addSynonym(self, word):
 		if word in vocab.nounDict:
@@ -49,7 +50,7 @@ class Thing:
 	
 	def makeUnique(self):
 		self.isDefinite = True
-		self.desc = capitalize(self.getArticle()) + self.verbose_name + " is here."
+		self.desc = self.getArticle().capitalize() + self.verbose_name + " is here."
 
 class Surface(Thing):
 	invItem = False
@@ -150,3 +151,6 @@ class Container(Thing):
 			self.location.sub_contains.remove(thing)
 		thing.location = False
 		self.inListUpdate()
+
+class Clothing(Thing):
+	wearable = True
