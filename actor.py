@@ -2,6 +2,9 @@ from .thing import Thing
 from . import vocab
 #from string import lower, capitalize
 
+actors = {}
+actor_ix = 0
+
 class Actor(Thing):
 	invItem = False
 	isProperName = False
@@ -24,6 +27,12 @@ class Actor(Thing):
 		self.ask_topics = {}
 		self.tell_topics = {}
 		self.default_topic = "No response."
+		
+		# indexing for save
+		global actor_ix
+		self.ix = "actor" + str(actor_ix)
+		actor_ix = actor_ix + 1
+		actors[self.ix] = self
 
 	def makeProper(self, name):
 		self.name = name

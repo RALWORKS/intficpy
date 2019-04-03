@@ -1,8 +1,16 @@
 from . import vocab
 #from string import capitalize
-
+things = {}
+thing_ix = 0
 class Thing:
 	def __init__(self, n):
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		
+		# thing properties
 		self.location = False
 		self.name = n
 		self.verbose_name = n
@@ -70,6 +78,12 @@ class Surface(Thing):
 			vocab.nounDict[n] = [self]
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.base_xdesc = self.base_desc
+		
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
 	
 	def onListUpdate(self):
 		onlist = " On the " + self.name + " is "
@@ -119,6 +133,12 @@ class Container(Thing):
 			vocab.nounDict[n] = [self]
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.base_xdesc = self.base_desc
+		
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
 	
 	def inListUpdate(self):
 		inlist = " In the " + self.name + " is "

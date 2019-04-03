@@ -7,6 +7,9 @@ class Player:
 	desc=""
 	knows_about = []
 	
+	gameOpening = False
+	
 	def __init__(self, loc):
 		self.location = loc
+		
 

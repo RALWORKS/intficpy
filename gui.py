@@ -1,6 +1,7 @@
 import sys
+import os
 import PyQt5.QtCore as QtCore
-from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QFrame, QScrollArea, QAbstractSlider, QSizePolicy
+from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QFrame, QScrollArea, QAbstractSlider, QSizePolicy, QFileDialog
 from PyQt5.QtGui import QIcon, QFont
 import re
 import time
@@ -69,8 +70,8 @@ class App(QWidget):
 		# first, print room description
 		#me.location.describe()
 		# clean string
-		input_string = input_string.lower()
-		input_string = re.sub(r'[^\w\s]','',input_string)
+		#input_string = input_string.lower()
+		#input_string = re.sub(r'[^\w\s]','',input_string)
 		# check for quit command
 		#if(input_string=="q" or input_string=="quit"):
 			#print("Goodbye.")
@@ -80,6 +81,7 @@ class App(QWidget):
 		else:
 			# parse string
 			parseInput(self.me, self, input_string)
+			parser.daemons.runAll(self)
 	
 	def newBox(self, c):
 		self.obox = QFrame()
@@ -99,17 +101,22 @@ class App(QWidget):
 		self.newBox(2)
 		t_echo = "> " + textboxValue
 		self.printToGUI(t_echo)
-		self.newBox(1)
+		input_string = textboxValue.lower()
+		input_string = re.sub(r'[^\w\s]','',input_string)
+		if input_string != "save" and input_string != "load":
+			self.newBox(1)
 		self.turnMain(textboxValue)
 	
 	def keyPressEvent(self, event):
-		if event.key() == QtCore.Qt.Key_Return:
+		if event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
 			self.on_click()
 
 	def printToGUI(self, out_string, bold=False):
 		out = QLabel()
 		if bold:
 			out.setFont(tBold)
+		# remove function calls from output
+		out_string = parser.extractInline(self, out_string)	
 		out.setText(out_string)
 		#self.layout.addWidget(out)
 		self.olayout.addWidget(out)
@@ -121,6 +128,39 @@ class App(QWidget):
 		self.obox.setMinimumSize(self.obox.sizeHint())
 		vbar = self.scroll.verticalScrollBar()
 		vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
+		#parser.callFuncs(self)
+	
+	def getSaveFileGUI(self):
+		cwd = os.getcwd()
+		#fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
+		fname = QFileDialog.getSaveFileName(self, 'New save file', cwd, "Save files (*.sav)")
+		fname = fname[0]
+		# add .sav extension if necessary
+		self.newBox(1)
+		if not "." in fname:
+			fname = fname + ".sav"
+		elif (fname.index(".") - len(fname)) != -4:
+			ex_start = fname.index(".")
+			fname = fname[0:ex_start]
+			fname = fname + ".sav"
+		elif fname[-4:]!=".sav":
+			fname = fname[0:-4]
+			fname = fname + ".sav"
+		return fname
+		
+	def getLoadFileGUI(self):
+		cwd = os.getcwd()
+		#fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
+		fname = QFileDialog.getOpenFileName(self, 'Load save file', cwd, "Save files (*.sav)")
+		fname = fname[0]
+		# add .sav extension if necessary
+		self.newBox(1)
+		#print(fname)
+		print(fname[-4:])
+		if fname[-4:]==".sav":
+			return fname
+		else:
+			return None
 
 #if __name__ == '__main__':
 #app = QApplication(sys.argv)

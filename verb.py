@@ -44,7 +44,9 @@ class Verb:
 # GET/TAKE
 getVerb = Verb("get")
 getVerb.addSynonym("take")
-getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"]]
+getVerb.addSynonym("pick")
+getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"], ["pick", "up", "<dobj>"], ["pick", "<dobj>", "up"]]
+getVerb.preposition = "up"
 getVerb.hasDobj = True
 
 def getVerbFunc(me, app, dobj):
@@ -65,9 +67,11 @@ getVerb.verbFunc = getVerbFunc
 
 # DROP
 dropVerb = Verb("drop")
-dropVerb.syntax = [["drop", "<dobj>"]]
+dropVerb.addSynonym("put")
+dropVerb.syntax = [["drop", "<dobj>"], ["put", "down", "<dobj>"], ["put", "<dobj>", "down"]]
 dropVerb.hasDobj = True
 dropVerb.dscope = "inv"
+dropVerb.preposition = "down"
 
 def dropVerbFunc(me, app, dobj):
 	app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
@@ -217,6 +221,43 @@ def askVerbFunc(me, app, dobj, iobj):
 		app.printToGUI("You cannot talk to that.")
 
 askVerb.verbFunc = askVerbFunc
+
+# ASK (Actor)
+tellVerb = Verb("tell")
+tellVerb.syntax = [["tell", "<dobj>", "about", "<iobj>"]]
+tellVerb.hasDobj = True
+tellVerb.hasIobj = True
+tellVerb.iscope = "knows"
+tellVerb.impDobj = True
+
+def getImpTell(me, app):
+	from . import parser
+	people = []
+	for p in me.location.contains:
+		if isinstance(p, actor.Actor):
+			people.append(p)
+	if len(people)==0:
+		app.printToGUI("There's no one here to tell.")
+	elif len(people)==1:
+		return people[0]
+	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		return parser.lastTurn.dobj
+	else:
+		app.printToGUI("Please specify a person to ask.")
+		parser.lastTurn.ambiguous = True
+
+tellVerb.getImpDobj = getImpTell
+
+def tellVerbFunc(me, app, dobj, iobj):
+	if isinstance(dobj, actor.Actor):
+		if iobj in dobj.ask_topics:
+			dobj.tell_topics[iobj].func(app)
+		else:
+			dobj.defaultTopic(app)
+	else:
+		app.printToGUI("You cannot talk to that.")
+
+tellVerb.verbFunc = tellVerbFunc
 
 # WEAR/PUT ON
 wearVerb = Verb("wear")

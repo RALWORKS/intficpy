@@ -1,4 +1,8 @@
 from . import thing
+from . import serializer
+
+rooms = {}
+room_ix = 0
 
 class Room:
 	hasWalls = True
@@ -15,6 +19,13 @@ class Room:
 	northwest = False
 	
 	def __init__(self, name, desc):
+		# indexing for save
+		global room_ix
+		self.ix = "room" + str(room_ix)
+		room_ix = room_ix + 1
+		rooms[self.ix] = self
+		
+		# room properties
 		self.name = name
 		self.desc = desc
 		self.contains = []
