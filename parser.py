@@ -177,7 +177,7 @@ def verbByObjects(app, input_tokens, verbs):
 			return None
 
 # checks for words unaccounted for by verb form
-# takes argument verb_form, a verb form (list of strings), dobj, 
+# takes argument verb_form, a verb form (list of strings), dobj and iobj, the gramatical direct and indirect objects from the command (lists of strings), and input tokens, the tokenized player command (list of strings)
 # called by verbByObjects
 # returns a list, empty or containing one word strings (extra words)
 def checkExtra(verb_form, dobj, iobj, input_tokens):
@@ -254,9 +254,11 @@ def getGrammarObj(me, app, cur_verb, input_tokens, verb_form):
 	return checkObj(me, app, cur_verb, dobj, iobj)
 
 # parse verb form (list of strings) to find the words directly preceding and following object tags, and pass these to getObjWords find the objects in the player's command
-# takes arguments app, the PyQt application, verb_form, the assumed syntax of the command (list of strings), tag (string, "<dobj>" or "<iobj>"), input_tokens (list of strings) and print_verb_error (Boolean), False when called by verbByObjects
+# takes arguments app, the PyQt application, verb_form, the assumed syntax of the command (list of strings), 
+# tag (string, "<dobj>" or "<iobj>"), input_tokens (list of strings) and print_verb_error (Boolean), False when called by verbByObjects
 # NOTE: print_verb_error prevents the duplication of the error message in the event of improper Verb definition. A little bit hacky. 
 # called by getVerbSyntax and verbByObjects
+# returns None or a list of strings
 def analyzeSyntax(app, verb_form, tag, input_tokens, print_verb_error=True):
 	# get words before and after
 	if tag in verb_form:
@@ -264,7 +266,7 @@ def analyzeSyntax(app, verb_form, tag, input_tokens, print_verb_error=True):
 	else:
 		if print_verb_error:
 			app.printToGUI("ERROR: Inconsistent verb definitition.")
-		return False
+		return None
 	before = verb_form[obj_i - 1]
 	if obj_i+1<len(verb_form):
 		after = verb_form[obj_i + 1]
@@ -309,7 +311,7 @@ def checkObj(me, app, cur_verb, dobj, iobj):
 # create a list of all nouns and adjectives (strings) referring to a direct or indirect object
 # takes arguments app, pointing to the PyQt application, before, the word expected before the grammatical object (string), after, the word expected after the grammatical object (string or None), and input_tokens, the tokenized player command (list of strings)
 # called by analyzeSyntax
-# returns an array of strings
+# returns an array of strings or None
 def getObjWords(app, before, after, input_tokens):
 	low_bound = input_tokens.index(before)
 	# add 1 for non-inclusive indexing
@@ -321,7 +323,7 @@ def getObjWords(app, before, after, input_tokens):
 		obj_words = input_tokens[low_bound:]
 	if len(obj_words) == 0:
 		#app.printToGUI("I don't undertand. Please be more specific.")
-		return False
+		return None
 	return obj_words
 
 # eliminates all grammatical object candidates that are not within the scope of the current verb
@@ -369,26 +371,9 @@ def getThing(me, app, noun_adj_arr, scope):
 		# COPY the of list Things associated with a noun to allow for element deletion during disambiguation (in checkAdjectives)
 		# the list will usually be fairly small
 		things = list(vocab.nounDict[noun])
+		things = checkRange(me, things, scope)
 	else:
-		if scope=="wearing":
-			app.printToGUI("You aren't wearing any " + noun + ".")
-			lastTurn.err = True
-			return False
-		elif scope=="room":
-			app.printToGUI("I don't see any " + noun + " here.")
-			lastTurn.err = True
-			return False
-		elif scope=="knows":
-			app.printToGUI("You don't know of any " + noun + ".")
-			lastTurn.err = True
-			return False
-		else:
-			# assuming scope = "inv"
-			app.printToGUI("You don't have any " + noun + ".")
-			lastTurn.err = True
-			return False
-	# check if things are in range
-	things = checkRange(me, things, scope)
+		things = []
 	if len(things) == 0:
 		if scope=="wearing":
 			app.printToGUI("You aren't wearing any " + noun + ".")
