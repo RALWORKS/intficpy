@@ -359,6 +359,31 @@ def checkRange(me, things, scope):
 	
 	return things
 
+# prints the appropriate Thing out of scope message
+# takes arguments app, pointing to the PyQt app, scope, a string, and noun_adj_arr, a list of strings
+# called by getThing and checkAdjectives
+# returns None
+def verbScopeError(app, scope, noun_adj_arr):
+	noun = " ".join(noun_adj_arr)
+	if scope=="wearing":
+		app.printToGUI("You aren't wearing any " + noun + ".")
+		lastTurn.err = True
+		return None
+	elif scope=="room" or scope =="near":
+		app.printToGUI("I don't see any " + noun + " here.")
+		lastTurn.err = True
+		return None
+	elif scope=="knows":
+		# assuming scope = "inv"
+		app.printToGUI("You don't know of any " + noun + ".")
+		lastTurn.err = True
+		return None
+	else:
+		# assuming scope = "inv"
+		app.printToGUI("You don't have any " + noun + ".")
+		lastTurn.err = True
+		return None
+
 # get the Thing object in range associated with a list of adjectives and a noun
 # takes arguments me, app, noun_adj_array, a list of strings referring to an in game item, taken from the player command, and scope, a string specifying the range of the verb
 # called by callVerb
@@ -375,24 +400,7 @@ def getThing(me, app, noun_adj_arr, scope):
 	else:
 		things = []
 	if len(things) == 0:
-		if scope=="wearing":
-			app.printToGUI("You aren't wearing any " + noun + ".")
-			lastTurn.err = True
-			return False
-		elif scope=="room" or scope =="near":
-			app.printToGUI("I don't see any " + noun + " here.")
-			lastTurn.err = True
-			return False
-		elif scope=="knows":
-			# assuming scope = "inv"
-			app.printToGUI("You don't know of any " + noun + ".")
-			lastTurn.err = True
-			return False
-		else:
-			# assuming scope = "inv"
-			app.printToGUI("You don't have any " + noun + ".")
-			lastTurn.err = True
-			return False
+		return verbScopeError(app, scope, noun_adj_arr)
 	elif len(things) == 1:
 		return things[0]
 	else:
@@ -426,23 +434,7 @@ def checkAdjectives(app, noun_adj_arr, noun, things, scope):
 		lastTurn.ambiguous = True
 		return None
 	else:
-		if scope=="wearing":
-			app.printToGUI("You aren't wearing any " + " ".join(noun_adj_arr)  + " here.")
-			lastTurn.err = True
-			return None
-		elif scope=="room":
-			app.printToGUI("I don't see any " + " ".join(noun_adj_arr)  + " here.")
-			lastTurn.err = True
-			return None
-		elif scope=="knows":
-			app.printToGUI("You don't know of any " + noun + ".")
-			lastTurn.err = True
-			return None
-		else:
-			# assuming scope is "inv"
-			app.printToGUI("You don't have any " + " ".join(noun_adj_arr)  + ".")
-			lastTurn.err = True
-			return None
+		return verbScopeError(app, scope, noun_adj_arr)
 			
 # gets the Thing objects (if any) referred to in the player command, then calls the verb function
 # takes arguments me, app, cur_verb, a Verb object (verb.py), and obj_words, a list with two items representing the grammatical direct and indirect objects, either lists of strings, or None
