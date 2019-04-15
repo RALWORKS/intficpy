@@ -29,8 +29,7 @@ class Thing:
 	invItem = True
 	adjectives = []
 	cannotTakeMsg = "You cannot take that."
-	containsOn = []
-	containsIn = []
+	contains = []
 	wearable = False
 	
 	def addSynonym(self, word):
@@ -62,15 +61,17 @@ class Thing:
 
 class Surface(Thing):
 	invItem = False
-	containsOn = []
 	
 	def __init__(self, n):
+		self.contains = []
+		self.sub_contains = []
 		self.name = n
 		self.verbose_name = n
 		self.ask = False
 		self.tell = False
 		self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.xdesc = self.desc
+		self.containsDesc = ""
 		# add name to list of nouns
 		if n in vocab.nounDict:
 			vocab.nounDict[n].append(self)
@@ -85,47 +86,50 @@ class Surface(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 	
-	def onListUpdate(self):
+	def containsListUpdate(self):
 		onlist = " On the " + self.name + " is "
-		for thing in self.containsOn:
+		for thing in self.contains:
 			onlist = onlist + thing.getArticle() + thing.verbose_name
-			if thing is self.containsOn[-1]:
+			if thing is self.contains[-1]:
 				onlist = onlist + "."
-			elif thing is self.containsOn[-2]:
+			elif thing is self.contains[-2]:
 				onlist = onlist + " and "
 			else:
 				onlist = onlist + ", "
-		if len(self.containsOn)==0:
+		if len(self.contains)==0:
 			onlist = ""
 		self.desc = self.base_desc + onlist
 		self.xdesc = self.base_xdesc + onlist
+		self.containsDesc = onlist
 
 	def addOn(self, item):
 		item.location = self
 		self.location.sub_contains.append(item)
-		self.containsOn.append(item)
-		self.onListUpdate()
+		self.contains.append(item)
+		self.containsListUpdate()
 
 	def removeThing(self, thing):
-		if thing in self.containsOn:
-			self.containsOn.remove(thing)
+		if thing in self.contains:
+			self.contains.remove(thing)
 		else:
-			self.containsIn.remove(thing)
+			self.contains.remove(thing)
 		self.location.sub_contains.remove(thing)
 		thing.location = False
-		self.onListUpdate()
+		self.containsListUpdate()
 		
 class Container(Thing):
 	invItem = True
-	containsIn = []
 	
 	def __init__(self, n):
+		self.contains = []
+		self.sub_contains = []
 		self.name = n
 		self.verbose_name = n
 		self.ask = False
 		self.tell = False
 		self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.xdesc = self.desc
+		self.containsDesc = ""
 		# add name to list of nouns
 		if n in vocab.nounDict:
 			vocab.nounDict[n].append(self)
@@ -140,17 +144,17 @@ class Container(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 	
-	def inListUpdate(self):
+	def containsListUpdate(self):
 		inlist = " In the " + self.name + " is "
-		for thing in self.containsIn:
+		for thing in self.contains:
 			inlist = inlist + thing.getArticle() + thing.verbose_name
-			if thing is self.containsIn[-1]:
+			if thing is self.contains[-1]:
 				inlist = inlist + "."
-			elif thing is self.containsIn[-2]:
+			elif thing is self.contains[-2]:
 				inlist = inlist + " and "
 			else:
 				inlist = inlist + ", "
-		if len(self.containsIn)==0:
+		if len(self.contains)==0:
 			inlist = ""
 		self.desc = self.base_desc + inlist
 		self.xdesc = self.base_xdesc + inlist
@@ -159,18 +163,18 @@ class Container(Thing):
 	def addIn(self, item):
 		item.location = self
 		self.location.sub_contains.append(item)
-		self.containsIn.append(item)
-		self.inListUpdate()
+		self.contains.append(item)
+		self.containsListUpdate()
 
 	def removeThing(self, thing):
-		if thing in self.containsOn:
-			self.containsOn.remove(thing)
+		if thing in self.contains:
+			self.contains.remove(thing)
 		else:
-			self.containsIn.remove(thing)
+			self.contains.remove(thing)
 		if not self.location==False:
 			self.location.sub_contains.remove(thing)
 		thing.location = False
-		self.inListUpdate()
+		self.containsListUpdate()
 
 class Clothing(Thing):
 	wearable = True

@@ -1,5 +1,6 @@
 from . import vocab
 from . import actor
+from . import player
 from . import thing
 #from string import lower
 # Class for IntFicPy verbs
@@ -38,6 +39,51 @@ class Verb:
 		app.printToGUI("Error: no implicit indirect object defined")
 
 
+# a function to find all nested Things
+# used by multiple verbs
+def getNested(target):
+	nested = []
+	for item in target.contains:
+		lvl = 0
+		push = False
+		lvl_dict = {}
+		lvl_dict[0] = list(item.contains)
+		lvl_parent = [item]
+		if item not in nested:
+			nested.append(item)
+
+		while lvl_dict[0] != []:
+			remove_scanned = []
+			# pop to lower level if empty
+			if lvl_dict[lvl]==[]:
+				lvl_dict[lvl-1].remove(lvl_parent[-1])
+				lvl_parent = lvl_parent[:-1]
+				lvl = lvl - 1
+			# scan items on current level
+			for y in lvl_dict[lvl]:
+				if not y in nested:
+					nested.append(y)
+				# if y contains items, push into y.contains 
+				if y.contains != []:
+					lvl = lvl + 1
+					lvl_dict[lvl] = list(y.contains)
+					lvl_parent.append(y)
+					push = True
+					break
+				else:
+					remove_scanned.append(y)
+			# remove scanned items from lvl_dict
+			for r in remove_scanned:
+				if push:
+					lvl_dict[lvl-1].remove(r)
+				else:
+					lvl_dict[lvl].remove(r)
+				
+			# reset push marker
+			push = False
+	return nested
+	
+
 # Below are IntFicPy's built in verbs
 ###########################################################################
 
@@ -52,13 +98,16 @@ getVerb.hasDobj = True
 def getVerbFunc(me, app, dobj):
 	if dobj.invItem:
 		app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
-		for thing in dobj.containsIn:
-			dobj.location.sub_contains.remove(thing)
-			me.sub_inventory.append(thing)
-		for thing in dobj.containsOn:
-			dobj.location.sub_contains.remove(thing)
-			me.sub_inventory.append(thing)
-		dobj.location.removeThing(dobj)
+		nested = getNested(dobj)
+		for t in nested:
+			dobj.location.sub_contains.remove(t)
+			me.sub_inventory.append(t)
+		if isinstance(dobj.location, thing.Thing):
+			old_loc = dobj.location
+			dobj.location.removeThing(dobj)
+			old_loc.containsListUpdate()
+		else:
+			dobj.location.removeThing(dobj)
 		me.inventory.append(dobj)
 	else:
 		app.printToGUI(dobj.cannotTakeMsg)
@@ -75,12 +124,16 @@ dropVerb.preposition = "down"
 
 def dropVerbFunc(me, app, dobj):
 	app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
-	for thing in dobj.containsIn:
+	if dobj in me.sub_inventory:
+		me.sub_inventory.remove(dobj)
+	nested = getNested(dobj)
+	for thing in nested:
+		me.sub_inventory.remove(thing)
 		me.location.sub_contains.append(thing)
-	for thing in dobj.containsOn:
-		me.location.sub_contains.append(thing)
+
 	me.location.addThing(dobj)
 	me.inventory.remove(dobj)
+	dobj.location = me.location
 
 dropVerb.verbFunc = dropVerbFunc
 
@@ -98,6 +151,10 @@ def setOnVerbFunc(me, app, dobj, iobj):
 	if isinstance(iobj, thing.Surface):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		me.inventory.remove(dobj)
+		nested = getNested(dobj)
+		for t in nested:
+			me.sub_inventory.remove(t)
+			iobj.sub_contains.append(t)
 		iobj.addOn(dobj)
 	else:
 		app.printToGUI("There is no surface to set it on.")
@@ -118,6 +175,10 @@ def setInVerbFunc(me, app, dobj, iobj):
 	if isinstance(iobj, thing.Container):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " in " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		me.inventory.remove(dobj)
+		nested = getNested(dobj)
+		for t in nested:
+			me.sub_inventory.remove(t)
+			iobj.sub_contains.append(t)
 		iobj.addIn(dobj)
 	else:
 		app.printToGUI("There is no way to put it inside.")
@@ -137,7 +198,7 @@ def invVerbFunc(me, app):
 		invdesc = "You have "
 		for thing in me.inventory:
 			invdesc = invdesc + thing.getArticle() + thing.verbose_name
-			if len(thing.containsIn) > 0:
+			if len(thing.contains) > 0:
 				c = thing.containsDesc.lower()
 				c =c[1:-1]
 				invdesc = invdesc + " (" + c + ")"

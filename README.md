@@ -18,4 +18,4 @@ At present, it is possible to develop a fully featured interactive fiction game 
 intficpy can be downloaded, and used as a Python library. intficpy has a PyQt5 GUI, athough it is possible to run games directly in the terminal as well.
 
 # License
-intficpy is distributed with a GPL license
+intficpy is distributed with a GPL3 license

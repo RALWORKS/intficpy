@@ -7,7 +7,6 @@ room_ix = 0
 class Room:
 	hasWalls = True
 	contains = []
-	sub_contains = []
 	
 	north = False
 	northeast = False
@@ -29,14 +28,18 @@ class Room:
 		self.name = name
 		self.desc = desc
 		self.contains = []
+		self.sub_contains = []
 		
 	def addThing(self, thing):
 		self.contains.append(thing)
 		thing.location = self
 		
 	def removeThing(self, thing):
-		self.contains.remove(thing)
-		thing.location = False
+		if thing in self.sub_contains:
+			self.sub_contains.remove(thing)
+		else:
+			self.contains.remove(thing)
+			thing.location = False
 	
 	def describe(self, me, app):
 		self.fulldesc = self.desc
