@@ -6,7 +6,7 @@ from . import room
 from . import actor
 
 ##############################################################
-######### SERIALIZER.PY - the save/load system for IntFicPy ############
+# SERIALIZER.PY - the save/load system for IntFicPy
 # Defines the SaveState class, with methods for saving and loading games
 ##############################################################
 # TODO: save creator defined variables 
@@ -21,7 +21,7 @@ class SaveState:
 		self.rooms = {}
 	
 	# takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
-	# takes arguments thing_list, the list of Things to be analised, and loc_dict, the dictionary to write to
+	# takes arguments thing_list, the list of Things to be analysed, and loc_dict, the dictionary to write to
 	# returns nothing
 	def encodeNested(self, thing_list, loc_dict):
 		for item in thing_list:

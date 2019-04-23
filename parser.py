@@ -8,8 +8,8 @@ from . import thing
 from . import serializer
 
 ##############################################################
-############### PARSER.PY - the parser for IntFicPy ##################
-#### Contains the input loop and parsing functions for the framework #####
+# PARSER.PY - the parser for IntFicPy 
+# Contains the input loop and parsing functions for the framework
 ##############################################################
 
 # used for disambiguation mode

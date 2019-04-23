@@ -9,8 +9,8 @@ import time
 from . import parser
 
 ##############################################################
-################## GUI.PY - the GUI for IntFicPy ####################
-######## Defines the default GUI application for IntFicPy games #########
+# GUI.PY - the GUI for IntFicPy
+# Defines the default GUI application for IntFicPy games
 ##############################################################
 # TODO: modify App.__init__ to allow for insertion of a custom stylesheet directly from the main game file when the GUI is created
 # TODO: display game title in the window title
