@@ -5,13 +5,24 @@ from . import player
 from . import room
 from . import actor
 
+##############################################################
+######### SERIALIZER.PY - the save/load system for IntFicPy ############
+# Defines the SaveState class, with methods for saving and loading games
+##############################################################
+# TODO: save creator defined variables 
 
+# the SaveState class is the outline for a save state, and the methods used in saving/loading
+# methods used in saving are encodeNested, and saveState
+# methods used in loading are dictLookup, addSubContains, decodeNested, and loadState
 class SaveState:
 	def __init__(self):
 		self.custom_globals = []
 		self.player = False
 		self.rooms = {}
 	
+	# takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
+	# takes arguments thing_list, the list of Things to be analised, and loc_dict, the dictionary to write to
+	# returns nothing
 	def encodeNested(self, thing_list, loc_dict):
 		for item in thing_list:
 				loc = item.location
@@ -58,6 +69,9 @@ class SaveState:
 					# reset push marker
 					push = False
 	
+	# serializes game state and writes to a file
+	# takes arguments me, the Player object, and f, the path to write to
+	# returns True if successful, False if failed
 	def saveState(self, me, f):
 		self.player = copy.copy(me)
 		# inventory
@@ -75,7 +89,6 @@ class SaveState:
 			self.rooms[key] = {"name": room.rooms[key].name, "desc": room.rooms[key].desc, "contains": {}}
 			self.encodeNested(room.rooms[key].contains, self.rooms[key]["contains"])
 		self.player.location = me.location.ix
-		
 		# open save file
 		if not "." in f:
 			f = f + ".sav"
@@ -85,9 +98,13 @@ class SaveState:
 		savefile.close()
 		return True
 	
+	# checks the item index against the appropriate dictionary, and returns the corresponding in game object
+	# takes one argument ix, the string used as item index
+	# returns a Thing, an Actor, a Room, or None if failed
+	# NOTE: consider breaking this function to ensure consistent return types
 	def dictLookup(self, ix):
 		if not ix:
-			return False
+			return None
 		elif ix[0]=="t":
 			return thing.things[ix]
 		elif ix[0]=="a":
@@ -96,8 +113,11 @@ class SaveState:
 			return room.rooms[ix]
 		else:
 			print("unexpected ix format")
-			return False
+			return None
 	
+	# add a Thing to the sub_contains or sub_inventory list of every Thing or Player it is nested inside of
+	# takes one argument, thing_in, the Thing object to add to sub_contains
+	# returns nothing
 	def addSubContains(self, thing_in):
 		x = thing_in.location
 		while not isinstance(x, room.Room):
@@ -109,6 +129,9 @@ class SaveState:
 			if not isinstance(x, room.Room):
 				x.containsListUpdate()
 	
+	# reads the nested dictionaries representing inventory and each room's contains property, and reconstructs the network of Thing objects
+	# takes arguments dict_in, the dictionary to read, and obj_out, the object to write to
+	# returns nothing
 	def decodeNested(self, dict_in, obj_out):
 		for k, item in dict_in.items():
 			outer_item = dict_in[k]
@@ -176,7 +199,10 @@ class SaveState:
 				push = False
 			if isinstance(x.location, thing.Container) or isinstance(x.location, thing.Surface):
 				x.location.containsListUpdate()
-						
+	
+	# deserializes and reconstructs the saved Player object and game state
+	# takes arguments me, the game's current Player object (to be overwritten), f, the file to read, and app, the PyQt5 GUI application
+	# returns True
 	def loadState(self, me, f, app):
 		if f[-4:]!=".sav":
 			f = f + ".sav"
@@ -197,6 +223,6 @@ class SaveState:
 		me.location = room.rooms[temp.player.location]
 		return True
 		
-
+# the SaveState object
 curSave = SaveState()
 

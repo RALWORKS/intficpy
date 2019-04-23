@@ -8,11 +8,23 @@ import time
 
 from . import parser
 
+##############################################################
+################## GUI.PY - the GUI for IntFicPy ####################
+######## Defines the default GUI application for IntFicPy games #########
+##############################################################
+# TODO: modify App.__init__ to allow for insertion of a custom stylesheet directly from the main game file when the GUI is created
+# TODO: display game title in the window title
+# TODO: disallow ".sav" as a complete filename for saving
+
+# defines the bold font for game output text
 tBold=QFont()
 tBold.setBold(True)
 
+# the App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods
 class App(QWidget):
-
+	
+	# initiilaize the GUI
+	# takes argument me, pointing to the Player
 	def __init__(self, me):
 		super().__init__()
 		self.title = 'IntFicPy'
@@ -28,7 +40,9 @@ class App(QWidget):
 		
 		parser.initGame(me, self)
 		self.setStyleSheet('QFrame { border:none;}')
-	 
+	
+	# build the basic user interface
+	# called by __init__ 
 	def initUI(self):
 		self.setWindowTitle(self.title)
 		self.setGeometry(self.left, self.top, self.width, self.height)
@@ -46,7 +60,6 @@ class App(QWidget):
 		#   Scroll Area Properties
 		self.scroll = QScrollArea()
 		self.scroll.setFrameShape(QFrame.Box)
-		#self.scroll.setStyleSheet("border:none")
 		self.scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 		self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 		self.scroll.setWidgetResizable(True)
@@ -56,26 +69,15 @@ class App(QWidget):
 		
 		self.mainbox = QVBoxLayout()
 		self.mainbox.addWidget(self.scroll)
-		#self.mainbox.addStretch()
 		self.mainbox.addWidget(self.textbox)
 		
 		self.setLayout(self.mainbox)
-		
+	
+	# sends user input to the parser each turn
+	# takes argument input_string, the cleaned user input string
 	def turnMain(self, input_string):
 		from intficpy.parser import parseInput
-		
 		quit = False
-		#roomDescribe(me)
-		#while not quit:
-		# first, print room description
-		#me.location.describe()
-		# clean string
-		#input_string = input_string.lower()
-		#input_string = re.sub(r'[^\w\s]','',input_string)
-		# check for quit command
-		#if(input_string=="q" or input_string=="quit"):
-			#print("Goodbye.")
-			#quit = True
 		if len(input_string)==0:
 			return 0
 		else:
@@ -83,6 +85,8 @@ class App(QWidget):
 			parseInput(self.me, self, input_string)
 			parser.daemons.runAll(self)
 	
+	# creates a new QFrame to wrap text in the game output area
+	# takes argument c, an integer specifying textbox colour and style
 	def newBox(self, c):
 		self.obox = QFrame()
 		self.obox.setFrameStyle(QFrame.StyledPanel)
@@ -94,9 +98,10 @@ class App(QWidget):
 		else:
 			self.obox.setStyleSheet("background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px")
 	
+	# echos input, cleans input, and sends input to turnMain
+	# called when the user presses return
 	def on_click(self):
 		textboxValue = self.textbox.text()
-		#QMessageBox.question(self, 'Message - pythonspot.com', "You typed: " + textboxValue, QMessageBox.Ok, QMessageBox.Ok)
 		self.textbox.setText("")
 		self.newBox(2)
 		t_echo = "> " + textboxValue
@@ -107,10 +112,13 @@ class App(QWidget):
 			self.newBox(1)
 		self.turnMain(textboxValue)
 	
+	# maps on_click to the enter key
 	def keyPressEvent(self, event):
 		if event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
 			self.on_click()
 
+	# prints game output to the GUI, and scrolls down
+	# takes arguments out_string, the string to print, and bold, a Boolean which defaults to False
 	def printToGUI(self, out_string, bold=False):
 		out = QLabel()
 		if bold:
@@ -128,8 +136,9 @@ class App(QWidget):
 		self.obox.setMinimumSize(self.obox.sizeHint())
 		vbar = self.scroll.verticalScrollBar()
 		vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
-		#parser.callFuncs(self)
 	
+	# creates a QFileDialog when the user types save, and validates the selected file name
+	# returns the file name
 	def getSaveFileGUI(self):
 		cwd = os.getcwd()
 		#fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
@@ -147,7 +156,9 @@ class App(QWidget):
 			fname = fname[0:-4]
 			fname = fname + ".sav"
 		return fname
-		
+	
+	# creates a QFileDialog when the user types load, and validates the selected file name
+	# returns the file name if extension is sav, else return None
 	def getLoadFileGUI(self):
 		cwd = os.getcwd()
 		#fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
@@ -162,10 +173,4 @@ class App(QWidget):
 		else:
 			return None
 
-#if __name__ == '__main__':
-#app = QApplication(sys.argv)
-#screen = app.primaryScreen()
-#screen = screen.size()
-#ex = App()
-#ex.show()
-#sys.exit(app.exec_())
+
