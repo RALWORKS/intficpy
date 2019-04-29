@@ -1,5 +1,11 @@
-# travel functions, called by getDirection in parser
+##############################################################
+# ROOM.PY - travel functions for IntFicPy
+# Defines travel functions and the direction vocab dictionary
+##############################################################
 
+# travel functions, called by getDirection in parser.py
+
+# travel north
 def travelN(me, app):
 	if not me.location.north:
 		app.printToGUI("You cannot go north from here.")
@@ -8,6 +14,7 @@ def travelN(me, app):
 		app.printToGUI("You go north.")
 		me.location.describe(me, app)
 
+# travel northeast
 def travelNE(me, app):
 	if not me.location.northeast:
 		app.printToGUI("You cannot go northeast from here.")
@@ -16,6 +23,7 @@ def travelNE(me, app):
 		app.printToGUI("You go northeast.")
 		me.location.describe(me, app)
 
+# travel east
 def travelE(me, app):
 	if not me.location.east:
 		app.printToGUI("You cannot go east from here.")
@@ -24,6 +32,7 @@ def travelE(me, app):
 		app.printToGUI("You go east.")
 		me.location.describe(me, app)
 
+# travel southeast
 def travelSE(me, app):
 	if not me.location.southeast:
 		app.printToGUI("You cannot go southeast from here.")
@@ -32,6 +41,7 @@ def travelSE(me, app):
 		app.printToGUI("You go southeast.")
 		me.location.describe(me, app)
 
+# travel south
 def travelS(me, app):
 	if not me.location.south:
 		app.printToGUI("You cannot go south from here.")
@@ -40,6 +50,7 @@ def travelS(me, app):
 		app.printToGUI("You go south.")
 		me.location.describe(me, app)
 
+# travel southwest
 def travelSW(me, app):
 	if not me.location.southwest:
 		app.printToGUI("You cannot go southwest from here.")
@@ -48,6 +59,7 @@ def travelSW(me, app):
 		app.printToGUI("You go southwest.")
 		me.location.describe(me, app)
 
+# travel west
 def travelW(me, app):
 	if not me.location.west:
 		app.printToGUI("You cannot go west from here.")
@@ -56,6 +68,7 @@ def travelW(me, app):
 		app.printToGUI("You go west.")
 		me.location.describe(me, app)
 
+# travel northwest
 def travelNW(me, app):
 	if not me.location.northwest:
 		app.printToGUI("You cannot go northwest from here.")

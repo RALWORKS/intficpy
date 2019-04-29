@@ -9,7 +9,8 @@ from . import actor
 # SERIALIZER.PY - the save/load system for IntFicPy
 # Defines the SaveState class, with methods for saving and loading games
 ##############################################################
-# TODO: save creator defined variables 
+# TODO: save creator defined variables
+# TODO: save me.knows_about
 
 # the SaveState class is the outline for a save state, and the methods used in saving/loading
 # methods used in saving are encodeNested, and saveState

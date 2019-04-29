@@ -14,8 +14,22 @@ I created the Thing class (with subclasses Surface, Container and Actor) to repr
 
 At present, it is possible to develop a fully featured interactive fiction game in intficpy, but it will be easier to do so once intficpy is more fleshed out.
 
-# Installation
-intficpy can be downloaded, and used as a Python library. intficpy has a PyQt5 GUI, athough it is possible to run games directly in the terminal as well.
+# Installation and Use
+To install, download the intficpy folder, and place inside of a project folder. To use the GUI, you will need to have PyQt5 installed. Refer to test_game/testgame.py for terminal mode instructions. You will need to import the following files:
+
+	# imports from other libraries
+	import sys
+	from PyQt5.QtWidgets import QApplication
+
+	# imports from intficpy
+	from intficpy.room import Room
+	from intficpy.thing import Thing, Surface, Container, Clothing
+	from intficpy.player import Player
+	import intficpy.actor as actor
+	import intficpy.parser as parser
+	import intficpy.gui as gui
+
+Currently, there are no instructions for creating games with IntFicPy. Feel free to experiment with testgame.py. To run it, place it in intficpy's parent folder, and run it with Python 3.
 
 # License
-intficpy is distributed with a GPL3 license
+IntFicPy is distributed with a GPL3 license
