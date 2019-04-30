@@ -32,9 +32,9 @@ class Verb:
 		self.iscope = "room"
 
 	def addSynonym(self, word):
-	"""Add a synonym verb
-		Takes argument word, a single verb (string)
-		The creator can build constructions like "take off" by specifying prepositions and syntax """
+		"""Add a synonym verb
+			Takes argument word, a single verb (string)
+			The creator can build constructions like "take off" by specifying prepositions and syntax """
 		if word in vocab.verbDict:
 			vocab.verbDict[word].append(self)
 		else:

@@ -23,8 +23,8 @@ class SaveState:
 		self.rooms = {}
 	
 	def encodeNested(self, thing_list, loc_dict):
-	"""Takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
-	Takes arguments thing_list, the list of Things to be analysed, and loc_dict, the dictionary to write to """
+		"""Takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
+		Takes arguments thing_list, the list of Things to be analysed, and loc_dict, the dictionary to write to """
 		for item in thing_list:
 				loc = item.location
 				if loc:
