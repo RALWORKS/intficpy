@@ -13,10 +13,10 @@ things = {}
 # index of a Thing will always be the same provided the game file is written according to the rules
 thing_ix = 0
 
-# Thing is the overarching class for all items that exist in the game
 class Thing:
-	# sets essential properties for the Thing instance
+	"""Thing is the overarching class for all items that exist in the game """
 	def __init__(self, name):
+		"""Sets essential properties for the Thing instance """
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -48,27 +48,28 @@ class Thing:
 		else:
 			vocab.nounDict[name] = [self]
 	
-	# adds a synonym (noun) that can be used to refer to a Thing
-	# takes argument word, a string, which should be a single noun
 	def addSynonym(self, word):
+		"""Adds a synonym (noun) that can be used to refer to a Thing
+		Takes argument word, a string, which should be a single noun """
 		if word in vocab.nounDict:
 			vocab.nounDict[word].append(self)
 		else:
 			vocab.nounDict[word] = [self]
 	
-	# sets adjectives for a Thing
-	# takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
-	# game creators should set update_desc to False if using a custom desc or xdesc for a Thing
 	def setAdjectives(self, adj_list, update_desc=True):
+		"""Sets adjectives for a Thing
+		Takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
+		Game creators should set update_desc to False if using a custom desc or xdesc for a Thing """
 		self.adjectives = adj_list
 		self.verbose_name = " ".join(adj_list) + " " + self.name
 		if update_desc:
 			self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
 			self.xdesc = self.desc
-	
-	# gets the correct article for a Thing
-	# takes argument definite (defaults to False), which specifies whether the article is definite		
+
 	def getArticle(self, definite=False):
+		"""Gets the correct article for a Thing
+		Takes argument definite (defaults to False), which specifies whether the article is definite
+		Returns a string """
 		if not self.hasArticle:
 			return ""
 		elif definite or self.isDefinite:
@@ -79,17 +80,16 @@ class Thing:
 			else:
 				return "a "
 	
-	# make a Thing unique (use definite article)
-	# creators should use a Thing's makeUnique method rather than setting its definite property directly
 	def makeUnique(self):
+		"""Make a Thing unique (use definite article)
+		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
 		self.isDefinite = True
 		self.desc = self.getArticle().capitalize() + self.verbose_name + " is here."
 
-
-# class for Things that can have other things placed on them
 class Surface(Thing):
-	# sets the essential properties for a new Surface object
+	"""Class for Things that can have other Things placed on them """
 	def __init__(self, name):
+		"""Sets the essential properties for a new Surface object """
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -128,10 +128,10 @@ class Surface(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
-	
-	# update description of contents
-	# called when a Thing is added or removed
+
 	def containsListUpdate(self):
+		"""Update description of contents
+		Called when a Thing is added or removed """
 		onlist = " On the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
 		for thing in self.contains:
@@ -151,27 +151,28 @@ class Surface(Thing):
 		self.xdesc = self.base_xdesc + onlist
 		self.contains_desc = onlist
 	
-	# add a Thing to a Surface
-	# takes argument item, pointing to a Thing
 	def addOn(self, item):
+		"""Add a Thing to a Surface
+		Takes argument item, pointing to a Thing"""
 		item.location = self
 		self.location.sub_contains.append(item)
 		self.contains.append(item)
 		self.containsListUpdate()
 
-	# removes a Thing from a Surface
 	def removeThing(self, item):
+		"""Remove a Thing from a Surface """
 		if item in self.contains:
 			self.contains.remove(item)
 			self.location.sub_contains.remove(item)
 			item.location = False
 			self.containsListUpdate()
 
-# class for Things that can contain other Things
+# NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
 class Container(Thing):
-	# set basic properties for the Container instance
-	# takes argument name, a single noun (string)
+	"""Things that can contain other Things """
 	def __init__(self, name):
+		"""Set basic properties for the Container instance
+		Takes argument name, a single noun (string)"""
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -201,8 +202,8 @@ class Container(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 	
-	# update description for addition/removal of items from the Container instance
 	def containsListUpdate(self):
+		"""Update description for addition/removal of items from the Container instance """
 		inlist = " In the " + self.name + " is "
 		# iterate through contents and append each verbose_name to description
 		for thing in self.contains:
@@ -222,16 +223,16 @@ class Container(Thing):
 		self.xdesc = self.base_xdesc + inlist
 		self.contains_desc = inlist
 	
-	# adds an item to contents, updates descriptions
-	# takes argument item, pointing to a Thing
 	def addIn(self, item):
+		"""Add an item to contents, update descriptions
+		Takes argument item, pointing to a Thing """
 		item.location = self
 		self.location.sub_contains.append(item)
 		self.contains.append(item)
 		self.containsListUpdate()
 
-	# removes an item from contents, updates decription
 	def removeThing(self, item):
+		"""Remove an item from contents, update decription """
 		if item in self.contains:
 			self.contains.remove(item)
 			if not self.location==False:
@@ -239,8 +240,9 @@ class Container(Thing):
 			item.location = False
 			self.containsListUpdate()
 
-# class for Things that can be worn
+# NOTE: May not be necessary as a distinct class. Consider just using the wearable property.
 class Clothing(Thing):
+	"""Class for Things that can be worn """
 	# all clothing is wearable
 	wearable = True
 	# uses __init__ from Thing

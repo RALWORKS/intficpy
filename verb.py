@@ -8,12 +8,12 @@ from . import thing
 # Defines the Verb class,  and the default verbs
 ##############################################################
 
-# class for IntFicPy verbs
 class Verb:
-	# set default properties for the Verb instance
-	# takes argument word, a one word verb (string)
-	# the creator can build constructions like "take off" by specifying prepositions and syntax
+	"""Verb objects represent actions the player can take """
 	def __init__(self, word):
+		"""Set default properties for the Verb instance
+		Takes argument word, a one word verb (string)
+		The creator can build constructions like "take off" by specifying prepositions and syntax """
 		if word in vocab.verbDict:
 			vocab.verbDict[word].append(self)
 		else:
@@ -30,40 +30,39 @@ class Verb:
 		# range for direct and indierct objects
 		self.dscope = "room" # "knows", "near", "room" or "inv"
 		self.iscope = "room"
-	
-	# add a synonym verb
-	# takes argument word, a single verb (string)
-	# the creator can build constructions like "take off" by specifying prepositions and syntax
+
 	def addSynonym(self, word):
+	"""Add a synonym verb
+		Takes argument word, a single verb (string)
+		The creator can build constructions like "take off" by specifying prepositions and syntax """
 		if word in vocab.verbDict:
 			vocab.verbDict[word].append(self)
 		else:
 			vocab.verbDict[word] = [self]
 	
-	# the default verb function
-	# takes arguments me, pointing to the player, app, pointing to the GUI app, and dobj, the direct object
-	# should generally be overwritten by the game creator
-	# optionally add arguments dobj and iobj, and set hasDobj and hasIobj appropriately
 	def verbFunc(self, me, app):
+		"""The default verb function
+		Takes arguments me, pointing to the player, app, pointing to the GUI app, and dobj, the direct object
+		Should generally be overwritten by the game creator
+		Optionally add arguments dobj and iobj, and set hasDobj and hasIobj appropriately """
 		app.printToGUI("You " + self.word + ".")
 	
-	# get the implicit direct object
-	# the creator should overwrite this if planning to use implicit objects
-	# view the ask verb for an example	
 	def getImpDobj(self, me, app):
+		"""Get the implicit direct object
+		The creator should overwrite this if planning to use implicit objects
+		View the ask verb for an example """
 		app.printToGUI("Error: no implicit direct object defined")
 
-	# get the implicit indirect object
-	# the creator should overwrite this if planning to use implicit objects
 	def getImpIobj(self, me, app):
+		""""Get the implicit indirect object
+		The creator should overwrite this if planning to use implicit objects """
 		app.printToGUI("Error: no implicit indirect object defined")
 
-
-# uses a depth first search to find all nested Things in Containers and Surfaces
-# takes argument target, pointing to a Thing
-# returns a list of Things
-# used by multiple verbs
 def getNested(target):
+	"""Use a depth first search to find all nested Things in Containers and Surfaces
+	Takes argument target, pointing to a Thing
+	Returns a list of Things
+	Used by multiple verbs """
 	# list to populate with found Things
 	nested = []
 	# iterate through top level contents
@@ -123,9 +122,9 @@ getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"], ["pick", "up", "<dobj>"
 getVerb.preposition = "up"
 getVerb.hasDobj = True
 
-# the function called for the get command
-# takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing
 def getVerbFunc(me, app, dobj):
+	"""Take a Thing from the room
+	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
 	# first check if dobj can be taken
 	if dobj.invItem:
 		# print the action message
@@ -160,9 +159,9 @@ dropVerb.hasDobj = True
 dropVerb.dscope = "inv"
 dropVerb.preposition = "down"
 
-# the function called for the drop command
-# takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing
 def dropVerbFunc(me, app, dobj):
+	"""Drop a Thing from the inventory
+	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
 	# print the action message
 	app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
 	# if dobj is in sub_inventory, remove it
@@ -193,9 +192,9 @@ setOnVerb.hasIobj = True
 setOnVerb.iscope = "room"
 setOnVerb.preposition = "on"
 
-# verb function for set on
-# takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing
 def setOnVerbFunc(me, app, dobj, iobj):
+	"""Put a Thing on a Surface
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(iobj, thing.Surface):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		me.inventory.remove(dobj)
@@ -223,9 +222,9 @@ setInVerb.hasIobj = True
 setInVerb.iscope = "room"
 setInVerb.preposition = "in"
 
-# verb function for set in
-# takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing
 def setInVerbFunc(me, app, dobj, iobj):
+	"""Put a Thing in a Container
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(iobj, thing.Container):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " in " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		me.inventory.remove(dobj)
@@ -249,8 +248,9 @@ invVerb.addSynonym("i")
 invVerb.syntax = [["inventory"], ["i"]]
 invVerb.hasDobj = False
 
-# verb function for inventory
 def invVerbFunc(me, app):
+	"""View the player's inventory
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# describe inventory
 	if len(me.inventory)==0:
 		app.printToGUI("You don't have anything with you.")
@@ -299,8 +299,9 @@ lookVerb.addSynonym("l")
 lookVerb.syntax = [["look"], ["l"]]
 lookVerb.hasDobj = False
 
-# verb function for look
 def lookVerbFunc(me, app):
+	"""Look around the current room
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# print location description
 	me.location.describe(me, app)
 
@@ -316,6 +317,7 @@ examineVerb.hasDobj = True
 examineVerb.dscope = "near"
 
 def examineVerbFunc(me, app, dobj):
+	"""Examine a Thing """
 	# print the target's xdesc (examine descripion)
 	app.printToGUI(dobj.xdesc)
 
@@ -332,8 +334,9 @@ askVerb.hasIobj = True
 askVerb.iscope = "knows"
 askVerb.impDobj = True
 
-# if no dobj is specified, try to guess the Actor
 def getImpAsk(me, app):
+	"""If no dobj is specified, try to guess the Actor
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# import parser to gain access to the record of the last turn
 	from . import parser
 	people = []
@@ -357,9 +360,9 @@ def getImpAsk(me, app):
 # replace the default getImpDobj method
 askVerb.getImpDobj = getImpAsk
 
-# verb function for ask
-# takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing
 def askVerbFunc(me, app, dobj, iobj):
+	"""Ask an Actor about a Thing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(dobj, actor.Actor):
 		# try to find the ask topic for iobj
 		if iobj in dobj.ask_topics:
@@ -383,8 +386,9 @@ tellVerb.hasIobj = True
 tellVerb.iscope = "knows"
 tellVerb.impDobj = True
 
-# if no dobj is specified, try to guess the Actor
 def getImpTell(me, app):
+	"""If no dobj is specified, try to guess the Actor
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# import parser to gain access to the record of the last turn
 	from . import parser
 	people = []
@@ -408,8 +412,9 @@ def getImpTell(me, app):
 # replace default getImpDobj method
 tellVerb.getImpDobj = getImpTell
 
-# verb function for tell
 def tellVerbFunc(me, app, dobj, iobj):
+	"""Tell an Actor about a Thing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(dobj, actor.Actor):
 		if iobj in dobj.tell_topics:
 			dobj.tell_topics[iobj].func(app)
@@ -431,8 +436,9 @@ wearVerb.hasDobj = True
 wearVerb.dscope = "inv"
 wearVerb.preposition = "on"
 
-# verb function for wear
 def wearVerbFunc(me, app, dobj):
+	"""Wear a piece of clothing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if isinstance(dobj, thing.Clothing):
 		app.printToGUI("You wear " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		me.inventory.remove(dobj)
@@ -453,8 +459,9 @@ doffVerb.hasDobj = True
 doffVerb.dscope = "wearing"
 doffVerb.preposition = "off"
 
-# verb function for take off
 def doffVerbFunc(me, app, dobj):
+	"""Take off a piece of clothing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	app.printToGUI("You take off " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 	me.inventory.append(dobj)
 	me.wearing.remove(dobj)

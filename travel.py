@@ -5,8 +5,9 @@
 
 # travel functions, called by getDirection in parser.py
 
-# travel north
 def travelN(me, app):
+	"""Travel north
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.north:
 		app.printToGUI("You cannot go north from here.")
 	else:
@@ -14,8 +15,9 @@ def travelN(me, app):
 		app.printToGUI("You go north.")
 		me.location.describe(me, app)
 
-# travel northeast
 def travelNE(me, app):
+	"""Travel northeast
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.northeast:
 		app.printToGUI("You cannot go northeast from here.")
 	else:
@@ -23,8 +25,9 @@ def travelNE(me, app):
 		app.printToGUI("You go northeast.")
 		me.location.describe(me, app)
 
-# travel east
 def travelE(me, app):
+	"""Travel east
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.east:
 		app.printToGUI("You cannot go east from here.")
 	else:
@@ -32,8 +35,9 @@ def travelE(me, app):
 		app.printToGUI("You go east.")
 		me.location.describe(me, app)
 
-# travel southeast
 def travelSE(me, app):
+	"""Travel southeast
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.southeast:
 		app.printToGUI("You cannot go southeast from here.")
 	else:
@@ -41,8 +45,9 @@ def travelSE(me, app):
 		app.printToGUI("You go southeast.")
 		me.location.describe(me, app)
 
-# travel south
 def travelS(me, app):
+	"""Travel south
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.south:
 		app.printToGUI("You cannot go south from here.")
 	else:
@@ -50,8 +55,9 @@ def travelS(me, app):
 		app.printToGUI("You go south.")
 		me.location.describe(me, app)
 
-# travel southwest
 def travelSW(me, app):
+	"""Travel southwest
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.southwest:
 		app.printToGUI("You cannot go southwest from here.")
 	else:
@@ -59,8 +65,9 @@ def travelSW(me, app):
 		app.printToGUI("You go southwest.")
 		me.location.describe(me, app)
 
-# travel west
 def travelW(me, app):
+	"""Travel west
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.west:
 		app.printToGUI("You cannot go west from here.")
 	else:
@@ -70,6 +77,8 @@ def travelW(me, app):
 
 # travel northwest
 def travelNW(me, app):
+	"""Travel northwest
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	if not me.location.northwest:
 		app.printToGUI("You cannot go northwest from here.")
 	else:
