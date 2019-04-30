@@ -34,13 +34,13 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + Rewrite GUI with a different GUI module (currently using Qt)
 
 ## LAST DOCUMENTATION UPDATE COMPLETED: 29/04/2019
-(*) actor.py
-(*) parser.py
-(*) thing.py
-(*) vocab.py
-(*) gui.py
-(*) player.py
-(*) room.py
-(*) travel.py
-(*) serializer.py
-(*) verb.py
+(X) actor.py
+(X) parser.py
+(X) thing.py
+(X) vocab.py
+(X) gui.py
+(X) player.py
+(X) room.py
+(X) travel.py
+(X) serializer.py
+(X) verb.py
