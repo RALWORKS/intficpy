@@ -7,9 +7,10 @@
 # NOTE: Consider merging the Player and Actor classes 
 
 class Player:
-	# set basic properties for the Player instance
-	# takes argument loc, a Room
+	"""Class for Player objects """
 	def __init__(self, loc):
+		"""Set basic properties for the Player instance
+		Takes argument loc, a Room"""
 		self.location = loc
 		self.inventory = []
 		self.sub_inventory = []

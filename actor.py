@@ -17,13 +17,13 @@ actors = {}
 # index of an actor will always be the same provided the game file is written according to the rules
 actor_ix = 0
 
-# Actor class, used for characters in the creator's game
-class Actor(Thing):
-	invItem = False # cannot be added to the inventory
 
-	# intitializes the Actor instance
-	# sets essential properties
+class Actor(Thing):
+	"""Actor class, used for characters in the creator's game """
+	invItem = False # cannot be added to the inventory
+	
 	def __init__(self, name):
+		"""Intitializes the Actor instance and sets essential properties """
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -52,11 +52,11 @@ class Actor(Thing):
 		actor_ix = actor_ix + 1
 		actors[self.ix] = self
 	
-	# makes the name of an Actor into proper name
-	# takes a string argument proper_name
-	# called by the game creator
-	# NOTE: currently enters vocab words incorrectly if proper_name contains multiple words
 	def makeProper(self, proper_name):
+		"""Makes the name of an Actor into proper name
+		Takes a string argument proper_name
+		Called by the game creator """
+	# NOTE: currently enters vocab words incorrectly if proper_name contains multiple words
 		self.name = proper_name
 		self.desc = proper_name + " is here."
 		self.hasArticle = False
@@ -68,9 +68,9 @@ class Actor(Thing):
 		elif self not in vocab.nounDict[proper_name]:
 			vocab.nounDict[proper_name].append(self)
 	
-	# adds a conversation topic to the Actor
-	# takes argument ask_tell, a string 
 	def addTopic(self, ask_tell, topic, thing):
+		"""Adds a conversation topic to the Actor
+		Takes argument ask_tell, a string """
 		if ask_tell == "ask" or ask_tell == "both":
 			self.ask_topics[thing] = topic
 		if ask_tell == "tell" or ask_tell == "both":
@@ -78,14 +78,15 @@ class Actor(Thing):
 		else:
 			print("Incorrect argument ask_tell: " + ask_tell)
 	
-	# the default function for the default topic
-	# can be overwritten for an instance to create special responses to the default topic
-	# takes argument app, pointing to the PyQt5 GUI 
 	def defaultTopic(self, app):
+		"""The default function for an Actor's default topic
+		Should be overwritten by the game creator for an instance to create special responses
+		Takes argument app, pointing to the PyQt5 GUI"""
 		app.printToGUI(self.default_topic)
 
-# class for conversation topics	
+
 class Topic:
+	"""class for conversation topics"""
 	text = ""
 	
 	def __init__(self, topic_text):

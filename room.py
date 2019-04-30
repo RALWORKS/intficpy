@@ -15,19 +15,15 @@ rooms = {}
 # index of a room will always be the same provided the game file is written according to the rules
 room_ix = 0
 
-# Room is the overarching class for all locations in an IntFicPy game
 class Room:
-	# initially set basic properties for the Room instance 
+	"""Room is the overarching class for all locations in an IntFicPy game """
 	def __init__(self, name, desc):
+		"""Initially set basic properties for the Room instance """
 		# indexing for save
 		global room_ix
 		self.ix = "room" + str(room_ix)
 		room_ix = room_ix + 1
 		rooms[self.ix] = self
-		
-		self.hasWalls = True
-		self.contains = []
-		
 		# travel connections can be set to other Rooms after initialization
 		self.north = None
 		self.northeast = None
@@ -37,30 +33,30 @@ class Room:
 		self.southwest = None
 		self.west = None
 		self.northwest = None
-		
 		# room properties
 		self.name = name
 		self.desc = desc
+		self.hasWalls = True
 		self.contains = []
 		self.sub_contains = []
 	
-	# places a Thing in a Room
-	# should generally be used by game creators instead of using room.contains.append directly
 	def addThing(self, thing):
+		"""Places a Thing in a Room
+		Should generally be used by game creators instead of using room.contains.append() directly """
 		self.contains.append(thing)
 		thing.location = self
 	
-	# removes a Thing from a Room
-	# should generally be used by game creators instead of using room.contains.remove directly	
 	def removeThing(self, thing):
+		"""Removes a Thing from a Room
+		Should generally be used by game creators instead of using room.contains.remove() directly """
 		if thing in self.sub_contains:
 			self.sub_contains.remove(thing)
 		else:
 			self.contains.remove(thing)
 			thing.location = False
 	
-	# prints the Room title and description and lists items in the Room
 	def describe(self, me, app):
+		"""Prints the Room title and description and lists items in the Room """
 		self.fulldesc = self.desc
 		for thing in self.contains:
 			self.fulldesc = self.fulldesc + " " + thing.desc

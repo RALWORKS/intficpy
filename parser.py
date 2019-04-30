@@ -11,9 +11,10 @@ from . import serializer
 # PARSER.PY - the parser for IntFicPy 
 # Contains the input loop and parsing functions for the framework
 ##############################################################
+# TODO: Fix save system for terminal version
 
-# used for disambiguation mode
 class TurnInfo:
+	"""Class of lastTurn, used for disambiguation mode """
 	ambiguous = False
 	err = False
 	verb = False
@@ -22,14 +23,14 @@ class TurnInfo:
 	
 lastTurn = TurnInfo
 
-# dictionary of creator-defined functions to be called in strings through <<funcName>> syntax
 class InlineFuncs:
+	""" Class of inline, a dictionary of creator-defined functions to be called in strings through <<funcName>> syntax """
 	functions = {}
 
 inline = InlineFuncs
 
-# creator-defined functions to be evaluated every turn
 class RunEvery:
+	"""Class of daemons, an object containing creator-defined functions to be evaluated every turn """
 	def __init__(self):
 		self.funcs = []
 	
@@ -45,28 +46,27 @@ class RunEvery:
 
 daemons = RunEvery()
 
-# used on player commands to remove punctuation and convert to lowercase
-# takes the raw user input (string)
-# returns a string
 def cleanInput(input_string):
+	"""Used on player commands to remove punctuation and convert to lowercase
+	Takes the raw user input (string)
+	Returns a string """
 	input_string = input_string.lower()
 	input_string = re.sub(r'[^\w\s]','',input_string)
 	return input_string
 
-# convert input to a list of tokens
-# takes a string as an argument, and returns a list of strings
 def tokenize(input_string):
+	"""Convert input to a list of tokens
+	Takes a string as an argument, and returns a list of strings """
 	# tokenize input with spaces
 	tokens = input_string.split()
-	#app.printToGUI(tokens)
 	return tokens
 
-# extract creator-defined inline functions with <<funcName>> syntax embeded in game text output
-# called by printToGUI in gui.py, on every string printed
-# takes arguments app, pointing to the PyQt application, and output_string, a string to be printed by the GUI
-# calls functions
-# returns the same string, without <<functions>>, and with the possible addition of string segments from creator-defined inline functions
 def extractInline(app, output_string):
+	"""Extract creator-defined inline functions with <<funcName>> syntax embeded in game text output
+	Called by printToGUI in gui.py, on every string printed
+	Takes arguments app, pointing to the PyQt application, and output_string, a string to be printed by the GUI
+	Calls functions
+	Returns the same string, without <<functions>>, and with the possible addition of string segments from creator-defined inline functions """
 	output_tokens = tokenize(output_string)
 	remove_func = []
 	for i, word in enumerate(output_tokens):
@@ -83,12 +83,11 @@ def extractInline(app, output_string):
 	
 	return " ".join(output_tokens)
 
-
-# check for direction statement as in "west" or "ne"
-# takes arguments app, pointing to the PyQt application, me, pointing to the player object, and input_tokens, a list of strings
-# called every turn by parseInput
-# returns a Boolean specifying whether the input is a travel command
 def getDirection(me, app, input_tokens):
+	"""Check for direction statement as in "west" or "ne"
+	Takes arguments app, pointing to the PyQt application, me, pointing to the player object, and input_tokens, a list of strings
+	Called every turn by parseInput
+	Returns a Boolean specifying whether the input is a travel command """
 	from . import travel
 	d = input_tokens[0]
 	# if first word is "go", skip first word, assume next word is a direction
@@ -100,11 +99,11 @@ def getDirection(me, app, input_tokens):
 	else:
 		return False
 
-# identify the verb
-# takes arguments app, pointing to the PyQt application, and input_tokens, the tokenized player command (list of strings)
-# called every turn by parseInput
-# returns a two item list of a Verb object and an associated verb form (list of strings), or None
 def getVerb(app, input_tokens):
+	"""Identify the verb
+	Takes arguments app, pointing to the PyQt application, and input_tokens, the tokenized player command (list of strings)
+	Called every turn by parseInput
+	Returns a two item list of a Verb object and an associated verb form (list of strings), or None """
 	# look up first word in verb dictionary
 	if input_tokens[0] in vocab.verbDict:
 		verbs = list(vocab.verbDict[input_tokens[0]])
@@ -117,12 +116,12 @@ def getVerb(app, input_tokens):
 	vbo = verbByObjects(app, input_tokens, verbs)
 	return vbo
 
-# disambiguates verbs based on syntax used
-# takes arguments app, pointing to the PyQt application, input_tokens, the tokenized player command (list of strings), and verbs, a list of Verb objects (verb.py)
-# called by getVerb
-# iterates through verb list, comparing syntax in input to the entries in the .syntax property of the verb
-# returns a two item list of a Verb object and an associated verb form (list of strings), or None 
 def verbByObjects(app, input_tokens, verbs):
+	"""Disambiguates verbs based on syntax used
+	Takes arguments app, pointing to the PyQt application, input_tokens, the tokenized player command (list of strings), and verbs, a list of Verb objects (verb.py)
+	Called by getVerb
+	Iterates through verb list, comparing syntax in input to the entries in the .syntax property of the verb
+	Returns a two item list of a Verb object and an associated verb form (list of strings), or None """
 	nearMatch = []
 	for cur_verb in verbs:
 		for verb_form in cur_verb.syntax:
@@ -176,11 +175,12 @@ def verbByObjects(app, input_tokens, verbs):
 			lastTurn.err = True
 			return None
 
-# checks for words unaccounted for by verb form
-# takes argument verb_form, a verb form (list of strings), dobj and iobj, the gramatical direct and indirect objects from the command (lists of strings), and input tokens, the tokenized player command (list of strings)
-# called by verbByObjects
-# returns a list, empty or containing one word strings (extra words)
 def checkExtra(verb_form, dobj, iobj, input_tokens):
+	"""Checks for words unaccounted for by verb form
+	Takes argument verb_form, a verb form (list of strings), dobj and iobj, the gramatical direct and indirect objects from 
+	the command (lists of strings), and input tokens, the 	tokenized player command (list of strings)
+	Called by verbByObjects
+	Returns a list, empty or containing one word strings (extra words)"""
 	accounted = []
 	extra = list(input_tokens)
 	for word in extra:
@@ -196,12 +196,12 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 		extra.remove(word)
 	return extra
 
-# check for prepositions in the tokenized player command, and remove any candidate verbs whose preposition does not match
-# takes arguments verbs, a list of Verb objects (verb.py), and input_tokens, the tokenized player command (list of strings)
-# called by getVerb
-# returns a list of Verb objects or an empty list
 def matchPrepositions(verbs, input_tokens):
-	prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off"]
+	"""Check for prepositions in the tokenized player command, and remove any candidate verbs whose preposition does not match
+	Takes arguments verbs, a list of Verb objects (verb.py), and input_tokens, the tokenized player command (list of strings)
+	Called by getVerb
+	Returns a list of Verb objects or an empty list """
+	prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around"]
 	remove_verb = []
 	for p in prepositions:
 		if p in input_tokens:
@@ -212,10 +212,10 @@ def matchPrepositions(verbs, input_tokens):
 		verbs.remove(verb)
 	return verbs
 
-# match tokens in input with tokens in verb syntax verb_forms to choose which syntax to assume
-# takes arguments app, pointing to the PyQt application, cur_verb, the Verb object (verb.py) being anaylzed, and input_tokens, the tokenized player command (list of strings)
-# returns the most probable verb_form (list of strings), or None
 def getVerbSyntax(app, cur_verb, input_tokens):
+	"""Match tokens in input with tokens in verb syntax verb_forms to choose which syntax to assume
+	Takes arguments app, pointing to the PyQt application, cur_verb, the Verb object (verb.py) being anaylzed, and input_tokens, the tokenized player command (list of strings)
+	Returns the most probable verb_form (list of strings), or None """
 	for verb_form in cur_verb.syntax:
 		i = len(verb_form)
 		for word in verb_form:
@@ -232,11 +232,12 @@ def getVerbSyntax(app, cur_verb, input_tokens):
 	lastTurn.err = True
 	return None
 
-# analyze input using the chosen verb_form to find any objects
-# takes arguments me, pointing to the player, a Player object (player.py), app, the PyQt application, cur_ver, a Verb object (verb.py), input_tokens, the tokenized player command (list of strings), and verb_form, the assumed syntax of the command (list of strings)
-# called by parseInput
-# returns None or a list of two items, either lists of strings, or None
 def getGrammarObj(me, app, cur_verb, input_tokens, verb_form):
+	"""Analyze input using the chosen verb_form to find any objects
+	Takes arguments me, pointing to the player, a Player object (player.py), app, the PyQt application, cur_ver, a Verb object (verb.py),
+	input_tokens, the tokenized player command (list of strings), and verb_form, the assumed syntax of the command (list of strings)
+	Called by parseInput
+	Returns None or a list of two items, either lists of strings, or None"""
 	# first, choose the correct syntax
 	if not verb_form:
 		return None
@@ -253,13 +254,14 @@ def getGrammarObj(me, app, cur_verb, input_tokens, verb_form):
 		iobj = None
 	return checkObj(me, app, cur_verb, dobj, iobj)
 
-# parse verb form (list of strings) to find the words directly preceding and following object tags, and pass these to getObjWords find the objects in the player's command
-# takes arguments app, the PyQt application, verb_form, the assumed syntax of the command (list of strings), 
-# tag (string, "<dobj>" or "<iobj>"), input_tokens (list of strings) and print_verb_error (Boolean), False when called by verbByObjects
+
 # NOTE: print_verb_error prevents the duplication of the error message in the event of improper Verb definition. A little bit hacky. 
-# called by getVerbSyntax and verbByObjects
-# returns None or a list of strings
 def analyzeSyntax(app, verb_form, tag, input_tokens, print_verb_error=True):
+	"""Parse verb form (list of strings) to find the words directly preceding and following object tags, and pass these to getObjWords find the objects in the player's command
+	Takes arguments app, the PyQt application, verb_form, the assumed syntax of the command (list of strings), tag (string, "<dobj>" or "<iobj>"),
+	input_tokens (list of strings) and print_verb_error (Boolean), False when called by verbByObjects
+	Called by getVerbSyntax and verbByObjects
+	Returns None or a list of strings """
 	# get words before and after
 	if tag in verb_form:
 		obj_i = verb_form.index(tag)
@@ -274,11 +276,11 @@ def analyzeSyntax(app, verb_form, tag, input_tokens, print_verb_error=True):
 		after = None
 	return getObjWords(app, before, after, input_tokens)
 
-# make sure that the player command contains the correct number of grammatical objects, and get implied objects if applicable
-# takes arguments me, app, cur_verb (Verb object, verb.py), dobj, the direct object of the command (list of strings or None), and iobj, the indirect object (list of strings or None)
-# called by  getGrammarObj
-# returns None, or a list of two items, either lists of strings, or None
 def checkObj(me, app, cur_verb, dobj, iobj):
+	"""Make sure that the player command contains the correct number of grammatical objects, and get implied objects if applicable
+	Takes arguments me, app, cur_verb (Verb object, verb.py), dobj, the direct object of the command (list of strings or None), and iobj, the indirect object (list of strings or None)
+	Called by  getGrammarObj
+	Returns None, or a list of two items, either lists of strings, or None"""
 	missing = False
 	if cur_verb.hasDobj and not dobj:
 		if cur_verb.impDobj:
@@ -307,12 +309,13 @@ def checkObj(me, app, cur_verb, dobj, iobj):
 	if missing:
 		return False
 	return [dobj, iobj]
-	
-# create a list of all nouns and adjectives (strings) referring to a direct or indirect object
-# takes arguments app, pointing to the PyQt application, before, the word expected before the grammatical object (string), after, the word expected after the grammatical object (string or None), and input_tokens, the tokenized player command (list of strings)
-# called by analyzeSyntax
-# returns an array of strings or None
+
 def getObjWords(app, before, after, input_tokens):
+	"""Create a list of all nouns and adjectives (strings) referring to a direct or indirect object
+	Takes arguments app, pointing to the PyQt application, before, the word expected before the grammatical object (string), after,
+	the word expected after the grammatical object (string or None), and input_tokens, the tokenized player command (list of strings)
+	Called by analyzeSyntax
+	Returns an array of strings or None """
 	low_bound = input_tokens.index(before)
 	# add 1 for non-inclusive indexing
 	low_bound = low_bound + 1
@@ -326,11 +329,12 @@ def getObjWords(app, before, after, input_tokens):
 		return None
 	return obj_words
 
-# eliminates all grammatical object candidates that are not within the scope of the current verb
-# takes arguments me, things, a list of Thing objects (thing.py) that are candidates for the target of a player's action, and scope, a string representing the range of the verb
-# called by getThing
-# returns a list of Thing objects, or an empty list
+# TODO: implicit doff, implicit take, implicit drop
 def checkRange(me, things, scope):
+	"""Eliminates all grammatical object candidates that are not within the scope of the current verb
+	Takes arguments me, things, a list of Thing objects (thing.py) that are candidates for the target of a player's action, and scope, a string representing the range of the verb
+	Called by getThing
+	Returns a list of Thing objects, or an empty list"""
 	out_range = []
 	if scope=="wearing":
 		for thing in things:
@@ -356,14 +360,13 @@ def checkRange(me, things, scope):
 				out_range.append(thing)
 	for thing in out_range:
 		things.remove(thing)
-	
 	return things
 
-# prints the appropriate Thing out of scope message
-# takes arguments app, pointing to the PyQt app, scope, a string, and noun_adj_arr, a list of strings
-# called by getThing and checkAdjectives
-# returns None
 def verbScopeError(app, scope, noun_adj_arr):
+	"""Prints the appropriate Thing out of scope message
+	Takes arguments app, pointing to the PyQt app, scope, a string, and noun_adj_arr, a list of strings
+	Called by getThing and checkAdjectives
+	Returns None """
 	noun = " ".join(noun_adj_arr)
 	if scope=="wearing":
 		app.printToGUI("You aren't wearing any " + noun + ".")
@@ -384,11 +387,12 @@ def verbScopeError(app, scope, noun_adj_arr):
 		lastTurn.err = True
 		return None
 
-# get the Thing object in range associated with a list of adjectives and a noun
-# takes arguments me, app, noun_adj_array, a list of strings referring to an in game item, taken from the player command, and scope, a string specifying the range of the verb
-# called by callVerb
-# returns a single Thing object (thing.py) or None
 def getThing(me, app, noun_adj_arr, scope):
+	"""Get the Thing object in range associated with a list of adjectives and a noun
+	Takes arguments me, app, noun_adj_array, a list of strings referring to an in game item, taken from the player command, 
+	and scope, a string specifying the range of the verb
+	Called by callVerb
+	Returns a single Thing object (thing.py) or None """
 	# get noun (last word)
 	noun = noun_adj_arr[-1]
 	# get list of associated Things
@@ -407,11 +411,12 @@ def getThing(me, app, noun_adj_arr, scope):
 		thing = checkAdjectives(app, noun_adj_arr, noun, things, scope)
 		return thing
 
-# if there are multiple Thing objects matching the noun, check the adjectives to narrow down to exactly 1
-# takes arguments app, noun_adj_arr, a list of strings referring to an in game item, taken from the player command, noun (string), things, a list of Thing objects (things.py) that are candidates for the target of the player's action, and scope, a string specifying the range of the verb
-# called by getThing
-# returns a single Thing object or None
 def checkAdjectives(app, noun_adj_arr, noun, things, scope):
+	"""If there are multiple Thing objects matching the noun, check the adjectives to narrow down to exactly 1
+	Takes arguments app, noun_adj_arr, a list of strings referring to an in game item, taken from the player command,noun (string), things, a list of Thing objects
+	(things.py) that are 	candidates for the target of the player's action, and scope, a string specifying the range of the verb
+	Called by getThing
+	Returns a single Thing object or None"""
 	adj_i = noun_adj_arr.index(noun) - 1
 	not_match = []
 	while adj_i>=0 and len(things) > 1:
@@ -435,12 +440,13 @@ def checkAdjectives(app, noun_adj_arr, noun, things, scope):
 		return None
 	else:
 		return verbScopeError(app, scope, noun_adj_arr)
-			
-# gets the Thing objects (if any) referred to in the player command, then calls the verb function
-# takes arguments me, app, cur_verb, a Verb object (verb.py), and obj_words, a list with two items representing the grammatical direct and indirect objects, either lists of strings, or None
-# called by parseInput and disambig
-# returns a Boolean, True if a verb function is successfully called, False otherwise
+
 def callVerb(me, app, cur_verb, obj_words):
+	"""Gets the Thing objects (if any) referred to in the player command, then calls the verb function
+	Takes arguments me, app, cur_verb, a Verb object (verb.py), and obj_words, a list with two items representing the grammatical
+	direct and indirect objects, either lists of strings, or None
+	Called by parseInput and disambig
+	Returns a Boolean, True if a verb function is successfully called, False otherwise"""
 	if cur_verb.hasDobj and obj_words[0]:
 		cur_dobj = getThing(me, app, obj_words[0], cur_verb.dscope)
 		lastTurn.dobj = cur_dobj
@@ -454,17 +460,14 @@ def callVerb(me, app, cur_verb, obj_words):
 		cur_iobj = False
 		lastTurn.iobj = False
 	# apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
-	
 	if cur_dobj in me.sub_inventory:
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
 		cur_dobj.location.removeThing(cur_dobj)
 		me.inventory.append(cur_dobj)
-	
 	if cur_iobj in me.sub_inventory:
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
 		cur_iobj.location.removeThing(cur_iobj)
 		me.inventory.append(cur_iobj)
-	
 	if cur_verb.hasIobj:
 		if not cur_dobj or not cur_iobj:
 			return False
@@ -481,11 +484,11 @@ def callVerb(me, app, cur_verb, obj_words):
 		cur_verb.verbFunc(me, app)
 		return True
 
-# when disambiguation mode is active, use the player input to specify the target for the previous turn's ambiguous command
-# takes arguments me, app, and input_tokens
-# called by parseInput
-# returns a Boolean, True if disambiguation successful
 def disambig(me, app, input_tokens):
+	"""When disambiguation mode is active, use the player input to specify the target for the previous turn's ambiguous command
+	Takes arguments me, app, and input_tokens
+	called by parseInput
+	Returns a Boolean, True if disambiguation successful """
 	dobj = lastTurn.dobj
 	iobj = lastTurn.iobj
 	cur_verb = lastTurn.verb
@@ -493,7 +496,6 @@ def disambig(me, app, input_tokens):
 		dobj = getThing(me, app, dobj, cur_verb.dscope)
 	if isinstance(iobj, list):
 		iobj = getThing(me, app, iobj, cur_verb.iscope)
-		
 	if not dobj and cur_verb.hasDobj:
 		dobj = input_tokens
 		if iobj!=False:
@@ -510,21 +512,22 @@ def disambig(me, app, input_tokens):
 	callVerb(me, app, cur_verb, obj_words)
 	return True
 
-# wrapper for room describe function (room.py)
 def roomDescribe(me, app):
+	"""Wrapper for room describe function (room.py) """
 	me.location.describe(me, app)
 
-# checks if the player has entered a save or load command
-# takes arguments input_tokens, the tokenized player command (list of strings), me, the player (Player object, player.py), and app, the PyQt application
-# called by parseInput
-# returns a Bool
+# NOTE: typing "save" with no file specified currently breaks the terminal version
 def saveLoadCheck(input_tokens, me, app):
+	"""Checks if the player has entered a save or load command
+	Takes arguments input_tokens, the tokenized player command (list of strings), me, the player (Player object, player.py), and app, the PyQt application
+	Called by parseInput
+	Returns a Boolean """
 	if len(input_tokens)==2 and input_tokens[0]=="save":
 		serializer.curSave.saveState(me, input_tokens[1])
 		app.printToGUI("Game saved to " + input_tokens[1] + ".sav")
 		return True
 	elif input_tokens[0]=="save":
-		#app.printToGUI("To save, please type save followed by a file name with no spaces.")
+		# app.getSaveFileGUI is not defined for terminal version
 		fname = app.getSaveFileGUI()
 		print(fname)
 		if len(fname) > 0:
@@ -540,9 +543,7 @@ def saveLoadCheck(input_tokens, me, app):
 			app.printToGUI("Error loading game.")
 		return True
 	elif input_tokens[0]=="load":
-		#app.printToGUI("To save, please type save followed by a file name with no spaces.")
 		fname = app.getLoadFileGUI()
-		
 		if serializer.curSave.loadState(me, fname, app):
 			app.printToGUI("Game loaded from " + fname)
 		else:
@@ -551,11 +552,11 @@ def saveLoadCheck(input_tokens, me, app):
 	else:
 		return False
 
-# parse player input, and respond to commands each turn
-# takes arguments me, the player (Player object, player.py), app, the PyQt application, and input_string, the raw player input
-# called by mainLoop in terminal version, turnMain (gui.py) in GUI version
-# returns 0 when complete
 def parseInput(me, app, input_string):
+	"""Parse player input, and respond to commands each turn
+	Takes arguments me, the player (Player object, player.py), app, the PyQt application, and input_string, the raw player input
+	Called by mainLoop in terminal version, turnMain (gui.py) in GUI version
+	Returns 0 when complete """
 	# clean and tokenize
 	input_string = cleanInput(input_string)
 	input_tokens = tokenize(input_string)
@@ -590,10 +591,10 @@ def parseInput(me, app, input_string):
 	callVerb(me, app, cur_verb, obj_words)
 	return 0
 
-# called when the game is opened to show opening and describe the first room
-# takes arguments me, the player (Player object, player.py) and app, the PyQt application
-# called in the creator's main game file 
 def initGame(me, app):
+	"""Called when the game is opened to show opening and describe the first room
+	Takes arguments me, the player (Player object, player.py) and app, the PyQt application
+	Called in the creator's main game file """
 	quit = False
 	if not me.gameOpening == False:
 		me.gameOpening(app)
@@ -601,16 +602,15 @@ def initGame(me, app):
 	roomDescribe(me, app)
 	daemons.runAll(app)
 
-# main loop for terminal version; not used in GUI version
-# NOT UP TO DATE. MAY REQUIRE MODIFICATION TO FUNCTION CORRECTLY
-# takes arguments me, the player (Player object, player.py) and app, an object defined in the creator's main game file
-# app must have a method printToGUI which prints to the TERMINAL. the method is so named for compatibility with the GUI version
+
+# NOTE: This function has not been updated recently, and may require modification to accomodate all features
 def mainLoop(me, app):
+	"""Main loop for terminal version; not used in GUI version
+	Takes arguments me, the player (Player object, player.py) and app, an object defined in the creator's main game file
+	app must have a method printToGUI which prints to the TERMINAL. the method is so named for compatibility with the GUI version """
 	quit = False
 	roomDescribe(me, app)
 	while not quit:
-		# first, print room description
-		#me.location.describe()
 		input_string = input("> ")
 		# check for quit command
 		if(input_string=="q" or input_string=="quit"):
@@ -623,4 +623,4 @@ def mainLoop(me, app):
 			if (not lastTurn.ambiguous) and (not lastTurn.err):
 				daemons.runAll(app)
 			parseInput(me, app, input_string)
-print("") # empty line for output formatting
+	print("") # empty line for output formatting

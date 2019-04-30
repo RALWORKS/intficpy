@@ -11,20 +11,20 @@ from . import actor
 ##############################################################
 # TODO: save creator defined variables
 # TODO: save me.knows_about
+# TODO: implement a check for validity of save files prior to trying to load
 
-# the SaveState class is the outline for a save state, and the methods used in saving/loading
-# methods used in saving are encodeNested, and saveState
-# methods used in loading are dictLookup, addSubContains, decodeNested, and loadState
 class SaveState:
+	"""The SaveState class is the outline for a save state, and the methods used in saving/loading
+	Methods used in saving are encodeNested, and saveState
+	Methods used in loading are dictLookup, addSubContains, decodeNested, and loadState"""
 	def __init__(self):
 		self.custom_globals = []
 		self.player = False
 		self.rooms = {}
 	
-	# takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
-	# takes arguments thing_list, the list of Things to be analysed, and loc_dict, the dictionary to write to
-	# returns nothing
 	def encodeNested(self, thing_list, loc_dict):
+	"""Takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
+	Takes arguments thing_list, the list of Things to be analysed, and loc_dict, the dictionary to write to """
 		for item in thing_list:
 				loc = item.location
 				if loc:
@@ -66,14 +66,13 @@ class SaveState:
 							lvl_dict[lvl-1].remove(r)
 						else:
 							lvl_dict[lvl].remove(r)
-							
 					# reset push marker
 					push = False
-	
-	# serializes game state and writes to a file
-	# takes arguments me, the Player object, and f, the path to write to
-	# returns True if successful, False if failed
+					
 	def saveState(self, me, f):
+		"""Serializes game state and writes to a file
+		Takes arguments me, the Player object, and f, the path to write to
+		Returns True if successful, False if failed """
 		self.player = copy.copy(me)
 		# inventory
 		self.player.inventory = []
@@ -99,11 +98,11 @@ class SaveState:
 		savefile.close()
 		return True
 	
-	# checks the item index against the appropriate dictionary, and returns the corresponding in game object
-	# takes one argument ix, the string used as item index
-	# returns a Thing, an Actor, a Room, or None if failed
-	# NOTE: consider breaking this function to ensure consistent return types
+	# NOTE: consider splitting this function to ensure consistent return types
 	def dictLookup(self, ix):
+		"""Checks the item index against the appropriate dictionary, and returns the corresponding in game object
+		Takes one argument ix, the string used as item index
+		Returns a Thing, an Actor, a Room, or None if failed"""
 		if not ix:
 			return None
 		elif ix[0]=="t":
@@ -115,11 +114,10 @@ class SaveState:
 		else:
 			print("unexpected ix format")
 			return None
-	
-	# add a Thing to the sub_contains or sub_inventory list of every Thing or Player it is nested inside of
-	# takes one argument, thing_in, the Thing object to add to sub_contains
-	# returns nothing
+
 	def addSubContains(self, thing_in):
+		"""Add a Thing to the sub_contains or sub_inventory list of every Thing or Player it is nested inside of
+		Takes one argument, thing_in, the Thing object to add to sub_contains """
 		x = thing_in.location
 		while not isinstance(x, room.Room):
 			x = x.location
@@ -130,10 +128,9 @@ class SaveState:
 			if not isinstance(x, room.Room):
 				x.containsListUpdate()
 	
-	# reads the nested dictionaries representing inventory and each room's contains property, and reconstructs the network of Thing objects
-	# takes arguments dict_in, the dictionary to read, and obj_out, the object to write to
-	# returns nothing
 	def decodeNested(self, dict_in, obj_out):
+		"""Reads the nested dictionaries representing inventory and each room's contains property, and reconstructs the network of Thing objects
+		Takes arguments dict_in, the dictionary to read, and obj_out, the object to write to """
 		for k, item in dict_in.items():
 			outer_item = dict_in[k]
 			x = self.dictLookup(k)
@@ -155,31 +152,25 @@ class SaveState:
 				remove_scanned = []
 				# pop if level is empty
 				if lvl_dict[lvl] == {}:
-
 					del lvl_dict[lvl-1][parent_index[-1]]
 					lvl_parent = lvl_parent[:-1]
 					parent_index = parent_index[:-1]
 					lvl = lvl -1
-					
 				for y in lvl_dict[lvl]:
 					y = self.dictLookup(y)
 					z = lvl_parent[-1]["contains"][y.ix]
 					y.verbose_name = z["verbose_name"]
 					y.desc = z["desc"]
 					y.location = self.dictLookup(z["location"])
-
 					if (isinstance(y, thing.Surface) or isinstance(y, thing.Container)) and not z["cleared"]:
 						y.contains = []
 						y.sub_contains = []
 						z["cleared"] = True
-
 					if y.location and y not in y.location.contains:
 						y.location.contains.append(y)
 						if isinstance(y.location, thing.Container) or isinstance(y.location, thing.Surface):
 							y.location.containsListUpdate()
-					
 					self.addSubContains(y)
-
 					if z["contains"] == {}:
 						remove_scanned.append(y)
 					else:
@@ -195,16 +186,16 @@ class SaveState:
 						del lvl_dict[lvl][r.ix]
 				if push:
 					lvl_dict[lvl] = z["contains"]
-				
 				# reset push marker
 				push = False
 			if isinstance(x.location, thing.Container) or isinstance(x.location, thing.Surface):
 				x.location.containsListUpdate()
 	
-	# deserializes and reconstructs the saved Player object and game state
-	# takes arguments me, the game's current Player object (to be overwritten), f, the file to read, and app, the PyQt5 GUI application
-	# returns True
+	# NOTE: Currently breaks for invalid save files
 	def loadState(self, me, f, app):
+		"""Deserializes and reconstructs the saved Player object and game state
+		Takes arguments me, the game's current Player object (to be overwritten), f, the file to read, and app, the PyQt5 GUI application
+		Returns True"""
 		if f[-4:]!=".sav":
 			f = f + ".sav"
 		savefile = open(f, "rb")

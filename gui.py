@@ -20,12 +20,12 @@ from . import parser
 tBold=QFont()
 tBold.setBold(True)
 
-# the App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods
 class App(QWidget):
-	
-	# initiilaize the GUI
-	# takes argument me, pointing to the Player
+	"""The App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods """
+
 	def __init__(self, me):
+		"""Initialize the GUI
+		Takes argument me, pointing to the Player """
 		super().__init__()
 		self.title = 'IntFicPy'
 		self.left = 10
@@ -41,9 +41,9 @@ class App(QWidget):
 		parser.initGame(me, self)
 		self.setStyleSheet('QFrame { border:none;}')
 	
-	# build the basic user interface
-	# called by __init__ 
 	def initUI(self):
+		"""Build the basic user interface
+		called by __init__ """
 		self.setWindowTitle(self.title)
 		self.setGeometry(self.left, self.top, self.width, self.height)
 		
@@ -73,9 +73,9 @@ class App(QWidget):
 		
 		self.setLayout(self.mainbox)
 	
-	# sends user input to the parser each turn
-	# takes argument input_string, the cleaned user input string
 	def turnMain(self, input_string):
+		"""Sends user input to the parser each turn
+		Takes argument input_string, the cleaned user input string """
 		from intficpy.parser import parseInput
 		quit = False
 		if len(input_string)==0:
@@ -85,22 +85,22 @@ class App(QWidget):
 			parseInput(self.me, self, input_string)
 			parser.daemons.runAll(self)
 	
-	# creates a new QFrame to wrap text in the game output area
-	# takes argument c, an integer specifying textbox colour and style
-	def newBox(self, c):
+	def newBox(self, box_style):
+		"""Creates a new QFrame to wrap text in the game output area
+		Takes argument box_style, an integer specifying textbox colour and style """
 		self.obox = QFrame()
 		self.obox.setFrameStyle(QFrame.StyledPanel)
 		self.olayout = QVBoxLayout()
 		self.obox.setLayout(self.olayout)
 		self.layout.addWidget(self.obox)
-		if c==2:
+		if box_style==2:
 			self.obox.setStyleSheet("background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px")
 		else:
 			self.obox.setStyleSheet("background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px")
 	
-	# echos input, cleans input, and sends input to turnMain
-	# called when the user presses return
 	def on_click(self):
+		"""Echos input, cleans input, and sends input to turnMain
+		Called when the user presses return """
 		textboxValue = self.textbox.text()
 		self.textbox.setText("")
 		self.newBox(2)
@@ -112,14 +112,14 @@ class App(QWidget):
 			self.newBox(1)
 		self.turnMain(textboxValue)
 	
-	# maps on_click to the enter key
 	def keyPressEvent(self, event):
+		"""Maps on_click to the enter key """
 		if event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
 			self.on_click()
 
-	# prints game output to the GUI, and scrolls down
-	# takes arguments out_string, the string to print, and bold, a Boolean which defaults to False
 	def printToGUI(self, out_string, bold=False):
+		"""Prints game output to the GUI, and scrolls down
+		Takes arguments out_string, the string to print, and bold, a Boolean which defaults to False """
 		out = QLabel()
 		if bold:
 			out.setFont(tBold)
@@ -137,11 +137,11 @@ class App(QWidget):
 		vbar = self.scroll.verticalScrollBar()
 		vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
 	
-	# creates a QFileDialog when the user types save, and validates the selected file name
-	# returns the file name
+	# TODO: disallow empty file
 	def getSaveFileGUI(self):
+		"""Creates a QFileDialog when the user types save, and validates the selected file name
+		Returns the file name """
 		cwd = os.getcwd()
-		#fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
 		fname = QFileDialog.getSaveFileName(self, 'New save file', cwd, "Save files (*.sav)")
 		fname = fname[0]
 		# add .sav extension if necessary
@@ -157,9 +157,9 @@ class App(QWidget):
 			fname = fname + ".sav"
 		return fname
 	
-	# creates a QFileDialog when the user types load, and validates the selected file name
-	# returns the file name if extension is sav, else return None
 	def getLoadFileGUI(self):
+		"""Creates a QFileDialog when the user types load, and validates the selected file name
+		Returns the file name if extension is sav, else return None """
 		cwd = os.getcwd()
 		#fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
 		fname = QFileDialog.getOpenFileName(self, 'Load save file', cwd, "Save files (*.sav)")
