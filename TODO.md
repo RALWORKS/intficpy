@@ -23,6 +23,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + implicit doff, implicit take, implicit drop
 + work on interactivity range
 ### Essential New Features
++ support the creation of multiple identical items (one definition)
 + display the game title in the GUI window title
 + make the player interactable
 + give/show topics
