@@ -35,11 +35,11 @@ class App(QWidget):
 		self.initUI()
 		self.showMaximized()
 		self.me = me
-		
 		self.newBox(1)
-		
 		parser.initGame(me, self)
 		self.setStyleSheet('QFrame { border:none;}')
+		# used for game-interrupting cutscenes
+		# populated by enterForMore()
 	
 	def initUI(self):
 		"""Build the basic user interface
@@ -72,6 +72,9 @@ class App(QWidget):
 		self.mainbox.addWidget(self.textbox)
 		
 		self.setLayout(self.mainbox)
+		
+		self.cutscene = []
+		self.anykeyformore = False
 	
 	def turnMain(self, input_string):
 		"""Sends user input to the parser each turn
@@ -114,19 +117,45 @@ class App(QWidget):
 	
 	def keyPressEvent(self, event):
 		"""Maps on_click to the enter key """
-		if event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
+		print(self.anykeyformore)
+		print(self.cutscene)
+		if self.anykeyformore and self.cutscene != []:
+			self.cutsceneNext()
+		elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
 			self.on_click()
 
 	def printToGUI(self, out_string, bold=False):
 		"""Prints game output to the GUI, and scrolls down
-		Takes arguments out_string, the string to print, and bold, a Boolean which defaults to False """
+		Takes arguments out_string, the string to print, and bold, a Boolean which defaults to False
+		Returns True on success """
 		out = QLabel()
 		if bold:
 			out.setFont(tBold)
 		# remove function calls from output
 		out_string = parser.extractInline(self, out_string)	
-		out.setText(out_string)
-		#self.layout.addWidget(out)
+		if "<<e>>" in out_string:
+			self.enterForMore(out_string)
+			return True
+		else:
+			out.setText(out_string)
+			self.olayout.addWidget(out)
+			out.setWordWrap(True)
+			out.setStyleSheet("margin-bottom: 5px")
+			out.setMaximumSize(out.sizeHint())
+			out.setMinimumSize(out.sizeHint())
+			self.obox.setMaximumSize(self.obox.sizeHint())
+			self.obox.setMinimumSize(self.obox.sizeHint())
+			vbar = self.scroll.verticalScrollBar()
+			vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
+			return True
+
+	def enterForMore(self, output_string):
+		self.cutscene = output_string.split("<<e>> ")
+		for x in range(0, (len(self.cutscene)-1)):
+			self.cutscene[x] = self.cutscene[x] + " [MORE]"
+		self.newBox(1)
+		out = QLabel()
+		out.setText(self.cutscene[0])
 		self.olayout.addWidget(out)
 		out.setWordWrap(True)
 		out.setStyleSheet("margin-bottom: 5px")
@@ -136,14 +165,35 @@ class App(QWidget):
 		self.obox.setMinimumSize(self.obox.sizeHint())
 		vbar = self.scroll.verticalScrollBar()
 		vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
+		del self.cutscene[0]
+		self.anykeyformore = True
 	
-	# TODO: disallow empty file
+	def cutsceneNext(self):
+		self.anykeyformore = False
+		self.newBox(1)
+		out = QLabel()
+		self.olayout.addWidget(out)
+		out.setWordWrap(True)
+		out.setStyleSheet("margin-bottom: 5px")
+		out.setText(self.cutscene[0])
+		out.setMaximumSize(out.sizeHint())
+		out.setMinimumSize(out.sizeHint())
+		self.obox.setMaximumSize(self.obox.sizeHint())
+		self.obox.setMinimumSize(self.obox.sizeHint())
+		vbar = self.scroll.verticalScrollBar()
+		vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
+		del self.cutscene[0]
+		if not self.cutscene==[]:
+			self.anykeyformore = True
+	
 	def getSaveFileGUI(self):
 		"""Creates a QFileDialog when the user types save, and validates the selected file name
-		Returns the file name """
+		Returns the file name or None"""
 		cwd = os.getcwd()
 		fname = QFileDialog.getSaveFileName(self, 'New save file', cwd, "Save files (*.sav)")
 		fname = fname[0]
+		if len(fname) == 0:
+			return None
 		# add .sav extension if necessary
 		self.newBox(1)
 		if not "." in fname:
@@ -166,8 +216,6 @@ class App(QWidget):
 		fname = fname[0]
 		# add .sav extension if necessary
 		self.newBox(1)
-		#print(fname)
-		print(fname[-4:])
 		if fname[-4:]==".sav":
 			return fname
 		else:

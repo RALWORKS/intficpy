@@ -2,7 +2,6 @@ import sys
 import random
 from PyQt5.QtWidgets import QApplication
 
-import intficpy
 from intficpy.room import Room
 from intficpy.thing import Thing, Surface, Container, Clothing
 from intficpy.player import Player

@@ -530,11 +530,12 @@ def saveLoadCheck(input_tokens, me, app):
 		# app.getSaveFileGUI is not defined for terminal version
 		fname = app.getSaveFileGUI()
 		print(fname)
-		if len(fname) > 0:
+		if not fname:
+			app.newBox(1)
+			app.printToGUI("Could not save game")
+		else:
 			serializer.curSave.saveState(me, fname)
 			app.printToGUI("Game saved to " + fname)
-		else:
-			app.printToGUI("Could not save game")
 		return True
 	elif len(input_tokens)==2 and input_tokens[0]=="load":
 		if serializer.curSave.loadState(me, input_tokens[1], app):

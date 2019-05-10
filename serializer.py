@@ -51,6 +51,7 @@ class SaveState:
 						if not y.ix in outer_item["contains"]:
 							outer_item["contains"][y.ix] = {"verbose_name": y.verbose_name, "desc": y.desc, "location": loc, "contains": {}, "cleared": False}
 						# if y contains items, push into y.contains 
+					
 						if y.contains != []:
 							lvl = lvl + 1
 							lvl_dict[lvl] = list(y.contains)

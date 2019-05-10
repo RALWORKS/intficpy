@@ -2,13 +2,17 @@
 IntFicPy is a tool for building parser based interactive fiction using Python. Currently, IntFicPy is in preparation for the first Beta release. A demo game, planned to be released for IFComp 2019, is in early development.
 
 ## KNOWN BUGS (Immediate Priority)
+### Saving
++ default save location should be home folder
 ### Serializer
 + conversation topics, creator-defined variables, and player knowledge are not currently saved
-+ ".sav" is currently accepted as a complete filename to save under (fix in gui.py)
 + check validity of save file before trying to load
 ### Terminal Mode
-+ some non graphical features are not available in terminal mode
-+ the "save" and "load" commands, without a specified file name, currently break terminal mode
++ some non graphical features may not be available in terminal mode
+
+## FEATURES THAT REQUIRE TESTING
++ make sure the search function finds all Things in the location/inventory
++ the [MORE] or <<e>> built in inline function needs more testing
 
 ##  PREPARATIONS FOR FIRST BETA (Upcoming Features)
 ### Convenience & Ease of Use
@@ -23,7 +27,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + make the player interactable
 + give/show topics
 + interactable walls
-+ cutscenes & enter to show more
 + Abstract class - Things referring to ideas and concepts
 ### Other New Features
 + support multiple Player characters
