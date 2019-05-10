@@ -106,12 +106,16 @@ class SaveState:
 		Returns a Thing, an Actor, a Room, or None if failed"""
 		if not ix:
 			return None
-		elif ix[0]=="t":
-			return thing.things[ix]
+		if ix[-1] == "c":
+			key = ix[:-1]
+		else:
+			key = ix
+		if ix[0]=="t":
+			return thing.things[key]
 		elif ix[0]=="a":
-			return actor.actors[ix]
+			return actor.actors[key]
 		elif ix[0]=="r":
-			return room.rooms[ix]
+			return room.rooms[key]
 		else:
 			print("unexpected ix format")
 			return None
@@ -135,9 +139,14 @@ class SaveState:
 		for k, item in dict_in.items():
 			outer_item = dict_in[k]
 			x = self.dictLookup(k)
+			if k[-1]=="c":
+				x = x.copyThing()
 			x.verbose_name = item["verbose_name"]
 			x.location = self.dictLookup(item["location"])
-			obj_out.contains.append(x)
+			if isinstance(obj_out, player.Player):
+				obj_out.inventory.append(x)
+			else:
+				obj_out.contains.append(x)
 			# Inventory and sub_inventory should already be clear for the Player
 			if (isinstance(x, thing.Surface) or isinstance(x, thing.Container)) and not outer_item["cleared"]:
 				x.contains = []

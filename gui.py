@@ -117,8 +117,6 @@ class App(QWidget):
 	
 	def keyPressEvent(self, event):
 		"""Maps on_click to the enter key """
-		print(self.anykeyformore)
-		print(self.cutscene)
 		if self.anykeyformore and self.cutscene != []:
 			self.cutsceneNext()
 		elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:

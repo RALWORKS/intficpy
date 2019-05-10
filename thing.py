@@ -1,4 +1,5 @@
 from . import vocab
+import copy
 
 ##############################################################
 # THING.PY - the Thing class for IntFicPy 
@@ -33,6 +34,7 @@ class Thing:
 		self.wearable = False
 		self.location = False
 		self.name = name
+		self.synonyms = []
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
 		# Thing instances that are not Actors cannot be spoken to
@@ -51,6 +53,7 @@ class Thing:
 	def addSynonym(self, word):
 		"""Adds a synonym (noun) that can be used to refer to a Thing
 		Takes argument word, a string, which should be a single noun """
+		self.synonyms.append(word)
 		if word in vocab.nounDict:
 			vocab.nounDict[word].append(self)
 		else:
@@ -85,6 +88,15 @@ class Thing:
 		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
 		self.isDefinite = True
 		self.desc = self.getArticle().capitalize() + self.verbose_name + " is here."
+		
+	def copyThing(self):
+		out = copy.copy(self)
+		out.ix = out.ix + "c"
+		vocab.nounDict[out.name].append(self)
+		out.setAdjectives(out.adjectives)
+		for synonym in out.synonyms:
+			vocab.nounDict[synonym].append(self)
+		return out
 
 class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
