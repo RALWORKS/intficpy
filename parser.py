@@ -15,11 +15,13 @@ from . import serializer
 
 class TurnInfo:
 	"""Class of lastTurn, used for disambiguation mode """
+	things = []
 	ambiguous = False
 	err = False
 	verb = False
 	dobj = False
 	iobj = False
+	ambigNoun = None
 	
 lastTurn = TurnInfo
 
@@ -394,7 +396,11 @@ def getThing(me, app, noun_adj_arr, scope):
 	Called by callVerb
 	Returns a single Thing object (thing.py) or None """
 	# get noun (last word)
-	noun = noun_adj_arr[-1]
+	if lastTurn.things != [] and noun_adj_arr[-1] not in vocab.nounDict:
+		noun = lastTurn.ambigNoun
+		noun_adj_arr.append(noun)
+	else:
+		noun = noun_adj_arr[-1]
 	# get list of associated Things
 	if noun in vocab.nounDict:
 		# COPY the of list Things associated with a noun to allow for element deletion during disambiguation (in checkAdjectives)
@@ -403,6 +409,8 @@ def getThing(me, app, noun_adj_arr, scope):
 		things = checkRange(me, things, scope)
 	else:
 		things = []
+	if lastTurn.things != []:
+		things = lastTurn.things
 	if len(things) == 0:
 		return verbScopeError(app, scope, noun_adj_arr)
 	elif len(things) == 1:
@@ -417,6 +425,18 @@ def checkAdjectives(app, noun_adj_arr, noun, things, scope):
 	(things.py) that are 	candidates for the target of the player's action, and scope, a string specifying the range of the verb
 	Called by getThing
 	Returns a single Thing object or None"""
+	if things==lastTurn.things:
+		lastTurn.ambiguous = False
+		lastTurn.things = []
+		lastTurn.err = False
+		lastTurn.ambigNoun = None
+	try:
+		n_select = int(noun_adj_arr[0])
+	except:
+		n_select = -1
+	if n_select <= len(things) and n_select > 0:
+		n_select = n_select - 1
+		return things[n_select]
 	adj_i = noun_adj_arr.index(noun) - 1
 	not_match = []
 	while adj_i>=0 and len(things) > 1:
@@ -434,9 +454,22 @@ def checkAdjectives(app, noun_adj_arr, noun, things, scope):
 	if len(things)==1:
 		return things[0]
 	elif len(things) >1:
-		app.printToGUI("Which " + noun + " do you mean?") # will be modified to allow for input of just noun/adjective pair
+		#app.printToGUI("Which " + noun + " do you mean?")
+		msg = "Do you mean "
+		for thing in things:
+			msg = msg + "the " + thing.verbose_name
+			# add appropriate punctuation and "or"
+			if thing is things[-1]:
+				msg = msg + "?"
+			elif thing is things[-2]:
+				msg = msg + ", or "
+			else:
+				msg = msg + ", "
+		app.printToGUI(msg)
 		# turn ON disambiguation mode for next turn
 		lastTurn.ambiguous = True
+		lastTurn.ambigNoun = noun
+		lastTurn.things = things
 		return None
 	else:
 		return verbScopeError(app, scope, noun_adj_arr)
@@ -468,6 +501,7 @@ def callVerb(me, app, cur_verb, obj_words):
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
 		cur_iobj.location.removeThing(cur_iobj)
 		me.inventory.append(cur_iobj)
+
 	if cur_verb.hasIobj:
 		if not cur_dobj or not cur_iobj:
 			return False
@@ -499,14 +533,12 @@ def disambig(me, app, input_tokens):
 	if not dobj and cur_verb.hasDobj:
 		dobj = input_tokens
 		if iobj!=False:
-			iobj = [iobj.name]
+			iobj = [iobj.verbose_name]
 	elif not iobj and cur_verb.hasIobj:
 		iobj = input_tokens
 		if dobj!=False:
 			dobj = [dobj.name]
 	obj_words = [dobj, iobj]	
-	lastTurn.ambiguous = False
-	lastTurn.err = False
 	if not obj_words:
 		return False
 	callVerb(me, app, cur_verb, obj_words)

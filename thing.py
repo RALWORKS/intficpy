@@ -92,10 +92,10 @@ class Thing:
 	def copyThing(self):
 		out = copy.copy(self)
 		out.ix = out.ix + "c"
-		vocab.nounDict[out.name].append(self)
+		vocab.nounDict[out.name].append(out)
 		out.setAdjectives(out.adjectives)
 		for synonym in out.synonyms:
-			vocab.nounDict[synonym].append(self)
+			vocab.nounDict[synonym].append(out)
 		return out
 
 class Surface(Thing):

@@ -20,7 +20,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + write script to ensure game creator compliance with IntFicPy rules and syntax
 + create a describe method in Thing/Container/Surface to eliminate the need for creators to modify both desc/xdesc AND base_desc/base_xdesc in for Surfaces and Containers
 + save the last few valid commands, and allow the player to input them with the up arrow key
-+ improve disambiguation - save the list of Things, and allow selection by adjective and index number
 + implicit doff, implicit take, implicit drop
 + work on interactivity range
 ### Essential New Features
