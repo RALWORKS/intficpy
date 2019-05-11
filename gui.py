@@ -119,7 +119,13 @@ class App(QWidget):
 		"""Maps on_click to the enter key """
 		if self.anykeyformore and self.cutscene != []:
 			self.cutsceneNext()
+		elif event.key() == QtCore.Qt.Key_Up and len(parser.lastTurn.turn_list) > 0:
+			parser.lastTurn.back = parser.lastTurn.back - 1
+			if -parser.lastTurn.back >= len(parser.lastTurn.turn_list):
+				parser.lastTurn.back = 0
+			self.textbox.setText(parser.lastTurn.turn_list[parser.lastTurn.back])
 		elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
+			parser.lastTurn.back = 0
 			self.on_click()
 
 	def printToGUI(self, out_string, bold=False):

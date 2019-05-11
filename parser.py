@@ -21,7 +21,9 @@ class TurnInfo:
 	verb = False
 	dobj = False
 	iobj = False
-	ambigNoun = None
+	ambig_noun = None
+	turn_list = []
+	back = 0
 	
 lastTurn = TurnInfo
 
@@ -54,6 +56,7 @@ def cleanInput(input_string):
 	Returns a string """
 	input_string = input_string.lower()
 	input_string = re.sub(r'[^\w\s]','',input_string)
+	lastTurn.turn_list.append(input_string)
 	return input_string
 
 def tokenize(input_string):
@@ -397,7 +400,7 @@ def getThing(me, app, noun_adj_arr, scope):
 	Returns a single Thing object (thing.py) or None """
 	# get noun (last word)
 	if lastTurn.things != [] and noun_adj_arr[-1] not in vocab.nounDict:
-		noun = lastTurn.ambigNoun
+		noun = lastTurn.ambig_noun
 		noun_adj_arr.append(noun)
 	else:
 		noun = noun_adj_arr[-1]
@@ -429,7 +432,7 @@ def checkAdjectives(app, noun_adj_arr, noun, things, scope):
 		lastTurn.ambiguous = False
 		lastTurn.things = []
 		lastTurn.err = False
-		lastTurn.ambigNoun = None
+		lastTurn.ambig_noun = None
 	try:
 		n_select = int(noun_adj_arr[0])
 	except:
@@ -468,7 +471,7 @@ def checkAdjectives(app, noun_adj_arr, noun, things, scope):
 		app.printToGUI(msg)
 		# turn ON disambiguation mode for next turn
 		lastTurn.ambiguous = True
-		lastTurn.ambigNoun = noun
+		lastTurn.ambig_noun = noun
 		lastTurn.things = things
 		return None
 	else:
