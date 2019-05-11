@@ -41,9 +41,11 @@ class Thing:
 		self.ask = False
 		self.tell = False
 		# the default description to print from the room
-		self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
 		# the default description for the examine command
-		self.xdesc = self.desc
 		# add name to list of nouns
 		if name in vocab.nounDict:
 			vocab.nounDict[name].append(self)
@@ -66,8 +68,8 @@ class Thing:
 		self.adjectives = adj_list
 		self.verbose_name = " ".join(adj_list) + " " + self.name
 		if update_desc:
-			self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
-			self.xdesc = self.desc
+			self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+			self.desc = self.base_desc
 
 	def getArticle(self, definite=False):
 		"""Gets the correct article for a Thing
@@ -87,7 +89,8 @@ class Thing:
 		"""Make a Thing unique (use definite article)
 		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
 		self.isDefinite = True
-		self.desc = self.getArticle().capitalize() + self.verbose_name + " is here."
+		self.base_desc = self.getArticle().capitalize() + self.verbose_name + " is here."
+		self.desc = self.base_desc
 		
 	def copyThing(self):
 		out = copy.copy(self)
@@ -97,6 +100,9 @@ class Thing:
 		for synonym in out.synonyms:
 			vocab.nounDict[synonym].append(out)
 		return out
+	
+	def describeThing(self, description):
+		self.base_desc = description
 
 class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
@@ -117,17 +123,13 @@ class Surface(Thing):
 		self.ask = False
 		self.tell = False
 		# default description printed by room
-		self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
-		# default examine description
-		self.xdesc = self.desc
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
 		# description of items on the Surface
 		# will be appended to descriptions
 		self.contains_desc = ""
-		# desc and xdesc without contains_desc
-		# used in constructing descriptions
-		# creators wanting custom descriptions for Surfaces should modify these
-		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
-		self.base_xdesc = self.base_desc
 		# Surfaces are not inventory items by default, but can be safely made so
 		self.invItem = False
 		# add name to list of nouns
@@ -179,6 +181,14 @@ class Surface(Thing):
 			item.location = False
 			self.containsListUpdate()
 
+	def describeThing(self, description):
+		self.base_desc = description
+		self.containsListUpdate()
+	
+	def xdescribeThing(self, description):
+		self.base_xdesc = description
+		self.containsListUpdate()
+	
 # NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
 class Container(Thing):
 	"""Things that can contain other Things """
@@ -196,13 +206,12 @@ class Container(Thing):
 		# you cannot talk to a Container
 		self.ask = False
 		self.tell = False
-		self.desc = "There is " + self.getArticle() + self.verbose_name + " here."
-		self.xdesc = self.desc
-		# description of contents
-		self.contains_desc = ""
-		# descriptions without contains_desc
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		# description of contents
+		self.contains_desc = ""
 		# add name to list of nouns
 		if name in vocab.nounDict:
 			vocab.nounDict[name].append(self)
@@ -251,6 +260,14 @@ class Container(Thing):
 				self.location.sub_contains.remove(item)
 			item.location = False
 			self.containsListUpdate()
+			
+	def describeThing(self, description):
+		self.base_desc = description
+		self.containsListUpdate()
+	
+	def xdescribeThing(self, description):
+		self.base_xdesc = description
+		self.containsListUpdate()
 
 # NOTE: May not be necessary as a distinct class. Consider just using the wearable property.
 class Clothing(Thing):
