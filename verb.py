@@ -261,8 +261,8 @@ def invVerbFunc(me, app):
 			invdesc = invdesc + thing.getArticle() + thing.verbose_name
 			# if the Thing contains Things, list them
 			if len(thing.contains) > 0:
-				# remove capitalization and terminating period from containsDesc
-				c = thing.containsDesc.lower()
+				# remove capitalization and terminating period from contains_desc
+				c = thing.contains_desc.lower()
 				c =c[1:-1]
 				invdesc = invdesc + " (" + c + ")"
 			# add appropriate punctuation and "and"
