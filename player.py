@@ -12,9 +12,9 @@ class Player:
 		"""Set basic properties for the Player instance
 		Takes argument loc, a Room"""
 		self.location = loc
-		self.inventory = []
-		self.sub_inventory = []
-		self.wearing = []
+		self.inventory = {}
+		self.sub_inventory = {}
+		self.wearing = {}
 		self.inv_max = 100
 		self.desc=""
 		self.knows_about = []

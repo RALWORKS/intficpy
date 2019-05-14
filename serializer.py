@@ -21,6 +21,7 @@ class SaveState:
 		self.custom_globals = []
 		self.player = False
 		self.rooms = {}
+		self.klist = []
 	
 	def encodeNested(self, thing_list, loc_dict):
 		"""Takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
@@ -106,16 +107,12 @@ class SaveState:
 		Returns a Thing, an Actor, a Room, or None if failed"""
 		if not ix:
 			return None
-		if ix[-1] == "c":
-			key = ix[:-1]
-		else:
-			key = ix
 		if ix[0]=="t":
-			return thing.things[key]
+			return thing.things[ix]
 		elif ix[0]=="a":
-			return actor.actors[key]
+			return actor.actors[ix]
 		elif ix[0]=="r":
-			return room.rooms[key]
+			return room.rooms[ix]
 		else:
 			print("unexpected ix format")
 			return None
@@ -139,8 +136,9 @@ class SaveState:
 		for k, item in dict_in.items():
 			outer_item = dict_in[k]
 			x = self.dictLookup(k)
-			if k[-1]=="c":
+			if k in self.klist:
 				x = x.copyThing()
+			self.klist.append(k)
 			x.verbose_name = item["verbose_name"]
 			x.location = self.dictLookup(item["location"])
 			if isinstance(obj_out, player.Player):
@@ -167,7 +165,13 @@ class SaveState:
 					parent_index = parent_index[:-1]
 					lvl = lvl -1
 				for y in lvl_dict[lvl]:
-					y = self.dictLookup(y)
+					if y in self.klist:
+						self.klist.append(y)
+						y = self.dictLookup(y)
+						y = y.copyThing()
+					else:
+						self.klist.append(y)
+						y = self.dictLookup(y)
 					z = lvl_parent[-1]["contains"][y.ix]
 					y.verbose_name = z["verbose_name"]
 					y.desc = z["desc"]
@@ -214,6 +218,7 @@ class SaveState:
 		me.sub_inventory = []
 		self.decodeNested(temp.player.inventory, me)
 		me.wearing = []
+		self.klist =[]
 		for key in temp.player.wearing:
 			me.wearing.append(thing.things[key])
 		for key in temp.rooms:

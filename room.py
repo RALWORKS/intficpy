@@ -37,32 +37,43 @@ class Room:
 		self.name = name
 		self.desc = desc
 		self.hasWalls = True
-		self.contains = []
-		self.sub_contains = []
+		self.contains = {}
+		self.sub_contains = {}
 	
-	def addThing(self, thing):
+	def addThing(self, item):
 		"""Places a Thing in a Room
 		Should generally be used by game creators instead of using room.contains.append() directly """
-		self.contains.append(thing)
-		thing.location = self
+		#self.contains.append(thing)
+		if item.ix in self.contains:
+			self.contains[item.ix].append(item)
+		else:
+			self.contains[item.ix] = [item]
+		item.location = self
 	
-	def removeThing(self, thing):
+	def removeThing(self, item):
 		"""Removes a Thing from a Room
 		Should generally be used by game creators instead of using room.contains.remove() directly """
-		if thing in self.sub_contains:
-			self.sub_contains.remove(thing)
+		if item.ix in self.sub_contains:
+			self.sub_contains[item.ix].remove(item)
+			if self.sub_contains[item.ix] == []:
+				del self.sub_contains[item.ix]
 		else:
-			self.contains.remove(thing)
-			thing.location = False
+			self.contains[item.ix].remove(item)
+			if self.contains[item.ix] == []:
+				del self.contains[item.ix]
+			item.location = False
 	
 	def describe(self, me, app):
 		"""Prints the Room title and description and lists items in the Room """
 		self.fulldesc = self.desc
-		for thing in self.contains:
-			self.fulldesc = self.fulldesc + " " + thing.desc
+		for key, things in self.contains.items():
+			if len(things) > 1:
+				self.fulldesc = self.fulldesc + " There are " + str(len(things)) + " " + things[0].getPlural() + " here. "
+			else:	
+				self.fulldesc = self.fulldesc + " " + things[0].desc
 			# give player "knowledge" of a thing upon having it described
-			if thing not in me.knows_about:
-				me.knows_about.append(thing)
+			if key not in me.knows_about:
+				me.knows_about.append(key)
 		app.printToGUI(self.name, True)
 		app.printToGUI(self.fulldesc)
 	

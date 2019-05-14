@@ -132,8 +132,15 @@ def getVerbFunc(me, app, dobj):
 		# get any nested objects
 		nested = getNested(dobj)
 		for t in nested:
-			dobj.location.sub_contains.remove(t)
-			me.sub_inventory.append(t)
+			#dobj.location.sub_contains.remove(t)
+			del dobj.location.sub_contains[t.ix][0]
+			if dobj.location.sub_contain[t.ix] == []:
+				del dobj.location.sub_contains[t.ix]
+			#me.sub_inventory.append(t)
+			if t.ix in me.inventory:
+				me.inventory[t.ix].append(t)
+			else:
+				me.inventory[t.ix] = [t]
 		# if the location of dobj is a Thing, remove it from the Thing
 		if isinstance(dobj.location, thing.Thing):
 			old_loc = dobj.location
@@ -142,7 +149,11 @@ def getVerbFunc(me, app, dobj):
 		# else assume location is a Room
 		else:
 			dobj.location.removeThing(dobj)
-		me.inventory.append(dobj)
+		#me.inventory.append(dobj)
+		if dobj.ix in me.inventory:
+			me.inventory[dobj.ix].append(dobj)
+		else:
+			me.inventory[dobj.ix] = [dobj]
 	else:
 		# if the dobj can't be taken, print the message
 		app.printToGUI(dobj.cannotTakeMsg)
@@ -165,16 +176,29 @@ def dropVerbFunc(me, app, dobj):
 	# print the action message
 	app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
 	# if dobj is in sub_inventory, remove it
-	if dobj in me.sub_inventory:
-		me.sub_inventory.remove(dobj)
+	if dobj.ix in me.sub_inventory:
+		#me.sub_inventory.remove(dobj)
+		me.sub_inventory[dobj.ix].remove(dobj)
+		if me.sub_inventory[dobj.ix] == []:
+			del me.sub_inventory[dobj.ix]
 	# get nested Things
 	nested = getNested(dobj)
 	for thing in nested:
-		me.sub_inventory.remove(thing)
-		me.location.sub_contains.append(thing)
+		#me.sub_inventory.remove(thing)
+		me.sub_inventory[thing.ix].remove(thing)
+		if me.sub_inventory[thing.ix] == []:
+			del me.sub_inventory[thing.ix]
+		#me.location.sub_contains.append(thing)
+		if thing.ix in me.location.sub_contains:
+			me.location.sub_contains[thing.ix].append(thing)
+		else:
+			me.location.sub_contains[thing.ix] = [thing]
 	# add the Thing to the player location
 	me.location.addThing(dobj)
-	me.inventory.remove(dobj)
+	#me.inventory.remove(dobj)
+	me.inventory[dobj.ix].remove(dobj)
+	if me.inventory[dobj.ix] == []:
+		del me.inventory[dobj.ix]
 	# set the Thing's location property
 	dobj.location = me.location
 
@@ -197,12 +221,22 @@ def setOnVerbFunc(me, app, dobj, iobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(iobj, thing.Surface):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
-		me.inventory.remove(dobj)
+		#me.inventory.remove(dobj)
+		me.inventory[dobj.ix].remove(dobj)
+		if me.inventory[dobj.ix] == []:
+			del me.inventory[dobj.ix]
 		# remove all nested objects for dobj from inventory
 		nested = getNested(dobj)
 		for t in nested:
-			me.sub_inventory.remove(t)
-			iobj.sub_contains.append(t)
+			#me.sub_inventory.remove(t)
+			del me.sub_inventory[t.ix][0]
+			if me.sub_inventory[t.ix] == []:
+				del me.sub_inventory[t.ix]
+			#iobj.sub_contains.append(t)
+			if t.ix in iobj.sub_contains:
+				iobj.sub_contains[t.ix].append(t)
+			else:
+				iobj.sub_contains[t.ix] = [t]
 		iobj.addOn(dobj)
 	# if iobj is not a Surface
 	else:
@@ -231,8 +265,15 @@ def setInVerbFunc(me, app, dobj, iobj):
 		# remove all nested objects for dobj from inventory
 		nested = getNested(dobj)
 		for t in nested:
-			me.sub_inventory.remove(t)
-			iobj.sub_contains.append(t)
+			#me.sub_inventory.remove(t)
+			del me.sub_inventory[t][0]
+			if me.sub_inventory[t] == []:
+				del me.sub_inventory[t]
+			#iobj.sub_contains.append(t)
+			if t.ix in iobj.sub_contains:
+				iobj.sub_contains[t.ix].append(t)
+			else:
+				iobj.sub_contains[t.ix] = [t]
 		iobj.addIn(dobj)
 	# if iobj is not a Container
 	else:
@@ -257,35 +298,42 @@ def invVerbFunc(me, app):
 	else:
 		# the string to print listing the inventory
 		invdesc = "You have "
-		for thing in me.inventory:
-			invdesc = invdesc + thing.getArticle() + thing.verbose_name
+		list_version = list(me.inventory.keys())
+		for key in list_version:
+			if len(me.inventory[key]) > 1:
+				# fix for containers?
+				invdesc = invdesc + str(len(me.inventory[key])) + " " + me.inventory[key][0].getPlural()
+			else:
+				invdesc = invdesc + me.inventory[key][0].getArticle() + me.inventory[key][0].verbose_name
 			# if the Thing contains Things, list them
-			if len(thing.contains) > 0:
+			if me.inventory[key][0].contains != {}:
 				# remove capitalization and terminating period from contains_desc
-				c = thing.contains_desc.lower()
+				c = me.inventory[key][0].contains_desc.lower()
 				c =c[1:-1]
 				invdesc = invdesc + " (" + c + ")"
 			# add appropriate punctuation and "and"
-			if thing is me.inventory[-1]:
+			if key is list_version[-1]:
 				invdesc = invdesc + "."
-			elif thing is me.inventory[-2]:
-				invdesc = invdesc + " and "
 			else:
 				invdesc = invdesc + ", "
+			if len(list_version) > 1:
+				if key is list_version[-2]:
+					invdesc = invdesc + " and "
 		app.printToGUI(invdesc)
 	# describe clothing
-	if len(me.wearing)>0:
+	if me.wearing != {}:
 		# the string to print listing clothing
 		weardesc = "You are wearing "
-		for thing in me.wearing:
-			weardesc = weardesc + thing.getArticle() + thing.verbose_name
-			# add appropriate punctuation and "and"
-			if thing is me.wearing[-1]:
-				weardesc = weardesc + "."
-			elif thing is me.wearing[-2]:
-				weardesc = weardesc + " and "
-			else:
-				weardesc = weardesc + ", "
+		for key, things in me.wearing.items():
+			for thing in things:
+				weardesc = weardesc + thing.getArticle() + thing.verbose_name
+				# add appropriate punctuation and "and"
+				if thing is me.wearing[-1]:
+					weardesc = weardesc + "."
+				elif thing is me.wearing[-2]:
+					weardesc = weardesc + " and "
+				else:
+					weardesc = weardesc + ", "
 		app.printToGUI(weardesc)
 		
 # replace default verbFunc method
@@ -441,8 +489,15 @@ def wearVerbFunc(me, app, dobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if isinstance(dobj, thing.Clothing):
 		app.printToGUI("You wear " + dobj.getArticle(True) + dobj.verbose_name  + ".")
-		me.inventory.remove(dobj)
-		me.wearing.append(dobj)
+		#me.inventory.remove(dobj)
+		me.inventory[dobj.ix].remove(dobj)
+		if me.inventory[dobj.ix] == []:
+			del me.inventory[dobj.ix]
+		#me.wearing.append(dobj)
+		if dobj.ix in me.wearing:
+			me.wearing[dobj.ix].append(dobj)
+		else:
+			me.wearing[dobj.ix] = [dobj]
 	else:
 		app.printToGUI("You cannot wear that.")
 
@@ -463,8 +518,15 @@ def doffVerbFunc(me, app, dobj):
 	"""Take off a piece of clothing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	app.printToGUI("You take off " + dobj.getArticle(True) + dobj.verbose_name  + ".")
-	me.inventory.append(dobj)
-	me.wearing.remove(dobj)
+	#me.inventory.append(dobj)
+	if dobj.ix in me.inventory:
+		me.inventory[dobj.ix].append(dobj)
+	else:
+		me.inventory[dobj.ix] = [dobj]
+	#me.wearing.remove(dobj)
+	me.wearing[dobj.ix].remove(dobj)
+	if me.wearing[dobj.ix] == []:
+		del me.wearing[dobj.ix]
 
 # replace default verbFunc method
 doffVerb.verbFunc = doffVerbFunc

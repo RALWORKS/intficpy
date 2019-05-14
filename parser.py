@@ -343,25 +343,51 @@ def checkRange(me, things, scope):
 	out_range = []
 	if scope=="wearing":
 		for thing in things:
-			if (thing not in me.wearing):
+			if (thing.ix not in me.wearing):
+				out_range.append(thing)
+			elif thing not in me.wearing[thing.ix]:
 				out_range.append(thing)
 	elif scope=="room":
-		for thing in things:
-			if (thing not in me.location.contains) and (thing not in me.location.sub_contains):
+		for thing in things: #me.location.contains and me.sub_location.contains
+			if thing.ix in me.location.contains:
+				if thing not in me.location.contains[thing.ix]:
+					out_range.append(thing)
+			elif thing.ix in me.location.sub_contains:
+				if thing not in me.location.sub_contains[thing.ix]:
+					out_range.append(thing)
+			else:
 				out_range.append(thing)
 	elif scope=="knows":
 		for thing in things:
-			if thing not in me.knows_about:
+			if not thing.ix in me.knows_about:
 				out_range.append(thing)
 	elif scope=="near":
 		for thing in things:
-			if (thing not in me.location.contains) and (thing not in me.location.sub_contains) and (thing not in me.inventory) and (thing not in me.sub_inventory):
+			if thing.ix in me.location.contains:
+				if thing not in me.location.contains[thing.ix]:
+					out_range.append(thing)
+			elif thing.ix in me.location.sub_contains:
+				if thing not in me.location.sub_contains[thing.ix]:
+					out_range.append(thing)
+			elif thing.ix in me.inventory:
+				if thing not in me.inventory[thing.ix]:
+					out_range.append(thing)
+			elif thing.ix in me.sub_inventory:
+				if thing not in me.sub_inventory[thing.ix]:
+					out_range.append(thing)
+			else:
 				out_range.append(thing)
 	else:
 		# assume scope equals "inv"
 		for thing in things:
-			if (thing not in me.inventory) and (thing not in me.sub_inventory):
-				# TODO: things currently being worn should not be eliminated
+			# TODO: things currently being worn should not be eliminated
+			if thing.ix in me.inventory:
+				if thing not in me.inventory[thing.ix]:
+					out_range.append(thing)
+			elif thing.ix in me.sub_inventory:
+				if thing not in me.sub_inventory[thing.ix]:
+					out_range.append(thing)
+			else:
 				out_range.append(thing)
 	for thing in out_range:
 		things.remove(thing)
@@ -412,8 +438,6 @@ def getThing(me, app, noun_adj_arr, scope):
 		things = checkRange(me, things, scope)
 	else:
 		things = []
-	if lastTurn.things != []:
-		things = lastTurn.things
 	if len(things) == 0:
 		return verbScopeError(app, scope, noun_adj_arr)
 	elif len(things) == 1:
@@ -564,7 +588,6 @@ def saveLoadCheck(input_tokens, me, app):
 	elif input_tokens[0]=="save":
 		# app.getSaveFileGUI is not defined for terminal version
 		fname = app.getSaveFileGUI()
-		print(fname)
 		if not fname:
 			app.newBox(1)
 			app.printToGUI("Could not save game")

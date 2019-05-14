@@ -30,7 +30,7 @@ class Thing:
 		self.invItem = True
 		self.adjectives = []
 		self.cannotTakeMsg = "You cannot take that."
-		self.contains = []
+		self.contains = {}
 		self.wearable = False
 		self.location = False
 		self.name = name
@@ -85,16 +85,21 @@ class Thing:
 			else:
 				return "a "
 	
+	def getPlural(self):
+		if self.verbose_name[-1]=="s" or self.verbose_name[-1]=="x" or self.verbose_name[-1]=="z" or self.verbose_name[-2:]=="sh" or self.verbose_name[-2:]=="ch":
+			return self.verbose_name + "es"
+		else:
+			return self.verbose_name + "s"
+	
 	def makeUnique(self):
 		"""Make a Thing unique (use definite article)
 		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
 		self.isDefinite = True
 		self.base_desc = self.getArticle().capitalize() + self.verbose_name + " is here."
 		self.desc = self.base_desc
-		
+
 	def copyThing(self):
 		out = copy.copy(self)
-		out.ix = out.ix + "c"
 		vocab.nounDict[out.name].append(out)
 		out.setAdjectives(out.adjectives)
 		for synonym in out.synonyms:
@@ -112,10 +117,10 @@ class Surface(Thing):
 		self.hasArticle = True
 		self.isDefinite = False
 		# the items on the Surface
-		self.contains = []
+		self.contains = {}
 		# items contained by items on the Surface
 		# accessible by default, but not shown in outermost description
-		self.sub_contains = []
+		self.sub_contains = {}
 		self.name = name
 		# verbose_name will be updated by Thing method setAdjectives 
 		self.verbose_name = name
@@ -148,17 +153,21 @@ class Surface(Thing):
 		Called when a Thing is added or removed """
 		onlist = " On the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
-		for thing in self.contains:
-			onlist = onlist + thing.getArticle() + thing.verbose_name
-			if thing is self.contains[-1]:
+		list_version = list(self.contains.keys())
+		for key in list_version:
+			if len(self.contains[key]) > 1:
+				onlist = onlist + str(len(things)) + " " + self.contains[key][0].verbose_name
+			else:
+				onlist = onlist + self.contains[key][0].getArticle() + self.contains[key][0].verbose_name
+			if key is list_version[-1]:
 				onlist = onlist + "."
-			elif thing is self.contains[-2]:
+			elif key is list_version[-2]:
 				onlist = onlist + " and "
 			else:
 				onlist = onlist + ", "
 		# if contains is empty, there should be no onlist
 		# TODO: consider rewriting this logic to avoid contructing an empty onlist, then deleting it
-		if len(self.contains)==0:
+		if len(list_version)==0:
 			onlist = ""
 		# append onlist to description
 		self.desc = self.base_desc + onlist
@@ -169,15 +178,28 @@ class Surface(Thing):
 		"""Add a Thing to a Surface
 		Takes argument item, pointing to a Thing"""
 		item.location = self
-		self.location.sub_contains.append(item)
-		self.contains.append(item)
+		#self.location.sub_contains.append(item)
+		#self.contains.append(item)
+		if item.ix in self.contains:
+			self.contains[item.ix].append(item)
+		else:
+			self.contains[item.ix] = [item]
+		if item.ix in self.location.sub_contains:
+			self.location.sub_contains[item.ix].append(item)
+		else:
+			self.location.sub_contains[item.ix] = [item]
 		self.containsListUpdate()
 
 	def removeThing(self, item):
 		"""Remove a Thing from a Surface """
-		if item in self.contains:
-			self.contains.remove(item)
-			self.location.sub_contains.remove(item)
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				self.contains[item.ix].remove(item)
+				self.location.sub_contains[item.ix].remove(item)
+				if self.contains[item.ix] == []:
+					del self.contains[item.ix]
+				if self.location.sub_contains[item.ix] == []:
+					del self.location.sub_contains[item.ix]
 			item.location = False
 			self.containsListUpdate()
 
@@ -199,8 +221,8 @@ class Container(Thing):
 		self.hasArticle = True
 		self.isDefinite = False
 		self.invItem = True
-		self.contains = []
-		self.sub_contains = []
+		self.contains = {}
+		self.sub_contains = {}
 		self.name = name
 		self.verbose_name = name
 		# you cannot talk to a Container
@@ -225,19 +247,23 @@ class Container(Thing):
 	
 	def containsListUpdate(self):
 		"""Update description for addition/removal of items from the Container instance """
-		inlist = " In the " + self.name + " is "
-		# iterate through contents and append each verbose_name to description
-		for thing in self.contains:
-			inlist = inlist + thing.getArticle() + thing.verbose_name
-			if thing is self.contains[-1]:
+		inlist = " On the " + self.name + " is "
+		# iterate through contents, appending the verbose_name of each to onlist
+		list_version = list(self.contains.keys())
+		for key in list_version:
+			if len(self.contains[key]) > 1:
+				inlist = inlist + str(len(things)) + " " + self.contains[key][0].verbose_name
+			else:
+				inlist = inlist + self.contains[key][0].getArticle() + self.contains[key][0].verbose_name
+			if key is list_version[-1]:
 				inlist = inlist + "."
-			elif thing is self.contains[-2]:
+			elif key is list_version[-2]:
 				inlist = inlist + " and "
 			else:
 				inlist = inlist + ", "
 		# remove the empty inlist in the case of no contents
 		# TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
-		if len(self.contains)==0:
+		if len(list_version)==0:
 			inlist = ""
 		# update descriptions
 		self.desc = self.base_desc + inlist
@@ -248,17 +274,29 @@ class Container(Thing):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
 		item.location = self
-		self.location.sub_contains.append(item)
-		self.contains.append(item)
+		#self.location.sub_contains.append(item)
+		#self.contains.append(item)
+		if item.ix in self.location.contains:
+			self.contains[item.ix].append(item)
+		else:
+			self.contains[item.ix] = [item]
+		if item.ix in self.location.sub_contains:
+			self.location.sub_contains[item.ix].append(item)
+		else:
+			self.location.sub_contains[item.ix] = [item]
 		self.containsListUpdate()
 
 	def removeThing(self, item):
 		"""Remove an item from contents, update decription """
-		if item in self.contains:
-			self.contains.remove(item)
-			if not self.location==False:
-				self.location.sub_contains.remove(item)
-			item.location = False
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				self.contains[item.ix].remove(item)
+				self.location.sub_contains[item.ix].remove(item)
+				if self.contains[item.ix] == []:
+					del self.contains[item.ix]
+				if self.location.sub_contains[item.ix] == []:
+					del self.location.sub_contains[item.ix]
+				item.location = False
 			self.containsListUpdate()
 			
 	def describeThing(self, description):
