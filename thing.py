@@ -178,8 +178,18 @@ class Surface(Thing):
 		"""Add a Thing to a Surface
 		Takes argument item, pointing to a Thing"""
 		item.location = self
-		#self.location.sub_contains.append(item)
-		#self.contains.append(item)
+		# nested items
+		nested = getNested(item)
+		for t in nested:
+			if t.ix in self.sub_contains:
+				self.sub_contains[t.ix].append(t)
+			else:
+				self.sub_contains[t.ix] = [t]
+			if item.ix in self.location.sub_contains:
+				self.location.sub_contains[t.ix].append(t)
+			else:
+				self.location.sub_contains[t.ix] = [t]
+		# top level item
 		if item.ix in self.contains:
 			self.contains[item.ix].append(item)
 		else:
@@ -247,7 +257,7 @@ class Container(Thing):
 	
 	def containsListUpdate(self):
 		"""Update description for addition/removal of items from the Container instance """
-		inlist = " On the " + self.name + " is "
+		inlist = " In the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
 		list_version = list(self.contains.keys())
 		for key in list_version:
@@ -274,9 +284,19 @@ class Container(Thing):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
 		item.location = self
-		#self.location.sub_contains.append(item)
-		#self.contains.append(item)
-		if item.ix in self.location.contains:
+		# nested items
+		nested = getNested(item)
+		for t in nested:
+			if t.ix in self.sub_contains:
+				self.sub_contains[t.ix].append(t)
+			else:
+				self.sub_contains[t.ix] = [t]
+			if item.ix in self.location.sub_contains:
+				self.location.sub_contains[t.ix].append(t)
+			else:
+				self.location.sub_contains[t.ix] = [t]
+		# top level item
+		if item.ix in self.contains:
 			self.contains[item.ix].append(item)
 		else:
 			self.contains[item.ix] = [item]
@@ -313,3 +333,64 @@ class Clothing(Thing):
 	# all clothing is wearable
 	wearable = True
 	# uses __init__ from Thing
+	
+def getNested(target):
+	"""Use a depth first search to find all nested Things in Containers and Surfaces
+	Takes argument target, pointing to a Thing
+	Returns a list of Things
+	Used by multiple verbs """
+	# list to populate with found Things
+	nested = []
+	# iterate through top level contents
+	for key, items in target.contains.items():
+		for item in items:
+			lvl = 0
+			push = False
+			# a dictionary of levels used to keep track of what has not yet been searched
+			lvl_dict = {}
+			lvl_dict[0] = []
+			# get a list of things in the top level
+			for key, things in item.contains.items():
+				for thing in things:
+					lvl_dict[0].append(thing)
+			# a list of the parent items of each level
+			# last item is current parent
+			lvl_parent = [item]
+			if item not in nested:
+				nested.append(item)
+			# when the bottom level is empty, the search is complete
+			while lvl_dict[0] != []:
+				# a list of searched items to remove from the level
+				remove_scanned = []
+				# pop to lower level if empty
+				if lvl_dict[lvl]==[]:
+					lvl_dict[lvl-1].remove(lvl_parent[-1])
+					lvl_parent = lvl_parent[:-1]
+					lvl = lvl - 1
+				# scan items on current level
+				for y in lvl_dict[lvl]:
+					if not y in nested:
+						nested.append(y)
+					# if y contains items, push into y.contains 
+					if y.contains != {}:
+						lvl = lvl + 1
+						lvl_dict[lvl] = []
+						for things, key in item.contains.items():
+							for thing in things:
+								lvl_dict[lvl].append(thing)
+						lvl_parent.append(y)
+						push = True
+						#break
+					else:
+						remove_scanned.append(y)
+				# remove scanned items from lvl_dict
+				for r in remove_scanned:
+					# NOTE: this will break for duplicate objects with contents
+					if push:
+						lvl_dict[lvl-1].remove(r)
+					else:
+						lvl_dict[lvl].remove(r)
+				
+				# reset push marker
+				push = False
+	return nested

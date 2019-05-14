@@ -23,9 +23,13 @@ class SaveState:
 		self.rooms = {}
 		self.klist = []
 	
-	def encodeNested(self, thing_list, loc_dict):
+	def encodeNested(self, thing_dict, loc_dict):
 		"""Takes Room contents and Player inventory, and builds the nested dictionaries of Things that will be serialized and saved
 		Takes arguments thing_list, the list of Things to be analysed, and loc_dict, the dictionary to write to """
+		thing_list = []
+		for key, things in thing_dict.items():
+			for thing in things:
+				thing_list.append(thing)
 		for item in thing_list:
 				loc = item.location
 				if loc:
@@ -35,7 +39,10 @@ class SaveState:
 				lvl = 0
 				push = False
 				lvl_dict = {}
-				lvl_dict[0] = list(item.contains)
+				lvl_dict[0] = []
+				for key, things in item.contains.items():
+					for thing in things:
+						lvl_dict[0].append(thing)
 				lvl_parent = [item]
 				while lvl_dict[0] != []:
 					remove_scanned = []
@@ -49,17 +56,19 @@ class SaveState:
 						loc = y.location
 						if loc:
 							loc = loc.ix
-						if not y.ix in outer_item["contains"]:
+						if not y.ix in outer_item["contains"]: # FIX ME!
 							outer_item["contains"][y.ix] = {"verbose_name": y.verbose_name, "desc": y.desc, "location": loc, "contains": {}, "cleared": False}
 						# if y contains items, push into y.contains 
-					
-						if y.contains != []:
+						if y.contains != {}:
 							lvl = lvl + 1
-							lvl_dict[lvl] = list(y.contains)
+							lvl_dict[lvl] = []
+							for key, things in y.contains.items():
+								for thing in things:
+									lvl_dict[lvl].append(thing)
 							lvl_parent.append(y)
 							push = True
 							outer_item = outer_item["contains"][y.ix]
-							break
+							#break
 						else:
 							remove_scanned.append(y)
 					# remove scanned items from lvl_dict
@@ -77,15 +86,20 @@ class SaveState:
 		Returns True if successful, False if failed """
 		self.player = copy.copy(me)
 		# inventory
-		self.player.inventory = []
-		self.player.sub_inventory = []
-		self.player.wearing = []
+		self.player.sub_inventory = {}
+		self.player.wearing = {}
 		self.player.inventory = {}
 		self.encodeNested(me.inventory, self.player.inventory)
 		self.player.wearing = {}
 		self.encodeNested(me.wearing, self.player.wearing)
-		for item in me.sub_inventory:
-			self.player.sub_inventory.append(item.ix)
+		for key, things in me.sub_inventory.items():
+			for thing in things:
+				if thing.ix in self.player.sub_inventory:
+					self.player.sub_inventory[thing.ix].append(thing)
+		for key, things in me.wearing.items():
+			for thing in things:
+				if thing.ix in self.player.wearing:
+					self.player.wearing[thing.ix].append(thing)
 		# room contents
 		for key in room.rooms:
 			self.rooms[key] = {"name": room.rooms[key].name, "desc": room.rooms[key].desc, "contains": {}}
@@ -117,17 +131,25 @@ class SaveState:
 			print("unexpected ix format")
 			return None
 
-	def addSubContains(self, thing_in):
+	def addSubContains(self, thing_in, obj_out):
 		"""Add a Thing to the sub_contains or sub_inventory list of every Thing or Player it is nested inside of
 		Takes one argument, thing_in, the Thing object to add to sub_contains """
 		x = thing_in.location
-		while not isinstance(x, room.Room):
+		while x and not isinstance(x, room.Room):
 			x = x.location
-			if isinstance(x, player.Player):
-				x.sub_inventory.append(thing_in)
+			if not x and isinstance(obj_out, player.Player):
+				#x.sub_inventory.append(thing_in)
+				if thing_in.ix in obj_out.sub_inventory:
+					obj_out.sub_inventory[thing_in.ix].append(thing_in)
+				else:
+					obj_out.sub_inventory[thing_in.ix] = [thing_in]
 			else:
-				x.sub_contains.append(thing_in)
-			if not isinstance(x, room.Room):
+				#x.sub_contains.append(thing_in)
+				if thing_in.ix in x.sub_contains:
+					x.sub_contains[thing_in.ix].append(thing_in)
+				else:
+					x.sub_contains[thing_in.ix] = [thing_in]
+			if x and not isinstance(x, room.Room):
 				x.containsListUpdate()
 	
 	def decodeNested(self, dict_in, obj_out):
@@ -142,13 +164,21 @@ class SaveState:
 			x.verbose_name = item["verbose_name"]
 			x.location = self.dictLookup(item["location"])
 			if isinstance(obj_out, player.Player):
-				obj_out.inventory.append(x)
+				#obj_out.inventory.append(x)
+				if x.ix in obj_out.inventory:
+					obj_out.inventory[x.ix].append(x)
+				else:
+					obj_out.inventory[x.ix] = [x]
 			else:
-				obj_out.contains.append(x)
+				#obj_out.contains.append(x)
+				if x.ix in obj_out.contains:
+					obj_out.contains[x.ix].append(x)
+				else:
+					obj_out.contains[x.ix] = [x]
 			# Inventory and sub_inventory should already be clear for the Player
 			if (isinstance(x, thing.Surface) or isinstance(x, thing.Container)) and not outer_item["cleared"]:
-				x.contains = []
-				x.sub_contains = []
+				x.contains = {}
+				x.sub_contains = {}
 				outer_item["cleared"] = True
 			lvl = 0
 			push = False
@@ -177,14 +207,19 @@ class SaveState:
 					y.desc = z["desc"]
 					y.location = self.dictLookup(z["location"])
 					if (isinstance(y, thing.Surface) or isinstance(y, thing.Container)) and not z["cleared"]:
-						y.contains = []
-						y.sub_contains = []
+						y.contains = {}
+						y.sub_contains = {}
 						z["cleared"] = True
-					if y.location and y not in y.location.contains:
-						y.location.contains.append(y)
+					if y.location and y.ix not in y.location.contains:
+						y.location.contains[y.ix] = [y]
 						if isinstance(y.location, thing.Container) or isinstance(y.location, thing.Surface):
 							y.location.containsListUpdate()
-					self.addSubContains(y)
+							self.addSubContains(y, obj_out)
+					elif y.location:
+						y.location.contains[y].append(y)
+						if isinstance(y.location, thing.Container) or isinstance(y.location, thing.Surface):
+							y.location.containsListUpdate()
+							self.addSubContains(y, obj_out)
 					if z["contains"] == {}:
 						remove_scanned.append(y)
 					else:
@@ -214,18 +249,18 @@ class SaveState:
 			f = f + ".sav"
 		savefile = open(f, "rb")
 		temp = pickle.load(savefile)
-		me.inventory = []
-		me.sub_inventory = []
+		me.inventory = {}
+		me.sub_inventory = {}
 		self.decodeNested(temp.player.inventory, me)
-		me.wearing = []
+		me.wearing = {}
 		self.klist =[]
 		for key in temp.player.wearing:
 			me.wearing.append(thing.things[key])
 		for key in temp.rooms:
 			room.rooms[key].name = temp.rooms[key]["name"]
 			room.rooms[key].desc = temp.rooms[key]["desc"]
-			room.rooms[key].contains = []
-			room.rooms[key].sub_contains = []
+			room.rooms[key].contains = {}
+			room.rooms[key].sub_contains = {}
 			self.decodeNested(temp.rooms[key]["contains"], room.rooms[key])
 		me.location = room.rooms[temp.player.location]
 		return True

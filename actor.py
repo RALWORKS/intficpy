@@ -27,8 +27,8 @@ class Actor(Thing):
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
-		self.contains = []
-		self.sub_contains = []
+		self.contains = {}
+		self.sub_contains = {}
 		self.name = name
 		# verbose_name is modified when adjectives are applied using the setAdjectives method of the Thing class
 		self.verbose_name = name

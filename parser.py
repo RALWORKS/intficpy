@@ -330,12 +330,89 @@ def getObjWords(app, before, after, input_tokens):
 	else:
 		obj_words = input_tokens[low_bound:]
 	if len(obj_words) == 0:
-		#app.printToGUI("I don't undertand. Please be more specific.")
 		return None
 	return obj_words
 
-# TODO: implicit doff, implicit take, implicit drop
-def checkRange(me, things, scope):
+def wearRangeCheck(me, thing):
+	"""Check if the Thing is being worn
+	Takes arguments me, pointing to the Player, and thing, a Thing
+	Returns True if within range, False otherwise """
+	if (thing.ix not in me.wearing):
+		return False
+	elif thing not in me.wearing[thing.ix]:
+		return False
+	else:
+		return True
+
+def roomRangeCheck(me, thing):
+	"""Check if the Thing is in the current room
+	Takes arguments me, pointing to the Player, and thing, a Thing
+	Returns True if within range, False otherwise """
+	if thing.ix in me.location.contains:
+		if thing not in me.location.contains[thing.ix]:
+			return False
+		else:
+			return True
+	elif thing.ix in me.location.sub_contains:
+		if thing not in me.location.sub_contains[thing.ix]:
+			return False
+		else:
+			return True
+
+def knowsRangeCheck(me, thing):
+	"""Check if the Player knows about a Thing
+	Takes arguments me, pointing to the Player, and thing, a Thing
+	Returns True if within range, False otherwise """
+	if not thing.ix in me.knows_about:
+		return False
+	else:
+		return True
+
+def nearRangeCheck(me, thing):
+	"""Check if the Thing is near (room or inventory)
+	Takes arguments me, pointing to the Player, and thing, a Thing
+	Returns True if within range, False otherwise """
+	if thing.ix in me.location.contains:
+		if thing not in me.location.contains[thing.ix]:
+			return False
+		else:
+			return True
+	elif thing.ix in me.location.sub_contains:
+		if thing not in me.location.sub_contains[thing.ix]:
+			return False
+		else:
+			return True
+	elif thing.ix in me.inventory:
+		if thing not in me.inventory[thing.ix]:
+			return False
+		else:
+			return True
+	elif thing.ix in me.sub_inventory:
+		if thing not in me.sub_inventory[thing.ix]:
+			return False
+		else:
+			return True
+	else:
+		return False
+
+def invRangeCheck(me, thing):
+	"""Check if the Thing is in the Player inventory
+	Takes arguments me, pointing to the Player, and thing, a Thing
+	Returns True if within range, False otherwise """
+	if thing.ix in me.inventory:
+		if thing not in me.inventory[thing.ix]:
+			return False
+		else:
+			return True
+	elif thing.ix in me.sub_inventory:
+		if thing not in me.sub_inventory[thing.ix]:
+			return False
+		else:
+			return True
+	else:
+		return False
+
+def checkRange(me, app, things, scope):
 	"""Eliminates all grammatical object candidates that are not within the scope of the current verb
 	Takes arguments me, things, a list of Thing objects (thing.py) that are candidates for the target of a player's action, and scope, a string representing the range of the verb
 	Called by getThing
@@ -343,54 +420,52 @@ def checkRange(me, things, scope):
 	out_range = []
 	if scope=="wearing":
 		for thing in things:
-			if (thing.ix not in me.wearing):
-				out_range.append(thing)
-			elif thing not in me.wearing[thing.ix]:
+			if not wearRangeCheck(me, thing):
 				out_range.append(thing)
 	elif scope=="room":
-		for thing in things: #me.location.contains and me.sub_location.contains
-			if thing.ix in me.location.contains:
-				if thing not in me.location.contains[thing.ix]:
-					out_range.append(thing)
-			elif thing.ix in me.location.sub_contains:
-				if thing not in me.location.sub_contains[thing.ix]:
-					out_range.append(thing)
-			else:
+		for thing in things:
+			if not roomRangeCheck(me, thing) and invRangeCheck(me, thing):
+				#implicit drop
+				#verb.dropVerb.verbFunc(me, app, thing)
+				pass
+			elif not roomRangeCheck(me, thing):
 				out_range.append(thing)
 	elif scope=="knows":
 		for thing in things:
-			if not thing.ix in me.knows_about:
+			if not knowsRangeCheck(me, thing):
 				out_range.append(thing)
 	elif scope=="near":
 		for thing in things:
-			if thing.ix in me.location.contains:
-				if thing not in me.location.contains[thing.ix]:
-					out_range.append(thing)
-			elif thing.ix in me.location.sub_contains:
-				if thing not in me.location.sub_contains[thing.ix]:
-					out_range.append(thing)
-			elif thing.ix in me.inventory:
-				if thing not in me.inventory[thing.ix]:
-					out_range.append(thing)
-			elif thing.ix in me.sub_inventory:
-				if thing not in me.sub_inventory[thing.ix]:
-					out_range.append(thing)
-			else:
+			if not nearRangeCheck(me, thing):
 				out_range.append(thing)
 	else:
 		# assume scope equals "inv"
 		for thing in things:
-			# TODO: things currently being worn should not be eliminated
-			if thing.ix in me.inventory:
-				if thing not in me.inventory[thing.ix]:
-					out_range.append(thing)
-			elif thing.ix in me.sub_inventory:
-				if thing not in me.sub_inventory[thing.ix]:
-					out_range.append(thing)
-			else:
+			if not invRangeCheck(me, thing) and roomRangeCheck(me, thing):
+				# implicit take
+				#verb.getVerb.verbFunc(me, app, thing)
+				pass
+			elif not invRangeCheck(me, thing) and wearRangeCheck(me, thing):
+				# implicit doff
+				#verb.doffVerb.verbFunc(me, app, thing)
+				pass
+			elif not invRangeCheck(me, thing):
 				out_range.append(thing)
+	# remove items that require implicit actions in the event of ambiguity
 	for thing in out_range:
 		things.remove(thing)
+	things2 = list(things)
+	out_range = []
+	if len(things) > 1:
+		for thing in things:
+			if scope=="room" and not roomRangeCheck(me, thing):
+				out_range.append(thing)
+			elif scope=="inv" and not invRangeCheck(me, thing):
+				out_range.append(thing)
+		for thing in out_range:
+			things2.remove(thing)
+		if len(things2) > 0:
+			return things2
 	return things
 
 def verbScopeError(app, scope, noun_adj_arr):
@@ -435,7 +510,7 @@ def getThing(me, app, noun_adj_arr, scope):
 		# COPY the of list Things associated with a noun to allow for element deletion during disambiguation (in checkAdjectives)
 		# the list will usually be fairly small
 		things = list(vocab.nounDict[noun])
-		things = checkRange(me, things, scope)
+		things = checkRange(me, app, things, scope)
 	else:
 		things = []
 	if len(things) == 0:
@@ -507,6 +582,7 @@ def callVerb(me, app, cur_verb, obj_words):
 	direct and indirect objects, either lists of strings, or None
 	Called by parseInput and disambig
 	Returns a Boolean, True if a verb function is successfully called, False otherwise"""
+	
 	if cur_verb.hasDobj and obj_words[0]:
 		cur_dobj = getThing(me, app, obj_words[0], cur_verb.dscope)
 		lastTurn.dobj = cur_dobj
@@ -528,17 +604,36 @@ def callVerb(me, app, cur_verb, obj_words):
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
 		cur_iobj.location.removeThing(cur_iobj)
 		me.inventory.append(cur_iobj)
-
+	
 	if cur_verb.hasIobj:
 		if not cur_dobj or not cur_iobj:
 			return False
 		else:
+			if cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
+				verb.dropVerb.verbFunc(me, app, cur_iobj)
+			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
+				verb.getVerb.verbFunc(me, app, cur_iobj)
+			elif cur_verb.iscope == "inv" and wearRangeCheck(me, cur_iobj):
+				verb.doffVerb.verbFunc(me, app, cur_iobj)
+			if cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
+				verb.dropVerb.verbFunc(me, app, cur_dobj)
+			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
+				verb.getVerb.verbFunc(me, app, cur_dobj)
+			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
+				verb.doffVerb.verbFunc(me, app, cur_dobj)
+				
 			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
 			return True
 	elif cur_verb.hasDobj:
 		if not cur_dobj:
 			return False
 		else:
+			if cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
+				verb.dropVerb.verbFunc(me, app, cur_dobj)
+			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
+				verb.getVerb.verbFunc(me, app, cur_dobj)
+			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
+				verb.doffVerb.verbFunc(me, app, cur_dobj)
 			cur_verb.verbFunc(me, app, cur_dobj)
 			return True
 	else:

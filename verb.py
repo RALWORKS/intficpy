@@ -66,47 +66,56 @@ def getNested(target):
 	# list to populate with found Things
 	nested = []
 	# iterate through top level contents
-	for item in target.contains:
-		lvl = 0
-		push = False
-		# a dictionary of levels used to keep track of what has not yet been searched
-		lvl_dict = {}
-		lvl_dict[0] = list(item.contains)
-		# a list of the parent items of each level
-		lvl_parent = [item]
-		if item not in nested:
-			nested.append(item)
-		# when the bottom level is empty, the search is complete
-		while lvl_dict[0] != []:
-			# a list of searched items to remove from the level
-			remove_scanned = []
-			# pop to lower level if empty
-			if lvl_dict[lvl]==[]:
-				lvl_dict[lvl-1].remove(lvl_parent[-1])
-				lvl_parent = lvl_parent[:-1]
-				lvl = lvl - 1
-			# scan items on current level
-			for y in lvl_dict[lvl]:
-				if not y in nested:
-					nested.append(y)
-				# if y contains items, push into y.contains 
-				if y.contains != []:
-					lvl = lvl + 1
-					lvl_dict[lvl] = list(y.contains)
-					lvl_parent.append(y)
-					push = True
-					break
-				else:
-					remove_scanned.append(y)
-			# remove scanned items from lvl_dict
-			for r in remove_scanned:
-				if push:
-					lvl_dict[lvl-1].remove(r)
-				else:
-					lvl_dict[lvl].remove(r)
-				
-			# reset push marker
+	for key, items in target.contains.items():
+		for item in items:
+			lvl = 0
 			push = False
+			# a dictionary of levels used to keep track of what has not yet been searched
+			lvl_dict = {}
+			lvl_dict[0] = []
+			# get a list of things in the top level
+			for key, things in item.contains.items():
+				for thing in things:
+					lvl_dict[0].append(thing)
+			# a list of the parent items of each level
+			# last item is current parent
+			lvl_parent = [item]
+			if item not in nested:
+				nested.append(item)
+			# when the bottom level is empty, the search is complete
+			while lvl_dict[0] != []:
+				# a list of searched items to remove from the level
+				remove_scanned = []
+				# pop to lower level if empty
+				if lvl_dict[lvl]==[]:
+					lvl_dict[lvl-1].remove(lvl_parent[-1])
+					lvl_parent = lvl_parent[:-1]
+					lvl = lvl - 1
+				# scan items on current level
+				for y in lvl_dict[lvl]:
+					if not y in nested:
+						# if y contains items, push into y.contains 
+						if y.contains != {}:
+							lvl = lvl + 1
+							lvl_dict[lvl] = []
+							for things, key in item.contains.items():
+								for thing in things:
+									lvl_dict[lvl].append(thing)
+							lvl_parent.append(y)
+							push = True
+							#break
+						else:
+							remove_scanned.append(y)
+				# remove scanned items from lvl_dict
+				for r in remove_scanned:
+					# NOTE: this will break for duplicate objects with contents
+					if push:
+						lvl_dict[lvl-1].remove(r)
+					else:
+						lvl_dict[lvl].remove(r)
+				
+				# reset push marker
+				push = False
 	return nested
 	
 
@@ -133,14 +142,14 @@ def getVerbFunc(me, app, dobj):
 		nested = getNested(dobj)
 		for t in nested:
 			#dobj.location.sub_contains.remove(t)
-			del dobj.location.sub_contains[t.ix][0]
-			if dobj.location.sub_contain[t.ix] == []:
+			dobj.location.sub_contains[t.ix].remove(t)
+			if dobj.location.sub_contains[t.ix] == []:
 				del dobj.location.sub_contains[t.ix]
 			#me.sub_inventory.append(t)
 			if t.ix in me.inventory:
-				me.inventory[t.ix].append(t)
+				me.sub_inventory[t.ix].append(t)
 			else:
-				me.inventory[t.ix] = [t]
+				me.sub_inventory[t.ix] = [t]
 		# if the location of dobj is a Thing, remove it from the Thing
 		if isinstance(dobj.location, thing.Thing):
 			old_loc = dobj.location
@@ -196,9 +205,15 @@ def dropVerbFunc(me, app, dobj):
 	# add the Thing to the player location
 	me.location.addThing(dobj)
 	#me.inventory.remove(dobj)
-	me.inventory[dobj.ix].remove(dobj)
-	if me.inventory[dobj.ix] == []:
-		del me.inventory[dobj.ix]
+	if dobj.ix in me.inventory:
+		if dobj in me.inventory[dobj.ix]:
+			me.inventory[dobj.ix].remove(dobj)
+			if me.inventory[dobj.ix] == []:
+				del me.inventory[dobj.ix]
+		else:
+			me.sub_inventory[dobj.ix].remove(dobj)
+			if me.sub_inventory[dobj.ix] == []:
+				del me.sub_inventory[dobj.ix]
 	# set the Thing's location property
 	dobj.location = me.location
 
@@ -261,14 +276,17 @@ def setInVerbFunc(me, app, dobj, iobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(iobj, thing.Container):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " in " + iobj.getArticle(True) + iobj.verbose_name + ".")
-		me.inventory.remove(dobj)
+		#me.inventory.remove(dobj)
+		me.inventory[dobj.ix].remove(dobj)
+		if me.inventory[dobj.ix] == []:
+			del me.inventory[dobj.ix]
 		# remove all nested objects for dobj from inventory
 		nested = getNested(dobj)
 		for t in nested:
 			#me.sub_inventory.remove(t)
-			del me.sub_inventory[t][0]
-			if me.sub_inventory[t] == []:
-				del me.sub_inventory[t]
+			del me.sub_inventory[t.ix][0]
+			if me.sub_inventory[t.ix] == []:
+				del me.sub_inventory[t.ix]
 			#iobj.sub_contains.append(t)
 			if t.ix in iobj.sub_contains:
 				iobj.sub_contains[t.ix].append(t)
@@ -324,16 +342,19 @@ def invVerbFunc(me, app):
 	if me.wearing != {}:
 		# the string to print listing clothing
 		weardesc = "You are wearing "
-		for key, things in me.wearing.items():
-			for thing in things:
-				weardesc = weardesc + thing.getArticle() + thing.verbose_name
-				# add appropriate punctuation and "and"
-				if thing is me.wearing[-1]:
-					weardesc = weardesc + "."
-				elif thing is me.wearing[-2]:
-					weardesc = weardesc + " and "
-				else:
-					weardesc = weardesc + ", "
+		list_version = list(me.wearing.keys())
+		for key in list_version:
+			if len(me.wearing[key]) > 1:
+				weardesc = weardesc + str(len(me.wearing[key])) + " " + me.wearing[key][0].getPlural()
+			else:
+				weardesc = weardesc + me.wearing[key][0].getArticle() + me.wearing[key][0].verbose_name
+			# add appropriate punctuation and "and"
+			if key is list_version[-1]:
+				weardesc = weardesc + "."
+			elif key is list_version[-2]:
+				weardesc = weardesc + " and "
+			else:
+				weardesc = weardesc + ", "
 		app.printToGUI(weardesc)
 		
 # replace default verbFunc method

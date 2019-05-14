@@ -137,7 +137,7 @@ class App(QWidget):
 			out.setFont(tBold)
 		# remove function calls from output
 		out_string = parser.extractInline(self, out_string)	
-		if "<<e>>" in out_string:
+		if "<<m>>" in out_string:
 			self.enterForMore(out_string)
 			return True
 		else:
@@ -154,7 +154,7 @@ class App(QWidget):
 			return True
 
 	def enterForMore(self, output_string):
-		self.cutscene = output_string.split("<<e>> ")
+		self.cutscene = output_string.split("<<m>> ")
 		for x in range(0, (len(self.cutscene)-1)):
 			self.cutscene[x] = self.cutscene[x] + " [MORE]"
 		self.newBox(1)
