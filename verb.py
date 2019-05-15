@@ -1,6 +1,5 @@
 from . import vocab
 from . import actor
-from . import player
 from . import thing
 
 ##############################################################
@@ -158,6 +157,7 @@ def getVerbFunc(me, app, dobj):
 		# else assume location is a Room
 		else:
 			dobj.location.removeThing(dobj)
+		dobj.location = me
 		#me.inventory.append(dobj)
 		if dobj.ix in me.inventory:
 			me.inventory[dobj.ix].append(dobj)
@@ -295,10 +295,10 @@ def setInVerbFunc(me, app, dobj, iobj):
 		iobj.addIn(dobj)
 		return True
 	elif isinstance(iobj, thing.Container):
-		app.printToGUI("It's too big to fit inside.")
+		app.printToGUI("The " + dobj.verbose_name + " is too big to fit inside the " + iobj.verbose_name + ".")
 		return False
 	else:
-		app.printToGUI("There is no way to put it inside.")
+		app.printToGUI("There is no way to put it inside the " + iobj.verbose_name + ".")
 		return False
 
 # replace the default verbFunc method

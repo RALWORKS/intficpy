@@ -24,6 +24,7 @@ class TurnInfo:
 	ambig_noun = None
 	turn_list = []
 	back = 0
+	gameOpening = False
 	
 lastTurn = TurnInfo
 
@@ -64,6 +65,15 @@ def tokenize(input_string):
 	Takes a string as an argument, and returns a list of strings """
 	# tokenize input with spaces
 	tokens = input_string.split()
+	return tokens
+
+def removeArticles(tokens):
+	while "the" in tokens:
+		tokens.remove("the")
+	while "a" in tokens:
+		tokens.remove("a")
+	while "an" in tokens: 
+		tokens.remove("an")
 	return tokens
 
 def extractInline(app, output_string):
@@ -198,7 +208,8 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 			if word in iobj:
 				accounted.append(word)
 	for word in accounted:
-		extra.remove(word)
+		if word in extra:
+			extra.remove(word)
 	return extra
 
 def matchPrepositions(verbs, input_tokens):
@@ -510,18 +521,15 @@ def getThing(me, app, noun_adj_arr, scope):
 		# COPY the of list Things associated with a noun to allow for element deletion during disambiguation (in checkAdjectives)
 		# the list will usually be fairly small
 		things = list(vocab.nounDict[noun])
-		things = checkRange(me, app, things, scope)
 	else:
 		things = []
 	if len(things) == 0:
 		return verbScopeError(app, scope, noun_adj_arr)
-	elif len(things) == 1:
-		return things[0]
 	else:
-		thing = checkAdjectives(app, noun_adj_arr, noun, things, scope)
+		thing = checkAdjectives(app, me, noun_adj_arr, noun, things, scope)
 		return thing
 
-def checkAdjectives(app, noun_adj_arr, noun, things, scope):
+def checkAdjectives(app, me, noun_adj_arr, noun, things, scope):
 	"""If there are multiple Thing objects matching the noun, check the adjectives to narrow down to exactly 1
 	Takes arguments app, noun_adj_arr, a list of strings referring to an in game item, taken from the player command,noun (string), things, a list of Thing objects
 	(things.py) that are 	candidates for the target of the player's action, and scope, a string specifying the range of the verb
@@ -553,6 +561,7 @@ def checkAdjectives(app, noun_adj_arr, noun, things, scope):
 			#app.printToGUI("removing " + item.adjectives[0])
 			things.remove(item)
 		adj_i = adj_i- 1
+	things = checkRange(me, app, things, scope)
 	if len(things)==1:
 		return things[0]
 	elif len(things) >1:
@@ -714,6 +723,7 @@ def parseInput(me, app, input_string):
 	# clean and tokenize
 	input_string = cleanInput(input_string)
 	input_tokens = tokenize(input_string)
+	input_tokens = removeArticles(input_tokens)
 	if len(input_tokens)==0:
 		#app.printToGUI("I don't understand.")
 		#lastTurn.err = True
@@ -750,8 +760,8 @@ def initGame(me, app):
 	Takes arguments me, the player (Player object, player.py) and app, the PyQt application
 	Called in the creator's main game file """
 	quit = False
-	if not me.gameOpening == False:
-		me.gameOpening(app)
+	if not lastTurn.gameOpening == False:
+		lastTurn.gameOpening(app)
 		app.newBox(1)
 	roomDescribe(me, app)
 	daemons.runAll(app)

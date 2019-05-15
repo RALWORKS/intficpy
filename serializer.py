@@ -1,7 +1,6 @@
 import pickle
 import copy
 from . import thing
-from . import player
 from . import room
 from . import actor
 
@@ -137,12 +136,12 @@ class SaveState:
 		x = thing_in.location
 		while x and not isinstance(x, room.Room):
 			x = x.location
-			if not x and isinstance(obj_out, player.Player):
+			if isinstance(x, actor.Player):
 				#x.sub_inventory.append(thing_in)
-				if thing_in.ix in obj_out.sub_inventory:
-					obj_out.sub_inventory[thing_in.ix].append(thing_in)
+				if thing_in.ix in x.sub_inventory:
+					x.sub_inventory[thing_in.ix].append(thing_in)
 				else:
-					obj_out.sub_inventory[thing_in.ix] = [thing_in]
+					x.sub_inventory[thing_in.ix] = [thing_in]
 			else:
 				#x.sub_contains.append(thing_in)
 				if thing_in.ix in x.sub_contains:
@@ -163,7 +162,7 @@ class SaveState:
 			self.klist.append(k)
 			x.verbose_name = item["verbose_name"]
 			x.location = self.dictLookup(item["location"])
-			if isinstance(obj_out, player.Player):
+			if isinstance(obj_out, actor.Player):
 				#obj_out.inventory.append(x)
 				if x.ix in obj_out.inventory:
 					obj_out.inventory[x.ix].append(x)

@@ -58,9 +58,19 @@ class Thing:
 		Takes argument word, a string, which should be a single noun """
 		self.synonyms.append(word)
 		if word in vocab.nounDict:
-			vocab.nounDict[word].append(self)
+			if self not in vocab.nounDict[word]:
+				vocab.nounDict[word].append(self)
 		else:
 			vocab.nounDict[word] = [self]
+			
+	def removeSynonym(self, word):
+		"""Adds a synonym (noun) that can be used to refer to a Thing
+		Takes argument word, a string, which should be a single noun """
+		self.synonyms.remove(word)
+		if word in vocab.nounDict:
+			vocab.nounDict[word].remove(self)
+			if vocab.nounDict[word] == []:
+				del vocab.nounDict[word]
 	
 	def setAdjectives(self, adj_list, update_desc=True):
 		"""Sets adjectives for a Thing

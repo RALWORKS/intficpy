@@ -24,6 +24,8 @@ class Actor(Thing):
 	
 	def __init__(self, name):
 		"""Intitializes the Actor instance and sets essential properties """
+		self.size = 50
+		self.synonyms = []
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -70,6 +72,12 @@ class Actor(Thing):
 		elif self not in vocab.nounDict[proper_name]:
 			vocab.nounDict[proper_name].append(self)
 	
+	def describeThing(self, description):
+		self.desc = description
+	
+	def xdescribeThing(self, description):
+		self.xdesc = description
+	
 	def addTopic(self, ask_tell, topic, thing):
 		"""Adds a conversation topic to the Actor
 		Takes argument ask_tell, a string """
@@ -86,6 +94,34 @@ class Actor(Thing):
 		Takes argument app, pointing to the PyQt5 GUI"""
 		app.printToGUI(self.default_topic)
 
+
+class Player(Actor):
+	"""Class for Player objects """
+	def __init__(self, name):
+		"""Set basic properties for the Player instance
+		Takes argument loc, a Room"""
+		#self.location = loc
+		self.size = 50
+		self.synonyms = []
+		self.inventory = {}
+		self.sub_inventory = {}
+		self.wearing = {}
+		self.inv_max = 100
+		self.desc = ""
+		self.xdesc="You notice nothing remarkable about yourself. "
+		self.knows_about = []
+		self.isPlural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		global actor_ix
+		self.ix = "actor" + str(actor_ix)
+		actor_ix = actor_ix + 1
+		actors[self.ix] = self
+		#self.gameOpening = False
+		
+	def setPlayer(self):
+		self.addSynonym("me")
+		self.addSynonym("myself")
 
 class Topic:
 	"""class for conversation topics"""
