@@ -24,6 +24,7 @@ class Thing:
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# thing properties
+		self.size = 50
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -121,6 +122,7 @@ class Surface(Thing):
 		# items contained by items on the Surface
 		# accessible by default, but not shown in outermost description
 		self.sub_contains = {}
+		self.size = 50
 		self.name = name
 		# verbose_name will be updated by Thing method setAdjectives 
 		self.verbose_name = name
@@ -227,6 +229,7 @@ class Container(Thing):
 	def __init__(self, name):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
+		self.size = 50
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False

@@ -274,7 +274,7 @@ setInVerb.preposition = "in"
 def setInVerbFunc(me, app, dobj, iobj):
 	"""Put a Thing in a Container
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-	if isinstance(iobj, thing.Container):
+	if isinstance(iobj, thing.Container) and iobj.size >= dobj.size:
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " in " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		#me.inventory.remove(dobj)
 		me.inventory[dobj.ix].remove(dobj)
@@ -293,9 +293,13 @@ def setInVerbFunc(me, app, dobj, iobj):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		iobj.addIn(dobj)
-	# if iobj is not a Container
+		return True
+	elif isinstance(iobj, thing.Container):
+		app.printToGUI("It's too big to fit inside.")
+		return False
 	else:
 		app.printToGUI("There is no way to put it inside.")
+		return False
 
 # replace the default verbFunc method
 setInVerb.verbFunc = setInVerbFunc

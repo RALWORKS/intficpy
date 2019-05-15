@@ -1,7 +1,9 @@
+# imports from other libraries
 import sys
 import random
 from PyQt5.QtWidgets import QApplication
 
+# imports from intficpy
 from intficpy.room import Room
 from intficpy.thing import Thing, Surface, Container, Clothing
 from intficpy.player import Player
@@ -10,7 +12,7 @@ import intficpy.parser as parser
 import intficpy.gui as gui
 
 
-# uncomment for GUI MODE 
+# comment out for TERMINAL MODE 
 app = QApplication(sys.argv)
 
 # uncomment for TERMINAL MODE
@@ -23,17 +25,24 @@ app = QApplication(sys.argv)
 #			print('\033[1m' + out_string + '\033[0m')
 #app = App
 
+seenshackintro = False
+
 def test1(app):
 	app.printToGUI("testing")
 
 parser.inline.functions["test1"] = test1
 
 def test2(app):
-	return "You blink. "
+	global seenshackintro
+	if seenshackintro:
+		return ""
+	else:
+		seenshackintro = True
+		return "<<m>> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area.\n"
 
 parser.inline.functions["test2"] = test2
 
-startroom = Room("Shack interior", "You are standing in a one room shack. Light filters in through a cracked, dirty window. There is a door to the east.")
+startroom = Room("Shack interior", "You are standing in a one room shack. Light filters in through a cracked, dirty window. There is a door to the east. <<test2>>")
 me = Player(startroom)
 
 def opening(a):
@@ -57,14 +66,18 @@ startroom.addThing(box)
 opal = Thing("opal")
 startroom.addThing(opal)
 opal.makeUnique()
+opal.size = 25
 
 bottle = Thing("bottle")
 bottle.setAdjectives(["old"])
 startroom.addThing(bottle)
 
+bottle2 = bottle.copyThing()
+startroom.addThing(bottle2)
+
 bench = Surface("bench")
-bench.base_desc = "A rough wooden bench sits against the wall."
-bench.base_xdesc = "The wooden bench is splintering, and faded grey. It looks very old."
+bench.describeThing("A rough wooden bench sits against the wall.")
+bench.xdescribeThing("The wooden bench is splintering, and faded grey. It looks very old.")
 startroom.addThing(bench)
 
 nails = Thing("nails")
@@ -74,9 +87,10 @@ bench.addOn(nails)
 
 emptycan = Container("can")
 emptycan.setAdjectives(["empty", "old"])
+emptycan.size = 30
 startroom.addThing(emptycan)
 
-beach = Room("Beach, near the shack", "You find yourself on an abandoned beach. <<test2>> The door to the shack is directly west of you.")
+beach = Room("Beach, near the shack", "You find yourself on an abandoned beach. The door to the shack is directly west of you.")
 startroom.east = beach
 beach.west = startroom
 
