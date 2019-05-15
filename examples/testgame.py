@@ -6,8 +6,7 @@ from PyQt5.QtWidgets import QApplication
 # imports from intficpy
 from intficpy.room import Room
 from intficpy.thing import Thing, Surface, Container, Clothing
-from intficpy.player import Player
-import intficpy.actor as actor
+from intficpy.actor import Actor, Player, Topic
 import intficpy.parser as parser
 import intficpy.gui as gui
 
@@ -43,11 +42,13 @@ def test2(app):
 parser.inline.functions["test2"] = test2
 
 startroom = Room("Shack interior", "You are standing in a one room shack. Light filters in through a cracked, dirty window. There is a door to the east. <<test2>>")
-me = Player(startroom)
+me = Player("boy")
+startroom.addThing(me)
+me.setPlayer()
 
 def opening(a):
 	a.printToGUI("WIND AND OCEAN: by JSMaika", True)
-me.gameOpening = opening
+parser.lastTurn.gameOpening = opening
 
 def windFunc(a):
 	p = random.randint(1,7)
@@ -97,15 +98,15 @@ beach.west = startroom
 rock = Thing("rock")
 beach.addThing(rock)
 
-sarah = actor.Actor("Sarah")
+sarah = Actor("Sarah")
 sarah.makeProper("Sarah")
 startroom.addThing(sarah)
 
-john = actor.Actor("janitor")
+john = Actor("janitor")
 john.makeUnique()
 startroom.addThing(john)
 
-opalTopic = actor.Topic("\"Why is there an opal here?\" You ask. \n\n\"I brought it,\" says Sarah. \"Take it if you want. I want nothing to do with it.\"")
+opalTopic = Topic("\"Why is there an opal here?\" You ask. \n\n\"I brought it,\" says Sarah. \"Take it if you want. I want nothing to do with it.\"")
 sarah.addTopic("both", opalTopic, opal)
 
 sarah.default_topic = "Sarah scoffs."

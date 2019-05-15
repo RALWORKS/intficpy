@@ -2,11 +2,10 @@
 import random
 #from PyQt5.QtWidgets import QApplication
 
-import intficpy
+# imports from intficpy
 from intficpy.room import Room
 from intficpy.thing import Thing, Surface, Container, Clothing
-from intficpy.player import Player
-import intficpy.actor as actor
+from intficpy.actor import Actor, Player, Topic
 import intficpy.parser as parser
 import intficpy.gui as gui
 
