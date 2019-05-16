@@ -81,11 +81,14 @@ class Actor(Thing):
 	def addTopic(self, ask_tell, topic, thing):
 		"""Adds a conversation topic to the Actor
 		Takes argument ask_tell, a string """
+		correct = False
 		if ask_tell == "ask" or ask_tell == "both":
 			self.ask_topics[thing] = topic
+			correct = True
 		if ask_tell == "tell" or ask_tell == "both":
 			self.tell_topics[thing] = topic
-		else:
+			correct = True
+		if not correct:
 			print("Incorrect argument ask_tell: " + ask_tell)
 	
 	def defaultTopic(self, app):

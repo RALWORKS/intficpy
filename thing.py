@@ -407,3 +407,44 @@ def getNested(target):
 				# reset push marker
 				push = False
 	return nested
+
+class Abstract:
+	"""Class for abstract game items with no location, such as ideas"""
+	def __init__(self, name):
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# properties
+		self.isPlural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = False
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.ask = False
+		self.tell = False
+		# no physical form or location, so no desc/xdesc
+		#self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		#self.base_xdesc = self.base_desc
+		#self.desc = self.base_desc
+		#self.xdesc = self.base_xdesc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def makeKnown(self, me):
+		if not self.ix in me.knows_about:
+			me.knows_about.append(self.ix)

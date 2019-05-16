@@ -1,5 +1,6 @@
 #import string
 import re
+import importlib
 
 # intficpy framework files
 from . import vocab
@@ -27,12 +28,6 @@ class TurnInfo:
 	gameOpening = False
 	
 lastTurn = TurnInfo
-
-class InlineFuncs:
-	""" Class of inline, a dictionary of creator-defined functions to be called in strings through <<funcName>> syntax """
-	functions = {}
-
-inline = InlineFuncs
 
 class RunEvery:
 	"""Class of daemons, an object containing creator-defined functions to be evaluated every turn """
@@ -76,24 +71,53 @@ def removeArticles(tokens):
 		tokens.remove("an")
 	return tokens
 
-def extractInline(app, output_string):
+def extractInline(app, output_string, main_file):
 	"""Extract creator-defined inline functions with <<funcName>> syntax embeded in game text output
 	Called by printToGUI in gui.py, on every string printed
 	Takes arguments app, pointing to the PyQt application, and output_string, a string to be printed by the GUI
 	Calls functions
 	Returns the same string, without <<functions>>, and with the possible addition of string segments from creator-defined inline functions """
+	main_module = importlib.import_module(main_file)
 	output_tokens = tokenize(output_string)
+	i = 0
+	while i < len(output_tokens):
+		while (i+1) < len(output_tokens) and "<<" in output_tokens[i] and not ">>" in output_tokens[i]:
+			output_tokens[i] = output_tokens[i] + " " + output_tokens[i+1]
+			del output_tokens[i+1]
+		i = i + 1
 	remove_func = []
-	for i, word in enumerate(output_tokens):
+	for word_ix, word in enumerate(output_tokens):
 		if word[0:2] == "<<":
 			func = word[2:-2]
-			if func in inline.functions:
-				out = inline.functions[func](app)
+			if len(func)>1:
+				func = "main_module." + func
+				if "(" in func:
+					start_arg = func.index("(") + 1
+					end_arg = func.index(")")
+					args = func[start_arg: end_arg]
+					args = tokenize(args)
+					arg2 = []
+					i = 0
+					while i < len(args):
+						try:
+							defined = eval(args[i])
+						except:
+							defined = False	
+						if not defined:
+							arg2.append("main_module." + args[i])
+						else:
+							arg2.append(args[i])
+						i = i + 1
+					args = " ".join(arg2)
+					func = func[:start_arg] + args + ")"
+				out = eval(func)
 				if isinstance(out, str):
-					output_tokens[i] = out
+					print(output_tokens[word_ix])
+					output_tokens[word_ix] = out
 				else:
 					remove_func.append(word)
 	for word in remove_func:
+		print(word)
 		output_tokens.remove(word)
 	
 	return " ".join(output_tokens)
@@ -762,6 +786,8 @@ def initGame(me, app):
 	quit = False
 	if not lastTurn.gameOpening == False:
 		lastTurn.gameOpening(app)
+		#app.newBox(1)
+	else:
 		app.newBox(1)
 	roomDescribe(me, app)
 	daemons.runAll(app)

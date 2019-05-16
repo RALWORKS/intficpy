@@ -9,12 +9,15 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + check validity of save file before trying to load
 ### Terminal Mode
 + some non graphical features may not be available in terminal mode
++ make sure new version of inine functions works correctly
 
 ## FEATURES THAT REQUIRE TESTING
 + make sure the search function finds all Things in the location/inventory
 + the [MORE] or <<m>> built in inline function needs more testing and possible refining
 + test thing.copyThing with saving and loading
 + the describeThing and xdescribeThing methods of Thing
++ Abstract class - try breaking it with features that shouldn't be used
++ inline functions with multiple arguments
 
 ##  PREPARATIONS FOR FIRST BETA (Upcoming Features)
 ### Convenience & Ease of Use
@@ -24,7 +27,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + display the game title in the GUI window title
 + give/show topics
 + interactable walls
-+ Abstract class - Things referring to ideas and concepts
 + Doors and Keys
 + Actor and Player position (standing/sitting/lying)
 + ActorSurface class with positional restrictions

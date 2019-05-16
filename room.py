@@ -44,11 +44,15 @@ class Room:
 		"""Places a Thing in a Room
 		Should generally be used by game creators instead of using room.contains.append() directly """
 		#self.contains.append(thing)
+		if not isinstance(item, thing.Thing):
+			print("Cannot add item to room: not a Thing")
+			return False
 		if item.ix in self.contains:
 			self.contains[item.ix].append(item)
 		else:
 			self.contains[item.ix] = [item]
 		item.location = self
+		return True
 	
 	def removeThing(self, item):
 		"""Removes a Thing from a Room
@@ -74,6 +78,6 @@ class Room:
 			# give player "knowledge" of a thing upon having it described
 			if key not in me.knows_about:
 				me.knows_about.append(key)
-		app.printToGUI(self.name, True)
+		app.printToGUI("<b>" + self.name + "</b>")
 		app.printToGUI(self.fulldesc)
 	

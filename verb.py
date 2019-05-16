@@ -414,9 +414,10 @@ def getImpAsk(me, app):
 	from . import parser
 	people = []
 	# find every Actor in the current location
-	for p in me.location.contains:
-		if isinstance(p, actor.Actor):
-			people.append(p)
+	for key, items in me.location.contains.items():
+		for item in items:
+			if isinstance(item, actor.Actor):
+				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one here to ask.")
 	elif len(people)==1:

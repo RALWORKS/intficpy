@@ -20,6 +20,13 @@ from . import parser
 tBold=QFont()
 tBold.setBold(True)
 
+main_file = ""
+
+class Prelim:
+	def __init__(self, main_name):
+		global main_file
+		main_file = main_name
+
 class App(QWidget):
 	"""The App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods """
 
@@ -35,7 +42,7 @@ class App(QWidget):
 		self.initUI()
 		self.showMaximized()
 		self.me = me
-		self.newBox(1)
+		#self.newBox(1)
 		parser.initGame(me, self)
 		self.setStyleSheet('QFrame { border:none;}')
 		# used for game-interrupting cutscenes
@@ -132,11 +139,20 @@ class App(QWidget):
 		"""Prints game output to the GUI, and scrolls down
 		Takes arguments out_string, the string to print, and bold, a Boolean which defaults to False
 		Returns True on success """
+		
+		if len(self.cutscene) > 0 and not self.waiting:
+			self.waiting = True
+			self.cutscene.append(out_string)
+			return True
+		elif len(self.cutscene) > 0:
+			self.cutscene[-1] = self.cutscene[-1] + "<br>" + out_string
+			return True
+		
 		out = QLabel()
 		if bold:
 			out.setFont(tBold)
 		# remove function calls from output
-		out_string = parser.extractInline(self, out_string)	
+		out_string = parser.extractInline(self, out_string, main_file)	
 		if "<<m>>" in out_string:
 			self.enterForMore(out_string)
 			return True
@@ -155,8 +171,8 @@ class App(QWidget):
 
 	def enterForMore(self, output_string):
 		self.cutscene = output_string.split("<<m>> ")
-		for x in range(0, (len(self.cutscene)-1)):
-			self.cutscene[x] = self.cutscene[x] + " [MORE]"
+		self.waiting = False
+		self.cutscene[0] = self.cutscene[0] + " [MORE]"
 		self.newBox(1)
 		out = QLabel()
 		out.setText(self.cutscene[0])
@@ -175,6 +191,8 @@ class App(QWidget):
 	def cutsceneNext(self):
 		self.anykeyformore = False
 		self.newBox(1)
+		if self.cutscene[0] != self.cutscene[-1]:
+			self.cutscene[0] = self.cutscene[0] + " [MORE]"
 		out = QLabel()
 		self.olayout.addWidget(out)
 		out.setWordWrap(True)
