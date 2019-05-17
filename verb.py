@@ -406,6 +406,7 @@ askVerb.hasDobj = True
 askVerb.hasIobj = True
 askVerb.iscope = "knows"
 askVerb.impDobj = True
+askVerb.preposition = "about"
 
 def getImpAsk(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -459,6 +460,7 @@ tellVerb.hasDobj = True
 tellVerb.hasIobj = True
 tellVerb.iscope = "knows"
 tellVerb.impDobj = True
+tellVerb.preposition = "about"
 
 def getImpTell(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -499,6 +501,125 @@ def tellVerbFunc(me, app, dobj, iobj):
 
 # replace default verbFunc method
 tellVerb.verbFunc = tellVerbFunc
+
+# GIVE (Actor)
+# transitive verb with indirect object
+# implicit direct object enabled
+giveVerb = Verb("give")
+giveVerb.syntax = [["give", "<iobj>", "to", "<dobj>"], ["give", "<dobj>", "<iobj>"]]
+giveVerb.hasDobj = True
+giveVerb.hasIobj = True
+giveVerb.iscope = "inv"
+giveVerb.impDobj = True
+giveVerb.preposition = "to"
+
+def getImpGive(me, app):
+	"""If no dobj is specified, try to guess the Actor
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	# import parser to gain access to the record of the last turn
+	from . import parser
+	people = []
+	# find every Actor in the current location
+	for p in me.location.contains:
+		if isinstance(p, actor.Actor):
+			people.append(p)
+	if len(people)==0:
+		app.printToGUI("There's no one here to give it to.")
+	elif len(people)==1:
+		# ask the only actor in the room
+		return people[0]
+	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		# ask whomever the player last interracted with
+		return parser.lastTurn.dobj
+	else:
+		# turn disambiguation mode on
+		app.printToGUI("Please specify a person to give it to.")
+		parser.lastTurn.ambiguous = True
+
+# replace default getImpDobj method
+giveVerb.getImpDobj = getImpGive
+
+def giveVerbFunc(me, app, dobj, iobj):
+	"""Give an Actor a Thing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if isinstance(dobj, actor.Actor):
+		if iobj in dobj.give_topics:
+			dobj.give_topics[iobj].func(app)
+			if iobj.give:
+				me.inventory[dobj.ix].remove(dobj)
+				if me.inventory[dobj.ix] == []:
+					del me.inventory[dobj.ix]
+				# remove all nested objects for dobj from inventory
+				nested = getNested(dobj)
+				for t in nested:
+					#me.sub_inventory.remove(t)
+					del me.sub_inventory[t.ix][0]
+					if me.sub_inventory[t.ix] == []:
+						del me.sub_inventory[t.ix]
+					#iobj.sub_contains.append(t)
+					if t.ix in iobj.sub_contains:
+						iobj.sub_contains[t.ix].append(t)
+					else:
+						iobj.sub_contains[t.ix] = [t]
+				dobj.addIn(iobj)
+		else:
+			dobj.defaultTopic(app)
+	else:
+		app.printToGUI("You cannot talk to that.")
+
+# replace default verbFunc method
+giveVerb.verbFunc = giveVerbFunc
+
+# SHOW (Actor)
+# transitive verb with indirect object
+# implicit direct object enabled
+showVerb = Verb("show")
+showVerb.syntax = [["show", "<iobj>", "to", "<dobj>"], ["show", "<dobj>", "<iobj>"]]
+showVerb.hasDobj = True
+showVerb.hasIobj = True
+showVerb.iscope = "inv"
+showVerb.impDobj = True
+showVerb.preposition = "to"
+
+def getImpShow(me, app):
+	"""If no dobj is specified, try to guess the Actor
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	# import parser to gain access to the record of the last turn
+	from . import parser
+	people = []
+	# find every Actor in the current location
+	for p in me.location.contains:
+		if isinstance(p, actor.Actor):
+			people.append(p)
+	if len(people)==0:
+		app.printToGUI("There's no one here to show.")
+	elif len(people)==1:
+		# ask the only actor in the room
+		return people[0]
+	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		# ask whomever the player last interracted with
+		return parser.lastTurn.dobj
+	else:
+		# turn disambiguation mode on
+		app.printToGUI("Please specify a person to show.")
+		parser.lastTurn.ambiguous = True
+
+# replace default getImpDobj method
+showVerb.getImpDobj = getImpShow
+
+def showVerbFunc(me, app, dobj, iobj):
+	"""Show an Actor a Thing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if isinstance(dobj, actor.Actor):
+		if iobj in dobj.show_topics:
+			dobj.show_topics[iobj].func(app)
+		else:
+			dobj.defaultTopic(app)
+	else:
+		app.printToGUI("You cannot talk to that.")
+
+# replace default verbFunc method
+showVerb.verbFunc = showVerbFunc
 
 # WEAR/PUT ON
 # transitive verb, no indirect object

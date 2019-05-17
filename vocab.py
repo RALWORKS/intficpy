@@ -7,3 +7,12 @@
 nounDict = {}
 # dictionary of verb names
 verbDict = {}
+# vocab standard to the language
+class VocabObject:
+	def __init__(self):
+		self.prepositions = []
+		self.articles = []
+
+english = VocabObject()
+english.prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around", "to", "about"]
+english.articles = ["a", "an", "the"]

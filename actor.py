@@ -45,6 +45,8 @@ class Actor(Thing):
 		# topics for conversation
 		self.ask_topics = {}
 		self.tell_topics = {}
+		self.give_topics = {}
+		self.show_topics = {}
 		# prints when player's question/statement does not match a topis
 		self.default_topic = "No response."
 		# specifies the article to use in output
@@ -78,18 +80,56 @@ class Actor(Thing):
 	def xdescribeThing(self, description):
 		self.xdesc = description
 	
-	def addTopic(self, ask_tell, topic, thing):
+	def addIn(self, item):
+		"""Add an item to contents, update descriptions
+		Takes argument item, pointing to a Thing """
+		item.location = self
+		# nested items
+		nested = getNested(item)
+		for t in nested:
+			if t.ix in self.sub_contains:
+				self.sub_contains[t.ix].append(t)
+			else:
+				self.sub_contains[t.ix] = [t]
+			if item.ix in self.location.sub_contains:
+				self.location.sub_contains[t.ix].append(t)
+			else:
+				self.location.sub_contains[t.ix] = [t]
+		# top level item
+		if item.ix in self.contains:
+			self.contains[item.ix].append(item)
+		else:
+			self.contains[item.ix] = [item]
+		if item.ix in self.location.sub_contains:
+			self.location.sub_contains[item.ix].append(item)
+		else:
+			self.location.sub_contains[item.ix] = [item]
+		#self.containsListUpdate()
+
+	def removeThing(self, item):
+		"""Remove an item from contents, update decription """
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				self.contains[item.ix].remove(item)
+				self.location.sub_contains[item.ix].remove(item)
+				if self.contains[item.ix] == []:
+					del self.contains[item.ix]
+				if self.location.sub_contains[item.ix] == []:
+					del self.location.sub_contains[item.ix]
+				item.location = False
+			#self.containsListUpdate()
+	
+	def addTopic(self, ask_tell_give_show, topic, thing):
 		"""Adds a conversation topic to the Actor
 		Takes argument ask_tell, a string """
-		correct = False
-		if ask_tell == "ask" or ask_tell == "both":
+		if "ask" in ask_tell_give_show or ask_tell_give_show=="all":
 			self.ask_topics[thing] = topic
-			correct = True
-		if ask_tell == "tell" or ask_tell == "both":
+		if "tell" in ask_tell_give_show or ask_tell_give_show=="all":
 			self.tell_topics[thing] = topic
-			correct = True
-		if not correct:
-			print("Incorrect argument ask_tell: " + ask_tell)
+		if "give" in ask_tell_give_show or ask_tell_give_show=="all":
+			self.give_topics[thing] = topic
+		if "show" in ask_tell_give_show or ask_tell_give_show=="all":
+			self.show_topics[thing] = topic
 	
 	def defaultTopic(self, app):
 		"""The default function for an Actor's default topic

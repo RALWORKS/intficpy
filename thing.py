@@ -39,8 +39,7 @@ class Thing:
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
 		# Thing instances that are not Actors cannot be spoken to
-		self.ask = False
-		self.tell = False
+		self.give = False
 		# the default description to print from the room
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.base_xdesc = self.base_desc
@@ -136,9 +135,7 @@ class Surface(Thing):
 		self.name = name
 		# verbose_name will be updated by Thing method setAdjectives 
 		self.verbose_name = name
-		# cannot talk to a Surface
-		self.ask = False
-		self.tell = False
+		self.give = False
 		# default description printed by room
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.base_xdesc = self.base_desc
@@ -248,9 +245,7 @@ class Container(Thing):
 		self.sub_contains = {}
 		self.name = name
 		self.verbose_name = name
-		# you cannot talk to a Container
-		self.ask = False
-		self.tell = False
+		self.give = False
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.base_xdesc = self.base_desc
 		self.desc = self.base_desc
@@ -430,9 +425,7 @@ class Abstract:
 		self.synonyms = []
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
-		# Thing instances that are not Actors cannot be spoken to
-		self.ask = False
-		self.tell = False
+		self.give = False
 		# no physical form or location, so no desc/xdesc
 		#self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		#self.base_xdesc = self.base_desc

@@ -10,6 +10,8 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Terminal Mode
 + some non graphical features may not be available in terminal mode
 + make sure new version of inine functions works correctly
+### GUI
++ New, incomplete box is sometimes generated after [MORE] tags. Glitchy box remains on screen even after the next section is shown
 
 ## FEATURES THAT REQUIRE TESTING
 + make sure the search function finds all Things in the location/inventory
@@ -25,7 +27,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + creator functions that evaluate AFTER dynamic room text (<<e_funcname>> maybe?)
 ### Essential New Features
 + display the game title in the GUI window title
-+ give/show topics
 + interactable walls
 + Doors and Keys
 + Actor and Player position (standing/sitting/lying)
@@ -36,6 +37,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + stairs/ladder
 + climb/climb on
 + AbstractVerb class, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary")
++ open/closed & containers with lids, locks
 + support for multiple prepositions on one verb, where there is no ambiguity (look UP rodent IN dictionary or look UP rodent ON computer - 3 different prepositions. possibly 2 verbs sharing a verbFunc?)
 ### Other New Features
 + support multiple Player characters

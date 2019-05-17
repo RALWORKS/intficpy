@@ -63,12 +63,9 @@ def tokenize(input_string):
 	return tokens
 
 def removeArticles(tokens):
-	while "the" in tokens:
-		tokens.remove("the")
-	while "a" in tokens:
-		tokens.remove("a")
-	while "an" in tokens: 
-		tokens.remove("an")
+	for article in vocab.english.articles:
+		while article in tokens:
+			tokens.remove(article)
 	return tokens
 
 def extractInline(app, output_string, main_file):
@@ -184,7 +181,7 @@ def verbByObjects(app, input_tokens, verbs):
 		for pair in nearMatch:
 			verb = pair[0]
 			verb_form = pair[1]
-			dobj = analyzeSyntax(app,verb_form, "<dobj>", input_tokens, False)
+			dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens, False)
 			iobj = analyzeSyntax(app, verb_form, "<iobj>", input_tokens, False)
 			extra = checkExtra(verb_form, dobj, iobj, input_tokens)
 			if dobj:
@@ -241,9 +238,9 @@ def matchPrepositions(verbs, input_tokens):
 	Takes arguments verbs, a list of Verb objects (verb.py), and input_tokens, the tokenized player command (list of strings)
 	Called by getVerb
 	Returns a list of Verb objects or an empty list """
-	prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around"]
+	#prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around", "to", "about"]
 	remove_verb = []
-	for p in prepositions:
+	for p in vocab.english.prepositions:
 		if p in input_tokens:
 			for verb in verbs:
 				if not verb.preposition==p:
@@ -356,6 +353,47 @@ def getObjWords(app, before, after, input_tokens):
 	the word expected after the grammatical object (string or None), and input_tokens, the tokenized player command (list of strings)
 	Called by analyzeSyntax
 	Returns an array of strings or None """
+	if before[0]=="<":
+		# find the index of the first noun in the noun dict. if there is more than one, reject any that double as adjectives
+		nounlist = []
+		for word in input_tokens:
+			if word in vocab.nounDict:
+				nounlist.append(word)
+		if len(nounlist)>2:
+			i = 0
+			delnoun = []
+			while i < (len(nounlist) - 1):
+				for item in vocab.nounDict[nounlist[i]]:
+					if nounlist[i] in item.adjectives and  not nounlist[i] in delnoun:
+						delnoun.append(nounlist[i])
+			for noun in delnoun:
+				nounlist.remove(delnoun)
+		if len(nounlist) < 2:
+			return None
+		# set before to the first noun
+		before = nounlist[0]
+	if after:
+		if after[0]=="<":
+			# find the index of the first noun in the noun dict. if there is more than one, reject any that double as adjectives
+			nounlist = []
+			for word in input_tokens:
+				if word in vocab.nounDict:
+					nounlist.append(word)
+			if len(nounlist)>2:
+				i = 0
+				delnoun = []
+				while i < (len(nounlist) - 1):
+					for item in vocab.nounDict[nounlist[i]]:
+						if nounlist[i] in item.adjectives and  not nounlist[i] in delnoun:
+							delnoun.append(nounlist[i])
+				for noun in delnoun:
+					nounlist.remove(delnoun)
+			if len(nounlist)<2:
+				return None
+			# set after to directly after the first noun
+			after_index = input_tokens.index(nounlist[0]) + 1
+			after = input_tokens[after_index]
+
 	low_bound = input_tokens.index(before)
 	# add 1 for non-inclusive indexing
 	low_bound = low_bound + 1
@@ -366,6 +404,10 @@ def getObjWords(app, before, after, input_tokens):
 		obj_words = input_tokens[low_bound:]
 	if len(obj_words) == 0:
 		return None
+	if obj_words[0] in vocab.english.prepositions:
+		del obj_words[0]
+	if obj_words[-1] in vocab.english.prepositions:
+		del obj_words[-1]
 	return obj_words
 
 def wearRangeCheck(me, thing):
