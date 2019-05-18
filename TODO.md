@@ -10,8 +10,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Terminal Mode
 + some non graphical features may not be available in terminal mode
 + make sure new version of inine functions works correctly
-### GUI
-+ New, incomplete box is sometimes generated after [MORE] tags. Glitchy box remains on screen even after the next section is shown
 
 ## FEATURES THAT REQUIRE TESTING
 + make sure the search function finds all Things in the location/inventory

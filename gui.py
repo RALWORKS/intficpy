@@ -45,6 +45,7 @@ class App(QWidget):
 		#self.newBox(1)
 		parser.initGame(me, self)
 		self.setStyleSheet('QFrame { border:none;}')
+		self.new_obox = False
 		# used for game-interrupting cutscenes
 		# populated by enterForMore()
 	
@@ -98,11 +99,12 @@ class App(QWidget):
 	def newBox(self, box_style):
 		"""Creates a new QFrame to wrap text in the game output area
 		Takes argument box_style, an integer specifying textbox colour and style """
+		self.new_obox = True
 		self.obox = QFrame()
 		self.obox.setFrameStyle(QFrame.StyledPanel)
-		self.olayout = QVBoxLayout()
-		self.obox.setLayout(self.olayout)
-		self.layout.addWidget(self.obox)
+		#self.olayout = QVBoxLayout()
+		#self.obox.setLayout(self.olayout)
+		#self.layout.addWidget(self.obox)
 		if box_style==2:
 			self.obox.setStyleSheet("background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px")
 		else:
@@ -147,8 +149,18 @@ class App(QWidget):
 		elif len(self.cutscene) > 0:
 			self.cutscene[-1] = self.cutscene[-1] + "<br>" + out_string
 			return True
+		try:
+			self.new_obox
+		except:
+			self.new_obox = False
+		if self.new_obox:
+			self.layout.addWidget(self.obox)
+			self.olayout = QVBoxLayout()
+			self.obox.setLayout(self.olayout)
+			self.new_obox = False
 		
 		out = QLabel()
+		out.setText(out_string)
 		if bold:
 			out.setFont(tBold)
 		# remove function calls from output
@@ -157,7 +169,6 @@ class App(QWidget):
 			self.enterForMore(out_string)
 			return True
 		else:
-			out.setText(out_string)
 			self.olayout.addWidget(out)
 			out.setWordWrap(True)
 			out.setStyleSheet("margin-bottom: 5px")
@@ -173,7 +184,15 @@ class App(QWidget):
 		self.cutscene = output_string.split("<<m>> ")
 		self.waiting = False
 		self.cutscene[0] = self.cutscene[0] + " [MORE]"
+		
 		self.newBox(1)
+		
+		if self.new_obox:
+			self.layout.addWidget(self.obox)
+			self.olayout = QVBoxLayout()
+			self.obox.setLayout(self.olayout)
+			self.new_obox = False
+		
 		out = QLabel()
 		out.setText(self.cutscene[0])
 		self.olayout.addWidget(out)
@@ -193,6 +212,13 @@ class App(QWidget):
 		self.newBox(1)
 		if self.cutscene[0] != self.cutscene[-1]:
 			self.cutscene[0] = self.cutscene[0] + " [MORE]"
+		
+		if self.new_obox:
+			self.layout.addWidget(self.obox)
+			self.olayout = QVBoxLayout()
+			self.obox.setLayout(self.olayout)
+			self.new_obox = False
+		
 		out = QLabel()
 		self.olayout.addWidget(out)
 		out.setWordWrap(True)

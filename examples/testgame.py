@@ -107,8 +107,11 @@ john = Actor("janitor")
 john.makeUnique()
 startroom.addThing(john)
 
-opalTopic = Topic("\"Why is there an opal here?\" You ask. \n\n\"I brought it from the cave,\" says Sarah. \"Take it if you want. I want nothing to do with it.\" <<cave_concept.makeKnown(me)>>")
-sarah.addTopic("both", opalTopic, opal)
+opalTopic = Topic("\"Why is there an opal here?\" You ask.<br><br>\"I brought it from the cave,\" says Sarah. \"Take it if you want. I want nothing to do with it.\" <<cave_concept.makeKnown(me)>>")
+sarah.addTopic("asktell", opalTopic, opal)
+
+opalTopic = Topic("You hold out the opal for Sarah to see. <br> She staggers backward, raising her arms to block her face. \"Get that away from me!\" she cries, a hint of hysteria in her voice. \"Put it away. Put it away!\"")
+sarah.addTopic("giveshow", opalTopic, opal)
 
 sarah.default_topic = "Sarah scoffs."
 

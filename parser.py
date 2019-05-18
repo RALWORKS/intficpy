@@ -827,8 +827,8 @@ def initGame(me, app):
 	Called in the creator's main game file """
 	quit = False
 	if not lastTurn.gameOpening == False:
-		lastTurn.gameOpening(app)
 		#app.newBox(1)
+		lastTurn.gameOpening(app)
 	else:
 		app.newBox(1)
 	roomDescribe(me, app)
