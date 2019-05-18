@@ -385,9 +385,11 @@ lookVerb.verbFunc = lookVerbFunc
 # transitive verb, no indirect object
 examineVerb = Verb("examine")
 examineVerb.addSynonym("x")
-examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"]]
+examineVerb.addSynonym("look")
+examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"], ["look", "at", "<dobj>"]]
 examineVerb.hasDobj = True
 examineVerb.dscope = "near"
+examineVerb.preposition = "at"
 
 def examineVerbFunc(me, app, dobj):
 	"""Examine a Thing """
@@ -396,6 +398,27 @@ def examineVerbFunc(me, app, dobj):
 
 # replace default verbFunc method
 examineVerb.verbFunc = examineVerbFunc
+
+# LOOK AT (Thing)
+# transitive verb, no indirect object
+lookInVerb = Verb("look")
+lookInVerb.syntax = [["look", "in", "<dobj>"]]
+lookInVerb.hasDobj = True
+lookInVerb.dscope = "near"
+lookInVerb.preposition = "in"
+
+def lookInVerbFunc(me, app, dobj):
+	"""Examine a Thing """
+	# print the target's xdesc (examine descripion)
+	if isinstance(dobj, thing.Container):
+		if len(dobj.contains) > 0:
+			app.printToGUI(dobj.contains_desc)
+		else:
+			app.printToGUI("The " + dobj.verbose_name + " is empty.")
+	else:
+		app.printToGUI("You cannot look inside the " + dobj.verbose_name + ".")
+
+lookInVerb.verbFunc = lookInVerbFunc
 
 # ASK (Actor)
 # transitive verb with indirect object

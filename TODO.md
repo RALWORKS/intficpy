@@ -30,7 +30,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + Actor and Player position (standing/sitting/lying)
 + ActorSurface class with positional restrictions
 + Things with an "under" property
-+ look in, look at
 + directions/directional statements up, down, enter, exit, in, out
 + stairs/ladder
 + climb/climb on
