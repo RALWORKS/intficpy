@@ -243,7 +243,7 @@ def matchPrepositions(verbs, input_tokens):
 	for p in vocab.english.prepositions:
 		if p in input_tokens:
 			for verb in verbs:
-				if not verb.preposition==p:
+				if not p in verb.preposition:
 					remove_verb.append(verb)
 	for verb in remove_verb:
 		verbs.remove(verb)

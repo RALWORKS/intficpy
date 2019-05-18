@@ -18,6 +18,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + the describeThing and xdescribeThing methods of Thing
 + Abstract class - try breaking it with features that shouldn't be used
 + inline functions with multiple arguments
++ give thing with give enabled
 
 ##  PREPARATIONS FOR FIRST BETA (Upcoming Features)
 ### Convenience & Ease of Use
@@ -27,7 +28,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + display the game title in the GUI window title
 + interactable walls
 + Doors and Keys
-+ Actor and Player position (standing/sitting/lying)
 + ActorSurface class with positional restrictions
 + Things with an "under" property
 + directions/directional statements up, down, enter, exit, in, out
@@ -35,7 +35,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + climb/climb on
 + AbstractVerb class, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary")
 + open/closed & containers with lids, locks
-+ support for multiple prepositions on one verb, where there is no ambiguity (look UP rodent IN dictionary or look UP rodent ON computer - 3 different prepositions. possibly 2 verbs sharing a verbFunc?)
 ### Other New Features
 + support multiple Player characters
 + compound Things

@@ -127,7 +127,7 @@ getVerb = Verb("get")
 getVerb.addSynonym("take")
 getVerb.addSynonym("pick")
 getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"], ["pick", "up", "<dobj>"], ["pick", "<dobj>", "up"]]
-getVerb.preposition = "up"
+getVerb.preposition = ["up"]
 getVerb.hasDobj = True
 
 def getVerbFunc(me, app, dobj):
@@ -177,7 +177,7 @@ dropVerb.addSynonym("put")
 dropVerb.syntax = [["drop", "<dobj>"], ["put", "down", "<dobj>"], ["put", "<dobj>", "down"]]
 dropVerb.hasDobj = True
 dropVerb.dscope = "inv"
-dropVerb.preposition = "down"
+dropVerb.preposition = ["down"]
 
 def dropVerbFunc(me, app, dobj):
 	"""Drop a Thing from the inventory
@@ -229,7 +229,7 @@ setOnVerb.hasDobj = True
 setOnVerb.dscope = "inv"
 setOnVerb.hasIobj = True
 setOnVerb.iscope = "room"
-setOnVerb.preposition = "on"
+setOnVerb.preposition = ["on"]
 
 def setOnVerbFunc(me, app, dobj, iobj):
 	"""Put a Thing on a Surface
@@ -269,7 +269,7 @@ setInVerb.hasDobj = True
 setInVerb.dscope = "inv"
 setInVerb.hasIobj = True
 setInVerb.iscope = "room"
-setInVerb.preposition = "in"
+setInVerb.preposition = ["in"]
 
 def setInVerbFunc(me, app, dobj, iobj):
 	"""Put a Thing in a Container
@@ -389,7 +389,7 @@ examineVerb.addSynonym("look")
 examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"], ["look", "at", "<dobj>"]]
 examineVerb.hasDobj = True
 examineVerb.dscope = "near"
-examineVerb.preposition = "at"
+examineVerb.preposition = ["at"]
 
 def examineVerbFunc(me, app, dobj):
 	"""Examine a Thing """
@@ -405,7 +405,7 @@ lookInVerb = Verb("look")
 lookInVerb.syntax = [["look", "in", "<dobj>"]]
 lookInVerb.hasDobj = True
 lookInVerb.dscope = "near"
-lookInVerb.preposition = "in"
+lookInVerb.preposition = ["in"]
 
 def lookInVerbFunc(me, app, dobj):
 	"""Examine a Thing """
@@ -429,7 +429,7 @@ askVerb.hasDobj = True
 askVerb.hasIobj = True
 askVerb.iscope = "knows"
 askVerb.impDobj = True
-askVerb.preposition = "about"
+askVerb.preposition = ["about"]
 
 def getImpAsk(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -483,7 +483,7 @@ tellVerb.hasDobj = True
 tellVerb.hasIobj = True
 tellVerb.iscope = "knows"
 tellVerb.impDobj = True
-tellVerb.preposition = "about"
+tellVerb.preposition = ["about"]
 
 def getImpTell(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -534,7 +534,7 @@ giveVerb.hasDobj = True
 giveVerb.hasIobj = True
 giveVerb.iscope = "inv"
 giveVerb.impDobj = True
-giveVerb.preposition = "to"
+giveVerb.preposition = ["to"]
 
 def getImpGive(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -602,7 +602,7 @@ showVerb.hasDobj = True
 showVerb.hasIobj = True
 showVerb.iscope = "inv"
 showVerb.impDobj = True
-showVerb.preposition = "to"
+showVerb.preposition = ["to"]
 
 def getImpShow(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -652,7 +652,7 @@ wearVerb.addSynonym("don")
 wearVerb.syntax = [["put", "on", "<dobj>"], ["put", "<dobj>", "on"], ["wear", "<dobj>"], ["don", "<dobj>"]]
 wearVerb.hasDobj = True
 wearVerb.dscope = "inv"
-wearVerb.preposition = "on"
+wearVerb.preposition = ["on"]
 
 def wearVerbFunc(me, app, dobj):
 	"""Wear a piece of clothing
@@ -682,7 +682,7 @@ doffVerb.addSynonym("remove")
 doffVerb.syntax = [["take", "off", "<dobj>"], ["take", "<dobj>", "off"], ["doff", "<dobj>"], ["remove", "<dobj>"]]
 doffVerb.hasDobj = True
 doffVerb.dscope = "wearing"
-doffVerb.preposition = "off"
+doffVerb.preposition = ["off"]
 
 def doffVerbFunc(me, app, dobj):
 	"""Take off a piece of clothing
@@ -700,3 +700,57 @@ def doffVerbFunc(me, app, dobj):
 
 # replace default verbFunc method
 doffVerb.verbFunc = doffVerbFunc
+
+# LIE DOWN
+# transitive verb, no indirect object
+lieDownVerb = Verb("lie")
+lieDownVerb.addSynonym("lay")
+lieDownVerb.syntax = [["lie", "down"], ["lay", "down"]]
+lieDownVerb.preposition = ["down"]
+
+def lieDownVerbFunc(me, app):
+	"""Take off a piece of clothing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if me.position != "lying":
+		app.printToGUI("You lie down.")
+		me.makeLying()
+	else:
+		app.printToGUI("You are already lying down.")
+# replace default verbFunc method
+lieDownVerb.verbFunc = lieDownVerbFunc
+
+# LIE DOWN
+# transitive verb, no indirect object
+standUpVerb = Verb("stand")
+standUpVerb.syntax = [["stand", "up"], ["stand"]]
+standUpVerb.preposition = ["up"]
+
+def standUpVerbFunc(me, app):
+	"""Take off a piece of clothing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if me.position != "standing":
+		app.printToGUI("You stand up.")
+		me.makeStanding()
+	else:
+		app.printToGUI("You are already standing.")
+
+# replace default verbFunc method
+standUpVerb.verbFunc = standUpVerbFunc
+
+# SIT DOWN
+# transitive verb, no indirect object
+sitDownVerb = Verb("sit")
+sitDownVerb.syntax = [["sit", "down"], ["sit"]]
+sitDownVerb.preposition = ["down"]
+
+def sitDownVerbFunc(me, app):
+	"""Take off a piece of clothing
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if me.position != "sitting":
+		app.printToGUI("You sit down.")
+		me.makeSitting()
+	else:
+		app.printToGUI("You are already sitting.")
+
+# replace default verbFunc method
+sitDownVerb.verbFunc = sitDownVerbFunc

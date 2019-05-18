@@ -29,13 +29,23 @@ class Actor(Thing):
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
+		self.position = "standing"
 		self.contains = {}
 		self.sub_contains = {}
 		self.name = name
 		# verbose_name is modified when adjectives are applied using the setAdjectives method of the Thing class
 		self.verbose_name = name
 		# the default description of the Actor in a room
-		self.desc = self.getArticle().capitalize() + name + " is here."
+		self.base_desc = self.getArticle().capitalize() + name + " is here. "
+		if self.position != "standing":
+			self.desc = self.base_desc + " " +  self.getArticle().capitalize() + self.name + " is " + self.position + " down."
+		else:
+			self.desc = self.base_desc
+		self.base_xdesc = self.base_desc
+		if self.position != "standing":
+			self.xdesc = self.base_xdesc + " " + self.getArticle().capitalize() + self.name + " is " + self.position + " down."
+		else:
+			self.desc = self.base_desc
 		self.cannotTakeMsg = "You cannot take a person."
 		# add name to the noun lookup dictionary
 		if name not in vocab.nounDict:
@@ -75,10 +85,12 @@ class Actor(Thing):
 			vocab.nounDict[proper_name].append(self)
 	
 	def describeThing(self, description):
-		self.desc = description
+		self.base_desc = description
+		self.desc = self.base_desc + " " +  self.getArticle().capitalize() + self.name + " is " + self.position + " down."
 	
 	def xdescribeThing(self, description):
-		self.xdesc = description
+		self.base_xdesc = description
+		self.xdesc = self.base_xdesc + " " +  self.getArticle().capitalize() + self.name + " is " + self.position + " down."
 	
 	def addIn(self, item):
 		"""Add an item to contents, update descriptions
@@ -105,6 +117,21 @@ class Actor(Thing):
 		else:
 			self.location.sub_contains[item.ix] = [item]
 		#self.containsListUpdate()
+	
+	def makeStanding(self):
+		self.position = "standing"
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+	
+	def makeSitting(self):
+		self.position = "sitting"
+		self.desc = self.base_desc + " " +  self.getArticle().capitalize() + self.name + " is sitting down."
+		self.xdesc = self.base_xdesc + " " +  self.getArticle().capitalize() + self.name + " is sitting down."
+	
+	def makeLying(self):
+		self.position = "lying"
+		self.desc = self.base_desc + " " +  self.getArticle().capitalize() + self.name + " is lying down."
+		self.xdesc = self.base_xdesc + " " +  self.getArticle().capitalize() + self.name + " is lying down."
 
 	def removeThing(self, item):
 		"""Remove an item from contents, update decription """
@@ -146,12 +173,18 @@ class Player(Actor):
 		#self.location = loc
 		self.size = 50
 		self.synonyms = []
+		self.position = "standing"
 		self.inventory = {}
 		self.sub_inventory = {}
 		self.wearing = {}
 		self.inv_max = 100
 		self.desc = ""
 		self.xdesc="You notice nothing remarkable about yourself. "
+		self.ask_topics = {}
+		self.tell_topics = {}
+		self.give_topics = {}
+		self.show_topics = {}
+		self.default_topic = "No one responds. This should come as a relief."
 		self.knows_about = []
 		self.isPlural = False
 		self.hasArticle = True
