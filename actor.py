@@ -20,10 +20,10 @@ actor_ix = 0
 
 class Actor(Thing):
 	"""Actor class, used for characters in the creator's game """
-	invItem = False # cannot be added to the inventory
 	
 	def __init__(self, name):
 		"""Intitializes the Actor instance and sets essential properties """
+		self.invItem = False # cannot be added to the inventory
 		self.size = 50
 		self.synonyms = []
 		self.isPlural = False
@@ -171,6 +171,10 @@ class Player(Actor):
 		"""Set basic properties for the Player instance
 		Takes argument loc, a Room"""
 		#self.location = loc
+		self.name = name
+		self.verbose_name = name
+		self.invItem = False
+		self.cannotTakeMsg = "You cannot take yourself."
 		self.size = 50
 		self.synonyms = []
 		self.position = "standing"

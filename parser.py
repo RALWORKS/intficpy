@@ -560,7 +560,6 @@ def verbScopeError(app, scope, noun_adj_arr):
 		lastTurn.err = True
 		return None
 	elif scope=="knows":
-		# assuming scope = "inv"
 		app.printToGUI("You don't know of any " + noun + ".")
 		lastTurn.err = True
 		return None
@@ -685,18 +684,25 @@ def callVerb(me, app, cur_verb, obj_words):
 			return False
 		else:
 			if cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
+				success = True
 				verb.dropVerb.verbFunc(me, app, cur_iobj)
 			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
+				success = cur_iobj.invItem
 				verb.getVerb.verbFunc(me, app, cur_iobj)
 			elif cur_verb.iscope == "inv" and wearRangeCheck(me, cur_iobj):
+				success = True
 				verb.doffVerb.verbFunc(me, app, cur_iobj)
 			if cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
+				success = True
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
 			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
+				success = cur_dobj.invItem
 				verb.getVerb.verbFunc(me, app, cur_dobj)
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
+				success = True
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
-				
+			if not success:
+				return False	
 			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
 			return True
 	elif cur_verb.hasDobj:
