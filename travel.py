@@ -1,3 +1,4 @@
+from . import thing
 ##############################################################
 # ROOM.PY - travel functions for IntFicPy
 # Defines travel functions and the direction vocab dictionary
@@ -5,73 +6,115 @@
 
 # travel functions, called by getDirection in parser.py
 
+def removePlayer(me, app):
+	"""Remove the Player from the current room
+	Called by travel functions
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
+	x = me.location
+	if isinstance(x, thing.Thing):
+		x.removeThing(me)
+		x.containsListUpdate()
+		if isinstance(x, thing.Surface):
+			app.printToGUI("You get off of " + x.getArticle(True) + x.verbose_name + ".")
+		else:
+			app.printToGUI("You get out of " + x.getArticle(True) + x.verbose_name + ".")
+		x = x.location
+		while isinstance(x, thing.Thing):
+			x.sub_contains[me.ix].remove(me)
+			if x.sub_contains[me.ix]==[]:
+				del x.sub_contains[me.ix]
+			x = x.location
+	else:
+		me.location.removeThing(me)
+
 def travelN(me, app):
 	"""Travel north
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.north:
+	loc = me.getOutermostLocation()
+	if not loc.north:
 		app.printToGUI("You cannot go north from here.")
 	else:
-		me.location = me.location.north
+		removePlayer(me, app)
+		me.location = loc.north
+		me.location.addThing(me)
 		app.printToGUI("You go north.")
 		me.location.describe(me, app)
 
 def travelNE(me, app):
 	"""Travel northeast
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.northeast:
+	loc = me.getOutermostLocation()
+	if not loc.northeast:
 		app.printToGUI("You cannot go northeast from here.")
-	else:
-		me.location = me.location.northeast
+	else:		
+		removePlayer(me, app)
+		me.location = loc.northeast
+		me.location.addThing(me)
 		app.printToGUI("You go northeast.")
 		me.location.describe(me, app)
 
 def travelE(me, app):
 	"""Travel east
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.east:
+	loc = me.getOutermostLocation()
+	if not loc.east:
 		app.printToGUI("You cannot go east from here.")
 	else:
-		me.location = me.location.east
+		removePlayer(me, app)
+		me.location = loc.east
+		me.location.addThing(me)
 		app.printToGUI("You go east.")
 		me.location.describe(me, app)
 
 def travelSE(me, app):
 	"""Travel southeast
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.southeast:
+	loc = me.getOutermostLocation()
+	if not loc.southeast:
 		app.printToGUI("You cannot go southeast from here.")
 	else:
-		me.location = me.location.southeast
+		removePlayer(me, app)
+		me.location = loc.southeast
+		me.location.addThing(me)
 		app.printToGUI("You go southeast.")
 		me.location.describe(me, app)
 
 def travelS(me, app):
 	"""Travel south
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.south:
+	loc = me.getOutermostLocation()
+	if not loc.south:
 		app.printToGUI("You cannot go south from here.")
 	else:
-		me.location = me.location.south
+		removePlayer(me, app)
+		me.location = loc.south
+		me.location.addThing(me)
 		app.printToGUI("You go south.")
 		me.location.describe(me, app)
 
 def travelSW(me, app):
 	"""Travel southwest
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.southwest:
+	loc = me.getOutermostLocation()
+	if not loc.southwest:
 		app.printToGUI("You cannot go southwest from here.")
 	else:
-		me.location = me.location.southwest
+		removePlayer(me, app)
+		me.location = loc.southwest
+		me.location.addThing(me)
 		app.printToGUI("You go southwest.")
 		me.location.describe(me, app)
 
 def travelW(me, app):
 	"""Travel west
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.west:
+	loc = me.getOutermostLocation()
+	if not loc.west:
 		app.printToGUI("You cannot go west from here.")
 	else:
-		me.location = me.location.west
+		removePlayer(me, app)
+		me.location = loc.west
+		me.location.addThing(me)
 		app.printToGUI("You go west.")
 		me.location.describe(me, app)
 
@@ -79,10 +122,13 @@ def travelW(me, app):
 def travelNW(me, app):
 	"""Travel northwest
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-	if not me.location.northwest:
+	loc = me.getOutermostLocation()
+	if not loc.northwest:
 		app.printToGUI("You cannot go northwest from here.")
 	else:
-		me.location = me.location.northwest
+		removePlayer(me, app)
+		me.location = loc.northwest
+		me.location.addThing(me)
 		app.printToGUI("You go northwest.")
 		me.location.describe(me, app)
 

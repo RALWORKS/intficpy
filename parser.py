@@ -109,14 +109,11 @@ def extractInline(app, output_string, main_file):
 					func = func[:start_arg] + args + ")"
 				out = eval(func)
 				if isinstance(out, str):
-					print(output_tokens[word_ix])
 					output_tokens[word_ix] = out
 				else:
 					remove_func.append(word)
 	for word in remove_func:
-		print(word)
 		output_tokens.remove(word)
-	
 	return " ".join(output_tokens)
 
 def getDirection(me, app, input_tokens):
@@ -243,7 +240,9 @@ def matchPrepositions(verbs, input_tokens):
 	for p in vocab.english.prepositions:
 		if p in input_tokens:
 			for verb in verbs:
-				if not p in verb.preposition:
+				if not verb.preposition:
+					remove_verb.append(verb)
+				elif not p in verb.preposition:
 					remove_verb.append(verb)
 	for verb in remove_verb:
 		verbs.remove(verb)
@@ -425,13 +424,14 @@ def roomRangeCheck(me, thing):
 	"""Check if the Thing is in the current room
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
-	if thing.ix in me.location.contains:
-		if thing not in me.location.contains[thing.ix]:
+	out_loc = me.getOutermostLocation()
+	if thing.ix in out_loc.contains:
+		if thing not in out_loc.contains[thing.ix]:
 			return False
 		else:
 			return True
-	elif thing.ix in me.location.sub_contains:
-		if thing not in me.location.sub_contains[thing.ix]:
+	elif thing.ix in out_loc.sub_contains:
+		if thing not in out_loc.sub_contains[thing.ix]:
 			return False
 		else:
 			return True
@@ -446,26 +446,27 @@ def knowsRangeCheck(me, thing):
 		return True
 
 def nearRangeCheck(me, thing):
-	"""Check if the Thing is near (room or inventory)
+	"""Check if the Thing is near (room or contains)
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
-	if thing.ix in me.location.contains:
-		if thing not in me.location.contains[thing.ix]:
+	out_loc = me.getOutermostLocation()
+	if thing.ix in out_loc.contains:
+		if thing not in out_loc.contains[thing.ix]:
 			return False
 		else:
 			return True
-	elif thing.ix in me.location.sub_contains:
-		if thing not in me.location.sub_contains[thing.ix]:
+	elif thing.ix in out_loc.sub_contains:
+		if thing not in out_loc.sub_contains[thing.ix]:
 			return False
 		else:
 			return True
-	elif thing.ix in me.inventory:
-		if thing not in me.inventory[thing.ix]:
+	elif thing.ix in me.contains:
+		if thing not in me.contains[thing.ix]:
 			return False
 		else:
 			return True
-	elif thing.ix in me.sub_inventory:
-		if thing not in me.sub_inventory[thing.ix]:
+	elif thing.ix in me.sub_contains:
+		if thing not in me.sub_contains[thing.ix]:
 			return False
 		else:
 			return True
@@ -473,16 +474,16 @@ def nearRangeCheck(me, thing):
 		return False
 
 def invRangeCheck(me, thing):
-	"""Check if the Thing is in the Player inventory
+	"""Check if the Thing is in the Player contains
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
-	if thing.ix in me.inventory:
-		if thing not in me.inventory[thing.ix]:
+	if thing.ix in me.contains:
+		if thing not in me.contains[thing.ix]:
 			return False
 		else:
 			return True
-	elif thing.ix in me.sub_inventory:
-		if thing not in me.sub_inventory[thing.ix]:
+	elif thing.ix in me.sub_contains:
+		if thing not in me.sub_contains[thing.ix]:
 			return False
 		else:
 			return True
@@ -670,39 +671,37 @@ def callVerb(me, app, cur_verb, obj_words):
 		cur_iobj = False
 		lastTurn.iobj = False
 	# apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
-	if cur_dobj in me.sub_inventory:
+	if cur_dobj in me.sub_contains:
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
 		cur_dobj.location.removeThing(cur_dobj)
-		me.inventory.append(cur_dobj)
-	if cur_iobj in me.sub_inventory:
+		me.contains.append(cur_dobj)
+	if cur_iobj in me.sub_contains:
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
 		cur_iobj.location.removeThing(cur_iobj)
-		me.inventory.append(cur_iobj)
+		me.contains.append(cur_iobj)
 	
 	if cur_verb.hasIobj:
 		if not cur_dobj or not cur_iobj:
 			return False
 		else:
 			if cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
-				success = True
 				verb.dropVerb.verbFunc(me, app, cur_iobj)
 			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
-				success = cur_iobj.invItem
 				verb.getVerb.verbFunc(me, app, cur_iobj)
+				if not cur_iobj.invItem:
+					app.printToGUI("You cannot take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".")
+					return False
 			elif cur_verb.iscope == "inv" and wearRangeCheck(me, cur_iobj):
-				success = True
 				verb.doffVerb.verbFunc(me, app, cur_iobj)
 			if cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
-				success = True
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
 			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
-				success = cur_dobj.invItem
 				verb.getVerb.verbFunc(me, app, cur_dobj)
+				if not cur_dobj.invItem:
+					app.printToGUI("You cannot take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".")
+					return False
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
-				success = True
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
-			if not success:
-				return False	
 			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
 			return True
 	elif cur_verb.hasDobj:
@@ -749,7 +748,8 @@ def disambig(me, app, input_tokens):
 
 def roomDescribe(me, app):
 	"""Wrapper for room describe function (room.py) """
-	me.location.describe(me, app)
+	out_loc = me.getOutermostLocation()
+	out_loc.describe(me, app)
 
 # NOTE: typing "save" with no file specified currently breaks the terminal version
 def saveLoadCheck(input_tokens, me, app):

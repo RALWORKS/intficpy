@@ -67,17 +67,52 @@ class Room:
 				del self.contains[item.ix]
 			item.location = False
 	
+	def getLocContents(self, me):
+		if len(me.location.contains.items()) > 1:
+			onlist = "Also " + me.location.contains_preposition + " " + me.location.getArticle(True) + me.location.verbose_name + " is "
+			# iterate through contents, appending the verbose_name of each to onlist
+			list_version = list(me.location.contains.keys())
+			list_version.remove(me.ix)
+			for key in list_version:
+				if len(me.location.contains[key]) > 1:
+					onlist = onlist + str(len(things)) + " " + me.location.contains[key][0].verbose_name
+				else:
+					onlist = onlist + me.location.contains[key][0].getArticle() + me.location.contains[key][0].verbose_name
+				if key is list_version[-1]:
+					onlist = onlist + "."
+				elif key is list_version[-2]:
+					onlist = onlist + " and "
+				else:
+					onlist = onlist + ", "
+				self.fulldesc = self.fulldesc + onlist
+	
 	def describe(self, me, app):
 		"""Prints the Room title and description and lists items in the Room """
 		self.fulldesc = self.desc
+		desc_loc = False
 		for key, things in self.contains.items():
-			if len(things) > 1:
+			for item in things:
+				if item==me.location:
+					desc_loc = key
+			if desc_loc != key and len(things) > 1:
 				self.fulldesc = self.fulldesc + " There are " + str(len(things)) + " " + things[0].getPlural() + " here. "
-			else:	
+			elif desc_loc != key:	
 				self.fulldesc = self.fulldesc + " " + things[0].desc
 			# give player "knowledge" of a thing upon having it described
 			if key not in me.knows_about:
 				me.knows_about.append(key)
+		if desc_loc:
+			self.fulldesc = self.fulldesc + "<br>"
+			if len(self.contains[desc_loc]) > 2:
+				self.fulldesc = self.fulldesc + ("You are " + me.position + " " + me.location.contains_preposition + " " + me.location.getArticle() + me.location.verbose_name + ". ")
+				self.getLocContents(me)
+				self.fulldesc = self.fulldesc + ("There are " + str(len(self.contains[desc_loc]) - 1) + " more " + self.contains[desc_loc][0].getPlural + " nearby. ")
+			elif len(self.contains[desc_loc]) > 1:
+				self.fulldesc = self.fulldesc + ("You are " + me.position + " " + me.location.contains_preposition + " " + me.location.getArticle() + me.location.verbose_name + ". ")
+				self.getLocContents(me)
+				self.fulldesc = self.fulldesc + ("There is another " + self.contains[desc_loc][0].verbose_name + " nearby. ")
+			else:
+				self.fulldesc = self.fulldesc + ("You are " + me.position + " " + me.location.contains_preposition + " " + me.location.getArticle() + me.location.verbose_name + ". ")	
+				self.getLocContents(me)
 		app.printToGUI("<b>" + self.name + "</b>")
 		app.printToGUI(self.fulldesc)
-	

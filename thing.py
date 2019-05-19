@@ -25,6 +25,10 @@ class Thing:
 		things[self.ix] = self
 		# thing properties
 		self.size = 50
+		self.contains_preposition = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -123,9 +127,13 @@ class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
 	def __init__(self, name):
 		"""Sets the essential properties for a new Surface object """
+		self.contains_preposition = "on"
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
 		# the items on the Surface
 		self.contains = {}
 		# items contained by items on the Surface
@@ -144,7 +152,7 @@ class Surface(Thing):
 		# description of items on the Surface
 		# will be appended to descriptions
 		self.contains_desc = ""
-		# Surfaces are not inventory items by default, but can be safely made so
+		# Surfaces are not contains items by default, but can be safely made so
 		self.invItem = False
 		# add name to list of nouns
 		if name in vocab.nounDict:
@@ -160,9 +168,15 @@ class Surface(Thing):
 	def containsListUpdate(self):
 		"""Update description of contents
 		Called when a Thing is added or removed """
+		from .actor import Player
 		onlist = " On the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
 		list_version = list(self.contains.keys())
+		for key in list_version:
+			for item in self.contains[key]:
+				if isinstance(item, Player):
+					list_version.remove(key)
+					break
 		for key in list_version:
 			if len(self.contains[key]) > 1:
 				onlist = onlist + str(len(things)) + " " + self.contains[key][0].verbose_name
@@ -237,6 +251,10 @@ class Container(Thing):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
 		self.size = 50
+		self.contains_preposition = "on"
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -265,9 +283,15 @@ class Container(Thing):
 	
 	def containsListUpdate(self):
 		"""Update description for addition/removal of items from the Container instance """
+		from .actor import Player
 		inlist = " In the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
 		list_version = list(self.contains.keys())
+		for key in list_version:
+			for item in self.contains[key]:
+				if isinstance(item, Player):
+					list_version.remove(key)
+					break
 		for key in list_version:
 			if len(self.contains[key]) > 1:
 				inlist = inlist + str(len(things)) + " " + self.contains[key][0].verbose_name

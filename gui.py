@@ -160,11 +160,11 @@ class App(QWidget):
 			self.new_obox = False
 		
 		out = QLabel()
-		out.setText(out_string)
 		if bold:
 			out.setFont(tBold)
 		# remove function calls from output
-		out_string = parser.extractInline(self, out_string, main_file)	
+		out_string = parser.extractInline(self, out_string, main_file)
+		out.setText(out_string)
 		if "<<m>>" in out_string:
 			self.enterForMore(out_string)
 			return True
@@ -194,6 +194,7 @@ class App(QWidget):
 			self.new_obox = False
 		
 		out = QLabel()
+		self.cutscene[0] = parser.extractInline(self, self.cutscene[0], main_file)
 		out.setText(self.cutscene[0])
 		self.olayout.addWidget(out)
 		out.setWordWrap(True)
@@ -223,6 +224,7 @@ class App(QWidget):
 		self.olayout.addWidget(out)
 		out.setWordWrap(True)
 		out.setStyleSheet("margin-bottom: 5px")
+		self.cutscene[0] = parser.extractInline(self, self.cutscene[0], main_file)
 		out.setText(self.cutscene[0])
 		out.setMaximumSize(out.sizeHint())
 		out.setMinimumSize(out.sizeHint())

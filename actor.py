@@ -23,7 +23,7 @@ class Actor(Thing):
 	
 	def __init__(self, name):
 		"""Intitializes the Actor instance and sets essential properties """
-		self.invItem = False # cannot be added to the inventory
+		self.invItem = False # cannot be added to the contains
 		self.size = 50
 		self.synonyms = []
 		self.isPlural = False
@@ -163,7 +163,15 @@ class Actor(Thing):
 		Should be overwritten by the game creator for an instance to create special responses
 		Takes argument app, pointing to the PyQt5 GUI"""
 		app.printToGUI(self.default_topic)
-
+	
+	def getOutermostLocation(self):
+		"""Gets the Actor's current room 
+		Takes argument app, pointing to the PyQt5 GUI"""
+		from .room import Room 
+		x = self.location
+		while not isinstance(x, Room):
+			x = x.location
+		return x
 
 class Player(Actor):
 	"""Class for Player objects """
@@ -178,12 +186,14 @@ class Player(Actor):
 		self.size = 50
 		self.synonyms = []
 		self.position = "standing"
-		self.inventory = {}
-		self.sub_inventory = {}
+		self.contains = {}
+		self.sub_contains = {}
 		self.wearing = {}
 		self.inv_max = 100
 		self.desc = ""
+		self.base_desc = ""
 		self.xdesc="You notice nothing remarkable about yourself. "
+		self.base_xdesc = "You notice nothing remarkable about yourself. "
 		self.ask_topics = {}
 		self.tell_topics = {}
 		self.give_topics = {}
@@ -202,6 +212,29 @@ class Player(Actor):
 	def setPlayer(self):
 		self.addSynonym("me")
 		self.addSynonym("myself")
+		
+	def makeStanding(self):
+		self.position = "standing"
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+	
+	def makeSitting(self):
+		self.position = "sitting"
+		if isinstance(self.location, Thing):
+			self.desc = self.base_desc + " You are sitting on " + self.location.getArticle() + self.location.verbose_name + "."
+			self.xdesc = self.base_xdesc + " You are sitting on " + self.location.getArticle() + self.location.verbose_name + "."
+		else:
+			self.desc = self.base_desc + " You are sitting down."
+			self.xdesc = self.base_xdesc + " You are sitting down."
+	
+	def makeLying(self):
+		self.position = "lying"
+		if isinstance(self.location, Thing):
+			self.desc = self.base_desc + " You are lying " + self.location.contains_preposition + " " + self.location.getArticle() + self.location.verbose_name + "."
+			self.xdesc = self.base_xdesc + " You are lying " + self.location.contains_preposition + " " + self.location.getArticle() + self.location.verbose_name + "."
+		else:
+			self.desc = self.base_desc + " You are lying down."
+			self.xdesc = self.base_xdesc + " You are lying down."
 
 class Topic:
 	"""class for conversation topics"""
