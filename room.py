@@ -84,7 +84,7 @@ class Room:
 					onlist = onlist + " and "
 				else:
 					onlist = onlist + ", "
-				self.fulldesc = self.fulldesc + onlist
+			self.fulldesc = self.fulldesc + onlist
 	
 	def describe(self, me, app):
 		"""Prints the Room title and description and lists items in the Room """
