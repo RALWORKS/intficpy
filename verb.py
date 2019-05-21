@@ -1,6 +1,7 @@
 from . import vocab
 from . import actor
 from . import thing
+from . import room
 
 ##############################################################
 # VERB.PY - verbs for IntFicPy 
@@ -703,7 +704,7 @@ def doffVerbFunc(me, app, dobj):
 doffVerb.verbFunc = doffVerbFunc
 
 # LIE DOWN
-# transitive verb, no indirect object
+# intransitive verb
 lieDownVerb = Verb("lie")
 lieDownVerb.addSynonym("lay")
 lieDownVerb.syntax = [["lie", "down"], ["lay", "down"]]
@@ -711,8 +712,14 @@ lieDownVerb.preposition = ["down"]
 
 def lieDownVerbFunc(me, app):
 	"""Take off a piece of clothing
-	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
 	if me.position != "lying":
+		if isinstance(me.location, thing.Thing):
+			if not me.location.canLie:
+				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ".)")
+				outer_loc = me.getOutermostLocation()
+				me.location.removeThing(me)
+				outer_loc.addThing(me) 
 		app.printToGUI("You lie down.")
 		me.makeLying()
 	else:
@@ -720,22 +727,23 @@ def lieDownVerbFunc(me, app):
 # replace default verbFunc method
 lieDownVerb.verbFunc = lieDownVerbFunc
 
-# LIE DOWN
-# transitive verb, no indirect object
+# STAND UP
+# intransitive verb
 standUpVerb = Verb("stand")
 standUpVerb.syntax = [["stand", "up"], ["stand"]]
 standUpVerb.preposition = ["up"]
 
 def standUpVerbFunc(me, app):
 	"""Take off a piece of clothing
-	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
 	if me.position != "standing":
-		app.printToGUI("You stand up.")
-		if isinstance(me.location, thing.Surface):
+		if isinstance(me.location, thing.Thing):
 			if not me.location.canStand:
+				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ".)")
 				outer_loc = me.getOutermostLocation()
 				me.location.removeThing(me)
 				outer_loc.addThing(me) 
+		app.printToGUI("You stand up.")
 		me.makeStanding()
 	else:
 		app.printToGUI("You are already standing.")
@@ -744,15 +752,21 @@ def standUpVerbFunc(me, app):
 standUpVerb.verbFunc = standUpVerbFunc
 
 # SIT DOWN
-# transitive verb, no indirect object
+# intransitive verb
 sitDownVerb = Verb("sit")
 sitDownVerb.syntax = [["sit", "down"], ["sit"]]
 sitDownVerb.preposition = ["down"]
 
 def sitDownVerbFunc(me, app):
 	"""Take off a piece of clothing
-	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
 	if me.position != "sitting":
+		if isinstance(me.location, thing.Thing):
+			if not me.location.canSit:
+				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ".)")
+				outer_loc = me.getOutermostLocation()
+				me.location.removeThing(me)
+				outer_loc.addThing(me) 
 		app.printToGUI("You sit down.")
 		me.makeSitting()
 	else:
@@ -760,6 +774,33 @@ def sitDownVerbFunc(me, app):
 
 # replace default verbFunc method
 sitDownVerb.verbFunc = sitDownVerbFunc
+
+# STAND ON (SURFACE)
+# transitive verb, no indirect object
+standOnVerb = Verb("stand")
+standOnVerb.syntax = [["stand", "on", "<dobj>"]]
+standOnVerb.hasDobj = True
+standOnVerb.dscope = "room"
+standOnVerb.preposition = ["on"]
+
+def standOnVerbFunc(me, app, dobj):
+	"""Sit on a Surface where canSit is True
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if me.location==dobj and me.position=="standing":
+		app.printToGUI("You are already standing on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+	elif isinstance(dobj, thing.Surface) and dobj.canStand:
+		app.printToGUI("You stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		if me in me.location.contains[me.ix]:
+			me.location.contains[me.ix].remove(me)
+			if me.location.contains[me.ix] == []:
+				del me.location.contains[me.ix]
+		dobj.addOn(me)
+		me.makeStanding()
+	else:
+		app.printToGUI("You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+
+# replace default verbFunc method
+standOnVerb.verbFunc = standOnVerbFunc
 
 # SIT ON (SURFACE)
 # transitive verb, no indirect object
@@ -770,9 +811,11 @@ sitOnVerb.dscope = "room"
 sitOnVerb.preposition = ["down", "on"]
 
 def sitOnVerbFunc(me, app, dobj):
-	"""Sit on a Surface where canSit is True
+	"""Stand on a Surface where canStand is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
-	if isinstance(dobj, thing.Surface) and dobj.canSit:
+	if me.location==dobj and me.position=="sitting":
+		app.printToGUI("You are already sitting on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+	elif isinstance(dobj, thing.Surface) and dobj.canSit:
 		app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
 			me.location.contains[me.ix].remove(me)
@@ -785,3 +828,119 @@ def sitOnVerbFunc(me, app, dobj):
 
 # replace default verbFunc method
 sitOnVerb.verbFunc = sitOnVerbFunc
+
+# SIT ON (SURFACE)
+# transitive verb, no indirect object
+lieOnVerb = Verb("lie")
+lieOnVerb.addSynonym("lay")
+lieOnVerb.syntax = [["lie", "on", "<dobj>"], ["lie", "down", "on", "<dobj>"], ["lay", "on", "<dobj>"], ["lay", "down", "on", "<dobj>"]]
+lieOnVerb.hasDobj = True
+lieOnVerb.dscope = "room"
+lieOnVerb.preposition = ["down", "on"]
+
+def lieOnVerbFunc(me, app, dobj):
+	"""Lie on a Surface where canLie is True
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if me.location==dobj and me.position=="lying":
+		app.printToGUI("You are already lying on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+	elif isinstance(dobj, thing.Surface) and dobj.canLie:
+		app.printToGUI("You lie on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		if me in me.location.contains[me.ix]:
+			me.location.contains[me.ix].remove(me)
+			if me.location.contains[me.ix] == []:
+				del me.location.contains[me.ix]
+		dobj.addOn(me)
+		me.makeLying()
+	else:
+		app.printToGUI("You cannot lie on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+
+# replace default verbFunc method
+lieOnVerb.verbFunc = lieOnVerbFunc
+
+# CLIMB ON (SURFACE)
+# transitive verb, no indirect object
+climbOnVerb = Verb("climb")
+climbOnVerb.addSynonym("get")
+climbOnVerb.syntax = [["climb", "on", "<dobj>"], ["get", "on", "<dobj>"], ["climb", "<dobj>"]]
+climbOnVerb.hasDobj = True
+climbOnVerb.dscope = "room"
+climbOnVerb.preposition = ["on"]
+
+def climbOnVerbFunc(me, app, dobj):
+	"""Climb on a Surface where one of more of canStand/canSit/canLie is True
+	Will be extended once stairs/ladders are implemented
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if isinstance(dobj, thing.Surface) and dobj.canStand:
+		standOnVerb.verbFunc(me, app, dobj)
+	elif isinstance(dobj, thing.Surface) and dobj.canSit:
+		sitOnVerb.verbFunc(me, app, dobj)
+	elif isinstance(dobj, thing.Surface) and dobj.canLie:
+		lieOnVerb.verbFunc(me, app, dobj)
+	else:
+		app.printToGUI("You cannot climb on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+
+# replace default verbFunc method
+climbOnVerb.verbFunc = climbOnVerbFunc
+
+# CLIMB DOWN (INTRANSITIVE)
+# intransitive verb
+climbDownVerb = Verb("climb")
+climbDownVerb.addSynonym("get")
+climbDownVerb.syntax = [["climb", "off"], ["get", "off"], ["climb", "down"], ["get", "down"]]
+climbDownVerb.preposition = ["off", "down"]
+
+def climbDownVerbFunc(me, app):
+	"""Climb down from a Surface you currently occupy
+	Will be extended once stairs/ladders/up direction/down direction are implemented
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	if isinstance(me.location, thing.Surface):
+		app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
+		outer_loc = me.location.location
+		me.location.removeThing(me)
+		if isinstance(outer_loc, thing.Surface):
+			outer_loc.addOn(me)
+		elif isinstance(outer_loc, thing.Container):
+			outer_loc.addIn(me)
+		elif isinstance(outer_loc, room.Room):
+			outer_loc.addThing(me) 
+		else:
+			print("Unsupported outer location type: " + outer_loc.name)
+	else:
+		app.printToGUI("You cannot climb down from here. ")
+
+# replace default verbFunc method
+climbDownVerb.verbFunc = climbDownVerbFunc
+
+# CLIMB DOWN FROM (SURFACE)
+# transitive verb, no indirect object
+climbDownFromVerb = Verb("climb")
+climbDownFromVerb.addSynonym("get")
+climbDownFromVerb.syntax = [["climb", "off", "<dobj>"], ["get", "off", "<dobj>"], ["climb", "down", "from", "<dobj>"], ["get", "down", "from", "<dobj>"]]
+climbDownFromVerb.hasDobj = True
+climbDownFromVerb.dscope = "room"
+climbDownFromVerb.preposition = ["off", "down", "from"]
+
+def climbDownFromVerbFunc(me, app, dobj):
+	"""Climb down from a Surface you currently occupy
+	Will be extended once stairs/ladders/up direction/down direction are implemented
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if me.location==dobj:
+		if isinstance(me.location, thing.Surface):
+			app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
+			outer_loc = me.location.location
+			me.location.removeThing(me)
+			if isinstance(outer_loc, thing.Surface):
+				outer_loc.addOn(me)
+			elif isinstance(outer_loc, thing.Container):
+				outer_loc.addIn(me)
+			elif isinstance(outer_loc, room.Room):
+				outer_loc.addThing(me) 
+			else:
+				print("Unsupported outer location type: " + outer_loc.name)
+		else:
+			app.printToGUI("You cannot climb down from here. ")
+	else:
+		app.printToGUI("You are not on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+
+# replace default verbFunc method
+climbDownFromVerb.verbFunc = climbDownFromVerbFunc

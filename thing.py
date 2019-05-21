@@ -26,6 +26,7 @@ class Thing:
 		# thing properties
 		self.size = 50
 		self.contains_preposition = False
+		self.contains_preposition_inverse = False
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -128,6 +129,7 @@ class Surface(Thing):
 	def __init__(self, name):
 		"""Sets the essential properties for a new Surface object """
 		self.contains_preposition = "on"
+		self.contains_preposition_inverse = "off"
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -251,7 +253,8 @@ class Container(Thing):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
 		self.size = 50
-		self.contains_preposition = "on"
+		self.contains_preposition = "in"
+		self.contains_preposition_inverse = "out"
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False

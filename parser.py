@@ -245,7 +245,8 @@ def matchPrepositions(verbs, input_tokens):
 				elif not p in verb.preposition:
 					remove_verb.append(verb)
 	for verb in remove_verb:
-		verbs.remove(verb)
+		if verb in verbs:
+			verbs.remove(verb)
 	return verbs
 
 def getVerbSyntax(app, cur_verb, input_tokens):
