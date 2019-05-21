@@ -124,6 +124,11 @@ class Thing:
 	
 	def describeThing(self, description):
 		self.base_desc = description
+		self.desc = description
+		
+	def xdescribeThing(self, description):
+		self.base_xdesc = description
+		self.xdesc = description
 
 class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """

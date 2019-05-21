@@ -36,9 +36,16 @@ class Room:
 		# room properties
 		self.name = name
 		self.desc = desc
-		self.hasWalls = True
+		self.hasWalls = False
 		self.contains = {}
 		self.sub_contains = {}
+		self.walls = []
+		
+		self.floor = thing.Thing("floor")
+		self.floor.invItem = False
+		self.floor.describeThing("")
+		self.floor.xdescribeThing("You notice nothing remarkable about the floor.")
+		self.addThing(self.floor)
 	
 	def addThing(self, item):
 		"""Places a Thing in a Room

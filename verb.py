@@ -805,6 +805,19 @@ standOnVerb.preposition = ["on"]
 def standOnVerbFunc(me, app, dobj):
 	"""Sit on a Surface where canSit is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	outer_loc = me.getOutermostLocation()
+	if dobj==outer_loc.floor:
+		if me.location==outer_loc and me.position=="standing":
+			app.printToGUI("You are already standing on the floor.")
+		elif me.location==outer_loc:
+			app.printToGUI("You stand on the floor.")
+			me.makeStanding()
+		else:
+			me.location.removeThing(me)
+			outer_loc.addThing(me)
+			app.printToGUI("You stand on the floor.")
+			me.makeStanding()
+		return True
 	if me.location==dobj and me.position=="standing" and isinstance(dobj, thing.Surface):
 		app.printToGUI("You are already standing on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 	elif isinstance(dobj, thing.Surface) and dobj.canStand:
@@ -832,6 +845,19 @@ sitOnVerb.preposition = ["down", "on"]
 def sitOnVerbFunc(me, app, dobj):
 	"""Stand on a Surface where canStand is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	outer_loc = me.getOutermostLocation()
+	if dobj==outer_loc.floor:
+		if me.location==outer_loc and me.position=="sitting":
+			app.printToGUI("You are already sitting on the floor.")
+		elif me.location==outer_loc:
+			app.printToGUI("You sit on the floor.")
+			me.makeSitting()
+		else:
+			me.location.removeThing(me)
+			outer_loc.addThing(me)
+			app.printToGUI("You sit on the floor.")
+			me.makeSitting()
+		return True
 	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Surface):
 		app.printToGUI("You are already sitting on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 	elif isinstance(dobj, thing.Surface) and dobj.canSit:
@@ -860,6 +886,19 @@ lieOnVerb.preposition = ["down", "on"]
 def lieOnVerbFunc(me, app, dobj):
 	"""Lie on a Surface where canLie is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	outer_loc = me.getOutermostLocation()
+	if dobj==outer_loc.floor:
+		if me.location==outer_loc and me.position=="lying":
+			app.printToGUI("You are already lying on the floor.")
+		elif me.location==outer_loc:
+			app.printToGUI("You lie on the floor.")
+			me.makeLying()
+		else:
+			me.location.removeThing(me)
+			outer_loc.addThing(me)
+			app.printToGUI("You lie on the floor.")
+			me.makeLying()
+		return True
 	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Surface):
 		app.printToGUI("You are already lying on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 	elif isinstance(dobj, thing.Surface) and dobj.canLie:

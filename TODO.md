@@ -28,11 +28,9 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + display the game title in the GUI window title
 + interactable walls
 + Doors and Keys
-+ ActorSurface class with positional restrictions
 + Things with an "under" property
 + directions/directional statements up, down, enter, exit, in, out
 + stairs/ladder
-+ climb/climb on
 + AbstractVerb class, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary")
 + open/closed & containers with lids, locks
 ### Other New Features
