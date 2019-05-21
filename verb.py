@@ -150,7 +150,7 @@ def getVerbFunc(me, app, dobj):
 			else:
 				me.sub_contains[t.ix] = [t]
 		# if the location of dobj is a Thing, remove it from the Thing
-		if isinstance(dobj.location, thing.Thing):
+		if isinstance(dobj.location, thing.Thing) and not isinstance(dobj.location, actor.Actor):
 			old_loc = dobj.location
 			dobj.location.removeThing(dobj)
 			old_loc.containsListUpdate()
