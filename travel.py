@@ -1,4 +1,5 @@
 from . import thing
+from . import verb
 ##############################################################
 # ROOM.PY - travel functions for IntFicPy
 # Defines travel functions and the direction vocab dictionary
@@ -26,11 +27,13 @@ def removePlayer(me, app):
 			x = x.location
 	else:
 		me.location.removeThing(me)
-
+		
 def travelN(me, app):
 	"""Travel north
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.north:
 		app.printToGUI("You cannot go north from here.")
 	else:
@@ -44,6 +47,8 @@ def travelNE(me, app):
 	"""Travel northeast
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.northeast:
 		app.printToGUI("You cannot go northeast from here.")
 	else:		
@@ -57,6 +62,8 @@ def travelE(me, app):
 	"""Travel east
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.east:
 		app.printToGUI("You cannot go east from here.")
 	else:
@@ -70,6 +77,8 @@ def travelSE(me, app):
 	"""Travel southeast
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.southeast:
 		app.printToGUI("You cannot go southeast from here.")
 	else:
@@ -83,6 +92,8 @@ def travelS(me, app):
 	"""Travel south
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.south:
 		app.printToGUI("You cannot go south from here.")
 	else:
@@ -96,6 +107,8 @@ def travelSW(me, app):
 	"""Travel southwest
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.southwest:
 		app.printToGUI("You cannot go southwest from here.")
 	else:
@@ -109,6 +122,8 @@ def travelW(me, app):
 	"""Travel west
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.west:
 		app.printToGUI("You cannot go west from here.")
 	else:
@@ -123,6 +138,8 @@ def travelNW(me, app):
 	"""Travel northwest
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
 	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
 	if not loc.northwest:
 		app.printToGUI("You cannot go northwest from here.")
 	else:

@@ -42,10 +42,43 @@ class Room:
 		self.walls = []
 		
 		self.floor = thing.Thing("floor")
+		self.floor.addSynonym("ground")
 		self.floor.invItem = False
 		self.floor.describeThing("")
 		self.floor.xdescribeThing("You notice nothing remarkable about the floor.")
 		self.addThing(self.floor)
+		
+		self.north_wall = thing.Thing("wall")
+		self.north_wall.setAdjectives(["north"])
+		self.north_wall.invItem = False
+		self.north_wall.describeThing("")
+		self.north_wall.xdescribeThing("You notice nothing remarkable about the north wall.")
+		self.addThing(self.north_wall)
+		self.walls.append(self.north_wall)
+		
+		self.south_wall = thing.Thing("wall")
+		self.south_wall.setAdjectives(["south"])
+		self.south_wall.invItem = False
+		self.south_wall.describeThing("")
+		self.south_wall.xdescribeThing("You notice nothing remarkable about the south wall.")
+		self.addThing(self.south_wall)
+		self.walls.append(self.south_wall)
+		
+		self.east_wall = thing.Thing("wall")
+		self.east_wall.setAdjectives(["east"])
+		self.east_wall.invItem = False
+		self.east_wall.describeThing("")
+		self.east_wall.xdescribeThing("You notice nothing remarkable about the east wall.")
+		self.addThing(self.east_wall)
+		self.walls.append(self.east_wall)
+		
+		self.west_wall = thing.Thing("wall")
+		self.west_wall.setAdjectives(["west"])
+		self.west_wall.invItem = False
+		self.west_wall.describeThing("")
+		self.west_wall.xdescribeThing("You notice nothing remarkable about the west wall.")
+		self.addThing(self.west_wall)
+		self.walls.append(self.west_wall)
 	
 	def addThing(self, item):
 		"""Places a Thing in a Room
@@ -123,3 +156,36 @@ class Room:
 				self.getLocContents(me)
 		app.printToGUI("<b>" + self.name + "</b>")
 		app.printToGUI(self.fulldesc)
+
+class OutdoorRoom(Room):
+	"""Room is the class for outdoor locations in an IntFicPy game
+	OutdoorRooms have no walls, and the floor is called ground"""
+	def __init__(self, name, desc):
+		"""Initially set basic properties for the OutdoorRoom instance """
+		# indexing for save
+		global room_ix
+		self.ix = "room" + str(room_ix)
+		room_ix = room_ix + 1
+		rooms[self.ix] = self
+		# travel connections can be set to other Rooms after initialization
+		self.north = None
+		self.northeast = None
+		self.east = None
+		self.southeast = None
+		self.south = None
+		self.southwest = None
+		self.west = None
+		self.northwest = None
+		# room properties
+		self.name = name
+		self.desc = desc
+		self.hasWalls = False
+		self.contains = {}
+		self.sub_contains = {}
+		self.walls = []
+		
+		self.floor = thing.Thing("ground")
+		self.floor.invItem = False
+		self.floor.describeThing("")
+		self.floor.xdescribeThing("You notice nothing remarkable about the ground.")
+		self.addThing(self.floor)

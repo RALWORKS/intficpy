@@ -253,9 +253,28 @@ setOnVerb.preposition = ["on"]
 def setOnVerbFunc(me, app, dobj, iobj):
 	"""Put a Thing on a Surface
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	outer_loc = me.getOutermostLocation()
+	if iobj==outer_loc.floor:
+		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on the ground.")
+		me.contains[dobj.ix].remove(dobj)
+		if me.contains[dobj.ix] == []:
+			del me.contains[dobj.ix]
+		# remove all nested objects for dobj from contains
+		nested = getNested(dobj)
+		for t in nested:
+			#me.sub_contains.remove(t)
+			del me.sub_contains[t.ix][0]
+			if me.sub_contains[t.ix] == []:
+				del me.sub_contains[t.ix]
+			#iobj.sub_contains.append(t)
+			if t.ix in outer_loc.sub_contains:
+				outer_loc.sub_contains[t.ix].append(t)
+			else:
+				outer_loc.sub_contains[t.ix] = [t]
+		outer_loc.addThing(dobj)
+		return True
 	if isinstance(iobj, thing.Surface):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
-		#me.contains.remove(dobj)
 		me.contains[dobj.ix].remove(dobj)
 		if me.contains[dobj.ix] == []:
 			del me.contains[dobj.ix]
@@ -808,14 +827,14 @@ def standOnVerbFunc(me, app, dobj):
 	outer_loc = me.getOutermostLocation()
 	if dobj==outer_loc.floor:
 		if me.location==outer_loc and me.position=="standing":
-			app.printToGUI("You are already standing on the floor.")
+			app.printToGUI("You are already standing on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		elif me.location==outer_loc:
-			app.printToGUI("You stand on the floor.")
+			app.printToGUI("You stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeStanding()
 		else:
 			me.location.removeThing(me)
 			outer_loc.addThing(me)
-			app.printToGUI("You stand on the floor.")
+			app.printToGUI("You stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeStanding()
 		return True
 	if me.location==dobj and me.position=="standing" and isinstance(dobj, thing.Surface):
@@ -848,14 +867,14 @@ def sitOnVerbFunc(me, app, dobj):
 	outer_loc = me.getOutermostLocation()
 	if dobj==outer_loc.floor:
 		if me.location==outer_loc and me.position=="sitting":
-			app.printToGUI("You are already sitting on the floor.")
+			app.printToGUI("You are already sitting on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		elif me.location==outer_loc:
-			app.printToGUI("You sit on the floor.")
+			app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeSitting()
 		else:
 			me.location.removeThing(me)
 			outer_loc.addThing(me)
-			app.printToGUI("You sit on the floor.")
+			app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeSitting()
 		return True
 	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Surface):
@@ -889,14 +908,14 @@ def lieOnVerbFunc(me, app, dobj):
 	outer_loc = me.getOutermostLocation()
 	if dobj==outer_loc.floor:
 		if me.location==outer_loc and me.position=="lying":
-			app.printToGUI("You are already lying on the floor.")
+			app.printToGUI("You are already lying " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		elif me.location==outer_loc:
-			app.printToGUI("You lie on the floor.")
+			app.printToGUI("You lie on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeLying()
 		else:
 			me.location.removeThing(me)
 			outer_loc.addThing(me)
-			app.printToGUI("You lie on the floor.")
+			app.printToGUI("You lie on the " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeLying()
 		return True
 	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Surface):
