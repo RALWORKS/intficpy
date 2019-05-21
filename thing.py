@@ -37,6 +37,7 @@ class Thing:
 		self.adjectives = []
 		self.cannotTakeMsg = "You cannot take that."
 		self.contains = {}
+		self.sub_contains = {}
 		self.wearable = False
 		self.location = False
 		self.name = name
