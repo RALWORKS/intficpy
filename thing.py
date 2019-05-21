@@ -174,10 +174,12 @@ class Surface(Thing):
 		onlist = " On the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
 		list_version = list(self.contains.keys())
+		player_here = False
 		for key in list_version:
 			for item in self.contains[key]:
 				if isinstance(item, Player):
 					list_version.remove(key)
+					player_here = True
 					break
 		for key in list_version:
 			if len(self.contains[key]) > 1:
@@ -194,6 +196,10 @@ class Surface(Thing):
 		# TODO: consider rewriting this logic to avoid contructing an empty onlist, then deleting it
 		if len(list_version)==0:
 			onlist = ""
+		if player_here:
+			if inlist != "":
+				onlist = onlist + "<br>"
+			onlist = onlist + "You are on " + self.getArticle(True) + self.verbose_name + "."
 		# append onlist to description
 		self.desc = self.base_desc + onlist
 		self.xdesc = self.base_xdesc + onlist
@@ -290,10 +296,12 @@ class Container(Thing):
 		inlist = " In the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
 		list_version = list(self.contains.keys())
+		player_here = False
 		for key in list_version:
 			for item in self.contains[key]:
 				if isinstance(item, Player):
 					list_version.remove(key)
+					player_here = True
 					break
 		for key in list_version:
 			if len(self.contains[key]) > 1:
@@ -310,6 +318,10 @@ class Container(Thing):
 		# TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
 		if len(list_version)==0:
 			inlist = ""
+		if player_here:
+			if inlist != "":
+				inlist = inlist + "<br>"
+			inlist = inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
 		# update descriptions
 		self.desc = self.base_desc + inlist
 		self.xdesc = self.base_xdesc + inlist

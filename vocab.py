@@ -14,5 +14,5 @@ class VocabObject:
 		self.articles = []
 
 english = VocabObject()
-english.prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around", "to", "about", "from"]
+english.prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around", "to", "about", "from", "into", "of"]
 english.articles = ["a", "an", "the"]
