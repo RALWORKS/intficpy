@@ -24,6 +24,7 @@ class Thing:
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# thing properties
+		self.twin = False
 		self.size = 50
 		self.contains_preposition = False
 		self.contains_preposition_inverse = False

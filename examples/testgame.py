@@ -4,26 +4,16 @@ import random
 from PyQt5.QtWidgets import QApplication
 
 # imports from intficpy
-from intficpy.room import Room
+from intficpy.room import Room, OutdoorRoom
 from intficpy.thing import Thing, Surface, Container, Clothing, Abstract
 #from intficpy.player import Player
+from intficpy.travel import TravelConnector
 from intficpy.actor import Actor, Player, Topic
 import intficpy.parser as parser
 import intficpy.gui as gui
 
-
-# comment out for TERMINAL MODE 
 app = QApplication(sys.argv)
 gui.Prelim(__name__)
-# uncomment for TERMINAL MODE
-#class App:
-#	def printToGUI(out_string, bold=False):
-#		out_string = parser.extractInline(out_string)
-#		if not bold:
-#			print(out_string)
-#		else:
-#			print('\033[1m' + out_string + '\033[0m')
-#app = App
 
 seenshackintro = False
 
@@ -37,9 +27,9 @@ def test2(app):
 		return ""
 	else:
 		seenshackintro = True
-		return "<<m>> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area.\n"
+		return "You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area.\n"
 
-startroom = Room("Shack interior", "You are standing in a one room shack. Light filters in through a cracked, dirty window. There is a door to the east.")
+startroom = Room("Shack interior", "You are standing in a one room shack. Light filters in through a cracked, dirty window. ")
 me = Player("boy")
 startroom.addThing(me)
 me.setPlayer()
@@ -63,6 +53,9 @@ scarf = Clothing("scarf")
 startroom.addThing(scarf)
 
 box = Container("box")
+box.canStand = True
+box.canSit = True
+box.canLie = True
 startroom.addThing(box)
 
 opal = Thing("opal")
@@ -78,6 +71,8 @@ bottle2 = bottle.copyThing()
 startroom.addThing(bottle2)
 
 bench = Surface("bench")
+bench.canSit = True
+bench.canStand = True
 bench.describeThing("A rough wooden bench sits against the wall.")
 bench.xdescribeThing("The wooden bench is splintering, and faded grey. It looks very old.")
 startroom.addThing(bench)
@@ -92,9 +87,13 @@ emptycan.setAdjectives(["empty", "old"])
 emptycan.size = 30
 startroom.addThing(emptycan)
 
-beach = Room("Beach, near the shack", "You find yourself on an abandoned beach. The door to the shack is directly west of you.")
-startroom.east = beach
-beach.west = startroom
+beach = OutdoorRoom("Beach, near the shack", "You find yourself on an abandoned beach. ")
+#startroom.east = beach
+#beach.west = startroom
+
+shackdoor = TravelConnector(startroom, "e", beach, "w")
+shackdoor.entranceA.describeThing("To the east, a doorway leads outside. ")
+shackdoor.entranceB.describeThing("The doorway to the shack is directly west of you. ")
 
 rock = Thing("rock")
 beach.addThing(rock)
@@ -106,6 +105,7 @@ startroom.addThing(sarah)
 john = Actor("janitor")
 john.makeUnique()
 startroom.addThing(john)
+john.makeLying()
 
 opalTopic = Topic("\"Why is there an opal here?\" You ask.<br><br>\"I brought it from the cave,\" says Sarah. \"Take it if you want. I want nothing to do with it.\" <<cave_concept.makeKnown(me)>>")
 sarah.addTopic("asktell", opalTopic, opal)
@@ -120,12 +120,9 @@ cave_concept = Abstract("cave")
 caveTopic = Topic("Sarah narrows her eyes. \"You don't want to know,\" she says.")
 sarah.addTopic("ask", caveTopic, cave_concept)
 
-# uncomment for GUI MODE
 screen = app.primaryScreen()
 screen = screen.size()
 ex = gui.App(me)
 ex.show()
 sys.exit(app.exec_())
 
-# uncomment for TERMINAL MODE
-#parser.mainLoop(me, app)
