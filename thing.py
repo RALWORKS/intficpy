@@ -24,7 +24,6 @@ class Thing:
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# thing properties
-		self.twin = False
 		self.size = 50
 		self.contains_preposition = False
 		self.contains_preposition_inverse = False
@@ -387,7 +386,79 @@ class Clothing(Thing):
 	# all clothing is wearable
 	wearable = True
 	# uses __init__ from Thing
+
+
+class Door(Thing):
+	def __init__(self, name):
+		"""Sets essential properties for the Thing instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# door properties
+		self.twin = False
+		self.open = False
+		self.state_desc = "It is currently closed. "
+		# thing properties
+		self.size = 50
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = False
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc + self.state_desc
+		self.xdesc = self.base_xdesc + self.state_desc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
 	
+	def makeOpen(self):
+		self.open = True
+		self.state_desc = "It is currently open. "
+		self.desc = self.base_desc + self.state_desc
+		self.xdesc = self.base_xdesc + self.state_desc
+		if self.twin:
+			if not self.twin.open:
+				self.twin.makeOpen()
+	
+	def makeClosed(self):
+		self.open = False
+		self.state_desc = "It is currently closed. "
+		self.desc = self.base_desc + self.state_desc
+		self.xdesc = self.base_xdesc + self.state_desc
+		if self.twin:
+			if self.twin.open:
+				self.twin.makeClosed()
+	
+	def describeThing(self, description):
+		self.base_desc = description
+		self.desc = description + self.state_desc
+		
+	def xdescribeThing(self, description):
+		self.base_xdesc = description
+		self.xdesc = description + self.state_desc
+
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces
 	Takes argument target, pointing to a Thing

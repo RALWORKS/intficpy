@@ -1191,3 +1191,53 @@ def climbOutOfVerbFunc(me, app, dobj):
 
 # replace default verbFunc method
 climbOutOfVerb.verbFunc = climbOutOfVerbFunc
+
+# OPEN (THING)
+# transitive verb, no indirect object
+openVerb = Verb("open")
+openVerb.syntax = [["open", "<dobj>"]]
+openVerb.hasDobj = True
+openVerb.dscope = "near"
+
+def openVerbFunc(me, app, dobj):
+	"""Open a Thing with an open property
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	try:
+		state = dobj.open
+	except:
+		app.printToGUI("You cannot open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+		return False
+	if state==False:
+		app.printToGUI("You open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+		dobj.makeOpen()
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already open. ")
+	return True
+	
+# replace default verbFunc method
+openVerb.verbFunc = openVerbFunc
+
+# CLOSE (THING)
+# transitive verb, no indirect object
+closeVerb = Verb("close")
+closeVerb.syntax = [["close", "<dobj>"]]
+closeVerb.hasDobj = True
+closeVerb.dscope = "near"
+
+def closeVerbFunc(me, app, dobj):
+	"""Open a Thing with an open property
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	try:
+		state = dobj.open
+	except:
+		app.printToGUI("You cannot close " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+		return False
+	if state==True:
+		app.printToGUI("You close " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+		dobj.makeClosed()
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already closed. ")
+	return True
+	
+# replace default verbFunc method
+closeVerb.verbFunc = closeVerbFunc

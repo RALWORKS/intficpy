@@ -6,6 +6,8 @@ from . import verb
 ##############################################################
 
 class TravelConnector:
+	"""Base class for travel connectors
+	Links two rooms together"""
 	def __init__(self, room1, direction1, room2, direction2):
 		self.pointA = room1
 		self.pointB = room2
@@ -16,8 +18,6 @@ class TravelConnector:
 		self.entranceB = thing.Thing("doorway")
 		self.entranceA.invItem = False
 		self.entranceB.invItem = False
-		self.entranceA.twin = self.entranceB
-		self.entranceB.twin = self.entranceA
 		interactables.append(self.entranceA)
 		interactables.append(self.entranceB)
 		for x in range(0, 2):
@@ -87,13 +87,98 @@ class TravelConnector:
 			removePlayer(me, app)
 			me.location = self.pointB
 			me.location.addThing(me)
-			app.printToGUI("You go through the door. ")
+			app.printToGUI("You go through the doorway. ")
 			me.location.describe(me, app)
 		elif outer_loc == self.pointB:
 			removePlayer(me, app)
 			me.location = self.pointA
 			me.location.addThing(me)
 			app.printToGUI("You go through the doorway. ")
+			me.location.describe(me, app)
+		else:
+			app.printToGUI("You cannot go that way. ")
+
+class DoorConnector(TravelConnector):
+	"""Base class for travel connectors
+	Links two rooms together"""
+	def __init__(self, room1, direction1, room2, direction2):
+		self.pointA = room1
+		self.pointB = room2
+		r = [room1, room2]
+		d = [direction1, direction2]
+		interactables = []
+		self.entranceA = thing.Door("door")
+		self.entranceB = thing.Door("door")
+		self.entranceA.twin = self.entranceB
+		self.entranceB.twin = self.entranceA
+		interactables.append(self.entranceA)
+		interactables.append(self.entranceB)
+		for x in range(0, 2):
+			r[x].addThing(interactables[x])
+			if d[x]=="n":
+				r[x].north = self
+				interactables[x].setAdjectives(["north"])
+				interactables[x].describeThing("There is a door to the north. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the north door. ")
+			elif d[x]=="s":
+				r[x].south = self
+				interactables[x].setAdjectives(["south"])
+				interactables[x].describeThing("There is a door to the south. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the south door. ")
+			elif d[x]=="e":
+				r[x].east = self
+				interactables[x].setAdjectives(["east"])
+				interactables[x].describeThing("There is a door to the east. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the east door. ")
+			elif d[x]=="w":
+				r[x].west = self
+				interactables[x].setAdjectives(["west"])
+				interactables[x].describeThing("There is a door to the west. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the west door.  ")
+			elif d[x]=="ne":
+				r[x].northeast = self
+				interactables[x].setAdjectives(["northeast"])
+				interactables[x].describeThing("You notice nothing remarkable about the northeast door. ")
+			elif d[x]=="nw":
+				r[x].northwest = self
+				interactables[x].setAdjectives(["northwest"])
+				interactables[x].describeThing("There is a door to the northwest. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the northwest door. ")
+			elif d[x]=="se":
+				r[x].southeast = self
+				interactables[x].setAdjectives(["southeast"])
+				interactables[x].describeThing("There is a door to the southeast. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the southeast door. ")
+			elif d[x]=="sw":
+				r[x].southwest = self
+				interactables[x].setAdjectives(["southwest"])
+				interactables[x].describeThing("There is a door to the southwest. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the southwest door. ")
+			else:
+				print("error: invalid direction input for DoorConnector: " + d[x])
+	
+	def travel(self, me, app):
+		from . import verb
+		outer_loc = me.getOutermostLocation()
+		if outer_loc == self.pointA:
+			if not self.entranceA.open:
+				opened = verb.openVerb.verbFunc(me, app, self.entranceA)
+				if not opened:
+					return False
+			removePlayer(me, app)
+			me.location = self.pointB
+			me.location.addThing(me)
+			app.printToGUI("You go through " + self.entranceA.getArticle(True) + self.entranceA.verbose_name + ". ")
+			me.location.describe(me, app)
+		elif outer_loc == self.pointB:
+			if not self.entranceB.open:
+				opened = verb.openVerb.verbFunc(me, app, self.entranceB)
+				if not opened:
+					return False
+			removePlayer(me, app)
+			me.location = self.pointA
+			me.location.addThing(me)
+			app.printToGUI("You go through " + self.entranceB.getArticle(True) + self.entranceB.verbose_name + ". ")
 			me.location.describe(me, app)
 		else:
 			app.printToGUI("You cannot go that way. ")
