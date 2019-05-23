@@ -312,6 +312,10 @@ setInVerb.preposition = ["in"]
 def setInVerbFunc(me, app, dobj, iobj):
 	"""Put a Thing in a Container
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if isinstance(iobj, thing.Container) and iobj.has_lid:
+		if not iobj.open:
+			app.printToGUI("You  cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " is closed.")
+			return False
 	if isinstance(iobj, thing.Container) and iobj.size >= dobj.size:
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " in " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		#me.contains.remove(dobj)
@@ -451,12 +455,19 @@ def lookInVerbFunc(me, app, dobj):
 	# print the target's xdesc (examine descripion)
 	if isinstance(dobj, thing.Container):
 		list_version = list(dobj.contains.keys())
+		if dobj.has_lid:
+			if not dobj.open:
+				app.printToGUI("You cannot see inside " + dobj.getArticle(True) + dobj.verbose_name + " as it is closed.")
+				return False
 		if len(list_version) > 0:
 			app.printToGUI(dobj.contains_desc)
+			return True
 		else:
 			app.printToGUI("The " + dobj.verbose_name + " is empty.")
+			return True
 	else:
-		app.printToGUI("You cannot look inside the " + dobj.verbose_name + ".")
+		app.printToGUI("You cannot look inside " + dobj.getArticle(True) + dobj.verbose_name + ".")
+		return False
 
 lookInVerb.verbFunc = lookInVerbFunc
 
@@ -1152,13 +1163,29 @@ def climbInVerbFunc(me, app, dobj):
 	"""Climb in a Container where one of more of canStand/canSit/canLie is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if isinstance(dobj, thing.Container) and dobj.canStand:
+		if dobj.has_lid:
+			if not dobj.open:
+				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
+				return False
 		standInVerb.verbFunc(me, app, dobj)
+		return True
 	elif isinstance(dobj, thing.Container) and dobj.canSit:
+		if dobj.has_lid:
+			if not dobj.open:
+				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
+				return False
 		sitInVerb.verbFunc(me, app, dobj)
+		return True
 	elif isinstance(dobj, thing.Container) and dobj.canLie:
+		if dobj.has_lid:
+			if not dobj.open:
+				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
+				return False
 		lieInVerb.verbFunc(me, app, dobj)
+		return True
 	else:
 		app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 climbInVerb.verbFunc = climbInVerbFunc
@@ -1254,13 +1281,19 @@ openVerb.verbFunc = openVerbFunc
 # CLOSE (THING)
 # transitive verb, no indirect object
 closeVerb = Verb("close")
-closeVerb.syntax = [["close", "<dobj>"]]
+closeVerb.addSynonym("shut")
+closeVerb.syntax = [["close", "<dobj>"], ["shut","<dobj>"]]
 closeVerb.hasDobj = True
 closeVerb.dscope = "near"
 
 def closeVerbFunc(me, app, dobj):
 	"""Open a Thing with an open property
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if isinstance(dobj, thing.Container):
+		if dobj.has_lid:
+			if me.ix in dobj.contains or me.ix in dobj.sub_contains:
+				app.printToGUI("You cannot close " + dobj.getArticle(True) + dobj.verbose_name + " while you are inside it. ")
+				return False
 	try:
 		state = dobj.open
 	except:

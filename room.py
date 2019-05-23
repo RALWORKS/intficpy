@@ -24,6 +24,7 @@ class Room:
 		self.ix = "room" + str(room_ix)
 		room_ix = room_ix + 1
 		rooms[self.ix] = self
+		self.location = False
 		# travel connections can be set to other Rooms after initialization
 		self.north = None
 		self.northeast = None
@@ -171,6 +172,7 @@ class OutdoorRoom(Room):
 		self.ix = "room" + str(room_ix)
 		room_ix = room_ix + 1
 		rooms[self.ix] = self
+		self.location = False
 		# travel connections can be set to other Rooms after initialization
 		self.north = None
 		self.northeast = None

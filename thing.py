@@ -273,6 +273,7 @@ class Container(Thing):
 		self.size = 50
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
+		self.has_lid = False
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -306,6 +307,16 @@ class Container(Thing):
 	def containsListUpdate(self):
 		"""Update description for addition/removal of items from the Container instance """
 		from .actor import Player
+		desc = self.base_desc
+		xdesc = self.base_xdesc
+		if self.has_lid:
+			desc = desc + self.state_desc
+			xdesc = xdesc + self.state_desc
+			if not self.open:
+				self.desc = desc
+				self.xdesc = xdesc
+				self.contains_desc = "You cannot see inside " + self.getArticle(True) + self.verbose_name + " as it is closed."
+				return False
 		inlist = " In the " + self.name + " is "
 		# iterate through contents, appending the verbose_name of each to onlist
 		list_version = list(self.contains.keys())
@@ -336,9 +347,10 @@ class Container(Thing):
 				inlist = inlist + "<br>"
 			inlist = inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
 		# update descriptions
-		self.desc = self.base_desc + inlist
-		self.xdesc = self.base_xdesc + inlist
+		self.desc = desc + inlist
+		self.xdesc = xdesc + inlist
 		self.contains_desc = inlist
+		return True
 	
 	def addIn(self, item):
 		"""Add an item to contents, update descriptions
@@ -346,38 +358,82 @@ class Container(Thing):
 		item.location = self
 		# nested items
 		nested = getNested(item)
+		next_loc = self.location
+		while next_loc:
+			for t in nested:
+				if t.ix in next_loc.sub_contains:
+					next_loc.sub_contains[t.ix].append(t)
+				else:
+					next_loc.sub_contains[t.ix] = [t]
+			if item.ix in next_loc.sub_contains:
+				next_loc.sub_contains[item.ix].append(item)
+			else:
+				next_loc.sub_contains[item.ix] = [item]
+			next_loc = next_loc.location
 		for t in nested:
 			if t.ix in self.sub_contains:
 				self.sub_contains[t.ix].append(t)
 			else:
 				self.sub_contains[t.ix] = [t]
-			if item.ix in self.location.sub_contains:
-				self.location.sub_contains[t.ix].append(t)
-			else:
-				self.location.sub_contains[t.ix] = [t]
-		# top level item
 		if item.ix in self.contains:
 			self.contains[item.ix].append(item)
 		else:
 			self.contains[item.ix] = [item]
-		if item.ix in self.location.sub_contains:
-			self.location.sub_contains[item.ix].append(item)
-		else:
-			self.location.sub_contains[item.ix] = [item]
+		if self.has_lid:
+			if not self.open:
+				self.hideContents()
 		self.containsListUpdate()
-
+	
+	def revealContents(self):
+		list_version = list(self.contains.keys())
+		for key in list_version:
+			for item in self.contains[key]:
+				nested = getNested(item)
+				next_loc = self.location
+				while next_loc:
+					for x in nested:
+						if x.ix in next_loc.sub_contains:
+							next_loc.sub_contains[x.ix].append(x)
+						else:
+							next_loc.sub_contains[x.ix] = [x]
+					if item.ix in next_loc.sub_contains:
+						next_loc.sub_contains[item.ix].append(item)
+					else:
+						next_loc.sub_contains[item.ix] = [item]
+					next_loc = next_loc.location
+					
+	def hideContents(self):
+		list_version = list(self.contains.keys())
+		for key in list_version:
+			for item in self.contains[key]:
+				nested = getNested(item)
+				next_loc = self.location
+				while next_loc:
+					for x in nested:
+						if x.ix in next_loc.sub_contains:
+							next_loc.sub_contains[x.ix].remove(x)
+							if next_loc.sub_contains[x.ix] == []:
+								del next_loc.sub_contains[x.ix]
+					if item.ix in next_loc.sub_contains:
+						next_loc.sub_contains[item.ix].remove(item)
+						if next_loc.sub_contains[item.ix] == []:
+							del next_loc.sub_contains[item.ix]
+					next_loc = next_loc.location
+	
 	def removeThing(self, item):
 		"""Remove an item from contents, update decription """
 		if item.ix in self.contains:
 			if item in self.contains[item.ix]:
 				self.contains[item.ix].remove(item)
-				self.location.sub_contains[item.ix].remove(item)
 				if self.contains[item.ix] == []:
 					del self.contains[item.ix]
+		if item.ix in self.location.sub_contains: 
+			if item in self.location.sub_contains[item.ix]:
+				self.location.sub_contains[item.ix].remove(item)
 				if self.location.sub_contains[item.ix] == []:
 					del self.location.sub_contains[item.ix]
-				item.location = False
-			self.containsListUpdate()
+		item.location = False
+		self.containsListUpdate()
 			
 	def describeThing(self, description):
 		self.base_desc = description
@@ -386,7 +442,25 @@ class Container(Thing):
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.containsListUpdate()
-
+	
+	def giveLid(self):
+		self.has_lid = True
+		self.open = False
+		self.state_desc = " It is currently closed. "
+		self.containsListUpdate()
+	
+	def makeOpen(self):
+		self.open = True
+		self.state_desc = " It is currently open. "
+		self.containsListUpdate()
+		self.revealContents()
+			
+	def makeClosed(self):
+		self.open = False
+		self.state_desc = " It is currently closed. "
+		self.containsListUpdate()
+		self.hideContents()
+		
 # NOTE: May not be necessary as a distinct class. Consider just using the wearable property.
 class Clothing(Thing):
 	"""Class for Things that can be worn """

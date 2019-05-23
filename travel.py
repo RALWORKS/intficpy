@@ -1,5 +1,6 @@
 from . import thing
 from . import verb
+from . import room
 ##############################################################
 # ROOM.PY - travel functions for IntFicPy
 # Defines travel functions and the direction vocab dictionary
@@ -88,13 +89,17 @@ class TravelConnector:
 	def travel(self, me, app):
 		outer_loc = me.getOutermostLocation()
 		if outer_loc == self.pointA:
-			removePlayer(me, app)
+			preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 			me.location = self.pointB
 			me.location.addThing(me)
 			app.printToGUI("You go through the doorway. ")
 			me.location.describe(me, app)
 		elif outer_loc == self.pointB:
-			removePlayer(me, app)
+			preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 			me.location = self.pointA
 			me.location.addThing(me)
 			app.printToGUI("You go through the doorway. ")
@@ -168,12 +173,15 @@ class DoorConnector(TravelConnector):
 	def travel(self, me, app):
 		from . import verb
 		outer_loc = me.getOutermostLocation()
+		preRemovePlayer(me, app)
 		if outer_loc == self.pointA:
 			if not self.entranceA.open:
 				opened = verb.openVerb.verbFunc(me, app, self.entranceA)
 				if not opened:
 					return False
-			removePlayer(me, app)
+			#preRemovePlayer(me, app)
+			if me.location:
+				me.location.removeThing(me)
 			me.location = self.pointB
 			me.location.addThing(me)
 			app.printToGUI("You go through " + self.entranceA.getArticle(True) + self.entranceA.verbose_name + ". ")
@@ -183,7 +191,9 @@ class DoorConnector(TravelConnector):
 				opened = verb.openVerb.verbFunc(me, app, self.entranceB)
 				if not opened:
 					return False
-			removePlayer(me, app)
+			#preRemovePlayer(me, app)
+			if me.location:
+				me.location.removeThing(me)
 			me.location = self.pointA
 			me.location.addThing(me)
 			app.printToGUI("You go through " + self.entranceB.getArticle(True) + self.entranceB.verbose_name + ". ")
@@ -226,13 +236,17 @@ class LadderConnector(TravelConnector):
 	def travel(self, me, app):
 		outer_loc = me.getOutermostLocation()
 		if outer_loc == self.pointA:
-			removePlayer(me, app)
+			preRemovePlayer(me, app)
+			if me.location:
+				me.location.removeThing(me)
 			me.location = self.pointB
 			me.location.addThing(me)
 			app.printToGUI("You climb the ladder. ")
 			me.location.describe(me, app)
 		elif outer_loc == self.pointB:
-			removePlayer(me, app)
+			preRemovePlayer(me, app)
+			if me.location:
+				me.location.removeThing(me)
 			me.location = self.pointA
 			me.location.addThing(me)
 			app.printToGUI("You climb the ladder. ")
@@ -281,13 +295,17 @@ class StaircaseConnector(TravelConnector):
 	def travel(self, me, app):
 		outer_loc = me.getOutermostLocation()
 		if outer_loc == self.pointA:
-			removePlayer(me, app)
+			preRemovePlayer(me, app)
+			if me.location:
+				me.location.removeThing(me)
 			me.location = self.pointB
 			me.location.addThing(me)
 			app.printToGUI("You climb the staircase. ")
 			me.location.describe(me, app)
 		elif outer_loc == self.pointB:
-			removePlayer(me, app)
+			preRemovePlayer(me, app)
+			if me.location:
+				me.location.removeThing(me)
 			me.location = self.pointA
 			me.location.addThing(me)
 			app.printToGUI("You climb the staircase. ")
@@ -296,7 +314,7 @@ class StaircaseConnector(TravelConnector):
 			app.printToGUI("You cannot go that way. ")
 
 # travel functions, called by getDirection in parser.py
-def removePlayer(me, app):
+def preRemovePlayer(me, app):
 	"""Remove the Player from the current room
 	Called by travel functions
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
@@ -309,13 +327,11 @@ def removePlayer(me, app):
 		else:
 			app.printToGUI("You get out of " + x.getArticle(True) + x.verbose_name + ".")
 		x = x.location
-		while isinstance(x, thing.Thing):
+		while not isinstance(x, room.Room):
 			x.sub_contains[me.ix].remove(me)
 			if x.sub_contains[me.ix]==[]:
 				del x.sub_contains[me.ix]
 			x = x.location
-	else:
-		me.location.removeThing(me)
 		
 def travelN(me, app):
 	"""Travel north
@@ -328,7 +344,9 @@ def travelN(me, app):
 	elif isinstance(loc.north, TravelConnector):
 		loc.north.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.north
 		me.location.addThing(me)
 		app.printToGUI("You go north.")
@@ -345,7 +363,9 @@ def travelNE(me, app):
 	elif isinstance(loc.northeast, TravelConnector):
 		loc.northeast.travel(me, app)
 	else:		
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.northeast
 		me.location.addThing(me)
 		app.printToGUI("You go northeast.")
@@ -362,7 +382,9 @@ def travelE(me, app):
 	elif isinstance(loc.east, TravelConnector):
 		loc.east.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.east
 		me.location.addThing(me)
 		app.printToGUI("You go east.")
@@ -379,7 +401,9 @@ def travelSE(me, app):
 	elif isinstance(loc.southeast, TravelConnector):
 		loc.southeast.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.southeast
 		me.location.addThing(me)
 		app.printToGUI("You go southeast.")
@@ -396,7 +420,9 @@ def travelS(me, app):
 	elif isinstance(loc.south, TravelConnector):
 		loc.south.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.south
 		me.location.addThing(me)
 		app.printToGUI("You go south.")
@@ -413,7 +439,9 @@ def travelSW(me, app):
 	elif isinstance(loc.southwest, TravelConnector):
 		loc.southwest.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.southwest
 		me.location.addThing(me)
 		app.printToGUI("You go southwest.")
@@ -430,7 +458,9 @@ def travelW(me, app):
 	elif isinstance(loc.west, TravelConnector):
 		loc.west.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.west
 		me.location.addThing(me)
 		app.printToGUI("You go west.")
@@ -448,7 +478,9 @@ def travelNW(me, app):
 	elif isinstance(loc.northwest, TravelConnector):
 		loc.northwest.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.northwest
 		me.location.addThing(me)
 		app.printToGUI("You go northwest.")
@@ -466,7 +498,9 @@ def travelU(me, app):
 	elif isinstance(loc.up, TravelConnector):
 		loc.up.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.up
 		me.location.addThing(me)
 		app.printToGUI("You go up.")
@@ -484,7 +518,9 @@ def travelD(me, app):
 	elif isinstance(loc.down, TravelConnector):
 		loc.down.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.down
 		me.location.addThing(me)
 		app.printToGUI("You go down.")
@@ -503,7 +539,9 @@ def travelOut(me, app):
 	elif isinstance(loc.exit, TravelConnector):
 		loc.exit.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.exit
 		me.location.addThing(me)
 		app.printToGUI("You exit. ")
@@ -522,7 +560,9 @@ def travelIn(me, app):
 	elif isinstance(loc.entrance, TravelConnector):
 		loc.entrance.travel(me, app)
 	else:
-		removePlayer(me, app)
+		preRemovePlayer(me, app)
+		if me.location:
+			me.location.removeThing(me)
 		me.location = loc.entrance
 		me.location.addThing(me)
 		app.printToGUI("You enter. ")
