@@ -34,6 +34,7 @@ class Thing:
 		self.canStand = False
 		self.canLie = False
 		self.isPlural = False
+		self.special_plural = False
 		self.hasArticle = True
 		self.isDefinite = False
 		self.invItem = True
@@ -105,7 +106,9 @@ class Thing:
 				return "a "
 	
 	def getPlural(self):
-		if self.verbose_name[-1]=="s" or self.verbose_name[-1]=="x" or self.verbose_name[-1]=="z" or self.verbose_name[-2:]=="sh" or self.verbose_name[-2:]=="ch":
+		if self.custom_plural:
+			return self.custom_plural
+		elif self.verbose_name[-1]=="s" or self.verbose_name[-1]=="x" or self.verbose_name[-1]=="z" or self.verbose_name[-2:]=="sh" or self.verbose_name[-2:]=="ch":
 			return self.verbose_name + "es"
 		else:
 			return self.verbose_name + "s"
@@ -274,6 +277,7 @@ class Container(Thing):
 		self.canStand = False
 		self.canLie = False
 		self.isPlural = False
+		self.special_plural = False
 		self.hasArticle = True
 		self.isDefinite = False
 		self.invItem = True
@@ -412,6 +416,7 @@ class AbstractClimbable(Thing):
 		self.canStand = False
 		self.canLie = False
 		self.isPlural = False
+		self.special_plural = False
 		self.hasArticle = True
 		self.isDefinite = False
 		self.invItem = False
@@ -461,6 +466,7 @@ class Door(Thing):
 		self.canStand = False
 		self.canLie = False
 		self.isPlural = False
+		self.special_plural = False
 		self.hasArticle = True
 		self.isDefinite = False
 		self.invItem = False
@@ -522,6 +528,7 @@ class Abstract:
 		things[self.ix] = self
 		# properties
 		self.isPlural = False
+		self.special_plural = False
 		self.hasArticle = True
 		self.isDefinite = False
 		self.invItem = False
