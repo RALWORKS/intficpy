@@ -18,6 +18,10 @@ class TravelConnector:
 		self.entranceB = thing.Thing("doorway")
 		self.entranceA.invItem = False
 		self.entranceB.invItem = False
+		self.entranceA.connection = self
+		self.entranceB.connection = self
+		self.entranceA.direction = direction1
+		self.entranceB.direction = direction2
 		interactables.append(self.entranceA)
 		interactables.append(self.entranceB)
 		for x in range(0, 2):
@@ -111,6 +115,10 @@ class DoorConnector(TravelConnector):
 		self.entranceB = thing.Door("door")
 		self.entranceA.twin = self.entranceB
 		self.entranceB.twin = self.entranceA
+		self.entranceA.connection = self
+		self.entranceB.connection = self
+		self.entranceA.direction = direction1
+		self.entranceB.direction = direction2
 		interactables.append(self.entranceA)
 		interactables.append(self.entranceB)
 		for x in range(0, 2):
@@ -183,8 +191,111 @@ class DoorConnector(TravelConnector):
 		else:
 			app.printToGUI("You cannot go that way. ")
 
-# travel functions, called by getDirection in parser.py
+class LadderConnector(TravelConnector):
+	"""Class for ladder travel connectors (up/down)
+	Links two rooms together"""
+	def __init__(self, room1, room2):
+		self.pointA = room1
+		self.pointB = room2
+		r = [room1, room2]
+		d = ["u", "d"]
+		interactables = []
+		self.entranceA = thing.AbstractClimbable("ladder")
+		self.entranceB = thing.AbstractClimbable("ladder")
+		self.entranceA.connection = self
+		self.entranceB.connection = self
+		self.entranceA.direction = "u"
+		self.entranceB.direction = "d"
+		interactables.append(self.entranceA)
+		interactables.append(self.entranceB)
+		for x in range(0, 2):
+			r[x].addThing(interactables[x])
+			if d[x]=="u":
+				r[x].up = self
+				interactables[x].setAdjectives(["up", "upward"])
+				interactables[x].describeThing("There is a ladder leading up. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the ladder. ")
+			elif d[x]=="d":
+				r[x].down = self
+				interactables[x].setAdjectives(["down", "downward"])
+				interactables[x].describeThing("There is a ladder leading down. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the ladder. ")
+			else:
+				print("error: invalid direction input for LadderConnector: " + d[x])
+	
+	def travel(self, me, app):
+		outer_loc = me.getOutermostLocation()
+		if outer_loc == self.pointA:
+			removePlayer(me, app)
+			me.location = self.pointB
+			me.location.addThing(me)
+			app.printToGUI("You climb the ladder. ")
+			me.location.describe(me, app)
+		elif outer_loc == self.pointB:
+			removePlayer(me, app)
+			me.location = self.pointA
+			me.location.addThing(me)
+			app.printToGUI("You climb the ladder. ")
+			me.location.describe(me, app)
+		else:
+			app.printToGUI("You cannot go that way. ")
 
+class StaircaseConnector(TravelConnector):
+	"""Class for staircase travel connectors (up/down)
+	Links two rooms together"""
+	def __init__(self, room1, room2):
+		self.pointA = room1
+		self.pointB = room2
+		r = [room1, room2]
+		d = ["u", "d"]
+		interactables = []
+		self.entranceA = thing.AbstractClimbable("staircase")
+		self.entranceB = thing.AbstractClimbable("staircase")
+		self.entranceA.addSynonym("stairway")
+		self.entranceB.addSynonym("stairway")
+		self.entranceA.addSynonym("stairs")
+		self.entranceB.addSynonym("stairs")
+		self.entranceA.addSynonym("stair")
+		self.entranceB.addSynonym("stair")
+		self.entranceA.connection = self
+		self.entranceB.connection = self
+		self.entranceA.direction = "u"
+		self.entranceB.direction = "d"
+		interactables.append(self.entranceA)
+		interactables.append(self.entranceB)
+		for x in range(0, 2):
+			r[x].addThing(interactables[x])
+			if d[x]=="u":
+				r[x].up = self
+				interactables[x].setAdjectives(["up", "upward"])
+				interactables[x].describeThing("There is a staircase leading up. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the staircase ")
+			elif d[x]=="d":
+				r[x].down = self
+				interactables[x].setAdjectives(["down", "downward"])
+				interactables[x].describeThing("There is a staircase leading down. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the staircase. ")
+			else:
+				print("error: invalid direction input for StaircaseConnector: " + d[x])
+	
+	def travel(self, me, app):
+		outer_loc = me.getOutermostLocation()
+		if outer_loc == self.pointA:
+			removePlayer(me, app)
+			me.location = self.pointB
+			me.location.addThing(me)
+			app.printToGUI("You climb the staircase. ")
+			me.location.describe(me, app)
+		elif outer_loc == self.pointB:
+			removePlayer(me, app)
+			me.location = self.pointA
+			me.location.addThing(me)
+			app.printToGUI("You climb the staircase. ")
+			me.location.describe(me, app)
+		else:
+			app.printToGUI("You cannot go that way. ")
+
+# travel functions, called by getDirection in parser.py
 def removePlayer(me, app):
 	"""Remove the Player from the current room
 	Called by travel functions
@@ -334,6 +445,8 @@ def travelNW(me, app):
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.northwest:
 		app.printToGUI("You cannot go northwest from here.")
+	elif isinstance(loc.northwest, TravelConnector):
+		loc.northwest.travel(me, app)
 	else:
 		removePlayer(me, app)
 		me.location = loc.northwest
@@ -341,6 +454,41 @@ def travelNW(me, app):
 		app.printToGUI("You go northwest.")
 		me.location.describe(me, app)
 
+# travel up
+def travelU(me, app):
+	"""Travel upward
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
+	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
+	if not loc.up:
+		app.printToGUI("You cannot go up from here.")
+	elif isinstance(loc.up, TravelConnector):
+		loc.up.travel(me, app)
+	else:
+		removePlayer(me, app)
+		me.location = loc.up
+		me.location.addThing(me)
+		app.printToGUI("You go northwest.")
+		me.location.describe(me, app)
+
+# travel down
+def travelD(me, app):
+	"""Travel downward
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
+	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
+	if not loc.down:
+		app.printToGUI("You cannot go down from here.")
+	elif isinstance(loc.down, TravelConnector):
+		loc.down.travel(me, app)
+	else:
+		removePlayer(me, app)
+		me.location = loc.down
+		me.location.addThing(me)
+		app.printToGUI("You go northwest.")
+		me.location.describe(me, app)
 
 # maps user input to travel functions
-directionDict = {"n": travelN, "north": travelN, "ne": travelNE, "northeast": travelNE, "e": travelE, "east": travelE, "se": travelSE, "southeast": travelSE, "s": travelS, "south": travelS, "sw": travelSW, "southwest": travelSW, "w": travelW, "west": travelW, "nw": travelNW, "northwest": travelNW}
+directionDict = {"n": travelN, "north": travelN, "ne": travelNE, "northeast": travelNE, "e": travelE, "east": travelE, "se": travelSE, "southeast": travelSE, "s": travelS, "south": travelS, "sw": travelSW, "southwest": travelSW, "w": travelW, "west": travelW, "nw": travelNW, "northwest": travelNW, "up": travelU, "u": travelU, "down": travelD, "d": travelD}

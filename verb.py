@@ -1021,16 +1021,21 @@ lieInVerb.verbFunc = lieInVerbFunc
 # transitive verb, no indirect object
 climbOnVerb = Verb("climb")
 climbOnVerb.addSynonym("get")
-climbOnVerb.syntax = [["climb", "on", "<dobj>"], ["get", "on", "<dobj>"], ["climb", "<dobj>"]]
+climbOnVerb.syntax = [["climb", "on", "<dobj>"], ["get", "on", "<dobj>"], ["climb", "<dobj>"], ["climb", "up", "<dobj>"]]
 climbOnVerb.hasDobj = True
 climbOnVerb.dscope = "room"
-climbOnVerb.preposition = ["on"]
+climbOnVerb.preposition = ["on", "up"]
 
 def climbOnVerbFunc(me, app, dobj):
 	"""Climb on a Surface where one of more of canStand/canSit/canLie is True
 	Will be extended once stairs/ladders are implemented
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
-	if isinstance(dobj, thing.Surface) and dobj.canStand:
+	if isinstance(dobj, thing.AbstractClimbable):
+		if dobj.direction=="u":
+			dobj.connection.travel(me, app)
+		else:
+			app.printToGUI("You can't climb up that.")
+	elif isinstance(dobj, thing.Surface) and dobj.canStand:
 		standOnVerb.verbFunc(me, app, dobj)
 	elif isinstance(dobj, thing.Surface) and dobj.canSit:
 		sitOnVerb.verbFunc(me, app, dobj)
@@ -1042,6 +1047,26 @@ def climbOnVerbFunc(me, app, dobj):
 # replace default verbFunc method
 climbOnVerb.verbFunc = climbOnVerbFunc
 
+# CLIMB UP (INTRANSITIVE)
+# intransitive verb
+climbUpVerb = Verb("climb")
+climbUpVerb.syntax = [["climb", "up"], ["climb"]]
+climbUpVerb.preposition = ["up"]
+
+def climbUpVerbFunc(me, app):
+	"""Climb up to the room above
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from . import travel
+	cur_loc = me.getOutermostLocation()
+	if cur_loc.up:
+		travel.travelU(me, app)
+	else:
+		app.printToGUI("You cannot climb up from here. ")
+
+# replace default verbFunc method
+climbUpVerb.verbFunc = climbUpVerbFunc
+
+
 # CLIMB DOWN (INTRANSITIVE)
 # intransitive verb
 climbDownVerb = Verb("climb")
@@ -1051,9 +1076,12 @@ climbDownVerb.preposition = ["off", "down"]
 
 def climbDownVerbFunc(me, app):
 	"""Climb down from a Surface you currently occupy
-	Will be extended once stairs/ladders/up direction/down direction are implemented
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	if isinstance(me.location, thing.Surface):
+	from . import travel
+	cur_loc = me.getOutermostLocation()
+	if cur_loc.down:
+		travel.travelD(me, app)
+	elif isinstance(me.location, thing.Surface):
 		app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 		outer_loc = me.location.location
 		me.location.removeThing(me)
@@ -1075,7 +1103,7 @@ climbDownVerb.verbFunc = climbDownVerbFunc
 # transitive verb, no indirect object
 climbDownFromVerb = Verb("climb")
 climbDownFromVerb.addSynonym("get")
-climbDownFromVerb.syntax = [["climb", "off", "<dobj>"], ["get", "off", "<dobj>"], ["climb", "down", "from", "<dobj>"], ["get", "down", "from", "<dobj>"]]
+climbDownFromVerb.syntax = [["climb", "off", "<dobj>"], ["get", "off", "<dobj>"], ["climb", "down", "from", "<dobj>"], ["get", "down", "from", "<dobj>"], ["climb", "down", "<dobj>"]]
 climbDownFromVerb.hasDobj = True
 climbDownFromVerb.dscope = "room"
 climbDownFromVerb.preposition = ["off", "down", "from"]
@@ -1084,7 +1112,12 @@ def climbDownFromVerbFunc(me, app, dobj):
 	"""Climb down from a Surface you currently occupy
 	Will be extended once stairs/ladders/up direction/down direction are implemented
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
-	if me.location==dobj:
+	if isinstance(dobj, thing.AbstractClimbable):
+		if dobj.direction=="d":
+			dobj.connection.travel(me, app)
+		else:
+			app.printToGUI("You can't climb down from that.")
+	elif me.location==dobj:
 		if isinstance(me.location, thing.Surface):
 			app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 			outer_loc = me.location.location

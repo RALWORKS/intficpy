@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QApplication
 from intficpy.room import Room, OutdoorRoom
 from intficpy.thing import Thing, Surface, Container, Clothing, Abstract
 #from intficpy.player import Player
-from intficpy.travel import TravelConnector, DoorConnector
+from intficpy.travel import TravelConnector, DoorConnector, LadderConnector, StaircaseConnector
 from intficpy.actor import Actor, Player, Topic
 import intficpy.parser as parser
 import intficpy.gui as gui
@@ -94,6 +94,13 @@ beach = OutdoorRoom("Beach, near the shack", "You find yourself on an abandoned 
 shackdoor = DoorConnector(startroom, "e", beach, "w")
 shackdoor.entranceA.describeThing("To the east, a door leads outside. ")
 shackdoor.entranceB.describeThing("The door to the shack is directly west of you. ")
+
+attic = Room("Shack, attic", "You are in a dim, cramped attic.")
+shackladder = LadderConnector(startroom, attic)
+shackladder.entranceA.describeThing("Against the north wall is a ladder leading up to the attic. ")
+shackladder.entranceA.xdescribeThing("Against the north wall is a ladder leading up to the attic. ")
+startroom.north = shackladder
+
 
 rock = Thing("rock")
 beach.addThing(rock)

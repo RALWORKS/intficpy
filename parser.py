@@ -406,8 +406,9 @@ def getObjWords(app, before, after, input_tokens):
 		return None
 	if obj_words[0] in vocab.english.prepositions:
 		del obj_words[0]
-	if obj_words[-1] in vocab.english.prepositions:
-		del obj_words[-1]
+	if len(obj_words) > 0:
+		if obj_words[-1] in vocab.english.prepositions:
+			del obj_words[-1]
 	return obj_words
 
 def wearRangeCheck(me, thing):

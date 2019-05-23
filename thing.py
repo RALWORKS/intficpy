@@ -23,6 +23,9 @@ class Thing:
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
 		# thing properties
 		self.size = 50
 		self.contains_preposition = False
@@ -387,19 +390,69 @@ class Clothing(Thing):
 	wearable = True
 	# uses __init__ from Thing
 
+class AbstractClimbable(Thing):
+	"""Represents one end of a staircase or ladder.
+	Creators should generally use a LadderConnector or StaircaseConnector (travel.py) rather than directly creating AbstractClimbable instances. """
+	def __init__(self, name):
+		"""Sets essential properties for the AbstractClimbable instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# connector properties
+		self.twin = False
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.size = 50
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = False
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
 
 class Door(Thing):
+	"""Represents one side of a door. Always define with a twin, and set a direction. Can be open or closed.
+	Creators should generally use DoorConnectors (travel.py) rather than defining Doors  directly. """
 	def __init__(self, name):
-		"""Sets essential properties for the Thing instance """
+		"""Sets essential properties for the Door instance """
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# door properties
+		self.direction = False
 		self.twin = False
 		self.open = False
 		self.state_desc = "It is currently closed. "
+		self.connection = False
 		# thing properties
 		self.size = 50
 		self.contains_preposition = False
@@ -459,6 +512,45 @@ class Door(Thing):
 		self.base_xdesc = description
 		self.xdesc = description + self.state_desc
 
+class Abstract:
+	"""Class for abstract game items with no location, such as ideas"""
+	def __init__(self, name):
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# properties
+		self.isPlural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = False
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		self.give = False
+		# no physical form or location, so no desc/xdesc
+		#self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		#self.base_xdesc = self.base_desc
+		#self.desc = self.base_desc
+		#self.xdesc = self.base_xdesc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def makeKnown(self, me):
+		if not self.ix in me.knows_about:
+			me.knows_about.append(self.ix)
+			
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces
 	Takes argument target, pointing to a Thing
@@ -520,41 +612,3 @@ def getNested(target):
 				push = False
 	return nested
 
-class Abstract:
-	"""Class for abstract game items with no location, such as ideas"""
-	def __init__(self, name):
-		# indexing for save
-		global thing_ix
-		self.ix = "thing" + str(thing_ix)
-		thing_ix = thing_ix + 1
-		things[self.ix] = self
-		# properties
-		self.isPlural = False
-		self.hasArticle = True
-		self.isDefinite = False
-		self.invItem = False
-		self.adjectives = []
-		self.cannotTakeMsg = "You cannot take that."
-		self.contains = {}
-		self.wearable = False
-		self.location = False
-		self.name = name
-		self.synonyms = []
-		# verbose name will be updated when adjectives are added
-		self.verbose_name = name
-		self.give = False
-		# no physical form or location, so no desc/xdesc
-		#self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
-		#self.base_xdesc = self.base_desc
-		#self.desc = self.base_desc
-		#self.xdesc = self.base_xdesc
-		# the default description for the examine command
-		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
-		else:
-			vocab.nounDict[name] = [self]
-	
-	def makeKnown(self, me):
-		if not self.ix in me.knows_about:
-			me.knows_about.append(self.ix)

@@ -22,11 +22,11 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 
 ##  PREPARATIONS FOR FIRST BETA (Upcoming Features)
 ### Convenience & Ease of Use
-+ creator functions that evaluate AFTER dynamic room text
++ creator functions that evaluate AFTER dynamic room text (func property in Room?)
++ better ordering in room descriptions
 ### Essential New Features
 + display the game title in the GUI window title
-+ TravelConnector subclasses: stairs/ladder
-+ directions/directional statements up, down, enter, exit, in, out
++ directions/directional statements enter, exit, in, out
 + Keys and Locks
 + open/closed & containers with lids, locks
 + Things with an "under" property
