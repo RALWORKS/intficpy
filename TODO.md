@@ -1,7 +1,7 @@
 # INTFICPY - Write Parser Based Interactive Fiction in Python
 IntFicPy is a tool for building parser based interactive fiction using Python. Currently, IntFicPy is in preparation for the first Beta release. A demo game, planned to be released for IFComp 2019, is in early development.
 
-## KNOWN BUGS (Immediate Priority)
+## KNOWN BUGS
 ### Saving
 + default save location should be home folder
 ### Serializer
@@ -13,7 +13,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 
 ## FEATURES THAT REQUIRE TESTING
 + make sure the search function finds all Things in the location/inventory
-+ the [MORE] or <<m>> built in inline function needs more testing and possible refining
++ the MORE or m built in inline function needs more testing and possible refining
 + test thing.copyThing with saving and loading
 + Abstract class - try breaking it with features that shouldn't be used
 + inline functions with multiple arguments
@@ -25,9 +25,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + creator functions that evaluate AFTER dynamic room text (func property in Room?)
 + better ordering in room descriptions
 ### Essential New Features
-+ allow creators to set custom plurals
 + display the game title in the GUI window title
-+ directions/directional statements enter, exit, in, out
 + Keys and Locks
 + open/closed & containers with lids, locks
 + Things with an "under" property

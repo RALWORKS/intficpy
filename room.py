@@ -35,6 +35,8 @@ class Room:
 		self.northwest = None
 		self.up = False
 		self.down = False
+		self.entrance = False
+		self.exit = False
 		# room properties
 		self.name = name
 		self.desc = desc
@@ -180,6 +182,8 @@ class OutdoorRoom(Room):
 		self.northwest = None
 		self.up = False
 		self.down = False
+		self.entrance = False
+		self.exit = False
 		# room properties
 		self.name = name
 		self.desc = desc

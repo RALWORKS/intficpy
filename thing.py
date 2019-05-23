@@ -106,8 +106,8 @@ class Thing:
 				return "a "
 	
 	def getPlural(self):
-		if self.custom_plural:
-			return self.custom_plural
+		if self.special_plural:
+			return self.special_plural
 		elif self.verbose_name[-1]=="s" or self.verbose_name[-1]=="x" or self.verbose_name[-1]=="z" or self.verbose_name[-2:]=="sh" or self.verbose_name[-2:]=="ch":
 			return self.verbose_name + "es"
 		else:
@@ -209,7 +209,7 @@ class Surface(Thing):
 		if len(list_version)==0:
 			onlist = ""
 		if player_here:
-			if inlist != "":
+			if onlist != "":
 				onlist = onlist + "<br>"
 			onlist = onlist + "You are on " + self.getArticle(True) + self.verbose_name + "."
 		# append onlist to description

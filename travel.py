@@ -469,7 +469,7 @@ def travelU(me, app):
 		removePlayer(me, app)
 		me.location = loc.up
 		me.location.addThing(me)
-		app.printToGUI("You go northwest.")
+		app.printToGUI("You go up.")
 		me.location.describe(me, app)
 
 # travel down
@@ -487,8 +487,46 @@ def travelD(me, app):
 		removePlayer(me, app)
 		me.location = loc.down
 		me.location.addThing(me)
-		app.printToGUI("You go northwest.")
+		app.printToGUI("You go down.")
+		me.location.describe(me, app)
+
+# go out
+# synonym "exit" implemented as a verb
+def travelOut(me, app):
+	"""Travel out
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
+	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
+	if not loc.exit:
+		app.printToGUI("There is no obvious exit. ")
+	elif isinstance(loc.exit, TravelConnector):
+		loc.exit.travel(me, app)
+	else:
+		removePlayer(me, app)
+		me.location = loc.exit
+		me.location.addThing(me)
+		app.printToGUI("You exit. ")
+		me.location.describe(me, app)
+
+# go in
+# synonym "enter" implemented as a verb
+def travelIn(me, app):
+	"""Travel through entance
+	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
+	loc = me.getOutermostLocation()
+	if me.position != "standing":
+		verb.standUpVerb.verbFunc(me, app)
+	if not loc.entrance:
+		app.printToGUI("There is no obvious enrance. ")
+	elif isinstance(loc.entrance, TravelConnector):
+		loc.entrance.travel(me, app)
+	else:
+		removePlayer(me, app)
+		me.location = loc.entrance
+		me.location.addThing(me)
+		app.printToGUI("You enter. ")
 		me.location.describe(me, app)
 
 # maps user input to travel functions
-directionDict = {"n": travelN, "north": travelN, "ne": travelNE, "northeast": travelNE, "e": travelE, "east": travelE, "se": travelSE, "southeast": travelSE, "s": travelS, "south": travelS, "sw": travelSW, "southwest": travelSW, "w": travelW, "west": travelW, "nw": travelNW, "northwest": travelNW, "up": travelU, "u": travelU, "down": travelD, "d": travelD}
+directionDict = {"n": travelN, "north": travelN, "ne": travelNE, "northeast": travelNE, "e": travelE, "east": travelE, "se": travelSE, "southeast": travelSE, "s": travelS, "south": travelS, "sw": travelSW, "southwest": travelSW, "w": travelW, "west": travelW, "nw": travelNW, "northwest": travelNW, "up": travelU, "u": travelU, "down": travelD, "d": travelD, "in": travelIn, "out": travelOut}

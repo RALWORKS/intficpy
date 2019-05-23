@@ -95,6 +95,9 @@ shackdoor = DoorConnector(startroom, "e", beach, "w")
 shackdoor.entranceA.describeThing("To the east, a door leads outside. ")
 shackdoor.entranceB.describeThing("The door to the shack is directly west of you. ")
 
+startroom.exit = shackdoor
+beach.entrance = shackdoor
+
 attic = Room("Shack, attic", "You are in a dim, cramped attic.")
 shackladder = LadderConnector(startroom, attic)
 shackladder.entranceA.describeThing("Against the north wall is a ladder leading up to the attic. ")

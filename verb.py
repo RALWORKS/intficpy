@@ -768,7 +768,8 @@ lieDownVerb.verbFunc = lieDownVerbFunc
 # STAND UP
 # intransitive verb
 standUpVerb = Verb("stand")
-standUpVerb.syntax = [["stand", "up"], ["stand"]]
+standUpVerb.addSynonym("get")
+standUpVerb.syntax = [["stand", "up"], ["stand"], ["get", "up"]]
 standUpVerb.preposition = ["up"]
 
 def standUpVerbFunc(me, app):
@@ -1185,7 +1186,7 @@ def climbOutVerbFunc(me, app):
 		else:
 			print("Unsupported outer location type: " + outer_loc.name)
 	else:
-		app.printToGUI("You cannot out of here. ")
+		app.printToGUI("You cannot climb out of here. ")
 
 # replace default verbFunc method
 climbOutVerb.verbFunc = climbOutVerbFunc
@@ -1274,3 +1275,42 @@ def closeVerbFunc(me, app, dobj):
 	
 # replace default verbFunc method
 closeVerb.verbFunc = closeVerbFunc
+
+# EXIT (INTRANSITIVE)
+# intransitive verb
+exitVerb = Verb("exit")
+exitVerb.syntax = [["exit"]]
+
+def exitVerbFunc(me, app):
+	"""Climb out of a Container you currently occupy
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from . import travel
+	out_loc = me.getOutermostLocation()
+	if isinstance(me.location, thing.Thing):
+		climbOutOfVerb.verbFunc(me, app, me.location)
+	elif out_loc.exit:
+		travel.travelOut(me, app)
+	else:
+		app.printToGUI("There is no obvious exit. ")
+
+# replace default verbFunc method
+exitVerb.verbFunc = exitVerbFunc
+
+# EXIT (INTRANSITIVE)
+# intransitive verb
+enterVerb = Verb("enter")
+enterVerb.syntax = [["enter"]]
+
+def enterVerbFunc(me, app):
+	"""Climb out of a Container you currently occupy
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from . import travel
+	out_loc = me.getOutermostLocation()
+	if out_loc.entrance:
+		travel.travelIn(me, app)
+	else:
+		app.printToGUI("There is no obvious entrance. ")
+
+# replace default verbFunc method
+enterVerb.verbFunc = enterVerbFunc
+
