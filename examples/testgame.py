@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication
 
 # imports from intficpy
 from intficpy.room import Room, OutdoorRoom
-from intficpy.thing import Thing, Surface, Container, Clothing, Abstract
+from intficpy.thing import Thing, Surface, Container, Clothing, Abstract, Key, Lock
 #from intficpy.player import Player
 from intficpy.travel import TravelConnector, DoorConnector, LadderConnector, StaircaseConnector
 from intficpy.actor import Actor, Player, Topic
@@ -56,6 +56,7 @@ box = Container("box")
 box.canStand = True
 box.canSit = True
 box.canLie = True
+box.giveLid()
 startroom.addThing(box)
 
 opal = Thing("opal")
@@ -104,6 +105,11 @@ shackladder.entranceA.describeThing("Against the north wall is a ladder leading 
 shackladder.entranceA.xdescribeThing("Against the north wall is a ladder leading up to the attic. ")
 startroom.north = shackladder
 
+rustykey = Key()
+rustykey.setAdjectives(["rusty"])
+attic.addThing(rustykey)
+cabinlock = Lock(True, rustykey)
+shackdoor.setLock(cabinlock)
 
 rock = Thing("rock")
 beach.addThing(rock)

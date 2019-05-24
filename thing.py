@@ -274,6 +274,9 @@ class Container(Thing):
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
 		self.has_lid = False
+		self.lock_obj = False
+		self.lock_desc = ""
+		self.state_desc = ""
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -312,9 +315,9 @@ class Container(Thing):
 		if self.has_lid:
 			desc = desc + self.state_desc
 			xdesc = xdesc + self.state_desc
-			if not self.open:
+			if not self.is_open:
 				self.desc = desc
-				self.xdesc = xdesc
+				self.xdesc = xdesc + self.lock_desc
 				self.contains_desc = "You cannot see inside " + self.getArticle(True) + self.verbose_name + " as it is closed."
 				return False
 		inlist = " In the " + self.name + " is "
@@ -380,7 +383,7 @@ class Container(Thing):
 		else:
 			self.contains[item.ix] = [item]
 		if self.has_lid:
-			if not self.open:
+			if not self.is_open:
 				self.hideContents()
 		self.containsListUpdate()
 	
@@ -434,29 +437,46 @@ class Container(Thing):
 					del self.location.sub_contains[item.ix]
 		item.location = False
 		self.containsListUpdate()
+	
+	def setLock(self, lock_obj):
+		if isinstance(lock_obj, Lock):
+			if not lock_obj.parent_obj:
+				self.lock_obj = lock_obj
+				lock_lobj.parent = self
+				self.location.addThing(lock_obj)
+				lock_obj.setAdjectives(lock_obj.adjectives + self.adjectives + [self.name])
+				lock_obj.describeThing("")
+				lock_obj.xdescribeThing("You notice nothing remarkable about " + lock_obj.getArticle(True) + lock_obj.verbose_name + ". ")
+			else:
+				print("Cannot set lock_obj for " + self.verbose_name + ": lock_obj.parent already set ")
+		else:
+			print("Cannot set lock_obj for " + self.verbose_name + ": not a Lock ")
 			
 	def describeThing(self, description):
-		self.base_desc = description
+		self.base_desc = description + self.state_desc
 		self.containsListUpdate()
 	
 	def xdescribeThing(self, description):
-		self.base_xdesc = description
+		self.base_xdesc = description + self.state_desc + self.locked_desc
+		self.containsListUpdate()
+	
+	def updateDesc(self):
 		self.containsListUpdate()
 	
 	def giveLid(self):
 		self.has_lid = True
-		self.open = False
+		self.is_open = False
 		self.state_desc = " It is currently closed. "
 		self.containsListUpdate()
 	
 	def makeOpen(self):
-		self.open = True
+		self.is_open = True
 		self.state_desc = " It is currently open. "
 		self.containsListUpdate()
 		self.revealContents()
 			
 	def makeClosed(self):
-		self.open = False
+		self.is_open = False
 		self.state_desc = " It is currently closed. "
 		self.containsListUpdate()
 		self.hideContents()
@@ -529,8 +549,10 @@ class Door(Thing):
 		# door properties
 		self.direction = False
 		self.twin = False
-		self.open = False
+		self.is_open = False
+		self.lock_obj = False
 		self.state_desc = "It is currently closed. "
+		self.lock_desc = ""
 		self.connection = False
 		# thing properties
 		self.size = 50
@@ -567,21 +589,21 @@ class Door(Thing):
 			vocab.nounDict[name] = [self]
 	
 	def makeOpen(self):
-		self.open = True
+		self.is_open = True
 		self.state_desc = "It is currently open. "
 		self.desc = self.base_desc + self.state_desc
 		self.xdesc = self.base_xdesc + self.state_desc
 		if self.twin:
-			if not self.twin.open:
+			if not self.twin.is_open:
 				self.twin.makeOpen()
 	
 	def makeClosed(self):
-		self.open = False
+		self.is_open = False
 		self.state_desc = "It is currently closed. "
 		self.desc = self.base_desc + self.state_desc
 		self.xdesc = self.base_xdesc + self.state_desc
 		if self.twin:
-			if self.twin.open:
+			if self.twin.is_open:
 				self.twin.makeClosed()
 	
 	def describeThing(self, description):
@@ -590,9 +612,150 @@ class Door(Thing):
 		
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
-		self.xdesc = description + self.state_desc
+		self.xdesc = description + self.state_desc + self.lock_desc
+		
+	def updateDesc(self):
+		self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
+		self.desc = self.base_desc + self.state_desc
 
-class Abstract:
+class Key(Thing):
+	"""Class for keys """
+	def __init__(self, name="key"):
+		"""Sets essential properties for the Thing instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# key properties
+		self.lock = False
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.size = 10
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.give = False
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+
+class Lock(Thing):
+	"""Lock is the class for lock items in the game  """
+	def __init__(self, is_locked, key_obj, name="lock"):
+		"""Sets essential properties for the Lock instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# lock
+		self.is_locked = is_locked
+		self.key_obj = key_obj
+		self.parent_obj = False
+		self.twin = False
+		if self.is_locked:
+			self.state_desc = " It is currently locked. "
+		else:
+			self.state_desc = "It is currently unlocked. "
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.size = 20
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.give = False
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc + self.state_desc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+
+	def makeUnlocked(self):
+		self.is_locked = False
+		self.state_desc = "It is currently unlocked. "
+		self.xdesc = self.base_xdesc + self.state_desc
+		if self.parent_obj:
+			self.parent_obj.lock_desc = " It is unlocked. "
+			self.parent_obj.updateDesc()
+		if self.twin:
+			if self.twin.is_locked:
+				self.twin.makeUnlocked()
+	
+	def makeLocked(self):
+		self.is_locked = True
+		self.state_desc = "It is currently locked. "
+		self.xdesc = self.base_xdesc + self.state_desc
+		if self.parent_obj:
+			self.parent_obj.lock_desc = " It is locked. "
+			self.parent_obj.updateDesc()
+		if self.twin:
+			if not self.twin.is_locked:
+				self.twin.makeLocked()
+				
+	def describeThing(self, description):
+		self.base_desc = description
+		self.desc = self.base_desc
+	
+	def xdescribeThing(self, description):
+		self.base_xdesc = description
+		self.xdesc = self.base_xdesc + self.state_desc
+	
+class Abstract(Thing):
 	"""Class for abstract game items with no location, such as ideas"""
 	def __init__(self, name):
 		# indexing for save

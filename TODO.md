@@ -35,7 +35,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + more advanced conversations
 ### Other New Features
 + support multiple Player characters
-+ compound Things
 + allow game creators to modify the look of the GUI from within the main gamefile
 
 ## MAJOR CHANGES (Eventual Implementation)

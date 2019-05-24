@@ -313,7 +313,7 @@ def setInVerbFunc(me, app, dobj, iobj):
 	"""Put a Thing in a Container
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(iobj, thing.Container) and iobj.has_lid:
-		if not iobj.open:
+		if not iobj.is_open:
 			app.printToGUI("You  cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " is closed.")
 			return False
 	if isinstance(iobj, thing.Container) and iobj.size >= dobj.size:
@@ -456,7 +456,7 @@ def lookInVerbFunc(me, app, dobj):
 	if isinstance(dobj, thing.Container):
 		list_version = list(dobj.contains.keys())
 		if dobj.has_lid:
-			if not dobj.open:
+			if not dobj.is_open:
 				app.printToGUI("You cannot see inside " + dobj.getArticle(True) + dobj.verbose_name + " as it is closed.")
 				return False
 		if len(list_version) > 0:
@@ -1164,21 +1164,21 @@ def climbInVerbFunc(me, app, dobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if isinstance(dobj, thing.Container) and dobj.canStand:
 		if dobj.has_lid:
-			if not dobj.open:
+			if not dobj.is_open:
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		standInVerb.verbFunc(me, app, dobj)
 		return True
 	elif isinstance(dobj, thing.Container) and dobj.canSit:
 		if dobj.has_lid:
-			if not dobj.open:
+			if not dobj.is_open:
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		sitInVerb.verbFunc(me, app, dobj)
 		return True
 	elif isinstance(dobj, thing.Container) and dobj.canLie:
 		if dobj.has_lid:
-			if not dobj.open:
+			if not dobj.is_open:
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		lieInVerb.verbFunc(me, app, dobj)
@@ -1263,8 +1263,12 @@ openVerb.dscope = "near"
 def openVerbFunc(me, app, dobj):
 	"""Open a Thing with an open property
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if dobj.lock_obj:
+		if dobj.lock_obj.is_locked:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is locked. ")
+			return False
 	try:
-		state = dobj.open
+		state = dobj.is_open
 	except:
 		app.printToGUI("You cannot open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		return False
@@ -1295,7 +1299,7 @@ def closeVerbFunc(me, app, dobj):
 				app.printToGUI("You cannot close " + dobj.getArticle(True) + dobj.verbose_name + " while you are inside it. ")
 				return False
 	try:
-		state = dobj.open
+		state = dobj.is_open
 	except:
 		app.printToGUI("You cannot close " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		return False
@@ -1329,7 +1333,7 @@ def exitVerbFunc(me, app):
 # replace default verbFunc method
 exitVerb.verbFunc = exitVerbFunc
 
-# EXIT (INTRANSITIVE)
+# ENTER (INTRANSITIVE)
 # intransitive verb
 enterVerb = Verb("enter")
 enterVerb.syntax = [["enter"]]
@@ -1347,3 +1351,266 @@ def enterVerbFunc(me, app):
 # replace default verbFunc method
 enterVerb.verbFunc = enterVerbFunc
 
+# UNLOCK (THING)
+# transitive verb, no indirect object
+unlockVerb = Verb("unlock")
+unlockVerb.addSynonym("unbolt")
+unlockVerb.syntax = [["unlock", "<dobj>"], ["unbolt", "<dobj>"]]
+unlockVerb.hasDobj = True
+unlockVerb.dscope = "near"
+
+def unlockVerbFunc(me, app, dobj):
+	"""Unlock a Door or Container with an lock
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
+	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock. """
+	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+		if dobj.lock_obj:
+			if dobj.lock_obj.is_locked:
+				if dobj.lock_obj.key_obj:
+					if dobj.lock_obj.key_obj.ix in me.contains:
+						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
+						app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+						dobj.lock_obj.makeUnlocked()
+						return True
+					else:
+						app.printToGUI("You do not have the correct key. ")
+						return False
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already unlocked. ")
+				return True
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+			return True
+	elif isinstance(dobj, thing.Lock):
+		if dobj.is_locked:
+			if dobj.key_obj:
+				if dobj.key_obj.ix in me.contains:
+					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
+					app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+					dobj.makeUnlocked()
+					return True
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI("You do not have the correct key. ")
+				return False
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already unlocked. ")
+			return True
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+		return True
+	
+# replace default verbFunc method
+unlockVerb.verbFunc = unlockVerbFunc
+
+# LOCK (THING)
+# transitive verb, no indirect object
+lockVerb = Verb("lock")
+lockVerb.addSynonym("bolt")
+lockVerb.syntax = [["lock", "<dobj>"], ["bolt", "<dobj>"]]
+lockVerb.hasDobj = True
+lockVerb.dscope = "near"
+
+def lockVerbFunc(me, app, dobj):
+	"""Lock a Door or Container with an lock
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
+	Returns True when the function ends with dobj locked. Returns False on failure to lock, or when dobj has no lock. """
+	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+		if dobj.is_open:
+			if not closeVerb.verbFunc(me, app, dobj):
+				app.printToGUI("Could not close " + dobj.verbose_name + ". ")
+				return False
+		if dobj.lock_obj:
+			if not dobj.lock_obj.is_locked:
+				if dobj.lock_obj.key_obj:
+					if dobj.lock_obj.key_obj.ix in me.contains:
+						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
+						app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+						dobj.lock_obj.makeLocked()
+						return True
+					else:
+						app.printToGUI("You do not have the correct key. ")
+						return False
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already locked. ")
+				return True
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+			return False
+	elif isinstance(dobj, thing.Lock):
+		if dobj.parent_obj.is_open:
+			if not closeVerb.verbFunc(me, app, dobj.parent_obj):
+				app.printToGUI("Could not close " + dobj.parent_obj.verbose_name + ". ")
+				return False
+		if not dobj.is_locked:
+			if dobj.key_obj:
+				if dobj.key_obj.ix in me.contains:
+					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
+					app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+					dobj.makeLocked()
+					return True
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI("You do not have the correct key. ")
+				return False
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already locked. ")
+			return True
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+		return True
+	
+# replace default verbFunc method
+lockVerb.verbFunc = lockVerbFunc
+
+# UNLOCK (THING) WITH (THING)
+# transitive verb with indirect object
+unlockWithVerb = Verb("unlock")
+unlockWithVerb.addSynonym("unbolt")
+unlockWithVerb.addSynonym("open")
+unlockWithVerb.syntax = [["unlock", "<dobj>", "using", "<iobj>"], ["unlock", "<dobj>", "with", "<iobj>"], ["unbolt", "<dobj>", "with", "<iobj>"], ["unbolt", "<dobj>", "using", "<iobj>"],\
+["open", "<dobj>", "using", "<iobj>"], ["open", "<dobj>", "with", "<iobj>"]]
+unlockWithVerb.hasDobj = True
+unlockWithVerb.hasIobj = True
+unlockWithVerb.preposition = ["with", "using"]
+unlockWithVerb.dscope = "near"
+unlockWithVerb.iscope = "inv"
+
+def unlockWithVerbFunc(me, app, dobj, iobj):
+	"""Unlock a Door or Container with an lock
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
+	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
+	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+		if dobj.lock_obj:
+			if dobj.lock_obj.is_locked:
+				if not isinstance(iobj, thing.Key):
+					app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
+					return False
+				elif dobj.lock_obj.key_obj:
+					if iobj==dobj.lock_obj.key_obj:
+						app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
+						dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
+						dobj.lock_obj.makeUnlocked()
+						return True
+					else:
+						app.printToGUI("You do not have the correct key. ")
+						return False
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already unlocked. ")
+				return True
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+			return True
+	
+	elif isinstance(dobj, thing.Lock):
+		if dobj.is_locked:
+			if not isinstance(iobj, thing.Key):
+				app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
+			elif dobj.key_obj:
+				if iobj == dobj.key_obj.ix:
+					app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
+					dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
+					dobj.makeUnlocked()
+					return True
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI("You do not have the correct key. ")
+				return False
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already unlocked. ")
+			return True
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+		return True
+	
+# replace default verbFunc method
+unlockWithVerb.verbFunc = unlockWithVerbFunc
+
+# LOCK (THING) WITH (THING)
+# transitive verb with indirect object
+lockWithVerb = Verb("lock")
+lockWithVerb.addSynonym("bolt")
+lockWithVerb.syntax = [["lock", "<dobj>", "using", "<iobj>"], ["lock", "<dobj>", "with", "<iobj>"], ["bolt", "<dobj>", "with", "<iobj>"], ["bolt", "<dobj>", "using", "<iobj>"]]
+lockWithVerb.hasDobj = True
+lockWithVerb.hasIobj = True
+lockWithVerb.preposition = ["with", "using"]
+lockWithVerb.dscope = "near"
+lockWithVerb.iscope = "inv"
+
+def lockWithVerbFunc(me, app, dobj, iobj):
+	"""Unlock a Door or Container with an lock
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
+	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
+	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+		if dobj.is_open:
+			if not closeVerb.verbFunc(me, app, dobj):
+				app.printToGUI("Could not close " + dobj.verbose_name + ". ")
+				return False
+		if dobj.lock_obj:
+			if not dobj.lock_obj.is_locked:
+				if not isinstance(iobj, thing.Key):
+					app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
+					return False
+				elif dobj.lock_obj.key_obj:
+					if iobj==dobj.lock_obj.key_obj:
+						app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
+						dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
+						dobj.lock_obj.makeLocked()
+						return True
+					else:
+						app.printToGUI("You do not have the correct key. ")
+						return False
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already locked. ")
+				return True
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+			return False
+	
+	elif isinstance(dobj, thing.Lock):
+		if dobj.parent_obj.is_open:
+			if not closeVerb.verbFunc(me, app, dobj.parent_obj):
+				app.printToGUI("Could not close " + dobj.parent_obj.verbose_name + ". ")
+				return False
+		if not dobj.is_locked:
+			if not isinstance(iobj, thing.Key):
+				app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
+			elif dobj.key_obj:
+				if iobj == dobj.key_obj.ix:
+					app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
+					dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
+					dobj.makeLocked()
+					return True
+				else:
+					app.printToGUI("You do not have the correct key. ")
+					return False
+			else:
+				app.printToGUI("You do not have the correct key. ")
+				return False
+		else:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already locked. ")
+			return True
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
+		return False
+	
+# replace default verbFunc method
+lockWithVerb.verbFunc = lockWithVerbFunc

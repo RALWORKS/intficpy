@@ -170,12 +170,42 @@ class DoorConnector(TravelConnector):
 			else:
 				print("error: invalid direction input for DoorConnector: " + d[x])
 	
+	def setLock(self, lock_obj):
+		if isinstance(lock_obj, thing.Lock):
+			if not lock_obj.parent_obj:
+				self.entranceA.lock_obj = lock_obj
+				self.entranceB.lock_obj = lock_obj.copyThing()
+				self.entranceA.lock_obj.twin = self.entranceB.lock_obj
+				self.entranceB.lock_obj.twin = self.entranceA.lock_obj
+				self.entranceA.lock_obj.parent_obj = self.entranceA
+				self.entranceB.lock_obj.parent_obj = self.entranceB
+				self.pointA.addThing(self.entranceA.lock_obj)
+				self.pointB.addThing(self.entranceB.lock_obj)
+				self.entranceA.lock_obj.setAdjectives(self.entranceA.lock_obj.adjectives + self.entranceA.adjectives + [self.entranceA.name])
+				self.entranceB.lock_obj.setAdjectives(self.entranceB.lock_obj.adjectives + self.entranceB.adjectives + [self.entranceB.name])
+				self.entranceA.lock_obj.describeThing("")
+				self.entranceB.lock_obj.describeThing("")
+				self.entranceA.lock_obj.xdescribeThing("You notice nothing remarkable about " + self.entranceA.lock_obj.getArticle(True) + self.entranceA.lock_obj.name + ". ")
+				self.entranceB.lock_obj.xdescribeThing("You notice nothing remarkable about " + self.entranceB.lock_obj.getArticle(True) + self.entranceB.lock_obj.name + ". ")
+				if lock_obj.is_locked:
+					self.entranceA.lock_desc = " It is locked. "
+					self.entranceB.lock_desc = " It is locked. "
+				else:
+					self.entranceA.lock_desc = " It is unlocked. "
+					self.entranceB.lock_desc = " It is unlocked. "
+				self.entranceA.xdesc = self.entranceA.xdesc + self.entranceA.lock_desc
+				self.entranceB.xdesc = self.entranceB.xdesc + self.entranceB.lock_desc
+			else:
+				print("Cannot set lock_obj for " + self.entranceA.verbose_name + ": lock_obj.parent already set ")
+		else:
+			print("Cannot set lock_obj for " + self.entranceA.verbose_name + ": not a Lock ")
+	
 	def travel(self, me, app):
 		from . import verb
 		outer_loc = me.getOutermostLocation()
 		preRemovePlayer(me, app)
 		if outer_loc == self.pointA:
-			if not self.entranceA.open:
+			if not self.entranceA.is_open:
 				opened = verb.openVerb.verbFunc(me, app, self.entranceA)
 				if not opened:
 					return False
@@ -187,7 +217,7 @@ class DoorConnector(TravelConnector):
 			app.printToGUI("You go through " + self.entranceA.getArticle(True) + self.entranceA.verbose_name + ". ")
 			me.location.describe(me, app)
 		elif outer_loc == self.pointB:
-			if not self.entranceB.open:
+			if not self.entranceB.is_open:
 				opened = verb.openVerb.verbFunc(me, app, self.entranceB)
 				if not opened:
 					return False
