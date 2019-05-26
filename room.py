@@ -96,6 +96,13 @@ class Room:
 						self.addThing(item.lock_obj)
 				else:
 					self.addThing(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if not item2 in self.contains[item2.ix]:
+						self.addThing(item2)
+				else:
+					self.addThing(item2)
 		item.location = self
 		# nested items
 		if not isinstance(item, actor.Actor):
@@ -122,6 +129,14 @@ class Room:
 				if item.lock_obj.ix in self.sub_contains:
 					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
 						self.removeThing(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if item2 in self.contains[item2.ix]:
+						self.removeThing(item2)
+				if item2.ix in self.sub_contains:
+					if item2 in self.sub_contains[item2.ix]:
+						self.removeThing(item2)
 		rval = False
 		# nested items
 		nested = getNested(item)

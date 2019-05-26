@@ -583,16 +583,18 @@ def getThing(me, app, noun_adj_arr, scope):
 	# get noun (last word)
 	if lastTurn.things != [] and noun_adj_arr[-1] not in vocab.nounDict:
 		noun = lastTurn.ambig_noun
-		noun_adj_arr.append(noun)
+		if noun:
+			noun_adj_arr.append(noun)
+		things = lastTurn.things
 	else:
 		noun = noun_adj_arr[-1]
-	# get list of associated Things
-	if noun in vocab.nounDict:
-		# COPY the of list Things associated with a noun to allow for element deletion during disambiguation (in checkAdjectives)
-		# the list will usually be fairly small
-		things = list(vocab.nounDict[noun])
-	else:
-		things = []
+		# get list of associated Things
+		if noun in vocab.nounDict:
+			# COPY the of list Things associated with a noun to allow for element deletion during disambiguation (in checkAdjectives)
+			# the list will usually be fairly small
+			things = list(vocab.nounDict[noun])
+		else:
+			things = []
 	if len(things) == 0:
 		return verbScopeError(app, scope, noun_adj_arr)
 	else:
@@ -617,18 +619,17 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope):
 	if n_select <= len(things) and n_select > 0:
 		n_select = n_select - 1
 		return things[n_select]
-	adj_i = noun_adj_arr.index(noun) - 1
+	if noun:
+		adj_i = noun_adj_arr.index(noun) - 1
+	else:
+		adj_i = len(noun_adj_arr) - 1
 	not_match = []
 	while adj_i>=0 and len(things) > 1:
 		# check preceding word as an adjective
 		for thing in things:
-			#app.printToGUI(thing.adjectives)
-			#app.printToGUI(noun_adj_arr[adj_i])
 			if noun_adj_arr[adj_i] not in thing.adjectives:
 				not_match.append(thing)
-				#app.printToGUI("no")
 		for item in not_match:
-			#app.printToGUI("removing " + item.adjectives[0])
 			things.remove(item)
 		adj_i = adj_i- 1
 	things = checkRange(me, app, things, scope)
@@ -661,19 +662,56 @@ def callVerb(me, app, cur_verb, obj_words):
 	direct and indirect objects, either lists of strings, or None
 	Called by parseInput and disambig
 	Returns a Boolean, True if a verb function is successfully called, False otherwise"""
-	
-	if cur_verb.hasDobj and obj_words[0]:
-		cur_dobj = getThing(me, app, obj_words[0], cur_verb.dscope)
+	if cur_verb.hasDobj and not isinstance(obj_words[0], list):
+		cur_dobj = obj_words[0]
+	elif cur_verb.hasDobj and obj_words[0]:
+		if isinstance(obj_words[0], thing.Thing):
+			cur_dobj = obj_words[0]
+		else:
+			cur_dobj = getThing(me, app, obj_words[0], cur_verb.dscope)
 		lastTurn.dobj = cur_dobj
 	else:
 		cur_dobj = False
 		lastTurn.dobj = False
-	if cur_verb.hasIobj and obj_words[1]:
+	if cur_verb.hasIobj and not isinstance(obj_words[1], list):
+		cur_iobj = obj_words[1]
+	elif cur_verb.hasIobj and obj_words[1]:
+		if isinstance(obj_words[1], thing.Thing):
+			cur_iobj = obj_words[1]
+		else:
 			cur_iobj = getThing(me, app, obj_words[1], cur_verb.iscope)
-			lastTurn.iobj = cur_iobj
+		lastTurn.iobj = cur_iobj
 	else:
 		cur_iobj = False
 		lastTurn.iobj = False
+	if not isinstance(cur_iobj, thing.Container) and cur_verb.itype=="Container" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
+		if cur_iobj.child_Containers != []:
+			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Containers, cur_verb.iscope)
+			lastTurn.iobj = False
+			if cur_iobj:
+				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
+				lastTurn.iobj = cur_iobj
+	elif not isinstance(cur_iobj, thing.Surface) and cur_verb.itype=="Surface" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
+		if cur_iobj.child_Surfaces != []:
+			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Surfaces, cur_verb.iscope)
+			lastTurn.iobj = False
+			if cur_iobj:
+				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
+				lastTurn.iobj = cur_iobj
+	if not isinstance(cur_dobj, thing.Container) and cur_verb.dtype=="Container" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
+		if cur_dobj.child_Containers != []:
+			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Containers, cur_verb.dscope)
+			lastTurn.dobj = False
+			if cur_dobj:
+				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
+				lastTurn.iobj = cur_dobj
+	elif not isinstance(cur_dobj, thing.Surface) and cur_verb.dtype=="Surface" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
+		if cur_dobj.child_Surfaces != []:
+			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Surfaces, cur_verb.dscope)
+			lastTurn.dobj = False
+			if cur_dobj:
+				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
+				lastTurn.iobj = cur_dobj
 	# apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
 	if cur_dobj in me.sub_contains:
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
@@ -738,18 +776,10 @@ def disambig(me, app, input_tokens):
 	dobj = lastTurn.dobj
 	iobj = lastTurn.iobj
 	cur_verb = lastTurn.verb
-	if isinstance(dobj, list):
-		dobj = getThing(me, app, dobj, cur_verb.dscope)
-	if isinstance(iobj, list):
-		iobj = getThing(me, app, iobj, cur_verb.iscope)
 	if not dobj and cur_verb.hasDobj:
 		dobj = input_tokens
-		if iobj!=False:
-			iobj = [iobj.verbose_name]
 	elif not iobj and cur_verb.hasIobj:
 		iobj = input_tokens
-		if dobj!=False:
-			dobj = [dobj.name]
 	obj_words = [dobj, iobj]	
 	if not obj_words:
 		return False

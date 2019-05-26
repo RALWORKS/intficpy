@@ -27,6 +27,7 @@ class Thing:
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
 		self.contains_preposition = False
@@ -52,7 +53,7 @@ class Thing:
 		# Thing instances that are not Actors cannot be spoken to
 		self.give = False
 		# the default description to print from the room
-		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
 		self.desc = self.base_desc
 		self.xdesc = self.base_xdesc
@@ -89,7 +90,7 @@ class Thing:
 		self.adjectives = adj_list
 		self.verbose_name = " ".join(adj_list) + " " + self.name
 		if update_desc:
-			self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+			self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 			self.desc = self.base_desc
 
 	def getArticle(self, definite=False):
@@ -132,10 +133,56 @@ class Thing:
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = description
+		if self.is_composite:
+			self.desc = self.desc + self.children_desc
 		
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = description
+		if self.is_composite:
+			self.xdesc = self.xdesc + self.children_desc
+		
+	def addComposite(self, item):
+		self.is_composite = True
+		try:
+			defined = self.child_Things
+		except:
+			self.children_desc = ""
+			self.child_Things = []
+			self.child_Surfaces = []
+			self.child_Containers = []
+			self.child_UnderSpaces = []
+			self.children = []
+		item.parent_obj = self
+		self.children.append(item)
+		if isinstance(item, Surface):
+			self.child_Surfaces.append(item)
+		elif isinstance(item, Container):
+			self.child_Containers.append(item)
+		#UnderSpace
+		elif isinstance(item, Thing):
+			self.child_Containers.append(item)
+		self.location.addThing(item)
+		item.setAdjectives(item.adjectives + self.adjectives + [self.name])
+		self.children_desc = self.children_desc + item.desc
+		#item.describeThing("")
+		item.xdescribeThing("You notice nothing remarkable about " + item.getArticle(True) + item.verbose_name + ". ")
+		item.invItem = False
+		if isinstance(self, Container):
+			self.updateDesc()
+			self.containsListUpdate()
+		if isinstance(self, Surface):
+			self.containsListUpdate()
+	
+	def describeChildren(self, description):
+		self.children_desc = description
+		self.desc = self.desc + self.children_desc
+		self.xdesc = self.xdesc + self.children_desc
+		if isinstance(self, Container):
+			self.updateDesc()
+			self.containsListUpdate()
+		if isinstance(self, Surface):
+			self.containsListUpdate()
 
 class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
@@ -154,6 +201,8 @@ class Surface(Thing):
 		# items contained by items on the Surface
 		# accessible by default, but not shown in outermost description
 		self.sub_contains = {}
+		self.adjectives = []
+		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
 		self.name = name
@@ -161,7 +210,7 @@ class Surface(Thing):
 		self.verbose_name = name
 		self.give = False
 		# default description printed by room
-		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
 		self.desc = self.base_desc
 		self.xdesc = self.base_xdesc
@@ -217,8 +266,12 @@ class Surface(Thing):
 				onlist = onlist + "<br>"
 			onlist = onlist + "You are on " + self.getArticle(True) + self.verbose_name + "."
 		# append onlist to description
-		self.desc = self.base_desc + onlist
-		self.xdesc = self.base_xdesc + onlist
+		if self.is_composite:
+			self.desc = self.base_desc + self.children_desc + onlist
+			self.xdesc = self.base_xdesc + self.children_desc + onlist
+		else:
+			self.desc = self.base_desc + onlist
+			self.xdesc = self.base_xdesc + onlist
 		self.contains_desc = onlist
 	
 	def addOn(self, item):
@@ -231,6 +284,13 @@ class Surface(Thing):
 					self.addOn(item.lock_obj)
 			elif item.lock_obj:
 				self.addOn(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if not item2 in self.contains[item2.ix]:
+						self.addOn(item2)
+				else:
+					self.addOn(item2)
 		item.location = self
 		# nested items
 		nested = getNested(item)
@@ -276,6 +336,14 @@ class Surface(Thing):
 				if item.lock_obj.ix in self.sub_contains:
 					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
 						self.removeThing(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if item2 in self.contains[item2.ix]:
+						self.removeThing(item2)
+				if item2.ix in self.sub_contains:
+					if item2 in self.sub_contains[item2.ix]:
+						self.removeThing(item2)
 		nested = getNested(item)
 		for t in nested:
 			if t.ix in self.sub_contains:
@@ -319,10 +387,14 @@ class Surface(Thing):
 
 	def describeThing(self, description):
 		self.base_desc = description
+		if self.is_composite:
+			self.desc = self.desc + self.children_desc
 		self.containsListUpdate()
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
+		if self.is_composite:
+			self.xdesc = self.xdesc + self.children_desc
 		self.containsListUpdate()
 	
 # NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
@@ -338,6 +410,7 @@ class Container(Thing):
 		self.lock_obj = False
 		self.lock_desc = ""
 		self.state_desc = ""
+		self.is_composite = False
 		self.parent_obj = False
 		self.canSit = False
 		self.canStand = False
@@ -354,7 +427,7 @@ class Container(Thing):
 		self.verbose_name = name
 		self.adjectives = []
 		self.give = False
-		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
 		self.desc = self.base_desc
 		self.xdesc = self.base_xdesc
@@ -415,8 +488,12 @@ class Container(Thing):
 				inlist = inlist + "<br>"
 			inlist = inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
 		# update descriptions
-		self.desc = desc + inlist
-		self.xdesc = xdesc + self.lock_desc + inlist
+		if self.is_composite:
+			self.desc = self.base_desc + self.children_desc + inlist
+			self.xdesc = self.base_xdesc + self.children_desc + inlist
+		else:
+			self.desc = desc + inlist
+			self.xdesc = xdesc + self.lock_desc + inlist
 		self.contains_desc = inlist
 		return True
 	
@@ -431,6 +508,13 @@ class Container(Thing):
 					self.addIn(item.lock_obj)
 			elif item.lock_obj:
 				self.addIn(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if not item2 in self.contains[item2.ix]:
+						self.addIn(item2)
+				else:
+					self.addIn(item2)
 		# nested items
 		nested = getNested(item)
 		next_loc = self.location
@@ -509,6 +593,14 @@ class Container(Thing):
 				if item.lock_obj.ix in self.sub_contains:
 					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
 						self.removeThing(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if item2 in self.contains[item2.ix]:
+						self.removeThing(item2)
+				if item2.ix in self.sub_contains:
+					if item2 in self.sub_contains[item2.ix]:
+						self.removeThing(item2)
 		nested = getNested(item)
 		for t in nested:
 			if t.ix in self.sub_contains:
@@ -560,7 +652,7 @@ class Container(Thing):
 					self.lock_desc = " It is locked. "
 				else:
 					self.lock_desc = " It is unlocked. "
-				lock_obj.describeThing("AAAAAAAAAAA")
+				lock_obj.describeThing("")
 				lock_obj.xdescribeThing("You notice nothing remarkable about " + lock_obj.getArticle(True) + lock_obj.verbose_name + ". ")
 				self.updateDesc()
 			else:
@@ -571,11 +663,15 @@ class Container(Thing):
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = self.base_desc + self.state_desc
+		if self.is_composite:
+			self.desc = self.desc + self.children_desc
 		self.containsListUpdate()
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
+		if self.is_composite:
+			self.xdesc = self.xdesc + self.children_desc
 		self.containsListUpdate()
 	
 	def updateDesc(self):
@@ -621,6 +717,7 @@ class AbstractClimbable(Thing):
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
 		self.contains_preposition = False
@@ -674,6 +771,7 @@ class Door(Thing):
 		self.lock_desc = ""
 		self.connection = False
 		# thing properties
+		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
 		self.contains_preposition = False
@@ -729,14 +827,21 @@ class Door(Thing):
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = description + self.state_desc
+		if self.is_composite:
+			self.desc = self.desc + self.children_desc
 		
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = description + self.state_desc + self.lock_desc
+		if self.is_composite:
+			self.xdesc = self.xdesc + self.children_desc
 		
 	def updateDesc(self):
 		self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
 		self.desc = self.base_desc + self.state_desc
+		if self.is_composite:
+			self.desc = self.desc + self.children_desc
+			self.xdesc = self.xdesc + self.children_desc
 
 class Key(Thing):
 	"""Class for keys """
@@ -753,6 +858,7 @@ class Key(Thing):
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.is_composite = False
 		self.parent_obj = False
 		self.size = 10
 		self.contains_preposition = False
@@ -778,7 +884,7 @@ class Key(Thing):
 		# Thing instances that are not Actors cannot be spoken to
 		self.give = False
 		# the default description to print from the room
-		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
 		self.desc = self.base_desc
 		self.xdesc = self.base_xdesc
@@ -801,6 +907,7 @@ class Lock(Thing):
 		# lock
 		self.is_locked = is_locked
 		self.key_obj = key_obj
+		self.is_composite = False
 		self.parent_obj = False
 		self.twin = False
 		if self.is_locked:
@@ -835,7 +942,7 @@ class Lock(Thing):
 		# Thing instances that are not Actors cannot be spoken to
 		self.give = False
 		# the default description to print from the room
-		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
 		self.desc = self.base_desc
 		self.xdesc = self.base_xdesc + self.state_desc
@@ -871,10 +978,14 @@ class Lock(Thing):
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = self.base_desc
+		if self.is_composite:
+			self.desc = self.desc + self.children_desc
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = self.base_xdesc + self.state_desc
+		if self.is_composite:
+			self.xdesc = self.xdesc + self.children_desc
 	
 class Abstract(Thing):
 	"""Class for abstract game items with no location, such as ideas"""
@@ -885,6 +996,7 @@ class Abstract(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# properties
+		self.is_composite = False
 		self.parent_obj = False
 		self.isPlural = False
 		self.special_plural = False
@@ -902,7 +1014,7 @@ class Abstract(Thing):
 		self.verbose_name = name
 		self.give = False
 		# no physical form or location, so no desc/xdesc
-		#self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
+		#self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		#self.base_xdesc = self.base_desc
 		#self.desc = self.base_desc
 		#self.xdesc = self.base_xdesc

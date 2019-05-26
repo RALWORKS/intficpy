@@ -22,7 +22,9 @@ class Verb:
 		self.dscope = "room"
 		word = ""
 		self.hasDobj = False
+		self.dtype = False
 		self.hasIobj = False
+		self.itype = False
 		self.impDobj = False
 		self.impIobj = False
 		self.preposition = False
@@ -215,6 +217,7 @@ setOnVerb.addSynonym("put")
 setOnVerb.syntax = [["put", "<dobj>", "on", "<iobj>"], ["set", "<dobj>", "on", "<iobj>"]]
 setOnVerb.hasDobj = True
 setOnVerb.dscope = "inv"
+setOnVerb.itype = "Surface"
 setOnVerb.hasIobj = True
 setOnVerb.iscope = "room"
 setOnVerb.preposition = ["on"]
@@ -274,6 +277,7 @@ setInVerb.addSynonym("put")
 setInVerb.syntax = [["put", "<dobj>", "in", "<iobj>"], ["set", "<dobj>", "in", "<iobj>"]]
 setInVerb.hasDobj = True
 setInVerb.dscope = "inv"
+setInVerb.itype = "Container"
 setInVerb.hasIobj = True
 setInVerb.iscope = "room"
 setInVerb.preposition = ["in"]
@@ -415,12 +419,13 @@ def examineVerbFunc(me, app, dobj):
 # replace default verbFunc method
 examineVerb.verbFunc = examineVerbFunc
 
-# LOOK AT (Thing)
+# LOOK IN (Thing)
 # transitive verb, no indirect object
 lookInVerb = Verb("look")
 lookInVerb.syntax = [["look", "in", "<dobj>"]]
 lookInVerb.hasDobj = True
 lookInVerb.dscope = "near"
+lookInVerb.dtype = "Container"
 lookInVerb.preposition = ["in"]
 
 def lookInVerbFunc(me, app, dobj):
@@ -675,6 +680,7 @@ wearVerb.addSynonym("put")
 wearVerb.addSynonym("don")
 wearVerb.syntax = [["put", "on", "<dobj>"], ["put", "<dobj>", "on"], ["wear", "<dobj>"], ["don", "<dobj>"]]
 wearVerb.hasDobj = True
+wearVerb.dtype = "Clothing"
 wearVerb.dscope = "inv"
 wearVerb.preposition = ["on"]
 
@@ -1009,6 +1015,7 @@ climbOnVerb.addSynonym("get")
 climbOnVerb.syntax = [["climb", "on", "<dobj>"], ["get", "on", "<dobj>"], ["climb", "<dobj>"], ["climb", "up", "<dobj>"]]
 climbOnVerb.hasDobj = True
 climbOnVerb.dscope = "room"
+climbOnVerb.dtype = "Surface"
 climbOnVerb.preposition = ["on", "up"]
 
 def climbOnVerbFunc(me, app, dobj):

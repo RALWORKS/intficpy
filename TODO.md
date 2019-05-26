@@ -26,7 +26,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + better ordering in room descriptions
 ### Essential New Features
 + display the game title in the GUI window title
-+ Make Locks move with their Containers
 + Things with an "under" property
 + Composite Things (a Surface and an UnderSpace both mapped to "kitchen table", both affected if "kitchen table" is moved)
 + strdobj/striobj, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary") Watch out for adjacent objects in verb syntax.

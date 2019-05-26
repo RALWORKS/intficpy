@@ -34,6 +34,7 @@ class Actor(Thing):
 		self.contains = {}
 		self.sub_contains = {}
 		self.name = name
+		self.is_composite = False
 		# verbose_name is modified when adjectives are applied using the setAdjectives method of the Thing class
 		self.verbose_name = name
 		# the default description of the Actor in a room
@@ -104,6 +105,13 @@ class Actor(Thing):
 						self.addThing(item.lock_obj)
 				else:
 					self.addThing(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if not item2 in self.contains[item2.ix]:
+						self.addThing(item2)
+				else:
+					self.addThing(item2)
 		item.location = self
 		# nested items
 		nested = getNested(item)
@@ -144,6 +152,14 @@ class Actor(Thing):
 				if item.lock_obj.ix in self.sub_contains:
 					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
 						self.removeThing(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if item2 in self.contains[item2.ix]:
+						self.removeThing(item2)
+				if item2.ix in self.sub_contains:
+					if item2 in self.sub_contains[item2.ix]:
+						self.removeThing(item2)
 		# nested items
 		nested = getNested(item)
 		for t in nested:
@@ -205,6 +221,7 @@ class Player(Actor):
 		#self.location = loc
 		self.name = name
 		self.verbose_name = name
+		self.is_composite = False
 		self.invItem = False
 		self.cannotTakeMsg = "You cannot take yourself."
 		self.parent_obj = False
