@@ -437,6 +437,8 @@ def roomRangeCheck(me, thing):
 			return False
 		else:
 			return True
+	else:
+		return False
 
 def knowsRangeCheck(me, thing):
 	"""Check if the Player knows about a Thing
@@ -689,7 +691,10 @@ def callVerb(me, app, cur_verb, obj_words):
 			if cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
 				verb.dropVerb.verbFunc(me, app, cur_iobj)
 			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
-				verb.getVerb.verbFunc(me, app, cur_iobj)
+				app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
+				success = verb.getVerb.verbFunc(me, app, cur_iobj)
+				if not success:	
+					return False
 				if not cur_iobj.invItem:
 					app.printToGUI("You cannot take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".")
 					return False
@@ -698,9 +703,9 @@ def callVerb(me, app, cur_verb, obj_words):
 			if cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
 			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
-				verb.getVerb.verbFunc(me, app, cur_dobj)
-				if not cur_dobj.invItem:
-					app.printToGUI("You cannot take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".")
+				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
+				success = verb.getVerb.verbFunc(me, app, cur_dobj)
+				if not success:	
 					return False
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
@@ -713,7 +718,10 @@ def callVerb(me, app, cur_verb, obj_words):
 			if cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
 			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
-				verb.getVerb.verbFunc(me, app, cur_dobj)
+				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
+				success = verb.getVerb.verbFunc(me, app, cur_dobj)
+				if not success:	
+					return False
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
 			cur_verb.verbFunc(me, app, cur_dobj)

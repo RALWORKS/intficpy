@@ -24,6 +24,7 @@ class Actor(Thing):
 	def __init__(self, name):
 		"""Intitializes the Actor instance and sets essential properties """
 		self.invItem = False # cannot be added to the contains
+		self.parent_obj = False
 		self.size = 50
 		self.synonyms = []
 		self.isPlural = False
@@ -92,9 +93,17 @@ class Actor(Thing):
 		self.base_xdesc = description
 		self.xdesc = self.base_xdesc + " " +  self.getArticle().capitalize() + self.name + " is " + self.position + " down."
 	
-	def addIn(self, item):
+	def addThing(self, item):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
+		from . import thing
+		if isinstance(item, thing.Container):
+			if item.lock_obj:
+				if item.lock_obj.ix in self.contains:
+					if not item.lock_obj in self.contains[lock_obj.ix]:
+						self.addThing(item.lock_obj)
+				else:
+					self.addThing(item.lock_obj)
 		item.location = self
 		# nested items
 		nested = getNested(item)
@@ -103,20 +112,11 @@ class Actor(Thing):
 				self.sub_contains[t.ix].append(t)
 			else:
 				self.sub_contains[t.ix] = [t]
-			if item.ix in self.location.sub_contains:
-				self.location.sub_contains[t.ix].append(t)
-			else:
-				self.location.sub_contains[t.ix] = [t]
 		# top level item
 		if item.ix in self.contains:
 			self.contains[item.ix].append(item)
 		else:
 			self.contains[item.ix] = [item]
-		if item.ix in self.location.sub_contains:
-			self.location.sub_contains[item.ix].append(item)
-		else:
-			self.location.sub_contains[item.ix] = [item]
-		#self.containsListUpdate()
 	
 	def makeStanding(self):
 		self.position = "standing"
@@ -135,16 +135,40 @@ class Actor(Thing):
 
 	def removeThing(self, item):
 		"""Remove an item from contents, update decription """
+		from . import thing
+		if isinstance(item, thing.Container):
+			if item.lock_obj:
+				if item.lock_obj.ix in self.contains:
+					if item.lock_obj in self.contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+				if item.lock_obj.ix in self.sub_contains:
+					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+		# nested items
+		nested = getNested(item)
+		for t in nested:
+			if t.ix in self.sub_contains:
+				if t in self.sub_contains[t.ix]:
+					self.sub_contains[t.ix].remove(t)
+					if self.sub_contains[t.ix]==[]:
+						del self.sub_contains[t.ix]
+		# top level item
+		rval = False
 		if item.ix in self.contains:
 			if item in self.contains[item.ix]:
 				self.contains[item.ix].remove(item)
-				self.location.sub_contains[item.ix].remove(item)
-				if self.contains[item.ix] == []:
+				if self.contains[item.ix]==[]:
 					del self.contains[item.ix]
-				if self.location.sub_contains[item.ix] == []:
-					del self.location.sub_contains[item.ix]
+				rval = True
 				item.location = False
-			#self.containsListUpdate()
+		if item.ix in self.sub_contains:
+			if item in self.sub_contains[item.ix]:
+				self.sub_contains[item.ix].remove(item)
+				if self.sub_contains[item.ix]==[]:
+					del self.sub_contains[item.ix]
+				rval = True
+				item.location = False
+		return rval
 	
 	def addTopic(self, ask_tell_give_show, topic, thing):
 		"""Adds a conversation topic to the Actor
@@ -183,6 +207,7 @@ class Player(Actor):
 		self.verbose_name = name
 		self.invItem = False
 		self.cannotTakeMsg = "You cannot take yourself."
+		self.parent_obj = False
 		self.size = 50
 		self.synonyms = []
 		self.position = "standing"
@@ -245,4 +270,65 @@ class Topic:
 	
 	def func(self, app):
 		app.printToGUI(self.text)
-		
+
+def getNested(target):
+	"""Use a depth first search to find all nested Things in Containers and Surfaces
+	Takes argument target, pointing to a Thing
+	Returns a list of Things
+	Used by multiple verbs """
+	# list to populate with found Things
+	nested = []
+	# iterate through top level contents
+	for key, items in target.contains.items():
+		for item in items:
+			lvl = 0
+			push = False
+			# a dictionary of levels used to keep track of what has not yet been searched
+			lvl_dict = {}
+			lvl_dict[0] = []
+			# get a list of things in the top level
+			for key, things in item.contains.items():
+				for thing in things:
+					lvl_dict[0].append(thing)
+			# a list of the parent items of each level
+			# last item is current parent
+			lvl_parent = [item]
+			if item not in nested:
+				nested.append(item)
+			# when the bottom level is empty, the search is complete
+			while lvl_dict[0] != []:
+				# a list of searched items to remove from the level
+				remove_scanned = []
+				# pop to lower level if empty
+				if lvl_dict[lvl]==[]:
+					lvl_dict[lvl-1].remove(lvl_parent[-1])
+					lvl_parent = lvl_parent[:-1]
+					lvl = lvl - 1
+				# scan items on current level
+				for y in lvl_dict[lvl]:
+					if not y in nested:
+						nested.append(y)
+					# if y contains items, push into y.contains 
+					if y.contains != {}:
+						lvl = lvl + 1
+						lvl_dict[lvl] = []
+						for things, key in item.contains.items():
+							for thing in things:
+								lvl_dict[lvl].append(thing)
+						lvl_parent.append(y)
+						push = True
+						#break
+					else:
+						remove_scanned.append(y)
+				# remove scanned items from lvl_dict
+				for r in remove_scanned:
+					# NOTE: this will break for duplicate objects with contents
+					if push:
+						lvl_dict[lvl-1].remove(r)
+					else:
+						lvl_dict[lvl].remove(r)
+				
+				# reset push marker
+				push = False
+	return nested
+

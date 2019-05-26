@@ -27,6 +27,7 @@ class Thing:
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.parent_obj = False
 		self.size = 50
 		self.contains_preposition = False
 		self.contains_preposition_inverse = False
@@ -153,6 +154,7 @@ class Surface(Thing):
 		# items contained by items on the Surface
 		# accessible by default, but not shown in outermost description
 		self.sub_contains = {}
+		self.parent_obj = False
 		self.size = 50
 		self.name = name
 		# verbose_name will be updated by Thing method setAdjectives 
@@ -168,6 +170,7 @@ class Surface(Thing):
 		self.contains_desc = ""
 		# Surfaces are not contains items by default, but can be safely made so
 		self.invItem = False
+		self.cannotTakeMsg = "You cannot take that."
 		# add name to list of nouns
 		if name in vocab.nounDict:
 			vocab.nounDict[name].append(self)
@@ -192,7 +195,8 @@ class Surface(Thing):
 				if isinstance(item, Player):
 					list_version.remove(key)
 					player_here = True
-					break
+				elif item.parent_obj:
+					list_version.remove(key)
 		for key in list_version:
 			if len(self.contains[key]) > 1:
 				onlist = onlist + str(len(things)) + " " + self.contains[key][0].verbose_name
@@ -220,18 +224,37 @@ class Surface(Thing):
 	def addOn(self, item):
 		"""Add a Thing to a Surface
 		Takes argument item, pointing to a Thing"""
+		from . import actor
+		if isinstance(item, Container):
+			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
+				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
+					self.addOn(item.lock_obj)
+			elif item.lock_obj:
+				self.addOn(item.lock_obj)
 		item.location = self
 		# nested items
 		nested = getNested(item)
+		next_loc = self.location
+		while next_loc:
+			if not isinstance(item, actor.Actor):
+				for t in nested:
+					if t.ix in next_loc.sub_contains:
+						if not t in next_loc.sub_contains[t.ix]:
+							next_loc.sub_contains[t.ix].append(t)
+					else:
+						next_loc.sub_contains[t.ix] = [t]
+			if item.ix in next_loc.sub_contains:
+				if not item in next_loc.sub_contains[item.ix]:
+					next_loc.sub_contains[item.ix].append(item)
+			else:
+				next_loc.sub_contains[item.ix] = [item]
+			next_loc = next_loc.location
 		for t in nested:
-			if t.ix in self.sub_contains:
-				self.sub_contains[t.ix].append(t)
-			else:
-				self.sub_contains[t.ix] = [t]
-			if item.ix in self.location.sub_contains:
-				self.location.sub_contains[t.ix].append(t)
-			else:
-				self.location.sub_contains[t.ix] = [t]
+			if not isinstance(item, actor.Actor):
+				if t.ix in self.sub_contains:
+					self.sub_contains[t.ix].append(t)
+				else:
+					self.sub_contains[t.ix] = [t]
 		# top level item
 		if item.ix in self.contains:
 			self.contains[item.ix].append(item)
@@ -245,16 +268,54 @@ class Surface(Thing):
 
 	def removeThing(self, item):
 		"""Remove a Thing from a Surface """
+		if isinstance(item, Container):
+			if item.lock_obj:
+				if item.lock_obj.ix in self.contains:
+					if item.lock_obj in self.contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+				if item.lock_obj.ix in self.sub_contains:
+					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+		nested = getNested(item)
+		for t in nested:
+			if t.ix in self.sub_contains:
+				if t in self.sub_contains[t.ix]:
+					self.sub_contains[t.ix].remove(t)
+					if self.sub_contains[t.ix]==[]:
+						del self.sub_contains[t.ix]
+		next_loc = self.location
+		while next_loc:
+			if item.ix in next_loc.sub_contains:
+				if item in next_loc.sub_contains[item.ix]:
+					next_loc.sub_contains[item.ix].remove(item)
+					if next_loc.sub_contains[item.ix] == {}:
+						del next_loc.sub_contains[item.ix]
+			for t in nested:
+				if t.ix in next_loc.sub_contains:
+					if t in next_loc.sub_contains[t.ix]:
+						next_loc.sub_contains[t.ix].remove(t)
+						if next_loc.sub_contains[t.ix]==[]:
+							del next_loc.sub_contains[t.ix]
+			next_loc = next_loc.location
+		rval = False
 		if item.ix in self.contains:
 			if item in self.contains[item.ix]:
 				self.contains[item.ix].remove(item)
-				self.location.sub_contains[item.ix].remove(item)
-				if self.contains[item.ix] == []:
+				if self.contains[item.ix]==[]:
 					del self.contains[item.ix]
-				if self.location.sub_contains[item.ix] == []:
-					del self.location.sub_contains[item.ix]
-			item.location = False
-			self.containsListUpdate()
+				rval = True
+				item.location = False
+				self.containsListUpdate()
+		if item.ix in self.sub_contains:
+			if item in self.sub_contains[item.ix]:
+				self.sub_contains[item.ix].remove(item)
+				if self.sub_contains[item.ix]==[]:
+					del self.sub_contains[item.ix]
+				rval = True
+				item.location = False
+				self.containsListUpdate()
+		return rval
+			
 
 	def describeThing(self, description):
 		self.base_desc = description
@@ -277,6 +338,7 @@ class Container(Thing):
 		self.lock_obj = False
 		self.lock_desc = ""
 		self.state_desc = ""
+		self.parent_obj = False
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -285,10 +347,12 @@ class Container(Thing):
 		self.hasArticle = True
 		self.isDefinite = False
 		self.invItem = True
+		self.cannotTakeMsg = "You cannot take that."
 		self.contains = {}
 		self.sub_contains = {}
 		self.name = name
 		self.verbose_name = name
+		self.adjectives = []
 		self.give = False
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here."
 		self.base_xdesc = self.base_desc
@@ -329,7 +393,8 @@ class Container(Thing):
 				if isinstance(item, Player):
 					list_version.remove(key)
 					player_here = True
-					break
+				elif item.parent_obj:
+					list_version.remove(key)
 		for key in list_version:
 			if len(self.contains[key]) > 1:
 				inlist = inlist + str(len(things)) + " " + self.contains[key][0].verbose_name
@@ -351,33 +416,44 @@ class Container(Thing):
 			inlist = inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
 		# update descriptions
 		self.desc = desc + inlist
-		self.xdesc = xdesc + inlist
+		self.xdesc = xdesc + self.lock_desc + inlist
 		self.contains_desc = inlist
 		return True
 	
 	def addIn(self, item):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
+		from . import actor
 		item.location = self
+		if isinstance(item, Container):
+			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
+				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
+					self.addIn(item.lock_obj)
+			elif item.lock_obj:
+				self.addIn(item.lock_obj)
 		# nested items
 		nested = getNested(item)
 		next_loc = self.location
 		while next_loc:
-			for t in nested:
-				if t.ix in next_loc.sub_contains:
-					next_loc.sub_contains[t.ix].append(t)
-				else:
-					next_loc.sub_contains[t.ix] = [t]
+			if not isinstance(item, actor.Actor):
+				for t in nested:
+					if t.ix in next_loc.sub_contains:
+						if not t in next_loc.sub_contains[t.ix]:
+							next_loc.sub_contains[t.ix].append(t)
+					else:
+						next_loc.sub_contains[t.ix] = [t]
 			if item.ix in next_loc.sub_contains:
-				next_loc.sub_contains[item.ix].append(item)
+				if not item in next_loc.sub_contains[item.ix]:
+					next_loc.sub_contains[item.ix].append(item)
 			else:
 				next_loc.sub_contains[item.ix] = [item]
 			next_loc = next_loc.location
-		for t in nested:
-			if t.ix in self.sub_contains:
-				self.sub_contains[t.ix].append(t)
-			else:
-				self.sub_contains[t.ix] = [t]
+		if not isinstance(item, actor.Actor):
+			for t in nested:
+				if t.ix in self.sub_contains:
+					self.sub_contains[t.ix].append(t)
+				else:
+					self.sub_contains[t.ix] = [t]
 		if item.ix in self.contains:
 			self.contains[item.ix].append(item)
 		else:
@@ -425,39 +501,81 @@ class Container(Thing):
 	
 	def removeThing(self, item):
 		"""Remove an item from contents, update decription """
+		if isinstance(item, Container):
+			if item.lock_obj:
+				if item.lock_obj.ix in self.contains:
+					if item.lock_obj in self.contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+				if item.lock_obj.ix in self.sub_contains:
+					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+		nested = getNested(item)
+		for t in nested:
+			if t.ix in self.sub_contains:
+				if t in self.sub_contains[t.ix]:
+					self.sub_contains[t.ix].remove(t)
+					if self.sub_contains[t.ix]==[]:
+						del self.sub_contains[t.ix]
+		next_loc = self.location
+		while next_loc:
+			if item.ix in next_loc.sub_contains:
+				if item in next_loc.sub_contains[item.ix]:
+					next_loc.sub_contains[item.ix].remove(item)
+					if next_loc.sub_contains[item.ix] == {}:
+						del next_loc.sub_contains[item.ix]
+			for t in nested:
+				if t.ix in next_loc.sub_contains:
+					if t in next_loc.sub_contains[t.ix]:
+						next_loc.sub_contains[t.ix].remove(t)
+						if next_loc.sub_contains[t.ix]==[]:
+							del next_loc.sub_contains[t.ix]
+			next_loc = next_loc.location
+		rval = False
 		if item.ix in self.contains:
 			if item in self.contains[item.ix]:
 				self.contains[item.ix].remove(item)
-				if self.contains[item.ix] == []:
+				if self.contains[item.ix]==[]:
 					del self.contains[item.ix]
-		if item.ix in self.location.sub_contains: 
-			if item in self.location.sub_contains[item.ix]:
-				self.location.sub_contains[item.ix].remove(item)
-				if self.location.sub_contains[item.ix] == []:
-					del self.location.sub_contains[item.ix]
-		item.location = False
-		self.containsListUpdate()
+				rval = True
+				item.location = False
+				self.containsListUpdate()
+		if item.ix in self.sub_contains:
+			if item in self.sub_contains[item.ix]:
+				self.sub_contains[item.ix].remove(item)
+				if self.sub_contains[item.ix]==[]:
+					del self.sub_contains[item.ix]
+				rval = True
+				item.location = False
+				self.containsListUpdate()
+		return rval
 	
 	def setLock(self, lock_obj):
-		if isinstance(lock_obj, Lock):
+		if isinstance(lock_obj, Lock) and self.has_lid:
 			if not lock_obj.parent_obj:
 				self.lock_obj = lock_obj
-				lock_lobj.parent = self
+				lock_obj.parent_obj = self
 				self.location.addThing(lock_obj)
 				lock_obj.setAdjectives(lock_obj.adjectives + self.adjectives + [self.name])
-				lock_obj.describeThing("")
+				if lock_obj.is_locked:
+					self.lock_desc = " It is locked. "
+				else:
+					self.lock_desc = " It is unlocked. "
+				lock_obj.describeThing("AAAAAAAAAAA")
 				lock_obj.xdescribeThing("You notice nothing remarkable about " + lock_obj.getArticle(True) + lock_obj.verbose_name + ". ")
+				self.updateDesc()
 			else:
 				print("Cannot set lock_obj for " + self.verbose_name + ": lock_obj.parent already set ")
 		else:
 			print("Cannot set lock_obj for " + self.verbose_name + ": not a Lock ")
 			
 	def describeThing(self, description):
-		self.base_desc = description + self.state_desc
+		self.base_desc = description
+		self.desc = self.base_desc + self.state_desc
 		self.containsListUpdate()
 	
 	def xdescribeThing(self, description):
-		self.base_xdesc = description + self.state_desc + self.locked_desc
+		self.base_xdesc = description
+		self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
 		self.containsListUpdate()
 	
 	def updateDesc(self):
@@ -503,6 +621,7 @@ class AbstractClimbable(Thing):
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.parent_obj = False
 		self.size = 50
 		self.contains_preposition = False
 		self.contains_preposition_inverse = False
@@ -555,6 +674,7 @@ class Door(Thing):
 		self.lock_desc = ""
 		self.connection = False
 		# thing properties
+		self.parent_obj = False
 		self.size = 50
 		self.contains_preposition = False
 		self.contains_preposition_inverse = False
@@ -633,6 +753,7 @@ class Key(Thing):
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.parent_obj = False
 		self.size = 10
 		self.contains_preposition = False
 		self.contains_preposition_inverse = False
@@ -700,7 +821,7 @@ class Lock(Thing):
 		self.special_plural = False
 		self.hasArticle = True
 		self.isDefinite = False
-		self.invItem = True
+		self.invItem = False
 		self.adjectives = []
 		self.cannotTakeMsg = "You cannot take that."
 		self.contains = {}
@@ -764,6 +885,7 @@ class Abstract(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# properties
+		self.parent_obj = False
 		self.isPlural = False
 		self.special_plural = False
 		self.hasArticle = True

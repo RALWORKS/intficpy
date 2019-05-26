@@ -135,53 +135,44 @@ def getVerbFunc(me, app, dobj):
 	"""Take a Thing from the room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
 	# first check if dobj can be taken
-	if me.ix in dobj.contains or me.ix in dobj.sub_contains:
-		while me.ix in dobj.sub_contains:
-			if isinstance(me.location, thing.Container):
-				climbOutOfVerb.verbFunc(me, app, dobj)
-			elif isinstance(me.location, thing.Surface):
-				climbDownFromVerb.verbFunc(me, app, dobj)
-			else:
-				app.printToGUI("Could not move player out of " + dobj.verbose_name)
-				return False
-		if me.ix in dobj.contains:
-			if isinstance(dobj, thing.Container):
-				climbOutOfVerb.verbFunc(me, app, dobj)
-			elif isinstance(dobj, thing.Surface):
-				climbDownFromVerb.verbFunc(me, app, dobj)
-			else:
-				app.printToGUI("Could not move player out of " + dobj.verbose_name)
-				return False
-			
+	while me.ix in dobj.sub_contains:
+		if isinstance(me.location, thing.Container):
+			climbOutOfVerb.verbFunc(me, app, dobj)
+		elif isinstance(me.location, thing.Surface):
+			climbDownFromVerb.verbFunc(me, app, dobj)
+		else:
+			app.printToGUI("Could not move player out of " + dobj.verbose_name)
+			return False
+	if me.ix in dobj.contains:
+		if isinstance(dobj, thing.Container):
+			climbOutOfVerb.verbFunc(me, app, dobj)
+		elif isinstance(dobj, thing.Surface):
+			climbDownFromVerb.verbFunc(me, app, dobj)
+		else:
+			app.printToGUI("Could not move player out of " + dobj.verbose_name)
+			return False		
 	if dobj.invItem:
+		if dobj.ix in me.contains:
+			if dobj in me.contains[dobj.ix]:
+				app.printToGUI("You already have " + dobj.getArticle(True) + dobj.verbose_name + ".")
+				return False
+		if dobj.ix in me.sub_contains:
+			if dobj in me.sub_contains[dobj.ix]:
+				app.printToGUI("You already have " + dobj.getArticle(True) + dobj.verbose_name + ".")
+				return False
 		# print the action message
 		app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
-		# get any nested objects
-		nested = getNested(dobj)
-		for t in nested:
-			#dobj.location.sub_contains.remove(t)
-			dobj.location.sub_contains[t.ix].remove(t)
-			if dobj.location.sub_contains[t.ix] == []:
-				del dobj.location.sub_contains[t.ix]
-			#me.sub_contains.append(t)
-			if t.ix in me.contains:
-				me.sub_contains[t.ix].append(t)
-			else:
-				me.sub_contains[t.ix] = [t]
-		# if the location of dobj is a Thing, remove it from the Thing
-		if isinstance(dobj.location, thing.Thing) and not isinstance(dobj.location, actor.Actor):
+		while isinstance(dobj.location, thing.Thing):
 			old_loc = dobj.location
 			dobj.location.removeThing(dobj)
-			old_loc.containsListUpdate()
-		# else assume location is a Room
-		else:
-			dobj.location.removeThing(dobj)
-		dobj.location = me
-		#me.contains.append(dobj)
-		if dobj.ix in me.contains:
-			me.contains[dobj.ix].append(dobj)
-		else:
-			me.contains[dobj.ix] = [dobj]
+			dobj.location = old_loc.location
+			if not isinstance(old_loc, actor.Actor): 
+				old_loc.containsListUpdate()
+		dobj.location.removeThing(dobj)
+		me.addThing(dobj)
+		return True
+	elif dobj.parent_obj:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
 	else:
 		# if the dobj can't be taken, print the message
 		app.printToGUI(dobj.cannotTakeMsg)
@@ -202,40 +193,18 @@ def dropVerbFunc(me, app, dobj):
 	"""Drop a Thing from the contains
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
 	# print the action message
-	app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
+	if dobj.invItem and me.removeThing(dobj):
+		app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
+		dobj.location = me.location
+		dobj.location.addThing(dobj)
 	# if dobj is in sub_contains, remove it
-	if dobj.ix in me.sub_contains:
-		#me.sub_contains.remove(dobj)
-		me.sub_contains[dobj.ix].remove(dobj)
-		if me.sub_contains[dobj.ix] == []:
-			del me.sub_contains[dobj.ix]
-	# get nested Things
-	nested = getNested(dobj)
-	for thing in nested:
-		#me.sub_contains.remove(thing)
-		me.sub_contains[thing.ix].remove(thing)
-		if me.sub_contains[thing.ix] == []:
-			del me.sub_contains[thing.ix]
-		#me.location.sub_contains.append(thing)
-		if thing.ix in me.location.sub_contains:
-			me.location.sub_contains[thing.ix].append(thing)
-		else:
-			me.location.sub_contains[thing.ix] = [thing]
-	# add the Thing to the player location
-	me.location.addThing(dobj)
-	#me.contains.remove(dobj)
-	if dobj.ix in me.contains:
-		if dobj in me.contains[dobj.ix]:
-			me.contains[dobj.ix].remove(dobj)
-			if me.contains[dobj.ix] == []:
-				del me.contains[dobj.ix]
-		else:
-			me.sub_contains[dobj.ix].remove(dobj)
-			if me.sub_contains[dobj.ix] == []:
-				del me.sub_contains[dobj.ix]
 	# set the Thing's location property
-	dobj.location = me.location
-
+	elif dobj.parent_obj:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
+	elif not dobj.invItem:
+		app.printToGUI("Error: not an inventory item. ")
+	else:
+		app.printToGUI("You are not holding " + dobj.getArticle(True) + dobj.verbose_name + ".")
 # replace the default verbFunc method
 dropVerb.verbFunc = dropVerbFunc
 
@@ -363,6 +332,10 @@ def invVerbFunc(me, app):
 		# the string to print listing the contains
 		invdesc = "You have "
 		list_version = list(me.contains.keys())
+		for key in list_version:
+			for thing in me.contains[key]:
+				if thing.parent_obj:
+					list_version.remove(key)
 		for key in list_version:
 			if len(me.contains[key]) > 1:
 				# fix for containers?
