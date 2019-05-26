@@ -698,6 +698,13 @@ def callVerb(me, app, cur_verb, obj_words):
 			if cur_iobj:
 				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
 				lastTurn.iobj = cur_iobj
+	elif not isinstance(cur_iobj, thing.UnderSpace) and cur_verb.itype=="UnderSpace" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
+		if cur_iobj.child_UnderSpaces != []:
+			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_UnderSpaces, cur_verb.iscope)
+			lastTurn.iobj = False
+			if cur_iobj:
+				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
+				lastTurn.iobj = cur_iobj
 	if not isinstance(cur_dobj, thing.Container) and cur_verb.dtype=="Container" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
 		if cur_dobj.child_Containers != []:
 			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Containers, cur_verb.dscope)
@@ -708,6 +715,13 @@ def callVerb(me, app, cur_verb, obj_words):
 	elif not isinstance(cur_dobj, thing.Surface) and cur_verb.dtype=="Surface" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
 		if cur_dobj.child_Surfaces != []:
 			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Surfaces, cur_verb.dscope)
+			lastTurn.dobj = False
+			if cur_dobj:
+				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
+				lastTurn.iobj = cur_dobj
+	elif not isinstance(cur_dobj, thing.UnderSpace) and cur_verb.dtype=="UnderSpace" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
+		if cur_dobj.child_UnderSpaces != []:
+			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_UnderSpaces, cur_verb.dscope)
 			lastTurn.dobj = False
 			if cur_dobj:
 				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")

@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QApplication
 
 # imports from intficpy
 from intficpy.room import Room, OutdoorRoom
-from intficpy.thing import Thing, Surface, Container, Clothing, Abstract, Key, Lock
+from intficpy.thing import Thing, Surface, Container, Clothing, Abstract, Key, Lock, UnderSpace
 #from intficpy.player import Player
 from intficpy.travel import TravelConnector, DoorConnector, LadderConnector, StaircaseConnector
 from intficpy.actor import Actor, Player, Topic
@@ -74,9 +74,14 @@ startroom.addThing(bottle2)
 bench = Surface("bench")
 bench.canSit = True
 bench.canStand = True
+#bench.invItem = True
 bench.describeThing("A rough wooden bench sits against the wall.")
 bench.xdescribeThing("The wooden bench is splintering, and faded grey. It looks very old.")
 startroom.addThing(bench)
+underbench = UnderSpace("space")
+underbench.contains_preposition = "in"
+bench.addComposite(underbench)
+underbench.verbose_name = "space under the bench"
 
 nails = Thing("nails")
 nails.addSynonym("can")
@@ -110,6 +115,7 @@ rustykey.setAdjectives(["rusty"])
 attic.addThing(rustykey)
 cabinlock = Lock(True, rustykey)
 shackdoor.setLock(cabinlock)
+#box.setLock(cabinlock)
 
 rock = Thing("rock")
 beach.addThing(rock)

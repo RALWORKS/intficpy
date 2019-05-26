@@ -164,6 +164,26 @@ def getVerbFunc(me, app, dobj):
 				return False
 		# print the action message
 		app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
+		if isinstance(dobj, thing.UnderSpace) and not dobj.contains=={}:
+			results = dobj.moveContentsOut()
+			msg = results[0]
+			plural = results[1]
+			if plural:
+				msg = msg.capitalize() + " are revealed. "
+			else:
+				msg = msg.capitalize() + " is revealed. "
+			app.printToGUI(msg)
+		if dobj.is_composite:
+			for item in dobj.child_UnderSpaces:
+				if not item.contains=={}:
+					results = item.moveContentsOut()
+					msg = results[0]
+					plural = results[1]
+					if plural:
+						msg = msg.capitalize() + " are revealed. "
+					else:
+						msg = msg.capitalize() + " is revealed. "
+					app.printToGUI(msg)
 		while isinstance(dobj.location, thing.Thing):
 			old_loc = dobj.location
 			dobj.location.removeThing(dobj)
@@ -319,11 +339,53 @@ def setInVerbFunc(me, app, dobj, iobj):
 # replace the default verbFunc method
 setInVerb.verbFunc = setInVerbFunc
 
-# VIEW contains
+# PUT/SET UNDER
+# transitive verb with indirect object
+setUnderVerb = Verb("set")
+setUnderVerb.addSynonym("put")
+setUnderVerb.syntax = [["put", "<dobj>", "under", "<iobj>"], ["set", "<dobj>", "under", "<iobj>"]]
+setUnderVerb.hasDobj = True
+setUnderVerb.dscope = "inv"
+setUnderVerb.hasIobj = True
+setUnderVerb.iscope = "room"
+setUnderVerb.itype = "UnderSpace"
+setUnderVerb.preposition = ["under"]
+
+def setUnderVerbFunc(me, app, dobj, iobj):
+	"""Put a Thing under an UnderSpace
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	outer_loc = me.getOutermostLocation()
+	if isinstance(iobj, thing.UnderSpace) and dobj.size <= iobj.size:
+		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " " + iobj.contains_preposition + " " + iobj.getArticle(True) + iobj.verbose_name + ".")
+		me.contains[dobj.ix].remove(dobj)
+		if me.contains[dobj.ix] == []:
+			del me.contains[dobj.ix]
+		# remove all nested objects for dobj from contains
+		nested = getNested(dobj)
+		for t in nested:
+			#me.sub_contains.remove(t)
+			del me.sub_contains[t.ix][0]
+			if me.sub_contains[t.ix] == []:
+				del me.sub_contains[t.ix]
+			#iobj.sub_contains.append(t)
+			if t.ix in iobj.sub_contains:
+				iobj.sub_contains[t.ix].append(t)
+			else:
+				iobj.sub_contains[t.ix] = [t]
+		iobj.addUnder(dobj, True)
+	elif dobj.size > iobj.size:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is too big to fit under " + iobj.getArticle(True) + iobj.verbose_name + ". ")
+	else:
+		app.printToGUI("There is no reason to put it under there.")
+
+# replace the default verbFunc method
+setUnderVerb.verbFunc = setUnderVerbFunc
+
+# VIEW INVENTORY
 # intransitive verb
-invVerb = Verb("contains")
+invVerb = Verb("inventory")
 invVerb.addSynonym("i")
-invVerb.syntax = [["contains"], ["i"]]
+invVerb.syntax = [["inventory"], ["i"]]
 invVerb.hasDobj = False
 
 def invVerbFunc(me, app):
@@ -448,6 +510,36 @@ def lookInVerbFunc(me, app, dobj):
 		return False
 
 lookInVerb.verbFunc = lookInVerbFunc
+
+# LOOK UNDER (Thing)
+# transitive verb, no indirect object
+lookUnderVerb = Verb("look")
+lookUnderVerb.syntax = [["look", "under", "<dobj>"]]
+lookUnderVerb.hasDobj = True
+lookUnderVerb.dscope = "near"
+lookUnderVerb.dtype = "UnderSpace"
+lookUnderVerb.preposition = ["under"]
+
+def lookUnderVerbFunc(me, app, dobj):
+	"""Look under a Thing """
+	# print the target's xdesc (examine descripion)
+	if isinstance(dobj, thing.UnderSpace):
+		dobj.revealUnder()
+		list_version = list(dobj.contains.keys())
+		if len(list_version) > 0:
+			app.printToGUI(dobj.contains_desc)
+			return True
+		else:
+			app.printToGUI("There is nothing " + dobj.contains_preposition + " " + dobj.getArticle(True) + dobj.verbose_name + ".")
+			return True
+	elif dobj.invItem:
+		getVerbFunc(me, app, dobj)
+		app.printToGUI("You find nothing underneath. ")
+	else:
+		app.printToGUI("There's no reason to look under " + dobj.getArticle(True) + dobj.verbose_name + ".")
+		return False
+
+lookUnderVerb.verbFunc = lookUnderVerbFunc
 
 # ASK (Actor)
 # transitive verb with indirect object

@@ -159,12 +159,13 @@ class Thing:
 			self.child_Surfaces.append(item)
 		elif isinstance(item, Container):
 			self.child_Containers.append(item)
-		#UnderSpace
+		elif isinstance(item, UnderSpace):
+			self.child_UnderSpaces.append(item)
 		elif isinstance(item, Thing):
 			self.child_Containers.append(item)
 		self.location.addThing(item)
 		item.setAdjectives(item.adjectives + self.adjectives + [self.name])
-		self.children_desc = self.children_desc + item.desc
+		#self.children_desc = ""
 		#item.describeThing("")
 		item.xdescribeThing("You notice nothing remarkable about " + item.getArticle(True) + item.verbose_name + ". ")
 		item.invItem = False
@@ -1028,6 +1029,273 @@ class Abstract(Thing):
 	def makeKnown(self, me):
 		if not self.ix in me.knows_about:
 			me.knows_about.append(self.ix)
+
+class UnderSpace(Thing):
+	"""Things that can have other Things underneath """
+	def __init__(self, name):
+		"""Set basic properties for the UnderSpace instance
+		Takes argument name, a single noun (string)"""
+		self.revealed = False
+		self.size = 50
+		self.contains_preposition = "under"
+		self.contains_preposition_inverse = "out"
+		self.is_composite = False
+		self.parent_obj = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.name = name
+		self.verbose_name = name
+		self.adjectives = []
+		self.give = False
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		# description of contents
+		self.contains_desc = ""
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+		# index and add to dictionary for save/load
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+	
+	def containsListUpdate(self):
+		"""Update description for addition/removal of items from the Container instance """
+		from .actor import Player
+		desc = self.base_desc
+		xdesc = self.base_xdesc
+		if not self.revealed:
+			return False
+		inlist = " " + self.contains_preposition.capitalize() + " " + self.getArticle(True) + self.verbose_name + " is "
+		# iterate through contents, appending the verbose_name of each to onlist
+		list_version = list(self.contains.keys())
+		player_here = False
+		for key in list_version:
+			for item in self.contains[key]:
+				if key in list_version:
+					if isinstance(item, Player):
+						list_version.remove(key)
+						player_here = True
+					elif item.parent_obj:
+						list_version.remove(key)
+		for key in list_version:
+			if len(self.contains[key]) > 1:
+				inlist = inlist + str(len(things)) + " " + self.contains[key][0].verbose_name
+			else:
+				inlist = inlist + self.contains[key][0].getArticle() + self.contains[key][0].verbose_name
+			if key is list_version[-1]:
+				inlist = inlist + "."
+			elif key is list_version[-2]:
+				inlist = inlist + " and "
+			else:
+				inlist = inlist + ", "
+		# remove the empty inlist in the case of no contents
+		# TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
+		if len(list_version)==0:
+			inlist = ""
+		if player_here:
+			if inlist != "":
+				inlist = inlist + "<br>"
+			inlist = inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
+		# update descriptions
+		if self.is_composite:
+			self.desc = self.base_desc + self.children_desc + inlist
+			self.xdesc = self.base_xdesc + self.children_desc + inlist
+		else:
+			self.desc = desc + inlist
+			self.xdesc = xdesc + inlist
+		self.contains_desc = inlist
+		return True
+	
+	def revealUnder(self):
+		from . import actor
+		self.revealed = True
+		self.containsListUpdate()
+		next_loc = self.location
+		for key in self.contains:
+			for item in self.contains[key]:
+				nested = getNested(item)
+				while next_loc:
+					if not isinstance(item, actor.Actor):
+						for t in nested:
+							if t.ix in next_loc.sub_contains:
+								if not t in next_loc.sub_contains[t.ix]:
+									next_loc.sub_contains[t.ix].append(t)
+							else:
+								next_loc.sub_contains[t.ix] = [t]
+					if item.ix in next_loc.sub_contains:
+						if not item in next_loc.sub_contains[item.ix]:
+							next_loc.sub_contains[item.ix].append(item)
+					else:
+						next_loc.sub_contains[item.ix] = [item]
+					next_loc = next_loc.location
+	
+	def moveContentsOut(self):
+		contents = copy.copy(self.contains)
+		out = ""
+		list_version = list(contents.keys())
+		counter = 0
+		for key in contents:
+			if len(contents[key])==1:
+				out = out + contents[key][0].getArticle() + contents[key][0].verbose_name
+			else:
+				n_things = str(len(contents[key]))
+				out = out + n_things + contents[key][0].verbose_name
+				counter = counter + 1
+			if len(list_version) > 1:
+				if key == list_version[-2]:
+					out = out + ", and "
+				elif key != list_version[-1]:
+					out = out + ", "
+			elif key != list_version[-1]:
+				out = out + ", "
+			for item in contents[key]:
+				self.removeThing(item)
+				self.location.addThing(item)
+			counter = counter + 1
+		if counter > 1:
+			return [out, True]
+		else:
+			return [out, False]
+
+	def addUnder(self, item, revealed=False):
+		"""Add an item to contents, update descriptions
+		Takes argument item, pointing to a Thing """
+		from . import actor
+		item.location = self
+		if isinstance(item, Container):
+			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
+				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
+					self.addIn(item.lock_obj)
+			elif item.lock_obj:
+				self.addIn(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if not item2 in self.contains[item2.ix]:
+						self.addIn(item2)
+				else:
+					self.addIn(item2)
+		# nested items
+		nested = getNested(item)
+		next_loc = self.location
+		if revealed:
+			while next_loc:
+				if not isinstance(item, actor.Actor):
+					for t in nested:
+						if t.ix in next_loc.sub_contains:
+							if not t in next_loc.sub_contains[t.ix]:
+								next_loc.sub_contains[t.ix].append(t)
+						else:
+							next_loc.sub_contains[t.ix] = [t]
+				if item.ix in next_loc.sub_contains:
+					if not item in next_loc.sub_contains[item.ix]:
+						next_loc.sub_contains[item.ix].append(item)
+				else:
+					next_loc.sub_contains[item.ix] = [item]
+				next_loc = next_loc.location
+		if not isinstance(item, actor.Actor):
+			for t in nested:
+				if t.ix in self.sub_contains:
+					if not t in self.sub_contains[t.ix]:
+						self.sub_contains[t.ix].append(t)
+				else:
+					self.sub_contains[t.ix] = [t]
+		if item.ix in self.contains:
+			self.contains[item.ix].append(item)
+		else:
+			self.contains[item.ix] = [item]
+		self.revealed = revealed
+		self.containsListUpdate()
+	
+	def removeThing(self, item):
+		"""Remove an item from contents, update decription """
+		if isinstance(item, Container):
+			if item.lock_obj:
+				if item.lock_obj.ix in self.contains:
+					if item.lock_obj in self.contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+				if item.lock_obj.ix in self.sub_contains:
+					if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
+						self.removeThing(item.lock_obj)
+		if item.is_composite:
+			for item2 in item.children:
+				if item2.ix in self.contains:
+					if item2 in self.contains[item2.ix]:
+						self.removeThing(item2)
+				if item2.ix in self.sub_contains:
+					if item2 in self.sub_contains[item2.ix]:
+						self.removeThing(item2)
+		nested = getNested(item)
+		for t in nested:
+			if t.ix in self.sub_contains:
+				if t in self.sub_contains[t.ix]:
+					self.sub_contains[t.ix].remove(t)
+					if self.sub_contains[t.ix]==[]:
+						del self.sub_contains[t.ix]
+		next_loc = self.location
+		while next_loc:
+			if item.ix in next_loc.sub_contains:
+				if item in next_loc.sub_contains[item.ix]:
+					next_loc.sub_contains[item.ix].remove(item)
+					if next_loc.sub_contains[item.ix] == {}:
+						del next_loc.sub_contains[item.ix]
+			for t in nested:
+				if t.ix in next_loc.sub_contains:
+					if t in next_loc.sub_contains[t.ix]:
+						next_loc.sub_contains[t.ix].remove(t)
+						if next_loc.sub_contains[t.ix]==[]:
+							del next_loc.sub_contains[t.ix]
+			next_loc = next_loc.location
+		rval = False
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				self.contains[item.ix].remove(item)
+				if self.contains[item.ix]==[]:
+					del self.contains[item.ix]
+				rval = True
+				item.location = False
+				self.containsListUpdate()
+		if item.ix in self.sub_contains:
+			if item in self.sub_contains[item.ix]:
+				self.sub_contains[item.ix].remove(item)
+				if self.sub_contains[item.ix]==[]:
+					del self.sub_contains[item.ix]
+				rval = True
+				item.location = False
+				self.containsListUpdate()
+		return rval
+			
+	def describeThing(self, description):
+		self.base_desc = description
+		self.desc = self.base_desc + self.state_desc
+		if self.is_composite:
+			self.desc = self.desc + self.children_desc
+		self.containsListUpdate()
+	
+	def xdescribeThing(self, description):
+		self.base_xdesc = description
+		self.xdesc = self.base_xdesc
+		if self.is_composite:
+			self.xdesc = self.xdesc + self.children_desc
+		self.containsListUpdate()
+	
+	def updateDesc(self):
+		self.containsListUpdate()
 			
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces
