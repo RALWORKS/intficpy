@@ -5,7 +5,6 @@ import copy
 # THING.PY - the Thing class for IntFicPy 
 # Defines the Thing class,  its subclasses Surface, Container, and Clothing, and the thing dictionary
 ##############################################################
-# TODO: create a describe method in Thing/Container/Surface to eliminate the need for creators to modify both desc/xdesc AND base_desc/base_xdesc in for Surfaces and Containers
 
 # a dictionary of the indeces of all Thing objects, including subclass instances, mapped to their object
 # populated at runtime

@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication
 # imports from intficpy
 from intficpy.room import Room, OutdoorRoom
 from intficpy.thing import Thing, Surface, Container, Clothing, Abstract, Key, Lock, UnderSpace
-#from intficpy.player import Player
+from intficpy.score import Achievement
 from intficpy.travel import TravelConnector, DoorConnector, LadderConnector, StaircaseConnector
 from intficpy.actor import Actor, Player, Topic
 import intficpy.parser as parser
@@ -17,6 +17,11 @@ gui.Prelim(__name__)
 
 seenshackintro = False
 
+opalAchievement = Achievement(2, "finding the opal")
+
+def test1(app):
+	app.printToGUI("testing")
+	print("test1")
 
 def test2(app):
 	global seenshackintro
@@ -70,6 +75,7 @@ def takeOpalFunc(me, app):
 	if not opaltaken:
 		app.printToGUI("As you hold the opal in your hand, you're half-sure you can feel the air cooling around you. A shiver runs down your spine. Something is not right here.")
 		opaltaken = True
+		opalAchievement.award(app)
 opal.getVerbDobj = takeOpalFunc
 
 bottle = Thing("bottle")

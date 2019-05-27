@@ -478,6 +478,36 @@ def invVerbFunc(me, app):
 # replace default verbFunc method
 invVerb.verbFunc = invVerbFunc
 
+# VIEW SCORE
+# intransitive verb
+scoreVerb = Verb("score")
+scoreVerb.syntax = [["score"]]
+scoreVerb.hasDobj = False
+
+def scoreVerbFunc(me, app):
+	"""View the current score
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from . import score
+	score.score.score(app)
+		
+# replace default verbFunc method
+scoreVerb.verbFunc = scoreVerbFunc
+
+# VIEW FULL SCORE
+# intransitive verb
+fullScoreVerb = Verb("fullscore")
+fullScoreVerb.addSynonym("full")
+fullScoreVerb.syntax = [["fullscore"], ["full", "score"]]
+fullScoreVerb.hasDobj = False
+
+def fullScoreVerbFunc(me, app):
+	"""View the current score
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from . import score
+	score.score.fullscore(app)
+		
+# replace default verbFunc method
+fullScoreVerb.verbFunc = fullScoreVerbFunc
 
 # LOOK (general)
 # intransitive verb
