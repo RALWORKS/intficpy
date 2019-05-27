@@ -224,7 +224,12 @@ def dropVerbFunc(me, app, dobj):
 	if dobj.invItem and me.removeThing(dobj):
 		app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
 		dobj.location = me.location
-		dobj.location.addThing(dobj)
+		if isinstance(dobj.location, thing.Surface):
+			dobj.location.addOn(dobj)
+		elif isinstance(dobj.location, thing.Container):
+			dobj.location.addIn(dobj)
+		else:	
+			dobj.location.addThing(dobj)
 	# if dobj is in sub_contains, remove it
 	# set the Thing's location property
 	elif dobj.parent_obj:
@@ -568,6 +573,8 @@ def lookInVerbFunc(me, app, dobj):
 				return False
 		if len(list_version) > 0:
 			app.printToGUI(dobj.contains_desc)
+			for key in dobj.contains and key not in me.knows_about:
+				me.know_about.append(key)
 			try:
 				dobj.lookInVerbDobj(me, app)
 			except AttributeError:
@@ -666,8 +673,11 @@ askVerb.getImpDobj = getImpAsk
 def askVerbFunc(me, app, dobj, iobj):
 	"""Ask an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	from .thing import reflexive
 	if isinstance(dobj, actor.Actor):
 		# try to find the ask topic for iobj
+		if iobj==reflexive:	
+			iobj = dobj
 		if iobj in dobj.ask_topics:
 			# call the ask function for iobj
 			dobj.ask_topics[iobj].func(app)
@@ -735,7 +745,10 @@ tellVerb.getImpDobj = getImpTell
 def tellVerbFunc(me, app, dobj, iobj):
 	"""Tell an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	from .thing import reflexive
 	if isinstance(dobj, actor.Actor):
+		if iobj==reflexive:	
+				iobj = dobj
 		if iobj in dobj.tell_topics:
 			dobj.tell_topics[iobj].func(app)
 			try:

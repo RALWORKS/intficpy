@@ -18,10 +18,7 @@ gui.Prelim(__name__)
 seenshackintro = False
 
 opalAchievement = Achievement(2, "finding the opal")
-
-def test1(app):
-	app.printToGUI("testing")
-	print("test1")
+keyAchievement = Achievement(2, "receiving the key")
 
 def test2(app):
 	global seenshackintro
@@ -31,7 +28,13 @@ def test2(app):
 		seenshackintro = True
 		return "You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area.\n"
 
-startroom = Room("Shack interior", "You are standing in a one room shack. Light filters in through a cracked, dirty window. ")
+startroom = Room("Shack interior", "You are standing in a one room shack. Light filters in through a cracked, dirty window. <<shore_concept.makeKnown(me)>> <<shack_concept.makeKnown(me)>> <<shack_key_concept.makeKnown(me)>>")
+shack_concept = Abstract("shack")
+shack_key_concept = Abstract("key")
+shack_key_concept.setAdjectives(["shack", "door"])
+shore_concept = Abstract("shore")
+shore_concept.addSynonym("outside")
+
 me = Player("boy")
 startroom.addThing(me)
 me.setPlayer()
@@ -54,7 +57,7 @@ def addCave(a):
 scarf = Clothing("scarf")
 startroom.addThing(scarf)
 
-box = Container("box")
+box = Container("box", me)
 box.canStand = True
 box.canSit = True
 box.canLie = True
@@ -85,14 +88,14 @@ startroom.addThing(bottle)
 bottle2 = bottle.copyThing()
 startroom.addThing(bottle2)
 
-bench = Surface("bench")
+bench = Surface("bench", me)
 bench.canSit = True
 bench.canStand = True
 #bench.invItem = True
 bench.describeThing("A rough wooden bench sits against the wall.")
 bench.xdescribeThing("The wooden bench is splintering, and faded grey. It looks very old.")
 startroom.addThing(bench)
-underbench = UnderSpace("space")
+underbench = UnderSpace("space", me)
 underbench.contains_preposition = "in"
 bench.addComposite(underbench)
 underbench.verbose_name = "space under the bench"
@@ -102,7 +105,7 @@ nails.addSynonym("can")
 nails.setAdjectives(["can", "of"])
 bench.addOn(nails)
 
-emptycan = Container("can")
+emptycan = Container("can", me)
 emptycan.setAdjectives(["empty", "old"])
 emptycan.size = 30
 startroom.addThing(emptycan)
@@ -126,10 +129,28 @@ startroom.north = shackladder
 
 rustykey = Key()
 rustykey.setAdjectives(["rusty"])
-attic.addThing(rustykey)
+#attic.addThing(rustykey)
 cabinlock = Lock(True, rustykey)
+
+sarahthrewkey = False
+def sarahOpalFunc(me, app, dobj):
+	global sarahthrewkey
+	if not sarahthrewkey and dobj==sarah:
+		app.printToGUI("\"Fine!\" she cries. \"Fine! Take the key and leave! Just get that thing away from me!\" ")
+		app.printToGUI("Sarah flings a rusty key at you. You catch it.")
+		me.addThing(rustykey)
+		keyAchievement.award(app)
+		sarahthrewkey = True
+
+opal.giveVerbIobj = sarahOpalFunc
+opal.showVerbIobj = sarahOpalFunc
+
 shackdoor.setLock(cabinlock)
-#box.setLock(cabinlock)
+silverkey = Key()
+silverkey.setAdjectives(["silver"])
+boxlock = Lock(True, silverkey)
+box.setLock(boxlock)
+attic.addThing(silverkey)
 
 rock = Thing("rock")
 beach.addThing(rock)
@@ -138,16 +159,31 @@ sarah = Actor("Sarah")
 sarah.makeProper("Sarah")
 startroom.addThing(sarah)
 
-john = Actor("janitor")
-john.makeUnique()
-startroom.addThing(john)
-john.makeLying()
-
-opalTopic = Topic("\"Why is there an opal here?\" You ask.<br><br>\"I brought it from the cave,\" says Sarah. \"Take it if you want. I want nothing to do with it.\" <<cave_concept.makeKnown(me)>>")
+opalTopic = Topic("\"I should never it from the cave,\" says Sarah. \"I want nothing to do with it. If you're smart, you'll leave it where you found it.\" <<cave_concept.makeKnown(me)>>")
 sarah.addTopic("asktell", opalTopic, opal)
 
 opalTopic = Topic("You hold out the opal for Sarah to see. <br> She staggers backward, raising her arms to block her face. \"Get that away from me!\" she cries, a hint of hysteria in her voice. \"Put it away. Put it away!\"")
 sarah.addTopic("giveshow", opalTopic, opal)
+
+shackTopic = Topic("\"It's not such a bad place, this shack,\" Sarah says. \"It's warm. Safe.\"")
+sarah.addTopic("asktell", shackTopic, shack_concept)
+
+outsideTopic = Topic("\"You wouldn't want to go out there,\" Sarah says. \"You're inside for a reason. The rest of the world isn't safe for you.\"")
+sarah.addTopic("asktell", outsideTopic, shore_concept)
+
+keyTopic = Topic("\"Key?\" Sarah says. \"What key? I haven't got any key.\"")
+sarah.addTopic("asktell", keyTopic, shack_key_concept)
+sarah.addTopic("asktell", keyTopic, cabinlock)
+sarah.addTopic("asktell", keyTopic, shackdoor.entranceA)
+
+key2Topic = Topic("\"Leave that be,\" Sarah says, a hint of anxiety in her voice. \"Some things are better left untouched.\"")
+sarah.addTopic("asktellgiveshow", key2Topic, silverkey)
+
+sarahTopic = Topic("\"You want to know about <i>me?</i>\" Sarah says. \"I'm flattered. Just think of me as your protector.\"")
+sarah.addTopic("asktell", sarahTopic, sarah)
+
+meTopic = Topic("\"You were in a sorry state when I found you,\" Sarah says. \"Be glad I brought you here.\"")
+sarah.addTopic("asktell", meTopic, me)
 
 sarah.default_topic = "Sarah scoffs."
 

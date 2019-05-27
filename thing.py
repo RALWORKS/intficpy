@@ -186,8 +186,9 @@ class Thing:
 
 class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
-	def __init__(self, name):
+	def __init__(self, name, me):
 		"""Sets the essential properties for a new Surface object """
+		self.me = me
 		self.contains_preposition = "on"
 		self.contains_preposition_inverse = "off"
 		self.isPlural = False
@@ -257,6 +258,8 @@ class Surface(Thing):
 				onlist = onlist + " and "
 			else:
 				onlist = onlist + ", "
+			if key not in self.me.knows_about:
+				self.me.knows_about.append(key)
 		# if contains is empty, there should be no onlist
 		# TODO: consider rewriting this logic to avoid contructing an empty onlist, then deleting it
 		if len(list_version)==0:
@@ -400,9 +403,10 @@ class Surface(Thing):
 # NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
 class Container(Thing):
 	"""Things that can contain other Things """
-	def __init__(self, name):
+	def __init__(self, name, me):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
+		self.me = me
 		self.size = 50
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
@@ -479,6 +483,8 @@ class Container(Thing):
 				inlist = inlist + " and "
 			else:
 				inlist = inlist + ", "
+			if key not in self.me.knows_about:
+				self.me.knows_about.append(key)
 		# remove the empty inlist in the case of no contents
 		# TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
 		if len(list_version)==0:
@@ -1031,9 +1037,10 @@ class Abstract(Thing):
 
 class UnderSpace(Thing):
 	"""Things that can have other Things underneath """
-	def __init__(self, name):
+	def __init__(self, name, me):
 		"""Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
+		self.me = me
 		self.revealed = False
 		self.size = 50
 		self.contains_preposition = "under"
@@ -1102,6 +1109,8 @@ class UnderSpace(Thing):
 				inlist = inlist + " and "
 			else:
 				inlist = inlist + ", "
+			if key not in self.me.knows_about:
+				self.me.knows_about.append(key)
 		# remove the empty inlist in the case of no contents
 		# TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
 		if len(list_version)==0:
@@ -1357,3 +1366,7 @@ def getNested(target):
 				push = False
 	return nested
 
+# hacky solution for reflexive pronouns (himself/herself/itself)
+reflexive = Abstract("itself")
+reflexive.addSynonym("himself")
+reflexive.addSynonym("herself")

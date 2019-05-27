@@ -239,10 +239,22 @@ def matchPrepositions(verbs, input_tokens):
 	remove_verb = []
 	for p in vocab.english.prepositions:
 		if p in input_tokens:
+			exempt = False
 			for verb in verbs:
-				if not verb.preposition:
+				ix = input_tokens.index(p) + 1
+				if ix<len(input_tokens):
+					noun = input_tokens[ix]
+					while not noun in vocab.nounDict:
+						ix = ix + 1
+						if ix >= len(input_tokens):
+							break
+						noun = input_tokens[ix]
+					for item in vocab.nounDict[noun]:
+						if p in item.adjectives:
+							exempt = True
+				if not verb.preposition and not exempt:
 					remove_verb.append(verb)
-				elif not p in verb.preposition:
+				elif not p in verb.preposition and not exempt:
 					remove_verb.append(verb)
 	for verb in remove_verb:
 		if verb in verbs:

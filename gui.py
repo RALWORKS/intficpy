@@ -33,7 +33,9 @@ class App(QWidget):
 	def __init__(self, me):
 		"""Initialize the GUI
 		Takes argument me, pointing to the Player """
+		from .thing import reflexive
 		super().__init__()
+		reflexive.makeKnown(me)
 		self.title = 'IntFicPy'
 		self.left = 10
 		self.top = 10
