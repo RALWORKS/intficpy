@@ -192,12 +192,18 @@ def getVerbFunc(me, app, dobj):
 				old_loc.containsListUpdate()
 		dobj.location.removeThing(dobj)
 		me.addThing(dobj)
+		try:
+			dobj.getVerbDobj(me, app)
+		except AttributeError:
+			pass
 		return True
 	elif dobj.parent_obj:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
+		return False
 	else:
 		# if the dobj can't be taken, print the message
 		app.printToGUI(dobj.cannotTakeMsg)
+		return False
 
 # replace the default verb function
 getVerb.verbFunc = getVerbFunc
@@ -283,6 +289,14 @@ def setOnVerbFunc(me, app, dobj, iobj):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		iobj.addOn(dobj)
+		try:
+			iobj.setOnVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		try:
+			dobj.setOnVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
 	# if iobj is not a Surface
 	else:
 		app.printToGUI("There is no surface to set it on.")
@@ -328,6 +342,14 @@ def setInVerbFunc(me, app, dobj, iobj):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		iobj.addIn(dobj)
+		try:
+			iobj.setInVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		try:
+			dobj.setInVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
 		return True
 	elif isinstance(iobj, thing.Container):
 		app.printToGUI("The " + dobj.verbose_name + " is too big to fit inside the " + iobj.verbose_name + ".")
@@ -373,10 +395,21 @@ def setUnderVerbFunc(me, app, dobj, iobj):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		iobj.addUnder(dobj, True)
+		try:
+			iobj.setUnderVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		try:
+			dobj.setUnderVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		return True
 	elif dobj.size > iobj.size:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is too big to fit under " + iobj.getArticle(True) + iobj.verbose_name + ". ")
+		return False
 	else:
 		app.printToGUI("There is no reason to put it under there.")
+		return False
 
 # replace the default verbFunc method
 setUnderVerb.verbFunc = setUnderVerbFunc
@@ -468,7 +501,7 @@ lookVerb.verbFunc = lookVerbFunc
 examineVerb = Verb("examine")
 examineVerb.addSynonym("x")
 examineVerb.addSynonym("look")
-examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"], ["look", "at", "<dobj>"]]
+examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"], ["look", "at", "<dobj>"], ["look", "<dobj>"]]
 examineVerb.hasDobj = True
 examineVerb.dscope = "near"
 examineVerb.preposition = ["at"]
@@ -477,6 +510,10 @@ def examineVerbFunc(me, app, dobj):
 	"""Examine a Thing """
 	# print the target's xdesc (examine descripion)
 	app.printToGUI(dobj.xdesc)
+	try:
+		dobj.examineVerbDobj(me, app)
+	except AttributeError:
+			pass
 
 # replace default verbFunc method
 examineVerb.verbFunc = examineVerbFunc
@@ -501,9 +538,17 @@ def lookInVerbFunc(me, app, dobj):
 				return False
 		if len(list_version) > 0:
 			app.printToGUI(dobj.contains_desc)
+			try:
+				dobj.lookInVerbDobj(me, app)
+			except AttributeError:
+				pass
 			return True
 		else:
 			app.printToGUI("The " + dobj.verbose_name + " is empty.")
+			try:
+				dobj.lookInVerbDobj(me, app)
+			except AttributeError:
+				pass
 			return True
 	else:
 		app.printToGUI("You cannot look inside " + dobj.getArticle(True) + dobj.verbose_name + ".")
@@ -528,13 +573,22 @@ def lookUnderVerbFunc(me, app, dobj):
 		list_version = list(dobj.contains.keys())
 		if len(list_version) > 0:
 			app.printToGUI(dobj.contains_desc)
+			try:
+				dobj.lookUnderVerbDobj(me, app)
+			except AttributeError:
+				pass
 			return True
 		else:
 			app.printToGUI("There is nothing " + dobj.contains_preposition + " " + dobj.getArticle(True) + dobj.verbose_name + ".")
+			try:
+				dobj.lookUnderVerbDobj(me, app)
+			except AttributeError:
+				pass
 			return True
 	elif dobj.invItem:
 		getVerbFunc(me, app, dobj)
 		app.printToGUI("You find nothing underneath. ")
+		return False
 	else:
 		app.printToGUI("There's no reason to look under " + dobj.getArticle(True) + dobj.verbose_name + ".")
 		return False
@@ -587,8 +641,24 @@ def askVerbFunc(me, app, dobj, iobj):
 		if iobj in dobj.ask_topics:
 			# call the ask function for iobj
 			dobj.ask_topics[iobj].func(app)
+			try:
+				dobj.askVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.askVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 		else:
 			dobj.defaultTopic(app)
+			try:
+				dobj.askVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.askVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -638,8 +708,24 @@ def tellVerbFunc(me, app, dobj, iobj):
 	if isinstance(dobj, actor.Actor):
 		if iobj in dobj.tell_topics:
 			dobj.tell_topics[iobj].func(app)
+			try:
+				dobj.tellVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.tellVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 		else:
 			dobj.defaultTopic(app)
+			try:
+				dobj.tellVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.tellVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -706,8 +792,24 @@ def giveVerbFunc(me, app, dobj, iobj):
 					else:
 						iobj.sub_contains[t.ix] = [t]
 				dobj.addIn(iobj)
+			try:
+				dobj.giveVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.giveVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 		else:
 			dobj.defaultTopic(app)
+			try:
+				dobj.tellVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.tellVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -757,8 +859,24 @@ def showVerbFunc(me, app, dobj, iobj):
 	if isinstance(dobj, actor.Actor):
 		if iobj in dobj.show_topics:
 			dobj.show_topics[iobj].func(app)
+			try:
+				dobj.showVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.showVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 		else:
 			dobj.defaultTopic(app)
+			try:
+				dobj.showVerbDobj(me, app, iobj)
+			except AttributeError:
+				pass
+			try:
+				iobj.showVerbIobj(me, app, dobj)
+			except AttributeError:
+				pass
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -790,6 +908,10 @@ def wearVerbFunc(me, app, dobj):
 			me.wearing[dobj.ix].append(dobj)
 		else:
 			me.wearing[dobj.ix] = [dobj]
+		try:
+			dobj.wearVerbDobj(me, app)
+		except AttributeError:
+			pass
 	else:
 		app.printToGUI("You cannot wear that.")
 
@@ -819,6 +941,10 @@ def doffVerbFunc(me, app, dobj):
 	me.wearing[dobj.ix].remove(dobj)
 	if me.wearing[dobj.ix] == []:
 		del me.wearing[dobj.ix]
+	try:
+		dobj.doffVerbDobj(me, app)
+	except AttributeError:
+		pass
 
 # replace default verbFunc method
 doffVerb.verbFunc = doffVerbFunc
@@ -930,8 +1056,14 @@ def standOnVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addOn(me)
 		me.makeStanding()
+		try:
+			dobj.standOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	else:
 		app.printToGUI("You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 standOnVerb.verbFunc = standOnVerbFunc
@@ -959,6 +1091,10 @@ def sitOnVerbFunc(me, app, dobj):
 			outer_loc.addThing(me)
 			app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeSitting()
+		try:
+			dobj.sitOnVerbDobj(me, app)
+		except AttributeError:
+			pass
 		return True
 	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Surface):
 		app.printToGUI("You are already sitting on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -970,6 +1106,10 @@ def sitOnVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addOn(me)
 		me.makeSitting()
+		try:
+			dobj.sitOnVerbDobj(me, app)
+		except AttributeError:
+			pass
 	else:
 		app.printToGUI("You cannot sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 
@@ -1000,6 +1140,10 @@ def lieOnVerbFunc(me, app, dobj):
 			outer_loc.addThing(me)
 			app.printToGUI("You lie on the " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeLying()
+		try:
+			dobj.lieOnVerbDobj(me, app)
+		except AttributeError:
+			pass
 		return True
 	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Surface):
 		app.printToGUI("You are already lying on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1011,6 +1155,11 @@ def lieOnVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addOn(me)
 		me.makeLying()
+		try:
+			dobj.lieOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return  True
 	else:
 		app.printToGUI("You cannot lie on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 
@@ -1031,6 +1180,7 @@ def sitInVerbFunc(me, app, dobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Container):
 		app.printToGUI("You are already sitting in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return True
 	elif isinstance(dobj, thing.Container) and dobj.canSit:
 		app.printToGUI("You sit in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
@@ -1039,8 +1189,14 @@ def sitInVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addIn(me)
 		me.makeSitting()
+		try:
+			dobj.sitInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	else:
 		app.printToGUI("You cannot sit in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 sitInVerb.verbFunc = sitInVerbFunc
@@ -1058,6 +1214,7 @@ def standInVerbFunc(me, app, dobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if me.location==dobj and me.position=="standing" and isinstance(dobj, thing.Container):
 		app.printToGUI("You are already standing in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return True
 	elif isinstance(dobj, thing.Container) and dobj.canStand:
 		app.printToGUI("You stand in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
@@ -1066,8 +1223,14 @@ def standInVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addIn(me)
 		me.makeStanding()
+		try:
+			dobj.standInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	else:
 		app.printToGUI("You cannot stand in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 standInVerb.verbFunc = standInVerbFunc
@@ -1086,6 +1249,7 @@ def lieInVerbFunc(me, app, dobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Container):
 		app.printToGUI("You are already lying in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return True
 	elif isinstance(dobj, thing.Container) and dobj.canLie:
 		app.printToGUI("You lie in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
@@ -1094,8 +1258,14 @@ def lieInVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addIn(me)
 		me.makeLying()
+		try:
+			dobj.lieInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	else:
 		app.printToGUI("You cannot lie in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 lieInVerb.verbFunc = lieInVerbFunc
@@ -1119,14 +1289,31 @@ def climbOnVerbFunc(me, app, dobj):
 			dobj.connection.travel(me, app)
 		else:
 			app.printToGUI("You can't climb up that.")
+			return False
 	elif isinstance(dobj, thing.Surface) and dobj.canStand:
 		standOnVerb.verbFunc(me, app, dobj)
+		try:
+			dobj.standOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	elif isinstance(dobj, thing.Surface) and dobj.canSit:
 		sitOnVerb.verbFunc(me, app, dobj)
+		try:
+			dobj.sitOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	elif isinstance(dobj, thing.Surface) and dobj.canLie:
 		lieOnVerb.verbFunc(me, app, dobj)
+		try:
+			dobj.lieOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	else:
 		app.printToGUI("You cannot climb on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 climbOnVerb.verbFunc = climbOnVerbFunc
@@ -1174,7 +1361,7 @@ def climbDownVerbFunc(me, app):
 		elif isinstance(outer_loc, thing.Container):
 			outer_loc.addIn(me)
 		elif isinstance(outer_loc, room.Room):
-			outer_loc.addThing(me) 
+			outer_loc.addThing(me)
 		else:
 			print("Unsupported outer location type: " + outer_loc.name)
 	else:
@@ -1199,8 +1386,10 @@ def climbDownFromVerbFunc(me, app, dobj):
 	if isinstance(dobj, thing.AbstractClimbable):
 		if dobj.direction=="d":
 			dobj.connection.travel(me, app)
+			return True
 		else:
 			app.printToGUI("You can't climb down from that.")
+			return False
 	elif me.location==dobj:
 		if isinstance(me.location, thing.Surface):
 			app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
@@ -1208,16 +1397,34 @@ def climbDownFromVerbFunc(me, app, dobj):
 			me.location.removeThing(me)
 			if isinstance(outer_loc, thing.Surface):
 				outer_loc.addOn(me)
+				try:
+					dobj.climbDownFromVerbDobj(me, app)
+				except AttributeError:
+					pass
+				return True
 			elif isinstance(outer_loc, thing.Container):
 				outer_loc.addIn(me)
+				try:
+					dobj.climbDownFromVerbDobj(me, app)
+				except AttributeError:
+					pass
+				return True
 			elif isinstance(outer_loc, room.Room):
 				outer_loc.addThing(me) 
+				try:
+					dobj.climbDownFromVerbDobj(me, app)
+				except AttributeError:
+					pass
+				return True
 			else:
 				print("Unsupported outer location type: " + outer_loc.name)
+				return False
 		else:
 			app.printToGUI("You cannot climb down from here. ")
+			return False
 	else:
 		app.printToGUI("You are not on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 climbDownFromVerb.verbFunc = climbDownFromVerbFunc
@@ -1240,6 +1447,10 @@ def climbInVerbFunc(me, app, dobj):
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		standInVerb.verbFunc(me, app, dobj)
+		try:
+			dobj.climbInVerbDobj(me, app)
+		except AttributeError:
+			pass
 		return True
 	elif isinstance(dobj, thing.Container) and dobj.canSit:
 		if dobj.has_lid:
@@ -1247,6 +1458,10 @@ def climbInVerbFunc(me, app, dobj):
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		sitInVerb.verbFunc(me, app, dobj)
+		try:
+			dobj.climbInVerbDobj(me, app)
+		except AttributeError:
+			pass
 		return True
 	elif isinstance(dobj, thing.Container) and dobj.canLie:
 		if dobj.has_lid:
@@ -1254,6 +1469,10 @@ def climbInVerbFunc(me, app, dobj):
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		lieInVerb.verbFunc(me, app, dobj)
+		try:
+			dobj.climbInVerbDobj(me, app)
+		except AttributeError:
+			pass
 		return True
 	else:
 		app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1311,16 +1530,34 @@ def climbOutOfVerbFunc(me, app, dobj):
 			me.location.removeThing(me)
 			if isinstance(outer_loc, thing.Surface):
 				outer_loc.addOn(me)
+				try:
+					dobj.climbOutOfVerbDobj(me, app)
+				except AttributeError:
+					pass
+				return True
 			elif isinstance(outer_loc, thing.Container):
 				outer_loc.addIn(me)
+				try:
+					dobj.climbOutOfVerbDobj(me, app)
+				except AttributeError:
+					pass
+					return True
 			elif isinstance(outer_loc, room.Room):
-				outer_loc.addThing(me) 
+				outer_loc.addThing(me)
+				try:
+					dobj.climbOutOfVerbDobj(me, app)
+				except AttributeError:
+					pass
+				return True
 			else:
 				print("Unsupported outer location type: " + outer_loc.name)
+				return True
 		else:
 			app.printToGUI("You cannot climb out of here. ")
+			return False
 	else:
 		app.printToGUI("You are not in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
+		return False
 
 # replace default verbFunc method
 climbOutOfVerb.verbFunc = climbOutOfVerbFunc
@@ -1341,12 +1578,17 @@ def openVerbFunc(me, app, dobj):
 			return False
 	try:
 		state = dobj.is_open
-	except:
+	except AttributeError:
 		app.printToGUI("You cannot open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		return False
 	if state==False:
 		app.printToGUI("You open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		dobj.makeOpen()
+		try:
+			dobj.openVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	else:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already open. ")
 	return True
@@ -1372,12 +1614,17 @@ def closeVerbFunc(me, app, dobj):
 				return False
 	try:
 		state = dobj.is_open
-	except:
+	except AttributeError:
 		app.printToGUI("You cannot close " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		return False
 	if state==True:
 		app.printToGUI("You close " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		dobj.makeClosed()
+		try:
+			dobj.closeVerbDobj(me, app)
+		except AttributeError:
+			pass
+		return True
 	else:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already closed. ")
 	return True
@@ -1443,6 +1690,10 @@ def unlockVerbFunc(me, app, dobj):
 						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
 						app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 						dobj.lock_obj.makeUnlocked()
+						try:
+							dobj.unlockVerbDobj(me, app)
+						except AttributeError:
+							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -1463,6 +1714,10 @@ def unlockVerbFunc(me, app, dobj):
 					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
 					app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 					dobj.makeUnlocked()
+					try:
+						dobj.parent_obj.unlockVerbDobj(me, app)
+					except AttributeError:
+						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")
@@ -1504,6 +1759,10 @@ def lockVerbFunc(me, app, dobj):
 						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
 						app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 						dobj.lock_obj.makeLocked()
+						try:
+							dobj.lockVerbDobj(me, app)
+						except AttributeError:
+							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -1528,6 +1787,10 @@ def lockVerbFunc(me, app, dobj):
 					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
 					app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 					dobj.makeLocked()
+					try:
+						dobj.parent_obj.lockVerbDobj(me, app)
+					except AttributeError:
+						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")
@@ -1573,6 +1836,10 @@ def unlockWithVerbFunc(me, app, dobj, iobj):
 						app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 						dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 						dobj.lock_obj.makeUnlocked()
+						try:
+							dobj.unlockVerbDobj(me, app)
+						except AttributeError:
+							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -1596,6 +1863,10 @@ def unlockWithVerbFunc(me, app, dobj, iobj):
 					app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 					dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 					dobj.makeUnlocked()
+					try:
+						dobj.parent_obj.unlockVerbDobj(me, app)
+					except AttributeError:
+						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")
@@ -1643,6 +1914,10 @@ def lockWithVerbFunc(me, app, dobj, iobj):
 						app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 						dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 						dobj.lock_obj.makeLocked()
+						try:
+							dobj.lockVerbDobj(me, app)
+						except AttributeError:
+							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -1670,6 +1945,10 @@ def lockWithVerbFunc(me, app, dobj, iobj):
 					app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 					dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 					dobj.makeLocked()
+					try:
+						dobj.parent_obj.lockVerbDobj(me, app)
+					except AttributeError:
+						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")

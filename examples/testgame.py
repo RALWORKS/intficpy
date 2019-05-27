@@ -17,9 +17,6 @@ gui.Prelim(__name__)
 
 seenshackintro = False
 
-def test1(app):
-	app.printToGUI("testing")
-	print("test1")
 
 def test2(app):
 	global seenshackintro
@@ -60,9 +57,20 @@ box.giveLid()
 startroom.addThing(box)
 
 opal = Thing("opal")
-startroom.addThing(opal)
+#startroom.addThing(opal)
 opal.makeUnique()
 opal.size = 25
+
+box.addIn(opal)
+
+opaltaken = False
+
+def takeOpalFunc(me, app):
+	global opaltaken
+	if not opaltaken:
+		app.printToGUI("As you hold the opal in your hand, you're half-sure you can feel the air cooling around you. A shiver runs down your spine. Something is not right here.")
+		opaltaken = True
+opal.getVerbDobj = takeOpalFunc
 
 bottle = Thing("bottle")
 bottle.setAdjectives(["old"])
