@@ -27,6 +27,8 @@ class TurnInfo:
 	back = 0
 	gameOpening = False
 	gameEnding = False
+	convNode = False
+	specialTopics = {}
 	
 lastTurn = TurnInfo
 
@@ -895,6 +897,27 @@ def saveLoadCheck(input_tokens, me, app):
 	else:
 		return False
 
+def getConvCommand(me, app, input_tokens):
+	possible_topics = list(lastTurn.specialTopics.keys())
+	for key in lastTurn.specialTopics:
+		tokens = cleanInput(key)
+		tokens = tokenize(tokens)
+		tokens = removeArticles(tokens)
+		for tok in input_tokens:
+			if tok not in tokens and tok=="i" and "you" in tokens:
+				pass
+			elif tok not in tokens and tok=="you" and "i" in tokens:
+				pass
+			elif tok not in tokens:
+				possible_topics.remove(key)
+				break
+		if len(possible_topics) != 1:
+			return False
+		else:
+			x = possible_topics[0]
+			lastTurn.specialTopics[x].func(app)
+			return True
+
 def parseInput(me, app, input_string):
 	"""Parse player input, and respond to commands each turn
 	Takes arguments me, the player (Player object, player.py), app, the PyQt application, and input_string, the raw player input
@@ -914,7 +937,17 @@ def parseInput(me, app, input_string):
 		# if input is a travel command, move player 
 		d = getDirection(me, app, input_tokens)
 		if d:
+			lastTurn.convNode = False
+			lastTurn.specialTopics = {}
 			return 0
+		if lastTurn.convNode:
+			conv_command = getConvCommand(me, app, input_tokens)
+			if conv_command:
+				lastTurn.ambiguous = False
+				return 0
+			else:
+				lastTurn.convNode = False
+				lastTurn.specialTopics = {}
 		gv = getVerb(app, input_tokens)
 		if gv:
 			cur_verb = gv[0]

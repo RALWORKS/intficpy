@@ -282,13 +282,33 @@ class Player(Actor):
 
 class Topic:
 	"""class for conversation topics"""
-	text = ""
-	
 	def __init__(self, topic_text):
 		self.text = topic_text
 	
 	def func(self, app):
 		app.printToGUI(self.text)
+
+class SpecialTopic:
+	"""class for conversation topics"""
+	def __init__(self, suggestion, topic_text):
+		self.text = topic_text
+		self.suggestion = suggestion
+	
+	def func(self, app):
+		app.printToGUI(self.text)
+	
+	def suggest(self, app):
+		from .parser import lastTurn
+		app.printToGUI("(You could " + self.suggestion + ") ")
+		lastTurn.specialTopics[self.suggestion] = self
+		lastTurn.convNode = True
+	
+	def unsuggest(self):
+		from .parser import lastTurn
+		if self.suggestion in lastTurn.specialTopics:
+			del lastTurn.specialTopics[self.suggestion]
+		if lastTurn.specialTopics == {}:
+			lastTurn.convNode = False
 
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces

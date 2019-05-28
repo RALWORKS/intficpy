@@ -8,7 +8,7 @@ from intficpy.room import Room, OutdoorRoom
 from intficpy.thing import Thing, Surface, Container, Clothing, Abstract, Key, Lock, UnderSpace
 from intficpy.score import Achievement, Ending
 from intficpy.travel import TravelConnector, DoorConnector, LadderConnector, StaircaseConnector
-from intficpy.actor import Actor, Player, Topic
+from intficpy.actor import Actor, Player, Topic, SpecialTopic
 import intficpy.parser as parser
 import intficpy.gui as gui
 
@@ -170,6 +170,12 @@ beach.addThing(rock)
 sarah = Actor("Sarah")
 sarah.makeProper("Sarah")
 startroom.addThing(sarah)
+howgethere = SpecialTopic("ask how you got here", "You ask Sarah how you got here. She bites her lip. <br> \"There was a storm,\" she says. \"Your ship crashed on shore. I brought you inside.\"") 
+
+def sarahDefault(app):
+	app.printToGUI(sarah.default_topic)
+	howgethere.suggest(app)
+sarah.defaultTopic = sarahDefault
 
 opalTopic = Topic("\"I should never it from the cave,\" says Sarah. \"I want nothing to do with it. If you're smart, you'll leave it where you found it.\" <<cave_concept.makeKnown(me)>>")
 sarah.addTopic("asktell", opalTopic, opal)

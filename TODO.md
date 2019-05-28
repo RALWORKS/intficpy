@@ -23,12 +23,10 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 
 ##  PREPARATIONS FOR FIRST BETA (Upcoming Features)
 ### Convenience & Ease of Use
-+ creator functions that evaluate AFTER dynamic room text (func property in Room?)
 + better ordering in room descriptions
 ### Essential New Features
-+ strdobj/striobj, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary") Watch out for adjacent objects in verb syntax.
-+ more advanced conversations
 ### Other New Features
++ strdobj/striobj, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary") Watch out for adjacent objects in verb syntax.
 + support multiple Player characters
 + display the game title in the GUI window title
 + allow game creators to modify the look of the GUI from within the main gamefile

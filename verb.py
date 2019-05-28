@@ -674,7 +674,7 @@ def getImpAsk(me, app):
 	# find every Actor in the current location
 	for key, items in me.location.contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor):
+			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one here to ask.")
@@ -745,9 +745,10 @@ def getImpTell(me, app):
 	from . import parser
 	people = []
 	# find every Actor in the current location
-	for p in me.location.contains:
-		if isinstance(p, actor.Actor):
-			people.append(p)
+	for key, items in me.location.contains.items():
+		for item in items:
+			if isinstance(item, actor.Actor)  and not item==me:
+				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one here to tell.")
 	elif len(people)==1:
@@ -815,9 +816,10 @@ def getImpGive(me, app):
 	from . import parser
 	people = []
 	# find every Actor in the current location
-	for p in me.location.contains:
-		if isinstance(p, actor.Actor):
-			people.append(p)
+	for key, items in me.location.contains.items():
+		for item in items:
+			if isinstance(item, actor.Actor)  and not item==me:
+				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one here to give it to.")
 	elif len(people)==1:
@@ -899,9 +901,10 @@ def getImpShow(me, app):
 	from . import parser
 	people = []
 	# find every Actor in the current location
-	for p in me.location.contains:
-		if isinstance(p, actor.Actor):
-			people.append(p)
+	for key, items in me.location.contains.items():
+		for item in items:
+			if isinstance(item, actor.Actor)  and not item==me:
+				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one here to show.")
 	elif len(people)==1:
