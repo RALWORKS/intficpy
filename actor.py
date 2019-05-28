@@ -26,6 +26,7 @@ class Actor(Thing):
 		self.invItem = False # cannot be added to the contains
 		self.parent_obj = False
 		self.size = 50
+		self.adjectives = []
 		self.synonyms = []
 		self.isPlural = False
 		self.hasArticle = True
@@ -226,6 +227,7 @@ class Player(Actor):
 		self.cannotTakeMsg = "You cannot take yourself."
 		self.parent_obj = False
 		self.size = 50
+		self.adjectives = []
 		self.synonyms = []
 		self.position = "standing"
 		self.contains = {}

@@ -135,6 +135,9 @@ class App(QWidget):
 			if -parser.lastTurn.back >= len(parser.lastTurn.turn_list):
 				parser.lastTurn.back = 0
 			self.textbox.setText(parser.lastTurn.turn_list[parser.lastTurn.back])
+		elif event.key() == QtCore.Qt.Key_Down and len(parser.lastTurn.turn_list) > 0 and parser.lastTurn.back < 0:
+			parser.lastTurn.back = parser.lastTurn.back + 1
+			self.textbox.setText(parser.lastTurn.turn_list[parser.lastTurn.back])
 		elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
 			parser.lastTurn.back = 0
 			self.on_click()

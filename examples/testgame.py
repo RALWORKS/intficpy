@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QApplication
 # imports from intficpy
 from intficpy.room import Room, OutdoorRoom
 from intficpy.thing import Thing, Surface, Container, Clothing, Abstract, Key, Lock, UnderSpace
-from intficpy.score import Achievement
+from intficpy.score import Achievement, Ending
 from intficpy.travel import TravelConnector, DoorConnector, LadderConnector, StaircaseConnector
 from intficpy.actor import Actor, Player, Topic
 import intficpy.parser as parser
@@ -15,10 +15,19 @@ import intficpy.gui as gui
 app = QApplication(sys.argv)
 gui.Prelim(__name__)
 
+parser.aboutGame.setInfo("WIND AND OCEAN", "JSMaika")
+parser.aboutGame.desc = "This is a test game for the IntFicPy parser. "
+
 seenshackintro = False
 
 opalAchievement = Achievement(2, "finding the opal")
 keyAchievement = Achievement(2, "receiving the key")
+
+freeEnding = Ending(True, "**YOU ARE FREE**", "You arrive on the seashore, leaving Sarah to cower in her shack. You are free.")
+
+def test1(app):
+	app.printToGUI("testing")
+	print("test1")
 
 def test2(app):
 	global seenshackintro
@@ -111,8 +120,11 @@ emptycan.size = 30
 startroom.addThing(emptycan)
 
 beach = OutdoorRoom("Beach, near the shack", "You find yourself on an abandoned beach. ")
-#startroom.east = beach
-#beach.west = startroom
+
+def beachEnding(me, app):
+	freeEnding.endGame(me, app)
+	#print("hullloo")
+beach.arriveFunc = beachEnding
 
 shackdoor = DoorConnector(startroom, "e", beach, "w")
 shackdoor.entranceA.describeThing("To the east, a door leads outside. ")

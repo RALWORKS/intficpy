@@ -96,6 +96,10 @@ class TravelConnector:
 			me.location.addThing(me)
 			app.printToGUI("You go through the doorway. ")
 			me.location.describe(me, app)
+			try:
+				me.location.arriveFunc(me, app)
+			except AttributeError:
+				pass
 		elif outer_loc == self.pointB:
 			preRemovePlayer(me, app)
 		if me.location:
@@ -104,6 +108,10 @@ class TravelConnector:
 			me.location.addThing(me)
 			app.printToGUI("You go through the doorway. ")
 			me.location.describe(me, app)
+			try:
+				me.location.arriveFunc(me, app)
+			except AttributeError:
+				pass
 		else:
 			app.printToGUI("You cannot go that way. ")
 
@@ -216,6 +224,10 @@ class DoorConnector(TravelConnector):
 			me.location.addThing(me)
 			app.printToGUI("You go through " + self.entranceA.getArticle(True) + self.entranceA.verbose_name + ". ")
 			me.location.describe(me, app)
+			try:
+				me.location.arriveFunc(me, app)
+			except AttributeError:
+				pass
 		elif outer_loc == self.pointB:
 			if not self.entranceB.is_open:
 				opened = verb.openVerb.verbFunc(me, app, self.entranceB)
@@ -228,6 +240,10 @@ class DoorConnector(TravelConnector):
 			me.location.addThing(me)
 			app.printToGUI("You go through " + self.entranceB.getArticle(True) + self.entranceB.verbose_name + ". ")
 			me.location.describe(me, app)
+			try:
+				me.location.arriveFunc(me, app)
+			except AttributeError:
+				pass
 		else:
 			app.printToGUI("You cannot go that way. ")
 
@@ -332,6 +348,10 @@ class StaircaseConnector(TravelConnector):
 			me.location.addThing(me)
 			app.printToGUI("You climb the staircase. ")
 			me.location.describe(me, app)
+			try:
+				me.location.arriveFunc(me, app)
+			except AttributeError:
+				pass
 		elif outer_loc == self.pointB:
 			preRemovePlayer(me, app)
 			if me.location:
@@ -340,6 +360,10 @@ class StaircaseConnector(TravelConnector):
 			me.location.addThing(me)
 			app.printToGUI("You climb the staircase. ")
 			me.location.describe(me, app)
+			try:
+				me.location.arriveFunc(me, app)
+			except AttributeError:
+				pass
 		else:
 			app.printToGUI("You cannot go that way. ")
 
@@ -380,6 +404,10 @@ def travelN(me, app):
 		me.location = loc.north
 		me.location.addThing(me)
 		app.printToGUI("You go north.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 def travelNE(me, app):
@@ -399,6 +427,10 @@ def travelNE(me, app):
 		me.location = loc.northeast
 		me.location.addThing(me)
 		app.printToGUI("You go northeast.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 def travelE(me, app):
@@ -418,6 +450,10 @@ def travelE(me, app):
 		me.location = loc.east
 		me.location.addThing(me)
 		app.printToGUI("You go east.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 def travelSE(me, app):
@@ -437,6 +473,10 @@ def travelSE(me, app):
 		me.location = loc.southeast
 		me.location.addThing(me)
 		app.printToGUI("You go southeast.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 def travelS(me, app):
@@ -456,6 +496,10 @@ def travelS(me, app):
 		me.location = loc.south
 		me.location.addThing(me)
 		app.printToGUI("You go south.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 def travelSW(me, app):
@@ -475,6 +519,10 @@ def travelSW(me, app):
 		me.location = loc.southwest
 		me.location.addThing(me)
 		app.printToGUI("You go southwest.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 def travelW(me, app):
@@ -494,6 +542,10 @@ def travelW(me, app):
 		me.location = loc.west
 		me.location.addThing(me)
 		app.printToGUI("You go west.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 # travel northwest
@@ -514,6 +566,10 @@ def travelNW(me, app):
 		me.location = loc.northwest
 		me.location.addThing(me)
 		app.printToGUI("You go northwest.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 # travel up
@@ -534,6 +590,10 @@ def travelU(me, app):
 		me.location = loc.up
 		me.location.addThing(me)
 		app.printToGUI("You go up.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 # travel down
@@ -554,6 +614,10 @@ def travelD(me, app):
 		me.location = loc.down
 		me.location.addThing(me)
 		app.printToGUI("You go down.")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 # go out
@@ -575,6 +639,10 @@ def travelOut(me, app):
 		me.location = loc.exit
 		me.location.addThing(me)
 		app.printToGUI("You exit. ")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 # go in
@@ -586,7 +654,7 @@ def travelIn(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.entrance:
-		app.printToGUI("There is no obvious enrance. ")
+		app.printToGUI("There is no obvious entrance. ")
 	elif isinstance(loc.entrance, TravelConnector):
 		loc.entrance.travel(me, app)
 	else:
@@ -596,6 +664,10 @@ def travelIn(me, app):
 		me.location = loc.entrance
 		me.location.addThing(me)
 		app.printToGUI("You enter. ")
+		try:
+			me.location.arriveFunc(me, app)
+		except AttributeError:
+			pass
 		me.location.describe(me, app)
 
 # maps user input to travel functions

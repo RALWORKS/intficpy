@@ -1,6 +1,6 @@
 ##############################################################
 # SCORE.PY - achievements and score for IntFicPy
-# Defines the achievement class
+# Defines the Achievement class, and the Ending class
 ##############################################################
 # a dictionary of the indeces of all Thing objects, including subclass instances, mapped to their object
 # populated at runtime
@@ -46,3 +46,15 @@ class AbstractScore:
 				app.printToGUI("<b>" + str(achievement.points) + " points</b> for " + achievement.desc)
 
 score = AbstractScore()
+
+class Ending:
+	def __init__(self, good, title, desc):
+		self.good = good
+		self.title = title
+		self.desc = desc
+	
+	def endGame(self, me, app):
+		from . import parser
+		app.printToGUI("<b>" + self.title + "</b>")
+		app.printToGUI(self.desc)
+		parser.lastTurn.gameEnding = True

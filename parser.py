@@ -26,6 +26,7 @@ class TurnInfo:
 	turn_list = []
 	back = 0
 	gameOpening = False
+	gameEnding = False
 	
 lastTurn = TurnInfo
 
@@ -45,6 +46,45 @@ class RunEvery:
 		self.funcs.remove(daemon)
 
 daemons = RunEvery()
+
+class gameInfo:
+	def __init__(self):
+		self.title = "IntFicPy Game"
+		self.author = "Unnamed"
+		self.intFicPyCredit = True
+		self.desc = False
+		self.showVerbs = True
+		self.betaTesterCredit = False
+		self.customMsg = False
+		self.verbs = []
+	
+	def setInfo(self, title, author):
+		self.title = title
+		self.author = author
+	
+	def printAbout(self, app):
+		if self.customMsg:
+			app.printToGUI(self.customMsg)
+		else:
+			app.printToGUI("<b>" + self.title + "</b>")
+			app.printToGUI("<b>Created by " + self.author + "</b>")
+			if self.intFicPyCredit:
+				app.printToGUI("Built with JSMaika's IntFicPy parser")
+			if self.desc:
+				app.printToGUI(self.desc)
+			if self.betaTesterCredit:
+				app.printToGUI(self.betaTesterCredit)
+		if self.showVerbs:
+			from .vocab import verbDict
+			app.printToGUI("<b>This game accepts the following verbs: </b>")
+			verb_list = ""
+			for verb in self.verbs:
+				verb_list = verb_list + verb
+				if verb!=self.verbs[-1]:
+					verb_list = verb_list + ", "
+			app.printToGUI(verb_list)
+			
+aboutGame = gameInfo()
 
 def cleanInput(input_string):
 	"""Used on player commands to remove punctuation and convert to lowercase
@@ -238,7 +278,7 @@ def matchPrepositions(verbs, input_tokens):
 	#prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around", "to", "about"]
 	remove_verb = []
 	for p in vocab.english.prepositions:
-		if p in input_tokens:
+		if p in input_tokens and len(input_tokens) > 1:
 			exempt = False
 			for verb in verbs:
 				ix = input_tokens.index(p) + 1
@@ -580,6 +620,8 @@ def verbScopeError(app, scope, noun_adj_arr):
 		app.printToGUI("You don't know of any " + noun + ".")
 		lastTurn.err = True
 		return None
+	elif scope=="direction":
+		app.printToGUI(noun.capitalize() + " is not a direction. ")
 	else:
 		# assuming scope = "inv"
 		app.printToGUI("You don't have any " + noun + ".")
@@ -862,36 +904,57 @@ def parseInput(me, app, input_string):
 	input_string = cleanInput(input_string)
 	input_tokens = tokenize(input_string)
 	input_tokens = removeArticles(input_tokens)
-	if len(input_tokens)==0:
-		#app.printToGUI("I don't understand.")
-		#lastTurn.err = True
-		return 0
-	if saveLoadCheck(input_tokens, me, app):
-		return 0
-	# if input is a travel command, move player 
-	d = getDirection(me, app, input_tokens)
-	if d:
-		return 0
-	gv = getVerb(app, input_tokens)
-	if gv:
-		cur_verb = gv[0]
-	else:
-		cur_verb = False
-	if not cur_verb:
-		if lastTurn.ambiguous:
-			disambig(me, app, input_tokens)
+	if not lastTurn.gameEnding:
+		if len(input_tokens)==0:
+			#app.printToGUI("I don't understand.")
+			#lastTurn.err = True
 			return 0
+		if saveLoadCheck(input_tokens, me, app):
+			return 0
+		# if input is a travel command, move player 
+		d = getDirection(me, app, input_tokens)
+		if d:
+			return 0
+		gv = getVerb(app, input_tokens)
+		if gv:
+			cur_verb = gv[0]
+		else:
+			cur_verb = False
+		if not cur_verb:
+			if lastTurn.ambiguous:
+				disambig(me, app, input_tokens)
+				return 0
+			return 0
+		else:
+			lastTurn.verb = cur_verb
+		obj_words = getGrammarObj(me, app, cur_verb, input_tokens, gv[1])
+		if not obj_words:
+			return 0
+		# turn OFF disambiguation mode for next turn
+		lastTurn.ambiguous = False
+		lastTurn.err = False
+		callVerb(me, app, cur_verb, obj_words)
 		return 0
 	else:
-		lastTurn.verb = cur_verb
-	obj_words = getGrammarObj(me, app, cur_verb, input_tokens, gv[1])
-	if not obj_words:
-		return 0
-	# turn OFF disambiguation mode for next turn
-	lastTurn.ambiguous = False
-	lastTurn.err = False
-	callVerb(me, app, cur_verb, obj_words)
-	return 0
+		from .verb import scoreVerb, fullScoreVerb
+		if saveLoadCheck(input_tokens, me, app):
+			return 0
+		elif len(input_tokens)==2:
+			if input_tokens==["full", "score"]:
+				fullScoreVerb.verbFunc(me, app)
+			else:
+				app.printToGUI("The game has ended. Commands are SAVE, LOAD, SCORE, FULLSCORE, and ABOUT.")
+		elif len(input_tokens)==1:
+			if input_tokens==["score"]:
+				scoreVerb.verbFunc(me, app)
+			elif input_tokens==["fullscore"]:
+				fullScoreVerb.verbFunc(me, app)
+			elif input_tokens==["about"]:
+				aboutGame.printAbout(app)
+			else:
+				app.printToGUI("The game has ended. Commands are SAVE, LOAD, SCORE, FULLSCORE, and ABOUT.")
+		else:
+			app.printToGUI("The game has ended. Commands are SAVE, LOAD, SCORE, FULLSCORE, and ABOUT.")
 
 def initGame(me, app):
 	"""Called when the game is opened to show opening and describe the first room

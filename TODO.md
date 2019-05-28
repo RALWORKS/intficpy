@@ -7,6 +7,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Serializer
 + conversation topics, creator-defined global variables, and player knowledge are not currently saved
 + check validity of save file before trying to load
++ handle empty filename for load
 ### Terminal Mode
 + some non graphical features may not be available in terminal mode
 + make sure new version of inine functions works correctly
@@ -26,7 +27,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + better ordering in room descriptions
 ### Essential New Features
 + strdobj/striobj, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary") Watch out for adjacent objects in verb syntax.
-+ endings
 + more advanced conversations
 ### Other New Features
 + support multiple Player characters
@@ -34,7 +34,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + allow game creators to modify the look of the GUI from within the main gamefile
 
 ## MAJOR CHANGES (Eventual Implementation)
-+ Rewrite GUI with a different GUI module (currently using Qt)
++ Rewrite GUI with a different GUI module (currently using Qt - most likely will switch to kivy)
 + write script to ensure game creator compliance with IntFicPy rules and syntax
 
 ## LAST DOCUMENTATION UPDATE COMPLETED: 29/04/2019

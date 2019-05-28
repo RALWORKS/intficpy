@@ -10,14 +10,17 @@ from . import room
 
 class Verb:
 	"""Verb objects represent actions the player can take """
-	def __init__(self, word):
+	def __init__(self, word, verb_list=True):
 		"""Set default properties for the Verb instance
 		Takes argument word, a one word verb (string)
 		The creator can build constructions like "take off" by specifying prepositions and syntax """
+		from .parser import aboutGame
 		if word in vocab.verbDict:
 			vocab.verbDict[word].append(self)
 		else:
 			vocab.verbDict[word] = [self]
+		if verb_list and word not in aboutGame.verbs:
+			aboutGame.verbs.append(word)
 		self.word = word
 		self.dscope = "room"
 		word = ""
@@ -33,7 +36,8 @@ class Verb:
 		self.dscope = "room" # "knows", "near", "room" or "inv"
 		self.iscope = "room"
 
-	def addSynonym(self, word):
+	def addSynonym(self, word, verb_list=True):
+		from .parser import aboutGame
 		"""Add a synonym verb
 			Takes argument word, a single verb (string)
 			The creator can build constructions like "take off" by specifying prepositions and syntax """
@@ -41,6 +45,8 @@ class Verb:
 			vocab.verbDict[word].append(self)
 		else:
 			vocab.verbDict[word] = [self]
+		if verb_list and word not in aboutGame.verbs:
+			aboutGame.verbs.append(word)
 	
 	def verbFunc(self, me, app):
 		"""The default verb function
@@ -502,7 +508,7 @@ scoreVerb.verbFunc = scoreVerbFunc
 # VIEW FULL SCORE
 # intransitive verb
 fullScoreVerb = Verb("fullscore")
-fullScoreVerb.addSynonym("full")
+fullScoreVerb.addSynonym("full", False)
 fullScoreVerb.syntax = [["fullscore"], ["full", "score"]]
 fullScoreVerb.hasDobj = False
 
@@ -514,6 +520,21 @@ def fullScoreVerbFunc(me, app):
 		
 # replace default verbFunc method
 fullScoreVerb.verbFunc = fullScoreVerbFunc
+
+# VIEW ABOUT
+# intransitive verb
+aboutVerb = Verb("about")
+aboutVerb.syntax = [["about"]]
+aboutVerb.hasDobj = False
+
+def aboutVerbFunc(me, app):
+	"""View the current score
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from .parser import aboutGame
+	aboutGame.printAbout(app)
+		
+# replace default verbFunc method
+aboutVerb.verbFunc = aboutVerbFunc
 
 # LOOK (general)
 # intransitive verb
@@ -996,7 +1017,7 @@ doffVerb.verbFunc = doffVerbFunc
 # LIE DOWN
 # intransitive verb
 lieDownVerb = Verb("lie")
-lieDownVerb.addSynonym("lay")
+lieDownVerb.addSynonym("lay", False)
 lieDownVerb.syntax = [["lie", "down"], ["lay", "down"]]
 lieDownVerb.preposition = ["down"]
 
@@ -1163,7 +1184,7 @@ sitOnVerb.verbFunc = sitOnVerbFunc
 # LIE ON (SURFACE)
 # transitive verb, no indirect object
 lieOnVerb = Verb("lie")
-lieOnVerb.addSynonym("lay")
+lieOnVerb.addSynonym("lay", False)
 lieOnVerb.syntax = [["lie", "on", "<dobj>"], ["lie", "down", "on", "<dobj>"], ["lay", "on", "<dobj>"], ["lay", "down", "on", "<dobj>"]]
 lieOnVerb.hasDobj = True
 lieOnVerb.dscope = "room"
@@ -1282,7 +1303,7 @@ standInVerb.verbFunc = standInVerbFunc
 # LIE IN (CONTAINER)
 # transitive verb, no indirect object
 lieInVerb = Verb("lie")
-lieInVerb.addSynonym("lay")
+lieInVerb.addSynonym("lay", False)
 lieInVerb.syntax = [["lie", "in", "<dobj>"], ["lie", "down", "in", "<dobj>"], ["lay", "in", "<dobj>"], ["lay", "down", "in", "<dobj>"]]
 lieInVerb.hasDobj = True
 lieInVerb.dscope = "room"
@@ -2009,3 +2030,18 @@ def lockWithVerbFunc(me, app, dobj, iobj):
 	
 # replace default verbFunc method
 lockWithVerb.verbFunc = lockWithVerbFunc
+
+# GO (empty verb added to improve "I don't understand" messages for invalid directions)
+# transitive verb, no indirect object
+goVerb = Verb("go")
+goVerb.syntax = [["go", "<dobj>"]]
+goVerb.hasDobj = True
+goVerb.dscope = "direction"
+
+def goVerbFunc(me, app, dobj):
+	"""Empty function which should never be evaluated
+	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
+	pass
+# replace the default verbFunc method
+goVerb.verbFunc = goVerbFunc
+
