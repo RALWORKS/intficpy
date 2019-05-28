@@ -131,6 +131,7 @@ getVerb.addSynonym("take")
 getVerb.addSynonym("pick")
 getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"], ["pick", "up", "<dobj>"], ["pick", "<dobj>", "up"]]
 getVerb.preposition = ["up"]
+getVerb.dscope = "near"
 getVerb.hasDobj = True
 
 def getVerbFunc(me, app, dobj):
