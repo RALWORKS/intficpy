@@ -59,6 +59,8 @@ class gameInfo:
 		self.betaTesterCredit = False
 		self.customMsg = False
 		self.verbs = []
+		self.discovered_verbs = []
+		self.helpMsg = False
 	
 	def setInfo(self, title, author):
 		self.title = title
@@ -76,16 +78,29 @@ class gameInfo:
 				app.printToGUI(self.desc)
 			if self.betaTesterCredit:
 				app.printToGUI(self.betaTesterCredit)
-		if self.showVerbs:
-			from .vocab import verbDict
-			app.printToGUI("<b>This game accepts the following verbs: </b>")
-			verb_list = ""
-			for verb in self.verbs:
+				
+	def printHelp(self, app):	
+		if self.helpMsg:
+			app.printToGUI(self.helpMsg)
+		app.printToGUI("<b>This game accepts the following basic verbs: </b>")
+		self.verbs = sorted(self.verbs)
+		verb_list = ""
+		for verb in self.verbs:
+			verb_list = verb_list + verb
+			if verb!=self.verbs[-1]:
+				verb_list = verb_list + ", "
+		app.printToGUI(verb_list)
+		app.printToGUI("<b>You have discovered the following additional verbs: ")
+		if len(self.discovered_verbs)==0:
+			app.printToGUI("You have not discovered any verbs so far.")
+		else:
+			d_verb_list = ""
+			for verb in self.discovered_verbs:
 				verb_list = verb_list + verb
 				if verb!=self.verbs[-1]:
-					verb_list = verb_list + ", "
-			app.printToGUI(verb_list)
-			
+					d_verb_list = d_verb_list + ", "
+			app.printToGUI(d_verb_list)
+		app.printToGUI("For help with phrasing, type \"verb help (verb)\" for a complete list of acceptable sentence structures for a verb. This will work for any verb, regardless of whether it has been discovered. ")
 aboutGame = gameInfo()
 
 def cleanInput(input_string):
@@ -933,6 +948,13 @@ def parseInput(me, app, input_string):
 			#lastTurn.err = True
 			return 0
 		if saveLoadCheck(input_tokens, me, app):
+			return 0
+		if (input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2]==["verb", "help"]) and len(input_tokens) > 2:
+			from .verb import helpVerbVerb
+			helpVerbVerb.verbFunc(me, app, input_tokens[2:])
+			return 0
+		elif input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2]==["verb", "help"]:
+			app.printToGUI("Please specify a verb for help. ")
 			return 0
 		# if input is a travel command, move player 
 		d = getDirection(me, app, input_tokens)

@@ -10,7 +10,7 @@ from . import room
 
 class Verb:
 	"""Verb objects represent actions the player can take """
-	def __init__(self, word, verb_list=True):
+	def __init__(self, word, list_word=False, exempt_from_list=False):
 		"""Set default properties for the Verb instance
 		Takes argument word, a one word verb (string)
 		The creator can build constructions like "take off" by specifying prepositions and syntax """
@@ -19,12 +19,16 @@ class Verb:
 			vocab.verbDict[word].append(self)
 		else:
 			vocab.verbDict[word] = [self]
-		if verb_list and word not in aboutGame.verbs:
+		if list_word and list_word not in aboutGame.verbs:
+			aboutGame.verbs.append(list_word)
+		elif word not in aboutGame.verbs and not exempt_from_list:
 			aboutGame.verbs.append(word)
 		self.word = word
 		self.dscope = "room"
 		word = ""
 		self.hasDobj = False
+		self.hasStrDobj = False
+		self.hasStrIobj = False
 		self.dtype = False
 		self.hasIobj = False
 		self.itype = False
@@ -36,7 +40,7 @@ class Verb:
 		self.dscope = "room" # "knows", "near", "room" or "inv"
 		self.iscope = "room"
 
-	def addSynonym(self, word, verb_list=True):
+	def addSynonym(self, word):
 		from .parser import aboutGame
 		"""Add a synonym verb
 			Takes argument word, a single verb (string)
@@ -45,9 +49,18 @@ class Verb:
 			vocab.verbDict[word].append(self)
 		else:
 			vocab.verbDict[word] = [self]
-		if verb_list and word not in aboutGame.verbs:
-			aboutGame.verbs.append(word)
 	
+	def discover(self, app, show_msg, list_word=False):
+		from .parser import aboutGame
+		if list_word and list_word not in aboutGame.discovered_verbs and list_word not in aboutGame.verbs:
+			aboutGame.discovered_verbs.append(list_word)
+			if show_msg:
+				app.printToGUI("Verb discovered: " + list_word)
+		elif self.word not in aboutGame.discovered_verbs and word not in aboutGame.verbs:
+			aboutGame.discovered_verbs.append(word)
+			if show_msg:
+				app.printToGUI("Verb discovered: " + word)
+
 	def verbFunc(self, me, app):
 		"""The default verb function
 		Takes arguments me, pointing to the player, app, pointing to the GUI app, and dobj, the direct object
@@ -84,7 +97,7 @@ def getNested(target):
 			# get a list of things in the top level
 			for key, things in item.contains.items():
 				for thing in things:
-					lvl_dict[0].append(thing)
+					lvl_dict[0].append
 			# a list of the parent items of each level
 			# last item is current parent
 			lvl_parent = [item]
@@ -108,7 +121,7 @@ def getNested(target):
 							lvl_dict[lvl] = []
 							for things, key in item.contains.items():
 								for thing in things:
-									lvl_dict[lvl].append(thing)
+									lvl_dict[lvl].append
 							lvl_parent.append(y)
 							push = True
 							#break
@@ -250,7 +263,7 @@ dropVerb.verbFunc = dropVerbFunc
 
 # PUT/SET ON
 # transitive verb with indirect object
-setOnVerb = Verb("set")
+setOnVerb = Verb("set", "set on")
 setOnVerb.addSynonym("put")
 setOnVerb.syntax = [["put", "<dobj>", "on", "<iobj>"], ["set", "<dobj>", "on", "<iobj>"]]
 setOnVerb.hasDobj = True
@@ -318,7 +331,7 @@ setOnVerb.verbFunc = setOnVerbFunc
 
 # PUT/SET IN
 # transitive verb with indirect object
-setInVerb = Verb("set")
+setInVerb = Verb("set", "set in")
 setInVerb.addSynonym("put")
 setInVerb.syntax = [["put", "<dobj>", "in", "<iobj>"], ["set", "<dobj>", "in", "<iobj>"]]
 setInVerb.hasDobj = True
@@ -375,7 +388,7 @@ setInVerb.verbFunc = setInVerbFunc
 
 # PUT/SET UNDER
 # transitive verb with indirect object
-setUnderVerb = Verb("set")
+setUnderVerb = Verb("set", "set under")
 setUnderVerb.addSynonym("put")
 setUnderVerb.syntax = [["put", "<dobj>", "under", "<iobj>"], ["set", "<dobj>", "under", "<iobj>"]]
 setUnderVerb.hasDobj = True
@@ -508,7 +521,7 @@ scoreVerb.verbFunc = scoreVerbFunc
 # VIEW FULL SCORE
 # intransitive verb
 fullScoreVerb = Verb("fullscore")
-fullScoreVerb.addSynonym("full", False)
+fullScoreVerb.addSynonym("full")
 fullScoreVerb.syntax = [["fullscore"], ["full", "score"]]
 fullScoreVerb.hasDobj = False
 
@@ -535,6 +548,53 @@ def aboutVerbFunc(me, app):
 		
 # replace default verbFunc method
 aboutVerb.verbFunc = aboutVerbFunc
+
+# VIEW HELP
+# intransitive verb
+helpVerb = Verb("help")
+helpVerb.syntax = [["help"]]
+helpVerb.hasDobj = False
+
+def helpVerbFunc(me, app):
+	"""View the current score
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from .parser import aboutGame
+	aboutGame.printHelp(app)
+		
+# replace default verbFunc method
+helpVerb.verbFunc = helpVerbFunc
+
+# HELP VERB (Verb)
+# intransitive verb
+helpVerbVerb = Verb("help", "help verb")
+helpVerbVerb.syntax = [["help", "verb", "<dobj>"], ["verb", "help", "<dobj>"]]
+helpVerbVerb.hasDobj = True
+helpVerb.hasStrDobj = True
+
+def helpVerbVerbFunc(me, app, dobj):
+	"""View the current score
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from .vocab import verbDict
+	#app.printToGUI(dobj)
+	app.printToGUI("<b>Verb Help: " + " ".join(dobj) + "</b>")
+	if dobj[0] in verbDict:
+		app.printToGUI("I found the following sentence structures for the verb \"" + dobj[0] + "\":")
+		for verb in verbDict[dobj[0]]:
+			for form in verb.syntax:
+				out = list(form)
+				if "<dobj>" in form:
+					ix = form.index("<dobj>")
+					out[ix] = "(thing)"
+				if "<iobj>" in form:
+					ix = form.index("<iobj>")
+					out[ix] = "(thing)"
+				out = " ".join(out)
+				app.printToGUI(out)
+	else:
+		app.printToGUI("I found no verb corresponding to the input \"" + " ".join(dobj) + "\". ")
+		
+# replace default verbFunc method
+helpVerbVerb.verbFunc = helpVerbVerbFunc
 
 # LOOK (general)
 # intransitive verb
@@ -575,9 +635,9 @@ def examineVerbFunc(me, app, dobj):
 # replace default verbFunc method
 examineVerb.verbFunc = examineVerbFunc
 
-# LOOK IN (Thing)
+# LOOK IN 
 # transitive verb, no indirect object
-lookInVerb = Verb("look")
+lookInVerb = Verb("look", "look in")
 lookInVerb.syntax = [["look", "in", "<dobj>"]]
 lookInVerb.hasDobj = True
 lookInVerb.dscope = "near"
@@ -615,9 +675,9 @@ def lookInVerbFunc(me, app, dobj):
 
 lookInVerb.verbFunc = lookInVerbFunc
 
-# LOOK UNDER (Thing)
+# LOOK UNDER 
 # transitive verb, no indirect object
-lookUnderVerb = Verb("look")
+lookUnderVerb = Verb("look", "look under")
 lookUnderVerb.syntax = [["look", "under", "<dobj>"]]
 lookUnderVerb.hasDobj = True
 lookUnderVerb.dscope = "near"
@@ -657,7 +717,7 @@ lookUnderVerb.verbFunc = lookUnderVerbFunc
 # ASK (Actor)
 # transitive verb with indirect object
 # implicit direct object enabled
-askVerb = Verb("ask")
+askVerb = Verb("ask", "ask about")
 askVerb.syntax = [["ask", "<dobj>", "about", "<iobj>"]]
 askVerb.hasDobj = True
 askVerb.hasIobj = True
@@ -730,7 +790,7 @@ askVerb.verbFunc = askVerbFunc
 # TELL (Actor)
 # transitive verb with indirect object
 # implicit direct object enabled
-tellVerb = Verb("tell")
+tellVerb = Verb("tell", "tell about")
 tellVerb.syntax = [["tell", "<dobj>", "about", "<iobj>"]]
 tellVerb.hasDobj = True
 tellVerb.hasIobj = True
@@ -801,7 +861,7 @@ tellVerb.verbFunc = tellVerbFunc
 # GIVE (Actor)
 # transitive verb with indirect object
 # implicit direct object enabled
-giveVerb = Verb("give")
+giveVerb = Verb("give", "give to")
 giveVerb.syntax = [["give", "<iobj>", "to", "<dobj>"], ["give", "<dobj>", "<iobj>"]]
 giveVerb.hasDobj = True
 giveVerb.hasIobj = True
@@ -886,7 +946,7 @@ giveVerb.verbFunc = giveVerbFunc
 # SHOW (Actor)
 # transitive verb with indirect object
 # implicit direct object enabled
-showVerb = Verb("show")
+showVerb = Verb("show", "show to")
 showVerb.syntax = [["show", "<iobj>", "to", "<dobj>"], ["show", "<dobj>", "<iobj>"]]
 showVerb.hasDobj = True
 showVerb.hasIobj = True
@@ -1020,7 +1080,7 @@ doffVerb.verbFunc = doffVerbFunc
 # LIE DOWN
 # intransitive verb
 lieDownVerb = Verb("lie")
-lieDownVerb.addSynonym("lay", False)
+lieDownVerb.addSynonym("lay")
 lieDownVerb.syntax = [["lie", "down"], ["lay", "down"]]
 lieDownVerb.preposition = ["down"]
 
@@ -1092,7 +1152,7 @@ sitDownVerb.verbFunc = sitDownVerbFunc
 
 # STAND ON (SURFACE)
 # transitive verb, no indirect object
-standOnVerb = Verb("stand")
+standOnVerb = Verb("stand", "stand on")
 standOnVerb.syntax = [["stand", "on", "<dobj>"]]
 standOnVerb.hasDobj = True
 standOnVerb.dscope = "room"
@@ -1138,7 +1198,7 @@ standOnVerb.verbFunc = standOnVerbFunc
 
 # SIT ON (SURFACE)
 # transitive verb, no indirect object
-sitOnVerb = Verb("sit")
+sitOnVerb = Verb("sit", "sit on")
 sitOnVerb.syntax = [["sit", "on", "<dobj>"], ["sit", "down", "on", "<dobj>"]]
 sitOnVerb.hasDobj = True
 sitOnVerb.dscope = "room"
@@ -1186,8 +1246,8 @@ sitOnVerb.verbFunc = sitOnVerbFunc
 
 # LIE ON (SURFACE)
 # transitive verb, no indirect object
-lieOnVerb = Verb("lie")
-lieOnVerb.addSynonym("lay", False)
+lieOnVerb = Verb("lie", "lie on")
+lieOnVerb.addSynonym("lay")
 lieOnVerb.syntax = [["lie", "on", "<dobj>"], ["lie", "down", "on", "<dobj>"], ["lay", "on", "<dobj>"], ["lay", "down", "on", "<dobj>"]]
 lieOnVerb.hasDobj = True
 lieOnVerb.dscope = "room"
@@ -1236,7 +1296,7 @@ lieOnVerb.verbFunc = lieOnVerbFunc
 
 # SIT IN (CONTAINER)
 # transitive verb, no indirect object
-sitInVerb = Verb("sit")
+sitInVerb = Verb("sit", "sit in")
 sitInVerb.syntax = [["sit", "in", "<dobj>"], ["sit", "down", "in", "<dobj>"]]
 sitInVerb.hasDobj = True
 sitInVerb.dscope = "room"
@@ -1271,7 +1331,7 @@ sitInVerb.verbFunc = sitInVerbFunc
 
 # STAND IN (CONTAINER)
 # transitive verb, no indirect object
-standInVerb = Verb("stand")
+standInVerb = Verb("stand", "stand in")
 standInVerb.syntax = [["stand", "in", "<dobj>"]]
 standInVerb.hasDobj = True
 standInVerb.dscope = "room"
@@ -1305,8 +1365,8 @@ standInVerb.verbFunc = standInVerbFunc
 
 # LIE IN (CONTAINER)
 # transitive verb, no indirect object
-lieInVerb = Verb("lie")
-lieInVerb.addSynonym("lay", False)
+lieInVerb = Verb("lie", "lie in")
+lieInVerb.addSynonym("lay")
 lieInVerb.syntax = [["lie", "in", "<dobj>"], ["lie", "down", "in", "<dobj>"], ["lay", "in", "<dobj>"], ["lay", "down", "in", "<dobj>"]]
 lieInVerb.hasDobj = True
 lieInVerb.dscope = "room"
@@ -1340,7 +1400,7 @@ lieInVerb.verbFunc = lieInVerbFunc
 
 # CLIMB ON (SURFACE)
 # transitive verb, no indirect object
-climbOnVerb = Verb("climb")
+climbOnVerb = Verb("climb", "climb on")
 climbOnVerb.addSynonym("get")
 climbOnVerb.syntax = [["climb", "on", "<dobj>"], ["get", "on", "<dobj>"], ["climb", "<dobj>"], ["climb", "up", "<dobj>"]]
 climbOnVerb.hasDobj = True
@@ -1408,7 +1468,7 @@ climbUpVerb.verbFunc = climbUpVerbFunc
 
 # CLIMB DOWN (INTRANSITIVE)
 # intransitive verb
-climbDownVerb = Verb("climb")
+climbDownVerb = Verb("climb", "climb down")
 climbDownVerb.addSynonym("get")
 climbDownVerb.syntax = [["climb", "off"], ["get", "off"], ["climb", "down"], ["get", "down"]]
 climbDownVerb.preposition = ["off", "down"]
@@ -1440,7 +1500,7 @@ climbDownVerb.verbFunc = climbDownVerbFunc
 
 # CLIMB DOWN FROM (SURFACE)
 # transitive verb, no indirect object
-climbDownFromVerb = Verb("climb")
+climbDownFromVerb = Verb("climb", "climb down from")
 climbDownFromVerb.addSynonym("get")
 climbDownFromVerb.syntax = [["climb", "off", "<dobj>"], ["get", "off", "<dobj>"], ["climb", "down", "from", "<dobj>"], ["get", "down", "from", "<dobj>"], ["climb", "down", "<dobj>"]]
 climbDownFromVerb.hasDobj = True
@@ -1499,7 +1559,7 @@ climbDownFromVerb.verbFunc = climbDownFromVerbFunc
 
 # CLIMB IN (CONTAINER)
 # transitive verb, no indirect object
-climbInVerb = Verb("climb")
+climbInVerb = Verb("climb", "climb in")
 climbInVerb.addSynonym("get")
 climbInVerb.syntax = [["climb", "in", "<dobj>"], ["get", "in", "<dobj>"], ["climb", "into", "<dobj>"], ["get", "into", "<dobj>"]]
 climbInVerb.hasDobj = True
@@ -1551,7 +1611,7 @@ climbInVerb.verbFunc = climbInVerbFunc
 
 # CLIMB OUT (INTRANSITIVE)
 # intransitive verb
-climbOutVerb = Verb("climb")
+climbOutVerb = Verb("climb", "climb out")
 climbOutVerb.addSynonym("get")
 climbOutVerb.syntax = [["climb", "out"], ["get", "out"]]
 climbOutVerb.preposition = ["out"]
@@ -1579,7 +1639,7 @@ climbOutVerb.verbFunc = climbOutVerbFunc
 
 # CLIMB OUT OF (CONTAINER)
 # transitive verb, no indirect object
-climbOutOfVerb = Verb("climb")
+climbOutOfVerb = Verb("climb", "climb out of")
 climbOutOfVerb.addSynonym("get")
 climbOutOfVerb.addSynonym("exit")
 climbOutOfVerb.syntax = [["climb", "out", "of", "<dobj>"], ["get", "out", "of", "<dobj>"], ["exit", "<dobj>"]]
@@ -1630,7 +1690,7 @@ def climbOutOfVerbFunc(me, app, dobj):
 # replace default verbFunc method
 climbOutOfVerb.verbFunc = climbOutOfVerbFunc
 
-# OPEN (THING)
+# OPEN 
 # transitive verb, no indirect object
 openVerb = Verb("open")
 openVerb.syntax = [["open", "<dobj>"]]
@@ -1664,7 +1724,7 @@ def openVerbFunc(me, app, dobj):
 # replace default verbFunc method
 openVerb.verbFunc = openVerbFunc
 
-# CLOSE (THING)
+# CLOSE 
 # transitive verb, no indirect object
 closeVerb = Verb("close")
 closeVerb.addSynonym("shut")
@@ -1738,7 +1798,7 @@ def enterVerbFunc(me, app):
 # replace default verbFunc method
 enterVerb.verbFunc = enterVerbFunc
 
-# UNLOCK (THING)
+# UNLOCK 
 # transitive verb, no indirect object
 unlockVerb = Verb("unlock")
 unlockVerb.addSynonym("unbolt")
@@ -1803,7 +1863,7 @@ def unlockVerbFunc(me, app, dobj):
 # replace default verbFunc method
 unlockVerb.verbFunc = unlockVerbFunc
 
-# LOCK (THING)
+# LOCK 
 # transitive verb, no indirect object
 lockVerb = Verb("lock")
 lockVerb.addSynonym("bolt")
@@ -1876,7 +1936,7 @@ def lockVerbFunc(me, app, dobj):
 # replace default verbFunc method
 lockVerb.verbFunc = lockVerbFunc
 
-# UNLOCK (THING) WITH (THING)
+# UNLOCK WITH 
 # transitive verb with indirect object
 unlockWithVerb = Verb("unlock")
 unlockWithVerb.addSynonym("unbolt")
@@ -1952,7 +2012,7 @@ def unlockWithVerbFunc(me, app, dobj, iobj):
 # replace default verbFunc method
 unlockWithVerb.verbFunc = unlockWithVerbFunc
 
-# LOCK (THING) WITH (THING)
+# LOCK WITH 
 # transitive verb with indirect object
 lockWithVerb = Verb("lock")
 lockWithVerb.addSynonym("bolt")
