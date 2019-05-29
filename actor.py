@@ -60,6 +60,8 @@ class Actor(Thing):
 		self.tell_topics = {}
 		self.give_topics = {}
 		self.show_topics = {}
+		self.special_topics = {}
+		self.special_topics_alternate_keys = {}
 		# prints when player's question/statement does not match a topis
 		self.default_topic = "No response."
 		# specifies the article to use in output
@@ -199,11 +201,31 @@ class Actor(Thing):
 		if "show" in ask_tell_give_show or ask_tell_give_show=="all":
 			self.show_topics[thing] = topic
 	
+	def addSpecialTopic(self, topic):
+		self.special_topics[topic.suggestion] = topic
+		for x in topic.alternate_phrasings:
+			self.special_topics_alternate_keys[x] = topic
+	
+	def removeSpecialTopic(self, topic):
+		if topic.suggestion in self.special_topics:
+			del self.special_topics[topic.suggestion]
+	
+	def printSuggestions(self, app):
+		from .parser import lastTurn
+		if self.special_topics != {}:
+			for suggestion in self.special_topics:
+				app.printToGUI("(You could " + suggestion + ")")
+				lastTurn.convNode = True
+				lastTurn.specialTopics[suggestion] = self.special_topics[suggestion]
+			for phrasing in self.special_topics_alternate_keys:
+				lastTurn.specialTopics[phrasing] = self.special_topics_alternate_keys[phrasing]
+	
 	def defaultTopic(self, app):
 		"""The default function for an Actor's default topic
 		Should be overwritten by the game creator for an instance to create special responses
 		Takes argument app, pointing to the PyQt5 GUI"""
 		app.printToGUI(self.default_topic)
+		#self.printSuggestions(app)
 	
 	def getOutermostLocation(self):
 		"""Gets the Actor's current room 
@@ -242,6 +264,8 @@ class Player(Actor):
 		self.tell_topics = {}
 		self.give_topics = {}
 		self.show_topics = {}
+		self.special_topics = {}
+		self.special_topics_alternate_keys = {}
 		self.default_topic = "No one responds. This should come as a relief."
 		self.knows_about = []
 		self.isPlural = False
@@ -293,22 +317,13 @@ class SpecialTopic:
 	def __init__(self, suggestion, topic_text):
 		self.text = topic_text
 		self.suggestion = suggestion
+		self.alternate_phrasings = []
 	
 	def func(self, app):
 		app.printToGUI(self.text)
 	
-	def suggest(self, app):
-		from .parser import lastTurn
-		app.printToGUI("(You could " + self.suggestion + ") ")
-		lastTurn.specialTopics[self.suggestion] = self
-		lastTurn.convNode = True
-	
-	def unsuggest(self):
-		from .parser import lastTurn
-		if self.suggestion in lastTurn.specialTopics:
-			del lastTurn.specialTopics[self.suggestion]
-		if lastTurn.specialTopics == {}:
-			lastTurn.convNode = False
+	def addAlternatePhrasing(self, phrasing):
+		self.alternate_phrasings.append(phrasing)
 
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces

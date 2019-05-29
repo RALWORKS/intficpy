@@ -182,7 +182,7 @@ class DoorConnector(TravelConnector):
 		if isinstance(lock_obj, thing.Lock):
 			if not lock_obj.parent_obj:
 				self.entranceA.lock_obj = lock_obj
-				self.entranceB.lock_obj = lock_obj.copyThing()
+				self.entranceB.lock_obj = lock_obj.copyThingUniqueIx()
 				self.entranceA.lock_obj.twin = self.entranceB.lock_obj
 				self.entranceB.lock_obj.twin = self.entranceA.lock_obj
 				self.entranceA.lock_obj.parent_obj = self.entranceA

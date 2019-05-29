@@ -122,7 +122,21 @@ class Thing:
 		self.desc = self.base_desc
 
 	def copyThing(self):
+		"""Copy a Thing, keeping the index of the original. Safe to use for dynamic item duplication. """
 		out = copy.copy(self)
+		vocab.nounDict[out.name].append(out)
+		out.setAdjectives(out.adjectives)
+		for synonym in out.synonyms:
+			vocab.nounDict[synonym].append(out)
+		return out
+	
+	def copyThingUniqueIx(self):
+		"""Copy a Thing, creating a new index. NOT safe to use for dynamic item duplication. """
+		out = copy.copy(self)
+		global thing_ix
+		out.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[out.ix] = out
 		vocab.nounDict[out.name].append(out)
 		out.setAdjectives(out.adjectives)
 		for synonym in out.synonyms:

@@ -100,16 +100,17 @@ class gameInfo:
 				if verb!=self.verbs[-1]:
 					d_verb_list = d_verb_list + ", "
 			app.printToGUI(d_verb_list)
-		app.printToGUI("For help with phrasing, type \"verb help (verb)\" for a complete list of acceptable sentence structures for a verb. This will work for any verb, regardless of whether it has been discovered. ")
+		app.printToGUI("For help with phrasing, type \"verb help\" followed by a verb for a complete list of acceptable sentence structures for that verb. This will work for any verb, regardless of whether it has been discovered. ")
 aboutGame = gameInfo()
 
-def cleanInput(input_string):
+def cleanInput(input_string, record=True):
 	"""Used on player commands to remove punctuation and convert to lowercase
 	Takes the raw user input (string)
 	Returns a string """
 	input_string = input_string.lower()
 	input_string = re.sub(r'[^\w\s]','',input_string)
-	lastTurn.turn_list.append(input_string)
+	if record:
+		lastTurn.turn_list.append(input_string)
 	return input_string
 
 def tokenize(input_string):
@@ -306,9 +307,10 @@ def matchPrepositions(verbs, input_tokens):
 						if ix >= len(input_tokens):
 							break
 						noun = input_tokens[ix]
-					for item in vocab.nounDict[noun]:
-						if p in item.adjectives:
-							exempt = True
+					if noun in vocab.nounDict:
+						for item in vocab.nounDict[noun]:
+							if p in item.adjectives:
+								exempt = True
 				if not verb.preposition and not exempt:
 					remove_verb.append(verb)
 				elif not p in verb.preposition and not exempt:
@@ -701,7 +703,8 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope):
 			if noun_adj_arr[adj_i] not in thing.adjectives:
 				not_match.append(thing)
 		for item in not_match:
-			things.remove(item)
+			if item in things:
+				things.remove(item)
 		adj_i = adj_i- 1
 	things = checkRange(me, app, things, scope)
 	if len(things)==1:
@@ -832,6 +835,8 @@ def callVerb(me, app, cur_verb, obj_words):
 					return False
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
+			lastTurn.convNode = False
+			lastTurn.specialTopics = {}
 			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
 			return True
 	elif cur_verb.hasDobj:
@@ -848,9 +853,13 @@ def callVerb(me, app, cur_verb, obj_words):
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
 			cur_verb.verbFunc(me, app, cur_dobj)
+			lastTurn.convNode = False
+			lastTurn.specialTopics = {}
 			return True
 	else:
 		cur_verb.verbFunc(me, app)
+		lastTurn.convNode = False
+		lastTurn.specialTopics = {}
 		return True
 
 def disambig(me, app, input_tokens):
@@ -915,7 +924,7 @@ def saveLoadCheck(input_tokens, me, app):
 def getConvCommand(me, app, input_tokens):
 	possible_topics = list(lastTurn.specialTopics.keys())
 	for key in lastTurn.specialTopics:
-		tokens = cleanInput(key)
+		tokens = cleanInput(key, False)
 		tokens = tokenize(tokens)
 		tokens = removeArticles(tokens)
 		for tok in input_tokens:
@@ -926,12 +935,19 @@ def getConvCommand(me, app, input_tokens):
 			elif tok not in tokens:
 				possible_topics.remove(key)
 				break
-		if len(possible_topics) != 1:
-			return False
-		else:
-			x = possible_topics[0]
-			lastTurn.specialTopics[x].func(app)
-			return True
+	revised_possible_topics = list(possible_topics)
+	if len(possible_topics) > 1:
+		for topicA in possible_topics:
+			for topicB in possible_topics:
+				if topicA != topicB and topicB in revised_possible_topics and topicA in revised_possible_topics:
+					if lastTurn.specialTopics[topicA] == lastTurn.specialTopics[topicB]:
+						revised_possible_topics.remove(topicB)
+	if len(revised_possible_topics) != 1:
+		return False
+	else:
+		x = revised_possible_topics[0]
+		lastTurn.specialTopics[x].func(app)
+		return True
 
 def parseInput(me, app, input_string):
 	"""Parse player input, and respond to commands each turn
@@ -968,8 +984,7 @@ def parseInput(me, app, input_string):
 				lastTurn.ambiguous = False
 				return 0
 			else:
-				lastTurn.convNode = False
-				lastTurn.specialTopics = {}
+				pass
 		gv = getVerb(app, input_tokens)
 		if gv:
 			cur_verb = gv[0]

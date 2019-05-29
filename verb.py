@@ -1702,7 +1702,10 @@ def openVerbFunc(me, app, dobj):
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if dobj.lock_obj:
 		if dobj.lock_obj.is_locked:
-			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is locked. ")
+			try:
+				app.printToGUI(dobj.cannotOpenLockedMsg)
+			except:
+				app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is locked. ")
 			return False
 	try:
 		state = dobj.is_open

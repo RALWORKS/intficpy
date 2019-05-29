@@ -5,7 +5,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Saving
 + default save location should be home folder
 ### Serializer
-+ conversation topics, creator-defined global variables, and player knowledge are not currently saved
++ conversation topics, special topics, achievements, score, creator-defined global variables, and player knowledge are not currently saved
 + check validity of save file before trying to load
 + handle empty filename for load
 ### Terminal Mode
@@ -27,13 +27,13 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Essential New Features
 ### Other New Features
 + strdobj/striobj, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary") Watch out for adjacent objects in verb syntax.
-+ support multiple Player characters
 + display the game title in the GUI window title
 + allow game creators to modify the look of the GUI from within the main gamefile
 
 ## MAJOR CHANGES (Eventual Implementation)
 + Rewrite GUI with a different GUI module (currently using Qt - most likely will switch to kivy)
 + write script to ensure game creator compliance with IntFicPy rules and syntax
++ support multiple Player characters
 
 ## LAST DOCUMENTATION UPDATE COMPLETED: 29/04/2019
 (X) actor.py
