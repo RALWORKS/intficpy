@@ -1,8 +1,14 @@
 import pickle
 import copy
+import importlib
+import types
+import inspect
+
 from . import thing
 from . import room
 from . import actor
+from . import score
+from . import travel
 
 ##############################################################
 # SERIALIZER.PY - the save/load system for IntFicPy
@@ -21,97 +27,118 @@ class SaveState:
 		self.player = False
 		self.rooms = {}
 		self.klist = []
-	
-	def encodeNested(self, thing_dict, loc_dict):
-		"""Takes Room contents and Player contains, and builds the nested dictionaries of Things that will be serialized and saved
-		Takes arguments thing_list, the list of Things to be analysed, and loc_dict, the dictionary to write to """
-		thing_list = []
-		for key, things in thing_dict.items():
-			for thing in things:
-				thing_list.append(thing)
-		for item in thing_list:
-				loc = item.location
-				if loc:
-					loc = loc.ix
-				loc_dict[item.ix] = {"verbose_name": item.verbose_name, "desc": item.desc, "location": loc, "contains": {}, "cleared": False}
-				outer_item = loc_dict[item.ix]
-				lvl = 0
-				push = False
-				lvl_dict = {}
-				lvl_dict[0] = []
-				for key, things in item.contains.items():
-					for thing in things:
-						lvl_dict[0].append(thing)
-				lvl_parent = [item]
-				while lvl_dict[0] != []:
-					remove_scanned = []
-					# pop to lower level if empty
-					if lvl_dict[lvl]==[]:
-						lvl_dict[lvl-1].remove(lvl_parent[-1])
-						lvl_parent = lvl_parent[:-1]
-						lvl = lvl - 1
-					# scan items on current level
-					for y in lvl_dict[lvl]:
-						loc = y.location
-						if loc:
-							loc = loc.ix
-						if not y.ix in outer_item["contains"]: # FIX ME!
-							outer_item["contains"][y.ix] = {"verbose_name": y.verbose_name, "desc": y.desc, "location": loc, "contains": {}, "cleared": False}
-						# if y contains items, push into y.contains 
-						if y.contains != {}:
-							lvl = lvl + 1
-							lvl_dict[lvl] = []
-							for key, things in y.contains.items():
-								for thing in things:
-									lvl_dict[lvl].append(thing)
-							lvl_parent.append(y)
-							push = True
-							outer_item = outer_item["contains"][y.ix]
-							#break
-						else:
-							remove_scanned.append(y)
-					# remove scanned items from lvl_dict
-					for r in remove_scanned:
-						if push:
-							lvl_dict[lvl-1].remove(r)
-						else:
-							lvl_dict[lvl].remove(r)
-					# reset push marker
-					push = False
 					
-	def saveState(self, me, f):
+	def saveState(self, me, f, main_file):
 		"""Serializes game state and writes to a file
 		Takes arguments me, the Player object, and f, the path to write to
 		Returns True if successful, False if failed """
-		self.player = copy.copy(me)
-		# contains
-		self.player.sub_contains = {}
-		self.player.wearing = {}
-		self.player.contains = {}
-		self.encodeNested(me.contains, self.player.contains)
-		self.player.wearing = {}
-		self.encodeNested(me.wearing, self.player.wearing)
-		for key, things in me.sub_contains.items():
-			for thing in things:
-				if thing.ix in self.player.sub_contains:
-					self.player.sub_contains[thing.ix].append(thing)
-		for key, things in me.wearing.items():
-			for thing in things:
-				if thing.ix in self.player.wearing:
-					self.player.wearing[thing.ix].append(thing)
-		# room contents
+		saveDict = {}
+		main_module = importlib.import_module(main_file)
+		creatorvars = dir(main_module)
+		saveDict["vars"] = {}
+		for var in creatorvars:
+			x = getattr(main_module, var)
+			if not isinstance(x, types.ModuleType) and not inspect.isclass(x) and not hasattr(x, "__dict__") and not var.startswith('__'):
+				saveDict["vars"][var] = x
+		saveDict["score"] = {}
+		for attr, value in score.score.__dict__.items():
+			if isinstance(value, list):
+				out = []
+				for x in value:
+					out.append(self.simplifyAttr(x, main_module))
+				saveDict["score"][attr] = out
+			else:
+				saveDict["score"][attr] = self.simplifyAttr(value, main_module)
+		for key in thing.things:
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in thing.things[key].__dict__.items():
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+		for key in travel.connectors:
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in travel.connectors[key].__dict__.items():
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+		for key in actor.actors:
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in actor.actors[key].__dict__.items():
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)
 		for key in room.rooms:
-			self.rooms[key] = {"name": room.rooms[key].name, "desc": room.rooms[key].desc, "contains": {}}
-			self.encodeNested(room.rooms[key].contains, self.rooms[key]["contains"])
-		self.player.location = me.location.ix
-		# open save file
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in room.rooms[key].__dict__.items():
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+		for key in score.endings:
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in score.endings[key].__dict__.items():
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+		for key in score.achievements:
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in score.achievements[key].__dict__.items():
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+		for key in actor.topics:
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in actor.topics[key].__dict__.items():
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)
 		if not "." in f:
 			f = f + ".sav"
 		savefile = open(f,"wb+")
 		# Serialize
-		pickle.dump(self, savefile, 0)
+		pickle.dump(saveDict, savefile, 0)
 		savefile.close()
 		return True
+	
+	def simplifyAttr(self, value, main_module):
+		if isinstance(value, thing.Thing) or isinstance(value, actor.Actor) or isinstance(value, score.Achievement) or isinstance(value, score.AbstractScore) or isinstance(value, score.Ending) or isinstance(value, thing.Abstract) or isinstance(value, actor.Topic) or isinstance(value, travel.TravelConnector) or isinstance(value, room.Room):
+			out = "<obj>" + value.ix
+			return out
+		elif isinstance(value, types.FunctionType):
+			#func = getattr(main_module, value)
+			out = "<func>" + value.__name__
+			return out
+		elif isinstance(value, list):
+			out = []
+			x = 0
+			for x in range (0, len(value)):
+				val = value[x]
+				if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room):
+					out.append("<obj>" + val.ix)
+				elif isinstance(val, types.FunctionType):
+					#func = getattr(main_module, value[x])
+					out.append("<func>" + val.__name__)
+				else:
+					out.append(val)
+				x = x + 1
+			return out
+		elif isinstance(value, dict):
+			out = {}
+			for key in value:
+				# check if value[key] is an item list
+				if isinstance(value[key], list):
+					out[key] = []
+					x = 0
+					for x in range (0, len(value[key])):
+						val = value[key][x]
+						if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room):
+							out[key].append("<obj>" + val.ix)
+						elif isinstance(val, types.FunctionType):
+							#func = getattr(main_module, value[key][x])
+							out[key].append("<func>" + value[key][x].__name__)
+						else:
+							out[key].append(val)
+						x = x + 1
+				elif isinstance(value[key], thing.Thing) or isinstance(value[key], actor.Actor) or isinstance(value[key], score.Achievement) or isinstance(value[key], score.AbstractScore) or isinstance(value[key], score.Ending) or isinstance(value[key], thing.Abstract) or isinstance(value[key], actor.Topic) or isinstance(value[key], travel.TravelConnector) or isinstance(value[key], room.Room):
+					out[key] = "<obj>" + value[key].ix
+				elif isinstance(value[key], types.FunctionType):
+					#func = getattr(main_module, value[key])
+					out[key] = "<func>" + value[key].__name__
+			return out
+		else:
+			return value
 	
 	# NOTE: consider splitting this function to ensure consistent return types
 	def dictLookup(self, ix):
@@ -120,136 +147,111 @@ class SaveState:
 		Returns a Thing, an Actor, a Room, or None if failed"""
 		if not ix:
 			return None
-		if ix[0]=="t":
+		if "thing" in ix:
 			return thing.things[ix]
-		elif ix[0]=="a":
+		elif "actor" in ix:
 			return actor.actors[ix]
-		elif ix[0]=="r":
+		elif "room" in ix:
 			return room.rooms[ix]
+		elif "topic" in ix:
+			return actor.topics[ix]
+		elif "connector" in ix:
+			return travel.connectors[ix]
+		elif "achievement" in ix:
+			return score.achievements[ix]
+		elif "ending" in ix:
+			return score.endings[ix]
 		else:
 			print("unexpected ix format")
 			return None
 
-	def addSubContains(self, thing_in, obj_out):
-		"""Add a Thing to the sub_contains or sub_contains list of every Thing or Player it is nested inside of
-		Takes one argument, thing_in, the Thing object to add to sub_contains """
-		x = thing_in.location
-		while x and not isinstance(x, room.Room):
-			x = x.location
-			#x.sub_contains.append(thing_in)
-			if thing_in.ix in x.sub_contains:
-				x.sub_contains[thing_in.ix].append(thing_in)
-			else:
-				x.sub_contains[thing_in.ix] = [thing_in]
-			if x and not isinstance(x, room.Room) and not isinstance(x, actor.Actor):
-				x.containsListUpdate()
-	
-	def decodeNested(self, dict_in, obj_out):
-		"""Reads the nested dictionaries representing contains and each room's contains property, and reconstructs the network of Thing objects
-		Takes arguments dict_in, the dictionary to read, and obj_out, the object to write to """
-		for k, item in dict_in.items():
-			outer_item = dict_in[k]
-			x = self.dictLookup(k)
-			if k in self.klist:
-				x = x.copyThing()
-			self.klist.append(k)
-			x.verbose_name = item["verbose_name"]
-			x.location = self.dictLookup(item["location"])
-			#obj_out.contains.append(x)
-			if x.ix in obj_out.contains:
-				obj_out.contains[x.ix].append(x)
-			else:
-				obj_out.contains[x.ix] = [x]
-			# contains and sub_contains should already be clear for the Player
-			if (isinstance(x, thing.Surface) or isinstance(x, thing.Container)) and not outer_item["cleared"]:
-				x.contains = {}
-				x.sub_contains = {}
-				outer_item["cleared"] = True
-			lvl = 0
-			push = False
-			lvl_dict = {}
-			lvl_dict[0] = outer_item["contains"]
-			lvl_parent = [outer_item]
-			parent_index = [x.ix]
-			while lvl_dict[0] != {}:
-				remove_scanned = []
-				# pop if level is empty
-				if lvl_dict[lvl] == {}:
-					del lvl_dict[lvl-1][parent_index[-1]]
-					lvl_parent = lvl_parent[:-1]
-					parent_index = parent_index[:-1]
-					lvl = lvl -1
-				for y in lvl_dict[lvl]:
-					if y in self.klist:
-						self.klist.append(y)
-						y = self.dictLookup(y)
-						y = y.copyThing()
-					else:
-						self.klist.append(y)
-						y = self.dictLookup(y)
-					z = lvl_parent[-1]["contains"][y.ix]
-					y.verbose_name = z["verbose_name"]
-					y.desc = z["desc"]
-					y.location = self.dictLookup(z["location"])
-					if (isinstance(y, thing.Surface) or isinstance(y, thing.Container)) and not z["cleared"]:
-						y.contains = {}
-						y.sub_contains = {}
-						z["cleared"] = True
-					if y.location and y.ix not in y.location.contains:
-						y.location.contains[y.ix] = [y]
-						if isinstance(y.location, thing.Container) or isinstance(y.location, thing.Surface):
-							y.location.containsListUpdate()
-							self.addSubContains(y, obj_out)
-					elif y.location:
-						y.location.contains[y.ix].append(y)
-						if isinstance(y.location, thing.Container) or isinstance(y.location, thing.Surface):
-							y.location.containsListUpdate()
-							self.addSubContains(y, obj_out)
-					if z["contains"] == {}:
-						remove_scanned.append(y)
-					else:
-						lvl_parent.append(z)
-						parent_index.append(y.ix)
-						lvl = lvl + 1
-						push = True
-						break
-				for r in remove_scanned:
-					if push:
-						del lvl_dict[lvl-1][r.ix]
-					else:
-						del lvl_dict[lvl][r.ix]
-				if push:
-					lvl_dict[lvl] = z["contains"]
-				# reset push marker
-				push = False
-			if isinstance(x.location, thing.Container) or isinstance(x.location, thing.Surface):
-				x.location.containsListUpdate()
-	
 	# NOTE: Currently breaks for invalid save files
-	def loadState(self, me, f, app):
+	def loadState(self, me, f, app, main_file):
 		"""Deserializes and reconstructs the saved Player object and game state
 		Takes arguments me, the game's current Player object (to be overwritten), f, the file to read, and app, the PyQt5 GUI application
 		Returns True"""
+		main_module = importlib.import_module(main_file)
+		if not f:
+			return False
 		if f[-4:]!=".sav":
-			f = f + ".sav"
+			return False
 		savefile = open(f, "rb")
-		temp = pickle.load(savefile)
-		me.contains = {}
-		me.sub_contains = {}
-		self.decodeNested(temp.player.contains, me)
-		me.wearing = {}
-		self.klist =[]
-		for key in temp.player.wearing:
-			me.wearing.append(thing.things[key])
-		for key in temp.rooms:
-			room.rooms[key].name = temp.rooms[key]["name"]
-			room.rooms[key].desc = temp.rooms[key]["desc"]
-			room.rooms[key].contains = {}
-			room.rooms[key].sub_contains = {}
-			self.decodeNested(temp.rooms[key]["contains"], room.rooms[key])
-		me.location = room.rooms[temp.player.location]
+		loadDict = pickle.load(savefile)
+		score.score.total = loadDict["score"]["total"]
+		score.score.possible = loadDict["score"]["possible"]
+		score.score.achievements = []
+		for ach in loadDict["score"]["achievements"]:
+			score.score.achievements.append(self.dictLookup(ach[5:]))
+		for name in loadDict["vars"]:
+			setattr(main_module, name, loadDict["vars"][name])
+		for key in loadDict:
+			if key=="vars" or key=="score":
+				pass
+			else:
+				obj = self.dictLookup(key)
+				for key2 in loadDict[key]:
+					attr = getattr(obj, key2)
+					if isinstance(attr, dict):
+						setattr(obj, key2, {})
+						attr = {}
+						for key3 in loadDict[key][key2]:
+							if isinstance(loadDict[key][key2][key3], list):
+								attr[key3] = []
+								for x in loadDict[key][key2][key3]:
+									if isinstance(x, str):
+										if "<obj>" in x:
+											x = x[5:]
+											attr[key3].append(self.dictLookup(x))
+										elif "<func>" in x:
+											x = x[6:]
+											attr[key3].append(getattr(main_module, x))
+										else:
+											attr[key3].append(loadDict[key][key2][key3])
+							else:
+								if isinstance(loadDict[key][key2][key3], str):
+									if "<obj>" in loadDict[key][key2][key3]:
+										x = loadDict[key][key2][key3][5:]
+										x = self.dictLookup(x)
+										attr[key3] = x
+									elif "<func>" in loadDict[key][key2][key3]:
+										x = loadDict[key][key2][key3][6:]
+										x = getattr(main_module, x)
+										attr[key3] = x
+									else:
+										attr[key3] = loadDict[key][key2][key3]
+								else:
+									attr[key3] = loadDict[key][key2][key3]
+						setattr(obj, key2, attr)
+					elif isinstance(loadDict[key][key2], list):
+						setattr(obj, key2, [])
+						for x in loadDict[key][key2]:
+							if isinstance(x, str):
+								if "<obj>" in x:
+									x = x[5:]
+									attr.append(self.dictLookup(x))
+								elif "<func>" in x:
+									x = x[6:]
+									attr.append(getattr(main_module, x))
+								else:
+									attr.append(x)
+						setattr(obj, key2, attr)
+					elif isinstance(loadDict[key][key2], str):
+						if "<obj>" in loadDict[key][key2]:
+							x = loadDict[key][key2][5:]
+							x = self.dictLookup(x)
+							attr = x
+							setattr(obj, key2, attr)
+						elif "<func>" in loadDict[key][key2]:
+							x = loadDict[key][key2][6:]
+							x = getattr(main_module, x)
+							attr= x
+							setattr(obj, key2, attr)
+						else:
+							attr = loadDict[key][key2]
+							setattr(obj, key2, attr)
+					else:
+						setattr(obj, key2, loadDict[key][key2])
 		return True
-		
 # the SaveState object
 curSave = SaveState()
 

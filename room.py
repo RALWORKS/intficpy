@@ -41,6 +41,7 @@ class Room:
 		# room properties
 		self.name = name
 		self.desc = desc
+		self.fulldesc = ""
 		self.hasWalls = False
 		self.contains = {}
 		self.sub_contains = {}

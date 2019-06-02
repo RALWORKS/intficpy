@@ -8,6 +8,9 @@ achievements = {}
 # index is an integer appended to the string "thing"- increases by 1 for each Thing defined
 # index of a Thing will always be the same provided the game file is written according to the rules
 achievement_ix = 0
+endings = {}
+ending_ix = 0
+
 class Achievement:
 	"""Class for achievements in the IntFicPy game"""
 	def __init__(self, points, desc):
@@ -49,6 +52,10 @@ score = AbstractScore()
 
 class Ending:
 	def __init__(self, good, title, desc):
+		global ending_ix
+		self.ix = "ending" + str(ending_ix)
+		ending_ix = ending_ix + 1
+		endings[self.ix] = self
 		self.good = good
 		self.title = title
 		self.desc = desc

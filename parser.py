@@ -61,6 +61,7 @@ class gameInfo:
 		self.verbs = []
 		self.discovered_verbs = []
 		self.helpMsg = False
+		self.main_file = None
 	
 	def setInfo(self, title, author):
 		self.title = title
@@ -902,18 +903,18 @@ def saveLoadCheck(input_tokens, me, app):
 			app.newBox(1)
 			app.printToGUI("Could not save game")
 		else:
-			serializer.curSave.saveState(me, fname)
+			serializer.curSave.saveState(me, fname, aboutGame.main_file)
 			app.printToGUI("Game saved to " + fname)
 		return True
 	elif len(input_tokens)==2 and input_tokens[0]=="load":
-		if serializer.curSave.loadState(me, input_tokens[1], app):
+		if serializer.curSave.loadState(me, input_tokens[1], app, aboutGame.main_file):
 			app.printToGUI("Game loaded from " + input_tokens[1] + ".sav")
 		else:
 			app.printToGUI("Error loading game.")
 		return True
 	elif input_tokens[0]=="load":
 		fname = app.getLoadFileGUI()
-		if serializer.curSave.loadState(me, fname, app):
+		if serializer.curSave.loadState(me, fname, app, aboutGame.main_file):
 			app.printToGUI("Game loaded from " + fname)
 		else:
 			app.printToGUI("Error loading game. Please select a valid .sav file")
@@ -1026,11 +1027,12 @@ def parseInput(me, app, input_string):
 		else:
 			app.printToGUI("The game has ended. Commands are SAVE, LOAD, SCORE, FULLSCORE, and ABOUT.")
 
-def initGame(me, app):
+def initGame(me, app, main_file):
 	"""Called when the game is opened to show opening and describe the first room
 	Takes arguments me, the player (Player object, player.py) and app, the PyQt application
 	Called in the creator's main game file """
 	quit = False
+	aboutGame.main_file = main_file
 	if not lastTurn.gameOpening == False:
 		#app.newBox(1)
 		lastTurn.gameOpening(app)

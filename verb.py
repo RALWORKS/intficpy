@@ -655,8 +655,9 @@ def lookInVerbFunc(me, app, dobj):
 				return False
 		if len(list_version) > 0:
 			app.printToGUI(dobj.contains_desc)
-			for key in dobj.contains and key not in me.knows_about:
-				me.know_about.append(key)
+			for key in dobj.contains:
+				if key not in me.knows_about:
+					me.know_about.append(key)
 			try:
 				dobj.lookInVerbDobj(me, app)
 			except AttributeError:
@@ -760,7 +761,7 @@ def askVerbFunc(me, app, dobj, iobj):
 		# try to find the ask topic for iobj
 		if iobj==reflexive:	
 			iobj = dobj
-		if iobj in dobj.ask_topics:
+		if iobj.ix in dobj.ask_topics:
 			# call the ask function for iobj
 			dobj.ask_topics[iobj].func(app)
 			try:
@@ -832,7 +833,7 @@ def tellVerbFunc(me, app, dobj, iobj):
 	if isinstance(dobj, actor.Actor):
 		if iobj==reflexive:	
 				iobj = dobj
-		if iobj in dobj.tell_topics:
+		if iobj.ix in dobj.tell_topics:
 			dobj.tell_topics[iobj].func(app)
 			try:
 				dobj.tellVerbDobj(me, app, iobj)
@@ -900,7 +901,7 @@ def giveVerbFunc(me, app, dobj, iobj):
 	"""Give an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(dobj, actor.Actor):
-		if iobj in dobj.give_topics:
+		if iobj.ix in dobj.give_topics:
 			dobj.give_topics[iobj].func(app)
 			if iobj.give:
 				me.contains[dobj.ix].remove(dobj)
@@ -985,7 +986,7 @@ def showVerbFunc(me, app, dobj, iobj):
 	"""Show an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if isinstance(dobj, actor.Actor):
-		if iobj in dobj.show_topics:
+		if iobj.ix in dobj.show_topics:
 			dobj.show_topics[iobj].func(app)
 			try:
 				dobj.showVerbDobj(me, app, iobj)

@@ -63,6 +63,10 @@ class Thing:
 		else:
 			vocab.nounDict[name] = [self]
 	
+	def makeKnown(self, me):
+		if not self.ix in me.knows_about:
+			me.knows_about.append(self.ix)
+	
 	def addSynonym(self, word):
 		"""Adds a synonym (noun) that can be used to refer to a Thing
 		Takes argument word, a string, which should be a single noun """

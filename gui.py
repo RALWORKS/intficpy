@@ -45,7 +45,7 @@ class App(QWidget):
 		self.showMaximized()
 		self.me = me
 		#self.newBox(1)
-		parser.initGame(me, self)
+		parser.initGame(me, self, main_file)
 		self.setStyleSheet('QFrame { border:none;}')
 		self.new_obox = False
 		# used for game-interrupting cutscenes
@@ -271,7 +271,9 @@ class App(QWidget):
 		fname = fname[0]
 		# add .sav extension if necessary
 		self.newBox(1)
-		if fname[-4:]==".sav":
+		if len(fname) < 4:
+			return None 
+		elif fname[-4:]==".sav":
 			return fname
 		else:
 			return None

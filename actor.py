@@ -17,6 +17,8 @@ actors = {}
 # index of an actor will always be the same provided the game file is written according to the rules
 actor_ix = 0
 
+topics = {}
+topic_ix = 0
 
 class Actor(Thing):
 	"""Actor class, used for characters in the creator's game """
@@ -28,6 +30,7 @@ class Actor(Thing):
 		self.size = 50
 		self.adjectives = []
 		self.synonyms = []
+		self.special_plural = False
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -193,13 +196,13 @@ class Actor(Thing):
 		"""Adds a conversation topic to the Actor
 		Takes argument ask_tell, a string """
 		if "ask" in ask_tell_give_show or ask_tell_give_show=="all":
-			self.ask_topics[thing] = topic
+			self.ask_topics[thing.ix] = topic
 		if "tell" in ask_tell_give_show or ask_tell_give_show=="all":
-			self.tell_topics[thing] = topic
+			self.tell_topics[thing.ix] = topic
 		if "give" in ask_tell_give_show or ask_tell_give_show=="all":
-			self.give_topics[thing] = topic
+			self.give_topics[thing.ix] = topic
 		if "show" in ask_tell_give_show or ask_tell_give_show=="all":
-			self.show_topics[thing] = topic
+			self.show_topics[thing.ix] = topic
 	
 	def addSpecialTopic(self, topic):
 		self.special_topics[topic.suggestion] = topic
@@ -209,6 +212,9 @@ class Actor(Thing):
 	def removeSpecialTopic(self, topic):
 		if topic.suggestion in self.special_topics:
 			del self.special_topics[topic.suggestion]
+		for x in topic.alternate_phrasings:
+			if x in self.special_topics_alternate_keys:
+				del self.special_topics_alternate_keys[x]
 	
 	def printSuggestions(self, app):
 		from .parser import lastTurn
@@ -248,6 +254,7 @@ class Player(Actor):
 		self.invItem = False
 		self.cannotTakeMsg = "You cannot take yourself."
 		self.parent_obj = False
+		self.special_plural = False
 		self.size = 50
 		self.adjectives = []
 		self.synonyms = []
@@ -308,6 +315,10 @@ class Topic:
 	"""class for conversation topics"""
 	def __init__(self, topic_text):
 		self.text = topic_text
+		global topic_ix
+		self.ix = "topic" + str(topic_ix)
+		topic_ix = topic_ix + 1
+		topics[self.ix] = self
 	
 	def func(self, app):
 		app.printToGUI(self.text)

@@ -5,11 +5,22 @@ from . import room
 # ROOM.PY - travel functions for IntFicPy
 # Defines travel functions and the direction vocab dictionary
 ##############################################################
+# a dictionary of the indeces of all TravelConnector objects, including subclass instances, mapped to their object
+# populated at runtime
+connectors = {}
+# index is an integer appended to the string "thing"- increases by 1 for each Thing defined
+# index of a Thing will always be the same provided the game file is written according to the rules
+connector_ix = 0
+
 
 class TravelConnector:
 	"""Base class for travel connectors
 	Links two rooms together"""
 	def __init__(self, room1, direction1, room2, direction2):
+		global connector_ix
+		self.ix = "connector" + str(connector_ix)
+		connector_ix = connector_ix + 1
+		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
 		r = [room1, room2]
@@ -119,6 +130,10 @@ class DoorConnector(TravelConnector):
 	"""Base class for travel connectors
 	Links two rooms together"""
 	def __init__(self, room1, direction1, room2, direction2):
+		global connector_ix
+		self.ix = "connector" + str(connector_ix)
+		connector_ix = connector_ix + 1
+		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
 		r = [room1, room2]
@@ -251,6 +266,10 @@ class LadderConnector(TravelConnector):
 	"""Class for ladder travel connectors (up/down)
 	Links two rooms together"""
 	def __init__(self, room1, room2):
+		global connector_ix
+		self.ix = "connector" + str(connector_ix)
+		connector_ix = connector_ix + 1
+		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
 		r = [room1, room2]
@@ -304,6 +323,10 @@ class StaircaseConnector(TravelConnector):
 	"""Class for staircase travel connectors (up/down)
 	Links two rooms together"""
 	def __init__(self, room1, room2):
+		global connector_ix
+		self.ix = "connector" + str(connector_ix)
+		connector_ix = connector_ix + 1
+		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
 		r = [room1, room2]
