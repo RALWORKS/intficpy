@@ -132,6 +132,8 @@ class Thing:
 		out.setAdjectives(out.adjectives)
 		for synonym in out.synonyms:
 			vocab.nounDict[synonym].append(out)
+		out.desc = self.desc
+		out.xdesc = self.xdesc
 		return out
 	
 	def copyThingUniqueIx(self):
@@ -145,26 +147,36 @@ class Thing:
 		out.setAdjectives(out.adjectives)
 		for synonym in out.synonyms:
 			vocab.nounDict[synonym].append(out)
+		out.desc = self.desc
+		out.xdesc = self.xdesc
 		return out
 	
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = description
 		if self.is_composite:
-			self.desc = self.desc + self.children_desc
+			if self.children_desc:
+				self.desc = self.desc + self.children_desc
+			else:
+				for item in self.children:
+					self.desc = self.desc + item.desc
 		
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = description
 		if self.is_composite:
-			self.xdesc = self.xdesc + self.children_desc
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				for item in self.children:
+					self.xdesc = self.xdesc + item.desc
 		
 	def addComposite(self, item):
 		self.is_composite = True
 		try:
 			defined = self.child_Things
 		except:
-			self.children_desc = ""
+			self.children_desc = False
 			self.child_Things = []
 			self.child_Surfaces = []
 			self.child_Containers = []
@@ -288,8 +300,17 @@ class Surface(Thing):
 			onlist = onlist + "You are on " + self.getArticle(True) + self.verbose_name + "."
 		# append onlist to description
 		if self.is_composite:
-			self.desc = self.base_desc + self.children_desc + onlist
-			self.xdesc = self.base_xdesc + self.children_desc + onlist
+			if self.children_desc:
+				self.desc = self.base_desc + self.children_desc
+				self.xdesc = self.base_xdesc + self.children_desc
+			else:
+				self.xdesc = self.base_xdesc
+				self.desc = self.base_desc
+				for item in self.children:
+					self.xdesc = self.xdesc + item.desc
+					self.desc = self.desc + item.desc
+			self.desc = self.desc + onlist
+			self.xdesc = self.xdesc + onlist
 		else:
 			self.desc = self.base_desc + onlist
 			self.xdesc = self.base_xdesc + onlist
@@ -409,13 +430,23 @@ class Surface(Thing):
 	def describeThing(self, description):
 		self.base_desc = description
 		if self.is_composite:
-			self.desc = self.desc + self.children_desc
+			if self.children_desc:
+				self.desc = self.base_desc + self.children_desc
+			else:
+				self.desc = self.base_desc
+				for item in self.children:
+					self.desc = self.desc + item.desc
 		self.containsListUpdate()
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		if self.is_composite:
-			self.xdesc = self.xdesc + self.children_desc
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				self.xdesc = self.base_xdesc
+				for item in self.children:
+					self.desc = self.xdesc + item.desc
 		self.containsListUpdate()
 	
 # NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
@@ -513,8 +544,17 @@ class Container(Thing):
 			inlist = inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
 		# update descriptions
 		if self.is_composite:
-			self.desc = self.base_desc + self.children_desc + inlist
-			self.xdesc = self.base_xdesc + self.children_desc + inlist
+			if self.children_desc:
+				self.desc = self.base_desc + self.children_desc
+				self.xdesc = self.base_xdesc + self.children_desc
+			else:
+				self.xdesc = self.base_xdesc
+				self.desc = self.base_desc
+				for item in self.children:
+					self.xdesc = self.xdesc + item.desc
+					self.desc = self.desc + item.desc
+			self.desc = self.desc + inlist
+			self.xdesc = self.xdesc + inlist
 		else:
 			self.desc = desc + inlist
 			self.xdesc = xdesc + self.lock_desc + inlist
@@ -688,14 +728,22 @@ class Container(Thing):
 		self.base_desc = description
 		self.desc = self.base_desc + self.state_desc
 		if self.is_composite:
-			self.desc = self.desc + self.children_desc
+			if self.children_desc:
+				self.desc = self.desc + self.children_desc
+			else:
+				for item in self.children:
+					self.desc = self.desc + item.desc
 		self.containsListUpdate()
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
 		if self.is_composite:
-			self.xdesc = self.xdesc + self.children_desc
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				for item in self.children:
+					self.xdesc = self.xdesc + item.desc
 		self.containsListUpdate()
 	
 	def updateDesc(self):
@@ -712,12 +760,18 @@ class Container(Thing):
 		self.state_desc = " It is currently open. "
 		self.containsListUpdate()
 		self.revealContents()
+		if self.parent_obj:
+			self.parent_obj.describeThing(self.parent_obj.base_desc)
+			self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
 			
 	def makeClosed(self):
 		self.is_open = False
 		self.state_desc = " It is currently closed. "
 		self.containsListUpdate()
 		self.hideContents()
+		if self.parent_obj:
+			self.parent_obj.describeThing(self.parent_obj.base_desc)
+			self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
 		
 # NOTE: May not be necessary as a distinct class. Consider just using the wearable property.
 class Clothing(Thing):
@@ -838,6 +892,9 @@ class Door(Thing):
 		if self.twin:
 			if not self.twin.is_open:
 				self.twin.makeOpen()
+		if self.parent_obj:
+			self.parent_obj.describeThing(self.parent_obj.base_desc)
+			self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
 	
 	def makeClosed(self):
 		self.is_open = False
@@ -847,25 +904,41 @@ class Door(Thing):
 		if self.twin:
 			if self.twin.is_open:
 				self.twin.makeClosed()
+		if self.parent_obj:
+			self.parent_obj.describeThing(self.parent_obj.base_desc)
+			self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
 	
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = description + self.state_desc
 		if self.is_composite:
-			self.desc = self.desc + self.children_desc
+			if self.children_desc:
+				self.desc = self.desc + self.children_desc
+			else:
+				for item in self.children:
+					self.desc = self.desc + item.desc
 		
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = description + self.state_desc + self.lock_desc
 		if self.is_composite:
-			self.xdesc = self.xdesc + self.children_desc
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				for item in self.children:
+					self.xdesc = self.xdesc + item.desc
 		
 	def updateDesc(self):
 		self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
 		self.desc = self.base_desc + self.state_desc
 		if self.is_composite:
-			self.desc = self.desc + self.children_desc
-			self.xdesc = self.xdesc + self.children_desc
+			if self.children_desc:
+				self.desc = self.desc + self.children_desc
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				for item in self.children:
+					self.desc = self.desc + item.desc
+					self.xdesc = self.xdesc + item.desc
 
 class Key(Thing):
 	"""Class for keys """
@@ -1003,13 +1076,21 @@ class Lock(Thing):
 		self.base_desc = description
 		self.desc = self.base_desc
 		if self.is_composite:
-			self.desc = self.desc + self.children_desc
+			if self.children_desc:
+				self.desc = self.desc + self.children_desc
+			else:
+				for item in children:
+					self.desc = self.desc + item.desc
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = self.base_xdesc + self.state_desc
 		if self.is_composite:
-			self.xdesc = self.xdesc + self.children_desc
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				for item in children:
+					self.xdesc = self.xdesc + item.desc
 	
 class Abstract(Thing):
 	"""Class for abstract game items with no location, such as ideas"""
@@ -1139,8 +1220,15 @@ class UnderSpace(Thing):
 			inlist = inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
 		# update descriptions
 		if self.is_composite:
-			self.desc = self.base_desc + self.children_desc + inlist
-			self.xdesc = self.base_xdesc + self.children_desc + inlist
+			if self.children_desc:
+				self.desc = self.desc + self.children_desc
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				for item in children:
+					self.desc = self.desc + item.desc
+					self.xdesc = self.xdesc + item.desc
+			self.desc = self.desc + inlist
+			self.xdesc = self.xdesc + inlist
 		else:
 			self.desc = desc + inlist
 			self.xdesc = xdesc + inlist
@@ -1310,14 +1398,22 @@ class UnderSpace(Thing):
 		self.base_desc = description
 		self.desc = self.base_desc + self.state_desc
 		if self.is_composite:
-			self.desc = self.desc + self.children_desc
+			if self.children_desc:
+				self.desc = self.desc + self.children_desc
+			else:
+				for item in self.children:
+					self.desc = self.desc + item.desc
 		self.containsListUpdate()
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
 		self.xdesc = self.base_xdesc
 		if self.is_composite:
-			self.xdesc = self.xdesc + self.children_desc
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				for item in self.children:
+					self.xdesc = self.xdesc + item.desc
 		self.containsListUpdate()
 	
 	def updateDesc(self):
