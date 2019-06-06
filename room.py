@@ -1,5 +1,4 @@
 from . import thing
-from . import serializer
 
 ##############################################################
 # ROOM.PY - verbs for IntFicPy 

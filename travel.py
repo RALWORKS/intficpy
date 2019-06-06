@@ -23,6 +23,8 @@ class TravelConnector:
 		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
+		self.entranceA_msg = None
+		self.entranceB_msg = None
 		self.can_pass = True
 		self.cannot_pass_msg = "The way is blocked. "
 		r = [room1, room2]
@@ -109,7 +111,10 @@ class TravelConnector:
 				me.location.removeThing(me)
 				me.location = self.pointB
 				me.location.addThing(me)
-				app.printToGUI("You go through the doorway. ")
+				if self.entranceA_msg:
+					app.printToGUI(self.entranceA_msg)
+				else:	
+					app.printToGUI("You go through the doorway. ")
 				me.location.describe(me, app)
 				try:
 					me.location.arriveFunc(me, app)
@@ -121,7 +126,10 @@ class TravelConnector:
 				me.location.removeThing(me)
 				me.location = self.pointA
 				me.location.addThing(me)
-				app.printToGUI("You go through the doorway. ")
+				if self.entranceB_msg:
+					app.printToGUI(self.entranceB_msg)
+				else:	
+					app.printToGUI("You go through the doorway. ")
 				me.location.describe(me, app)
 				try:
 					me.location.arriveFunc(me, app)
@@ -140,6 +148,8 @@ class DoorConnector(TravelConnector):
 		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
+		self.entranceA_msg = None
+		self.entranceB_msg = None
 		r = [room1, room2]
 		d = [direction1, direction2]
 		interactables = []
@@ -245,7 +255,10 @@ class DoorConnector(TravelConnector):
 				me.location.removeThing(me)
 			me.location = self.pointB
 			me.location.addThing(me)
-			app.printToGUI("You go through " + self.entranceA.getArticle(True) + self.entranceA.verbose_name + ". ")
+			if self.entranceA_msg:
+					app.printToGUI(self.entranceA_msg)
+			else:	
+				app.printToGUI("You go through " + self.entranceA.getArticle(True) + self.entranceA.verbose_name + ". ")
 			me.location.describe(me, app)
 			try:
 				me.location.arriveFunc(me, app)
@@ -261,7 +274,10 @@ class DoorConnector(TravelConnector):
 				me.location.removeThing(me)
 			me.location = self.pointA
 			me.location.addThing(me)
-			app.printToGUI("You go through " + self.entranceB.getArticle(True) + self.entranceB.verbose_name + ". ")
+			if self.entranceB_msg:
+					app.printToGUI(self.entranceB_msg)
+			else:	
+				app.printToGUI("You go through " + self.entranceB.getArticle(True) + self.entranceB.verbose_name + ". ")
 			me.location.describe(me, app)
 			try:
 				me.location.arriveFunc(me, app)
@@ -280,6 +296,8 @@ class LadderConnector(TravelConnector):
 		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
+		self.entranceA_msg = None
+		self.entranceB_msg = None
 		r = [room1, room2]
 		d = ["u", "d"]
 		interactables = []
@@ -316,7 +334,10 @@ class LadderConnector(TravelConnector):
 				me.location.removeThing(me)
 			me.location = self.pointB
 			me.location.addThing(me)
-			app.printToGUI("You climb the ladder. ")
+			if self.entranceA_msg:
+					app.printToGUI(self.entranceA_msg)
+			else:	
+				app.printToGUI("You climb the ladder. ")
 			me.location.describe(me, app)
 		elif outer_loc == self.pointB:
 			preRemovePlayer(me, app)
@@ -324,7 +345,10 @@ class LadderConnector(TravelConnector):
 				me.location.removeThing(me)
 			me.location = self.pointA
 			me.location.addThing(me)
-			app.printToGUI("You climb the ladder. ")
+			if self.entranceB_msg:
+					app.printToGUI(self.entranceB_msg)
+			else:	
+				app.printToGUI("You climb the ladder. ")
 			me.location.describe(me, app)
 		else:
 			app.printToGUI("You cannot go that way. ")
@@ -339,6 +363,8 @@ class StaircaseConnector(TravelConnector):
 		connectors[self.ix] = self
 		self.pointA = room1
 		self.pointB = room2
+		self.entranceA_msg = False
+		self.entranceB_msg = False
 		r = [room1, room2]
 		d = ["u", "d"]
 		interactables = []
@@ -383,7 +409,10 @@ class StaircaseConnector(TravelConnector):
 				me.location.removeThing(me)
 			me.location = self.pointB
 			me.location.addThing(me)
-			app.printToGUI("You climb the staircase. ")
+			if self.entranceA_msg:
+					app.printToGUI(self.entranceA_msg)
+			else:	
+				app.printToGUI("You climb the staircase. ")
 			me.location.describe(me, app)
 			try:
 				me.location.arriveFunc(me, app)
@@ -395,7 +424,10 @@ class StaircaseConnector(TravelConnector):
 				me.location.removeThing(me)
 			me.location = self.pointA
 			me.location.addThing(me)
-			app.printToGUI("You climb the staircase. ")
+			if self.entranceB_msg:
+					app.printToGUI(self.entranceB_msg)
+			else:	
+				app.printToGUI("You climb the staircase. ")
 			me.location.describe(me, app)
 			try:
 				me.location.arriveFunc(me, app)

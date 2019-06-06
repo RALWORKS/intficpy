@@ -26,6 +26,8 @@ class Verb:
 		self.word = word
 		self.dscope = "room"
 		word = ""
+		self.far_iobj = False
+		self.far_dobj = False
 		self.hasDobj = False
 		self.hasStrDobj = False
 		self.hasStrIobj = False
@@ -153,9 +155,18 @@ getVerb.preposition = ["up"]
 getVerb.dscope = "near"
 getVerb.hasDobj = True
 
-def getVerbFunc(me, app, dobj):
+def getVerbFunc(me, app, dobj, skip=False):
 	"""Take a Thing from the room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.getVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	# first check if dobj can be taken
 	while me.ix in dobj.sub_contains:
 		if isinstance(me.location, thing.Container):
@@ -212,10 +223,6 @@ def getVerbFunc(me, app, dobj):
 				old_loc.containsListUpdate()
 		dobj.location.removeThing(dobj)
 		me.addThing(dobj)
-		try:
-			dobj.getVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	elif dobj.parent_obj:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
@@ -237,10 +244,17 @@ dropVerb.hasDobj = True
 dropVerb.dscope = "inv"
 dropVerb.preposition = ["down"]
 
-def dropVerbFunc(me, app, dobj):
+def dropVerbFunc(me, app, dobj, skip=False):
 	"""Drop a Thing from the contains
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-	# print the action message
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.dropVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
 	if dobj.invItem and me.removeThing(dobj):
 		app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
 		dobj.location = me.location
@@ -273,9 +287,22 @@ setOnVerb.hasIobj = True
 setOnVerb.iscope = "room"
 setOnVerb.preposition = ["on"]
 
-def setOnVerbFunc(me, app, dobj, iobj):
+def setOnVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Put a Thing on a Surface
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.setOnVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.setOnVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	outer_loc = me.getOutermostLocation()
 	if iobj==outer_loc.floor:
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on the ground.")
@@ -314,14 +341,6 @@ def setOnVerbFunc(me, app, dobj, iobj):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		iobj.addOn(dobj)
-		try:
-			iobj.setOnVerbIobj(me, app, dobj)
-		except AttributeError:
-			pass
-		try:
-			dobj.setOnVerbDobj(me, app, iobj)
-		except AttributeError:
-			pass
 	# if iobj is not a Surface
 	else:
 		app.printToGUI("There is no surface to set it on.")
@@ -341,9 +360,22 @@ setInVerb.hasIobj = True
 setInVerb.iscope = "room"
 setInVerb.preposition = ["in"]
 
-def setInVerbFunc(me, app, dobj, iobj):
+def setInVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Put a Thing in a Container
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.setInVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.setInVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(iobj, thing.Container) and iobj.has_lid:
 		if not iobj.is_open:
 			app.printToGUI("You  cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " is closed.")
@@ -367,14 +399,6 @@ def setInVerbFunc(me, app, dobj, iobj):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		iobj.addIn(dobj)
-		try:
-			iobj.setInVerbIobj(me, app, dobj)
-		except AttributeError:
-			pass
-		try:
-			dobj.setInVerbDobj(me, app, iobj)
-		except AttributeError:
-			pass
 		return True
 	elif isinstance(iobj, thing.Container):
 		app.printToGUI("The " + dobj.verbose_name + " is too big to fit inside the " + iobj.verbose_name + ".")
@@ -398,9 +422,22 @@ setUnderVerb.iscope = "room"
 setUnderVerb.itype = "UnderSpace"
 setUnderVerb.preposition = ["under"]
 
-def setUnderVerbFunc(me, app, dobj, iobj):
+def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Put a Thing under an UnderSpace
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.setUnderVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.setUnderVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	outer_loc = me.getOutermostLocation()
 	if isinstance(iobj, thing.UnderSpace) and dobj.size <= iobj.size:
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " " + iobj.contains_preposition + " " + iobj.getArticle(True) + iobj.verbose_name + ".")
@@ -420,14 +457,6 @@ def setUnderVerbFunc(me, app, dobj, iobj):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		iobj.addUnder(dobj, True)
-		try:
-			iobj.setUnderVerbIobj(me, app, dobj)
-		except AttributeError:
-			pass
-		try:
-			dobj.setUnderVerbDobj(me, app, iobj)
-		except AttributeError:
-			pass
 		return True
 	elif dobj.size > iobj.size:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is too big to fit under " + iobj.getArticle(True) + iobj.verbose_name + ". ")
@@ -566,16 +595,16 @@ helpVerb.verbFunc = helpVerbFunc
 
 # HELP VERB (Verb)
 # intransitive verb
-helpVerbVerb = Verb("help", "help verb")
-helpVerbVerb.syntax = [["help", "verb", "<dobj>"], ["verb", "help", "<dobj>"]]
+helpVerbVerb = Verb("verb", "verb help")
+helpVerbVerb.syntax = [["verb", "help", "<dobj>"]]
 helpVerbVerb.hasDobj = True
-helpVerb.hasStrDobj = True
+helpVerbVerb.hasStrDobj = True
+helpVerbVerb.dtype = "String"
 
 def helpVerbVerbFunc(me, app, dobj):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	from .vocab import verbDict
-	#app.printToGUI(dobj)
 	app.printToGUI("<b>Verb Help: " + " ".join(dobj) + "</b>")
 	if dobj[0] in verbDict:
 		app.printToGUI("I found the following sentence structures for the verb \"" + dobj[0] + "\":")
@@ -584,10 +613,24 @@ def helpVerbVerbFunc(me, app, dobj):
 				out = list(form)
 				if "<dobj>" in form:
 					ix = form.index("<dobj>")
-					out[ix] = "(thing)"
+					if verb.dtype=="Actor":
+						out[ix] = "(person)"
+					elif verb.dtype=="Direction":
+						out[ix] = "(direction)"
+					elif verb.dtype=="String":
+						out[ix] = "(word)"
+					else:
+						out[ix] = "(thing)"
 				if "<iobj>" in form:
 					ix = form.index("<iobj>")
-					out[ix] = "(thing)"
+					if verb.itype=="Actor":
+						out[ix] = "(person)"
+					elif verb.itype=="Direction":
+						out[ix] = "(direction)"
+					elif verb.dtype=="String":
+						out[ix] = "(word)"
+					else:
+						out[ix] = "(thing)"
 				out = " ".join(out)
 				app.printToGUI(out)
 	else:
@@ -622,15 +665,20 @@ examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"], ["look", "at", "<d
 examineVerb.hasDobj = True
 examineVerb.dscope = "near"
 examineVerb.preposition = ["at"]
+examineVerb.far_dobj = True
 
-def examineVerbFunc(me, app, dobj):
+def examineVerbFunc(me, app, dobj, skip=False):
 	"""Examine a Thing """
 	# print the target's xdesc (examine descripion)
-	app.printToGUI(dobj.xdesc)
-	try:
-		dobj.examineVerbDobj(me, app)
-	except AttributeError:
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.examineVerbDobj(me, app)
+		except AttributeError:
 			pass
+		if not runfunc:
+			return True
+	app.printToGUI(dobj.xdesc)
 
 # replace default verbFunc method
 examineVerb.verbFunc = examineVerbFunc
@@ -644,9 +692,17 @@ lookInVerb.dscope = "near"
 lookInVerb.dtype = "Container"
 lookInVerb.preposition = ["in"]
 
-def lookInVerbFunc(me, app, dobj):
+def lookInVerbFunc(me, app, dobj, skip=False):
 	"""Look inside a Thing """
-	# print the target's xdesc (examine descripion)
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.lookInVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.Container):
 		list_version = list(dobj.contains.keys())
 		if dobj.has_lid:
@@ -658,17 +714,9 @@ def lookInVerbFunc(me, app, dobj):
 			for key in dobj.contains:
 				if key not in me.knows_about:
 					me.know_about.append(key)
-			try:
-				dobj.lookInVerbDobj(me, app)
-			except AttributeError:
-				pass
 			return True
 		else:
 			app.printToGUI("The " + dobj.verbose_name + " is empty.")
-			try:
-				dobj.lookInVerbDobj(me, app)
-			except AttributeError:
-				pass
 			return True
 	else:
 		app.printToGUI("You cannot look inside " + dobj.getArticle(True) + dobj.verbose_name + ".")
@@ -685,25 +733,26 @@ lookUnderVerb.dscope = "near"
 lookUnderVerb.dtype = "UnderSpace"
 lookUnderVerb.preposition = ["under"]
 
-def lookUnderVerbFunc(me, app, dobj):
+def lookUnderVerbFunc(me, app, dobj, skip=False):
 	"""Look under a Thing """
 	# print the target's xdesc (examine descripion)
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.lookUnderVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.UnderSpace):
 		dobj.revealUnder()
 		list_version = list(dobj.contains.keys())
 		if len(list_version) > 0:
 			app.printToGUI(dobj.contains_desc)
-			try:
-				dobj.lookUnderVerbDobj(me, app)
-			except AttributeError:
-				pass
 			return True
 		else:
 			app.printToGUI("There is nothing " + dobj.contains_preposition + " " + dobj.getArticle(True) + dobj.verbose_name + ".")
-			try:
-				dobj.lookUnderVerbDobj(me, app)
-			except AttributeError:
-				pass
 			return True
 	elif dobj.invItem:
 		getVerbFunc(me, app, dobj)
@@ -725,6 +774,7 @@ askVerb.hasIobj = True
 askVerb.iscope = "knows"
 askVerb.impDobj = True
 askVerb.preposition = ["about"]
+askVerb.dtype = "Actor"
 
 def getImpAsk(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -753,10 +803,23 @@ def getImpAsk(me, app):
 # replace the default getImpDobj method
 askVerb.getImpDobj = getImpAsk
 
-def askVerbFunc(me, app, dobj, iobj):
+def askVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Ask an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	from .thing import reflexive
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.askVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.askVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, actor.Actor):
 		# try to find the ask topic for iobj
 		if iobj==reflexive:	
@@ -764,24 +827,8 @@ def askVerbFunc(me, app, dobj, iobj):
 		if iobj.ix in dobj.ask_topics:
 			# call the ask function for iobj
 			dobj.ask_topics[iobj].func(app)
-			try:
-				dobj.askVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.askVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
 		else:
 			dobj.defaultTopic(app)
-			try:
-				dobj.askVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.askVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -798,6 +845,7 @@ tellVerb.hasIobj = True
 tellVerb.iscope = "knows"
 tellVerb.impDobj = True
 tellVerb.preposition = ["about"]
+tellVerb.dtype = "Actor"
 
 def getImpTell(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -826,33 +874,30 @@ def getImpTell(me, app):
 # replace default getImpDobj method
 tellVerb.getImpDobj = getImpTell
 
-def tellVerbFunc(me, app, dobj, iobj):
+def tellVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Tell an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	from .thing import reflexive
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.tellVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = dobj.tellVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, actor.Actor):
 		if iobj==reflexive:	
 				iobj = dobj
 		if iobj.ix in dobj.tell_topics:
 			dobj.tell_topics[iobj].func(app)
-			try:
-				dobj.tellVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.tellVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
 		else:
 			dobj.defaultTopic(app)
-			try:
-				dobj.tellVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.tellVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -869,6 +914,7 @@ giveVerb.hasIobj = True
 giveVerb.iscope = "inv"
 giveVerb.impDobj = True
 giveVerb.preposition = ["to"]
+giveVerb.dtype = "Actor"
 
 def getImpGive(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -900,6 +946,19 @@ giveVerb.getImpDobj = getImpGive
 def giveVerbFunc(me, app, dobj, iobj):
 	"""Give an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.giveVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.giveVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, actor.Actor):
 		if iobj.ix in dobj.give_topics:
 			dobj.give_topics[iobj].func(app)
@@ -920,24 +979,10 @@ def giveVerbFunc(me, app, dobj, iobj):
 					else:
 						iobj.sub_contains[t.ix] = [t]
 				dobj.addIn(iobj)
-			try:
-				dobj.giveVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.giveVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
+			return True
 		else:
 			dobj.defaultTopic(app)
-			try:
-				dobj.tellVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.tellVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
+			return True
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -954,6 +999,7 @@ showVerb.hasIobj = True
 showVerb.iscope = "inv"
 showVerb.impDobj = True
 showVerb.preposition = ["to"]
+showVerb.dtype = "Actor"
 
 def getImpShow(me, app):
 	"""If no dobj is specified, try to guess the Actor
@@ -982,30 +1028,26 @@ def getImpShow(me, app):
 # replace default getImpDobj method
 showVerb.getImpDobj = getImpShow
 
-def showVerbFunc(me, app, dobj, iobj):
+def showVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Show an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.showVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.showVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
 	if isinstance(dobj, actor.Actor):
 		if iobj.ix in dobj.show_topics:
-			dobj.show_topics[iobj].func(app)
-			try:
-				dobj.showVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.showVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
+			dobj.show_topics[iobj.ix].func(app)
 		else:
 			dobj.defaultTopic(app)
-			try:
-				dobj.showVerbDobj(me, app, iobj)
-			except AttributeError:
-				pass
-			try:
-				iobj.showVerbIobj(me, app, dobj)
-			except AttributeError:
-				pass
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -1023,9 +1065,18 @@ wearVerb.dtype = "Clothing"
 wearVerb.dscope = "inv"
 wearVerb.preposition = ["on"]
 
-def wearVerbFunc(me, app, dobj):
+def wearVerbFunc(me, app, dobj, skip=False):
 	"""Wear a piece of clothing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.wearVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.Clothing):
 		app.printToGUI("You wear " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		#me.contains.remove(dobj)
@@ -1037,10 +1088,6 @@ def wearVerbFunc(me, app, dobj):
 			me.wearing[dobj.ix].append(dobj)
 		else:
 			me.wearing[dobj.ix] = [dobj]
-		try:
-			dobj.wearVerbDobj(me, app)
-		except AttributeError:
-			pass
 	else:
 		app.printToGUI("You cannot wear that.")
 
@@ -1057,9 +1104,18 @@ doffVerb.hasDobj = True
 doffVerb.dscope = "wearing"
 doffVerb.preposition = ["off"]
 
-def doffVerbFunc(me, app, dobj):
+def doffVerbFunc(me, app, dobj, skip=False):
 	"""Take off a piece of clothing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.doffVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	app.printToGUI("You take off " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 	#me.contains.append(dobj)
 	if dobj.ix in me.contains:
@@ -1070,10 +1126,6 @@ def doffVerbFunc(me, app, dobj):
 	me.wearing[dobj.ix].remove(dobj)
 	if me.wearing[dobj.ix] == []:
 		del me.wearing[dobj.ix]
-	try:
-		dobj.doffVerbDobj(me, app)
-	except AttributeError:
-		pass
 
 # replace default verbFunc method
 doffVerb.verbFunc = doffVerbFunc
@@ -1159,9 +1211,18 @@ standOnVerb.hasDobj = True
 standOnVerb.dscope = "room"
 standOnVerb.preposition = ["on"]
 
-def standOnVerbFunc(me, app, dobj):
+def standOnVerbFunc(me, app, dobj, skip=False):
 	"""Sit on a Surface where canSit is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.standOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	outer_loc = me.getOutermostLocation()
 	if dobj==outer_loc.floor:
 		if me.location==outer_loc and me.position=="standing":
@@ -1185,11 +1246,6 @@ def standOnVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addOn(me)
 		me.makeStanding()
-		try:
-			dobj.standOnVerbDobj(me, app)
-		except AttributeError:
-			pass
-		return True
 	else:
 		app.printToGUI("You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return False
@@ -1205,9 +1261,18 @@ sitOnVerb.hasDobj = True
 sitOnVerb.dscope = "room"
 sitOnVerb.preposition = ["down", "on"]
 
-def sitOnVerbFunc(me, app, dobj):
+def sitOnVerbFunc(me, app, dobj, skip=False):
 	"""Stand on a Surface where canStand is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.sitOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	outer_loc = me.getOutermostLocation()
 	if dobj==outer_loc.floor:
 		if me.location==outer_loc and me.position=="sitting":
@@ -1220,10 +1285,6 @@ def sitOnVerbFunc(me, app, dobj):
 			outer_loc.addThing(me)
 			app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeSitting()
-		try:
-			dobj.sitOnVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Surface):
 		app.printToGUI("You are already sitting on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1235,10 +1296,6 @@ def sitOnVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addOn(me)
 		me.makeSitting()
-		try:
-			dobj.sitOnVerbDobj(me, app)
-		except AttributeError:
-			pass
 	else:
 		app.printToGUI("You cannot sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 
@@ -1257,6 +1314,14 @@ lieOnVerb.preposition = ["down", "on"]
 def lieOnVerbFunc(me, app, dobj):
 	"""Lie on a Surface where canLie is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	runfunc = True
+	try:
+		runfunc = dobj.lieOnVerbDobj(me, app)
+	except AttributeError:
+		pass
+	if not runfunc:
+		return True
+	
 	outer_loc = me.getOutermostLocation()
 	if dobj==outer_loc.floor:
 		if me.location==outer_loc and me.position=="lying":
@@ -1269,10 +1334,6 @@ def lieOnVerbFunc(me, app, dobj):
 			outer_loc.addThing(me)
 			app.printToGUI("You lie on the " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeLying()
-		try:
-			dobj.lieOnVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Surface):
 		app.printToGUI("You are already lying on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1284,10 +1345,6 @@ def lieOnVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addOn(me)
 		me.makeLying()
-		try:
-			dobj.lieOnVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return  True
 	else:
 		app.printToGUI("You cannot lie on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1304,9 +1361,18 @@ sitInVerb.dscope = "room"
 sitInVerb.preposition = ["down", "in"]
 
 # when the Chair subclass of Surface is implemented, redirect to sit on if dobj is a Chair
-def sitInVerbFunc(me, app, dobj):
+def sitInVerbFunc(me, app, dobj, skip=False):
 	"""Stand on a Surface where canStand is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.sitInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Container):
 		app.printToGUI("You are already sitting in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return True
@@ -1318,11 +1384,6 @@ def sitInVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addIn(me)
 		me.makeSitting()
-		try:
-			dobj.sitInVerbDobj(me, app)
-		except AttributeError:
-			pass
-		return True
 	else:
 		app.printToGUI("You cannot sit in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return False
@@ -1338,9 +1399,18 @@ standInVerb.hasDobj = True
 standInVerb.dscope = "room"
 standInVerb.preposition = ["in"]
 
-def standInVerbFunc(me, app, dobj):
+def standInVerbFunc(me, app, dobj, skip=False):
 	"""Sit on a Surface where canSit is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.standInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if me.location==dobj and me.position=="standing" and isinstance(dobj, thing.Container):
 		app.printToGUI("You are already standing in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return True
@@ -1352,10 +1422,6 @@ def standInVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addIn(me)
 		me.makeStanding()
-		try:
-			dobj.standInVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	else:
 		app.printToGUI("You cannot stand in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1373,9 +1439,18 @@ lieInVerb.hasDobj = True
 lieInVerb.dscope = "room"
 lieInVerb.preposition = ["down", "in"]
 
-def lieInVerbFunc(me, app, dobj):
+def lieInVerbFunc(me, app, dobj, skip=False):
 	"""Lie on a Surface where canLie is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.lieInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Container):
 		app.printToGUI("You are already lying in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return True
@@ -1387,10 +1462,6 @@ def lieInVerbFunc(me, app, dobj):
 				del me.location.contains[me.ix]
 		dobj.addIn(me)
 		me.makeLying()
-		try:
-			dobj.lieInVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	else:
 		app.printToGUI("You cannot lie in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1409,10 +1480,19 @@ climbOnVerb.dscope = "room"
 climbOnVerb.dtype = "Surface"
 climbOnVerb.preposition = ["on", "up"]
 
-def climbOnVerbFunc(me, app, dobj):
+def climbOnVerbFunc(me, app, dobj, skip=False):
 	"""Climb on a Surface where one of more of canStand/canSit/canLie is True
 	Will be extended once stairs/ladders are implemented
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.climbOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.AbstractClimbable):
 		if dobj.direction=="u":
 			dobj.connection.travel(me, app)
@@ -1421,24 +1501,12 @@ def climbOnVerbFunc(me, app, dobj):
 			return False
 	elif isinstance(dobj, thing.Surface) and dobj.canStand:
 		standOnVerb.verbFunc(me, app, dobj)
-		try:
-			dobj.standOnVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	elif isinstance(dobj, thing.Surface) and dobj.canSit:
 		sitOnVerb.verbFunc(me, app, dobj)
-		try:
-			dobj.sitOnVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	elif isinstance(dobj, thing.Surface) and dobj.canLie:
 		lieOnVerb.verbFunc(me, app, dobj)
-		try:
-			dobj.lieOnVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	else:
 		app.printToGUI("You cannot climb on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1508,10 +1576,19 @@ climbDownFromVerb.hasDobj = True
 climbDownFromVerb.dscope = "room"
 climbDownFromVerb.preposition = ["off", "down", "from"]
 
-def climbDownFromVerbFunc(me, app, dobj):
+def climbDownFromVerbFunc(me, app, dobj, skip=False):
 	"""Climb down from a Surface you currently occupy
 	Will be extended once stairs/ladders/up direction/down direction are implemented
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.climbDownFromVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.AbstractClimbable):
 		if dobj.direction=="d":
 			dobj.connection.travel(me, app)
@@ -1526,24 +1603,12 @@ def climbDownFromVerbFunc(me, app, dobj):
 			me.location.removeThing(me)
 			if isinstance(outer_loc, thing.Surface):
 				outer_loc.addOn(me)
-				try:
-					dobj.climbDownFromVerbDobj(me, app)
-				except AttributeError:
-					pass
 				return True
 			elif isinstance(outer_loc, thing.Container):
 				outer_loc.addIn(me)
-				try:
-					dobj.climbDownFromVerbDobj(me, app)
-				except AttributeError:
-					pass
 				return True
 			elif isinstance(outer_loc, room.Room):
 				outer_loc.addThing(me) 
-				try:
-					dobj.climbDownFromVerbDobj(me, app)
-				except AttributeError:
-					pass
 				return True
 			else:
 				print("Unsupported outer location type: " + outer_loc.name)
@@ -1562,24 +1627,34 @@ climbDownFromVerb.verbFunc = climbDownFromVerbFunc
 # transitive verb, no indirect object
 climbInVerb = Verb("climb", "climb in")
 climbInVerb.addSynonym("get")
-climbInVerb.syntax = [["climb", "in", "<dobj>"], ["get", "in", "<dobj>"], ["climb", "into", "<dobj>"], ["get", "into", "<dobj>"]]
+climbInVerb.addSynonym("enter")
+climbInVerb.addSynonym("go")
+climbInVerb.syntax = [["climb", "in", "<dobj>"], ["get", "in", "<dobj>"], ["climb", "into", "<dobj>"], ["get", "into", "<dobj>"], ["enter", "<dobj>"], ["go", "in", "<dobj>"], ["go", "into", "<dobj>"]]
 climbInVerb.hasDobj = True
 climbInVerb.dscope = "room"
 climbInVerb.preposition = ["in", "into"]
 
-def climbInVerbFunc(me, app, dobj):
+def climbInVerbFunc(me, app, dobj, skip=False):
 	"""Climb in a Container where one of more of canStand/canSit/canLie is True
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.climbInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
+	if dobj.connection:
+		dobj.connection.travel(me, app)
+		return True
 	if isinstance(dobj, thing.Container) and dobj.canStand:
 		if dobj.has_lid:
 			if not dobj.is_open:
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		standInVerb.verbFunc(me, app, dobj)
-		try:
-			dobj.climbInVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	elif isinstance(dobj, thing.Container) and dobj.canSit:
 		if dobj.has_lid:
@@ -1587,10 +1662,6 @@ def climbInVerbFunc(me, app, dobj):
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		sitInVerb.verbFunc(me, app, dobj)
-		try:
-			dobj.climbInVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	elif isinstance(dobj, thing.Container) and dobj.canLie:
 		if dobj.has_lid:
@@ -1598,10 +1669,6 @@ def climbInVerbFunc(me, app, dobj):
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		lieInVerb.verbFunc(me, app, dobj)
-		try:
-			dobj.climbInVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	else:
 		app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1648,10 +1715,19 @@ climbOutOfVerb.hasDobj = True
 climbOutOfVerb.dscope = "room"
 climbOutOfVerb.preposition = ["out", "of"]
 
-def climbOutOfVerbFunc(me, app, dobj):
+def climbOutOfVerbFunc(me, app, dobj, skip=False):
 	"""Climb down from a Surface you currently occupy
 	Will be extended once stairs/ladders/up direction/down direction are implemented
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.climbOutOfVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if me.location==dobj:
 		if isinstance(me.location, thing.Container):
 			app.printToGUI("You climb out of " + me.location.getArticle(True) + me.location.verbose_name  + ".")
@@ -1659,24 +1735,12 @@ def climbOutOfVerbFunc(me, app, dobj):
 			me.location.removeThing(me)
 			if isinstance(outer_loc, thing.Surface):
 				outer_loc.addOn(me)
-				try:
-					dobj.climbOutOfVerbDobj(me, app)
-				except AttributeError:
-					pass
 				return True
 			elif isinstance(outer_loc, thing.Container):
 				outer_loc.addIn(me)
-				try:
-					dobj.climbOutOfVerbDobj(me, app)
-				except AttributeError:
-					pass
-					return True
+				return True
 			elif isinstance(outer_loc, room.Room):
 				outer_loc.addThing(me)
-				try:
-					dobj.climbOutOfVerbDobj(me, app)
-				except AttributeError:
-					pass
 				return True
 			else:
 				print("Unsupported outer location type: " + outer_loc.name)
@@ -1698,7 +1762,7 @@ openVerb.syntax = [["open", "<dobj>"]]
 openVerb.hasDobj = True
 openVerb.dscope = "near"
 
-def openVerbFunc(me, app, dobj):
+def openVerbFunc(me, app, dobj, skip=False):
 	"""Open a Thing with an open property
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	if dobj.lock_obj:
@@ -1708,6 +1772,16 @@ def openVerbFunc(me, app, dobj):
 			except:
 				app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is locked. ")
 			return False
+	runfunc = True
+	
+	if not skip:
+		try:
+			runfunc = dobj.openVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+
 	try:
 		state = dobj.is_open
 	except AttributeError:
@@ -1716,10 +1790,6 @@ def openVerbFunc(me, app, dobj):
 	if state==False:
 		app.printToGUI("You open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		dobj.makeOpen()
-		try:
-			dobj.openVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	else:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already open. ")
@@ -1736,14 +1806,25 @@ closeVerb.syntax = [["close", "<dobj>"], ["shut","<dobj>"]]
 closeVerb.hasDobj = True
 closeVerb.dscope = "near"
 
-def closeVerbFunc(me, app, dobj):
+def closeVerbFunc(me, app, dobj, skip=False):
 	"""Open a Thing with an open property
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
+	
 	if isinstance(dobj, thing.Container):
 		if dobj.has_lid:
 			if me.ix in dobj.contains or me.ix in dobj.sub_contains:
 				app.printToGUI("You cannot close " + dobj.getArticle(True) + dobj.verbose_name + " while you are inside it. ")
 				return False
+	
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.closeVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	try:
 		state = dobj.is_open
 	except AttributeError:
@@ -1752,10 +1833,6 @@ def closeVerbFunc(me, app, dobj):
 	if state==True:
 		app.printToGUI("You close " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		dobj.makeClosed()
-		try:
-			dobj.closeVerbDobj(me, app)
-		except AttributeError:
-			pass
 		return True
 	else:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already closed. ")
@@ -1810,10 +1887,19 @@ unlockVerb.syntax = [["unlock", "<dobj>"], ["unbolt", "<dobj>"]]
 unlockVerb.hasDobj = True
 unlockVerb.dscope = "near"
 
-def unlockVerbFunc(me, app, dobj):
+def unlockVerbFunc(me, app, dobj, skip=False):
 	"""Unlock a Door or Container with an lock
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
 	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock. """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.unlockVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
 		if dobj.lock_obj:
 			if dobj.lock_obj.is_locked:
@@ -1822,10 +1908,6 @@ def unlockVerbFunc(me, app, dobj):
 						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
 						app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 						dobj.lock_obj.makeUnlocked()
-						try:
-							dobj.unlockVerbDobj(me, app)
-						except AttributeError:
-							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -1846,10 +1928,6 @@ def unlockVerbFunc(me, app, dobj):
 					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
 					app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 					dobj.makeUnlocked()
-					try:
-						dobj.parent_obj.unlockVerbDobj(me, app)
-					except AttributeError:
-						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")
@@ -1875,10 +1953,19 @@ lockVerb.syntax = [["lock", "<dobj>"], ["bolt", "<dobj>"]]
 lockVerb.hasDobj = True
 lockVerb.dscope = "near"
 
-def lockVerbFunc(me, app, dobj):
+def lockVerbFunc(me, app, dobj, skip=False):
 	"""Lock a Door or Container with an lock
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
 	Returns True when the function ends with dobj locked. Returns False on failure to lock, or when dobj has no lock. """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.lockVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
 		if dobj.is_open:
 			if not closeVerb.verbFunc(me, app, dobj):
@@ -1891,10 +1978,6 @@ def lockVerbFunc(me, app, dobj):
 						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
 						app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 						dobj.lock_obj.makeLocked()
-						try:
-							dobj.lockVerbDobj(me, app)
-						except AttributeError:
-							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -1919,10 +2002,6 @@ def lockVerbFunc(me, app, dobj):
 					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
 					app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 					dobj.makeLocked()
-					try:
-						dobj.parent_obj.lockVerbDobj(me, app)
-					except AttributeError:
-						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")
@@ -1953,10 +2032,19 @@ unlockWithVerb.preposition = ["with", "using"]
 unlockWithVerb.dscope = "near"
 unlockWithVerb.iscope = "inv"
 
-def unlockWithVerbFunc(me, app, dobj, iobj):
+def unlockWithVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Unlock a Door or Container with an lock
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
 	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.unlockVerbDobj(me, app, iobj)
+		except AttributeError:
+			supress = False
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
 		if dobj.lock_obj:
 			if dobj.lock_obj.is_locked:
@@ -1968,10 +2056,6 @@ def unlockWithVerbFunc(me, app, dobj, iobj):
 						app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 						dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 						dobj.lock_obj.makeUnlocked()
-						try:
-							dobj.unlockVerbDobj(me, app)
-						except AttributeError:
-							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -1995,10 +2079,6 @@ def unlockWithVerbFunc(me, app, dobj, iobj):
 					app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 					dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 					dobj.makeUnlocked()
-					try:
-						dobj.parent_obj.unlockVerbDobj(me, app)
-					except AttributeError:
-						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")
@@ -2027,10 +2107,19 @@ lockWithVerb.preposition = ["with", "using"]
 lockWithVerb.dscope = "near"
 lockWithVerb.iscope = "inv"
 
-def lockWithVerbFunc(me, app, dobj, iobj):
+def lockWithVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Unlock a Door or Container with an lock
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing
 	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.lockVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	
 	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
 		if dobj.is_open:
 			if not closeVerb.verbFunc(me, app, dobj):
@@ -2046,10 +2135,6 @@ def lockWithVerbFunc(me, app, dobj, iobj):
 						app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 						dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 						dobj.lock_obj.makeLocked()
-						try:
-							dobj.lockVerbDobj(me, app)
-						except AttributeError:
-							pass
 						return True
 					else:
 						app.printToGUI("You do not have the correct key. ")
@@ -2077,10 +2162,6 @@ def lockWithVerbFunc(me, app, dobj, iobj):
 					app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + " using " +\
 					dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name +". ")
 					dobj.makeLocked()
-					try:
-						dobj.parent_obj.lockVerbDobj(me, app)
-					except AttributeError:
-						pass
 					return True
 				else:
 					app.printToGUI("You do not have the correct key. ")
@@ -2104,6 +2185,7 @@ goVerb = Verb("go")
 goVerb.syntax = [["go", "<dobj>"]]
 goVerb.hasDobj = True
 goVerb.dscope = "direction"
+goVerb.dtype = "Direction"
 
 def goVerbFunc(me, app, dobj):
 	"""Empty function which should never be evaluated

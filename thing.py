@@ -26,6 +26,7 @@ class Thing:
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.far_away = False
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
@@ -80,9 +81,11 @@ class Thing:
 	def removeSynonym(self, word):
 		"""Adds a synonym (noun) that can be used to refer to a Thing
 		Takes argument word, a string, which should be a single noun """
-		self.synonyms.remove(word)
+		if word in self.synonyms:
+			self.synonyms.remove(word)
 		if word in vocab.nounDict:
-			vocab.nounDict[word].remove(self)
+			if self in vocab.nounDict[word]:
+				vocab.nounDict[word].remove(self)
 			if vocab.nounDict[word] == []:
 				del vocab.nounDict[word]
 	
@@ -232,6 +235,7 @@ class Surface(Thing):
 		# items contained by items on the Surface
 		# accessible by default, but not shown in outermost description
 		self.sub_contains = {}
+		self.far_away = False
 		self.adjectives = []
 		self.is_composite = False
 		self.parent_obj = False
@@ -459,6 +463,7 @@ class Container(Thing):
 		self.size = 50
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
+		self.far_away = False
 		self.has_lid = False
 		self.lock_obj = False
 		self.lock_desc = ""
@@ -795,6 +800,7 @@ class AbstractClimbable(Thing):
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.far_away = False
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
@@ -849,6 +855,7 @@ class Door(Thing):
 		self.lock_desc = ""
 		self.connection = False
 		# thing properties
+		self.far_away = False
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
@@ -955,6 +962,7 @@ class Key(Thing):
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.far_away = False
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 10
@@ -1015,6 +1023,7 @@ class Lock(Thing):
 		self.connection = False
 		self.direction = False
 		# thing properties
+		self.far_away = False
 		self.size = 20
 		self.contains_preposition = False
 		self.contains_preposition_inverse = False
@@ -1101,6 +1110,7 @@ class Abstract(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# properties
+		self.far_away = False
 		self.is_composite = False
 		self.parent_obj = False
 		self.isPlural = False
@@ -1140,6 +1150,7 @@ class UnderSpace(Thing):
 		"""Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
 		self.me = me
+		self.far_away = False
 		self.revealed = False
 		self.size = 50
 		self.contains_preposition = "under"

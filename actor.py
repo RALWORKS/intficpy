@@ -28,6 +28,7 @@ class Actor(Thing):
 		self.invItem = False # cannot be added to the contains
 		self.parent_obj = False
 		self.size = 50
+		self.far_away = False
 		self.adjectives = []
 		self.synonyms = []
 		self.special_plural = False
@@ -252,6 +253,7 @@ class Player(Actor):
 		self.verbose_name = name
 		self.is_composite = False
 		self.invItem = False
+		self.far_away = False
 		self.cannotTakeMsg = "You cannot take yourself."
 		self.parent_obj = False
 		self.special_plural = False
