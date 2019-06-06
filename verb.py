@@ -37,6 +37,8 @@ class Verb:
 		self.impDobj = False
 		self.impIobj = False
 		self.preposition = False
+		self.dobj_direction = False
+		self.iobj_direction = False
 		self.syntax = []
 		# range for direct and indierct objects
 		self.dscope = "room" # "knows", "near", "room" or "inv"
@@ -1478,6 +1480,7 @@ climbOnVerb.syntax = [["climb", "on", "<dobj>"], ["get", "on", "<dobj>"], ["clim
 climbOnVerb.hasDobj = True
 climbOnVerb.dscope = "room"
 climbOnVerb.dtype = "Surface"
+climbOnVerb.dobj_direction = "u"
 climbOnVerb.preposition = ["on", "up"]
 
 def climbOnVerbFunc(me, app, dobj, skip=False):
@@ -1575,6 +1578,7 @@ climbDownFromVerb.syntax = [["climb", "off", "<dobj>"], ["get", "off", "<dobj>"]
 climbDownFromVerb.hasDobj = True
 climbDownFromVerb.dscope = "room"
 climbDownFromVerb.preposition = ["off", "down", "from"]
+climbDownFromVerb.dobj_direction = "d"
 
 def climbDownFromVerbFunc(me, app, dobj, skip=False):
 	"""Climb down from a Surface you currently occupy

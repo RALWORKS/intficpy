@@ -655,7 +655,7 @@ def verbScopeError(app, scope, noun_adj_arr):
 		lastTurn.err = True
 		return None
 
-def getThing(me, app, noun_adj_arr, scope, far_obj):
+def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 	"""Get the Thing object in range associated with a list of adjectives and a noun
 	Takes arguments me, app, noun_adj_array, a list of strings referring to an in game item, taken from the player command, 
 	and scope, a string specifying the range of the verb
@@ -679,10 +679,10 @@ def getThing(me, app, noun_adj_arr, scope, far_obj):
 	if len(things) == 0:
 		return verbScopeError(app, scope, noun_adj_arr)
 	else:
-		thing = checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj)
+		thing = checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_direction)
 		return thing
 
-def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj):
+def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_direction):
 	"""If there are multiple Thing objects matching the noun, check the adjectives to narrow down to exactly 1
 	Takes arguments app, noun_adj_arr, a list of strings referring to an in game item, taken from the player command,noun (string), things, a list of Thing objects
 	(things.py) that are 	candidates for the target of the player's action, and scope, a string specifying the range of the verb
@@ -723,8 +723,18 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj):
 		for item in things:
 			if item.far_away:
 				remove_far.append(item)
-		for item in remove_far:
-			things.remove(item)
+		if len(things) > len(remove_far):
+			for item in remove_far:
+				things.remove(item)
+	if len(things) > 1 and obj_direction:
+		remove_wrong = []
+		for item in things:
+			if item.direction:
+				if item.direction != obj_direction:
+					remove_wrong.append(item)
+		if len(things) > len(remove_wrong):
+			for item in remove_wrong:
+				things.remove(item)
 	if len(things)==1:	
 			return things[0]
 	elif len(things) >1:
@@ -760,7 +770,7 @@ def callVerb(me, app, cur_verb, obj_words):
 		if isinstance(obj_words[0], thing.Thing):
 			cur_dobj = obj_words[0]
 		else:
-			cur_dobj = getThing(me, app, obj_words[0], cur_verb.dscope, cur_verb.far_dobj)
+			cur_dobj = getThing(me, app, obj_words[0], cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 		lastTurn.dobj = cur_dobj
 	else:
 		cur_dobj = False
@@ -771,49 +781,49 @@ def callVerb(me, app, cur_verb, obj_words):
 		if isinstance(obj_words[1], thing.Thing):
 			cur_iobj = obj_words[1]
 		else:
-			cur_iobj = getThing(me, app, obj_words[1], cur_verb.iscope, cur_verb.far_iobj)
+			cur_iobj = getThing(me, app, obj_words[1], cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 		lastTurn.iobj = cur_iobj
 	else:
 		cur_iobj = False
 		lastTurn.iobj = False
 	if not isinstance(cur_iobj, thing.Container) and cur_verb.itype=="Container" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
 		if cur_iobj.child_Containers != []:
-			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Containers, cur_verb.iscope, cur_verb.far_iobj)
+			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Containers, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 			lastTurn.iobj = False
 			if cur_iobj:
 				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
 				lastTurn.iobj = cur_iobj
 	elif not isinstance(cur_iobj, thing.Surface) and cur_verb.itype=="Surface" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
 		if cur_iobj.child_Surfaces != []:
-			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Surfaces, cur_verb.iscope, cur_verb.far_iobj)
+			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Surfaces, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 			lastTurn.iobj = False
 			if cur_iobj:
 				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
 				lastTurn.iobj = cur_iobj
 	elif not isinstance(cur_iobj, thing.UnderSpace) and cur_verb.itype=="UnderSpace" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
 		if cur_iobj.child_UnderSpaces != []:
-			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_UnderSpaces, cur_verb.iscope, cur_verb.far_iobj)
+			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_UnderSpaces, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 			lastTurn.iobj = False
 			if cur_iobj:
 				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
 				lastTurn.iobj = cur_iobj
 	if not isinstance(cur_dobj, thing.Container) and cur_verb.dtype=="Container" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
 		if cur_dobj.child_Containers != []:
-			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Containers, cur_verb.dscope, cur_verb.far_dobj)
+			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Containers, cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 			lastTurn.dobj = False
 			if cur_dobj:
 				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
 				lastTurn.iobj = cur_dobj
 	elif not isinstance(cur_dobj, thing.Surface) and cur_verb.dtype=="Surface" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
 		if cur_dobj.child_Surfaces != []:
-			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Surfaces, cur_verb.dscope, cur_verb.far_dobj)
+			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Surfaces, cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 			lastTurn.dobj = False
 			if cur_dobj:
 				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
 				lastTurn.iobj = cur_dobj
 	elif not isinstance(cur_dobj, thing.UnderSpace) and cur_verb.dtype=="UnderSpace" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
 		if cur_dobj.child_UnderSpaces != []:
-			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_UnderSpaces, cur_verb.dscope,)
+			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_UnderSpaces, cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 			lastTurn.dobj = False
 			if cur_dobj:
 				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
