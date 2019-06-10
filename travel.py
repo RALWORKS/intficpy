@@ -16,9 +16,10 @@ connector_ix = 0
 class TravelConnector:
 	"""Base class for travel connectors
 	Links two rooms together"""
-	def __init__(self, room1, direction1, room2, direction2):
+	def __init__(self, room1, direction1, room2, direction2, name="doorway",  prep=0):
 		global connector_ix
 		self.ix = "connector" + str(connector_ix)
+		self.prep = prep
 		connector_ix = connector_ix + 1
 		connectors[self.ix] = self
 		self.pointA = room1
@@ -30,8 +31,8 @@ class TravelConnector:
 		r = [room1, room2]
 		d = [direction1, direction2]
 		interactables = []
-		self.entranceA = thing.Thing("doorway")
-		self.entranceB = thing.Thing("doorway")
+		self.entranceA = thing.Thing(name)
+		self.entranceB = thing.Thing(name)
 		self.entranceA.invItem = False
 		self.entranceB.invItem = False
 		self.entranceA.connection = self
@@ -45,59 +46,53 @@ class TravelConnector:
 			if d[x]=="n":
 				r[x].north = self
 				interactables[x].setAdjectives(["north"])
-				interactables[x].describeThing("There is a doorway to the north. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the north doorway. ")
+				interactables[x].describeThing("There is a " + name + " to the north. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="s":
 				r[x].south = self
 				interactables[x].setAdjectives(["south"])
-				interactables[x].describeThing("There is a doorway to the south. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the south doorway. ")
+				interactables[x].describeThing("There is a " + name + " to the south. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="e":
 				r[x].east = self
 				interactables[x].setAdjectives(["east"])
-				interactables[x].describeThing("There is a doorway to the east. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the east doorway. ")
+				interactables[x].describeThing("There is a " + name + " to the east. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="w":
 				r[x].west = self
 				interactables[x].setAdjectives(["west"])
-				interactables[x].describeThing("There is a doorway to the west. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the west door. ")
+				interactables[x].describeThing("There is a " + name + " to the west. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="ne":
 				r[x].northeast = self
 				interactables[x].setAdjectives(["northeast"])
-				interactables[x].describeThing("There is a doorway to the northeast. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the northeast doorway. ")
+				interactables[x].describeThing("There is a " + name + " to the northeast. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="nw":
 				r[x].northwest = self
 				interactables[x].setAdjectives(["northwest"])
-				interactables[x].describeThing("There is a doorway to the northwest. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the northwest doorway. ")
+				interactables[x].describeThing("There is a " + name + " to the northwest. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about  " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="se":
 				r[x].southeast = self
 				interactables[x].setAdjectives(["southeast"])
-				interactables[x].describeThing("There is a doorway to the southeast. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the southeast doorway. ")
+				interactables[x].describeThing("There is a " + name + " to the southeast. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="sw":
 				r[x].southwest = self
 				interactables[x].setAdjectives(["southwest"])
-				interactables[x].describeThing("There is a doorway to the southwest. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the southwest doorway. ")
+				interactables[x].describeThing("There is a " + name + " to the southwest. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="u":
 				r[x].up = self
 				interactables[x].setAdjectives(["up", "upward"])
-				interactables[x].addSynonym("staircase")
-				interactables[x].name = "staircase"
-				interactables[x].removeSynonym("doorway")
-				interactables[x].describeThing("There is a staircase leading up. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the staircase. ")
+				interactables[x].describeThing("There is a " + name + " leading up. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about the " + interactables[x].getArticle(True) + name + ".")
 			elif d[x]=="d":
 				r[x].down = self
 				interactables[x].setAdjectives(["down", "downward"])
-				interactables[x].addSynonym("staircase")
-				interactables[x].name = "staircase"
-				interactables[x].removeSynonym("doorway")
-				interactables[x].describeThing("There is a staircase leading down. ")
-				interactables[x].xdescribeThing("You notice nothing remarkable about the staircase. ")
+				interactables[x].describeThing("There is a " + name + " leading down. ")
+				interactables[x].xdescribeThing("You notice nothing remarkable about  " + interactables[x].getArticle(True) + name + ".")
 			else:
 				print("error: invalid direction input for TravelConnector: " + d[x])
 	
@@ -114,7 +109,13 @@ class TravelConnector:
 				if self.entranceA_msg:
 					app.printToGUI(self.entranceA_msg)
 				else:	
-					app.printToGUI("You go through the doorway. ")
+					if self.prep==0:
+						x = "through "
+					elif self.prep==1:
+						x = "into "
+					else:
+						x = "up "
+					app.printToGUI("You go " + x + self.entranceA.getArticle(True) + self.entranceA.name + ".")
 				me.location.describe(me, app)
 				try:
 					me.location.arriveFunc(me, app)
@@ -129,7 +130,13 @@ class TravelConnector:
 				if self.entranceB_msg:
 					app.printToGUI(self.entranceB_msg)
 				else:	
-					app.printToGUI("You go through the doorway. ")
+					if self.prep==0:
+						x = "through "
+					elif self.prep==1:
+						x = "out of "
+					else:
+						x = "down "
+					app.printToGUI("You go " + x + self.entranceB.getArticle(True) + self.entranceB.name + ".")
 				me.location.describe(me, app)
 				try:
 					me.location.arriveFunc(me, app)

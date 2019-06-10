@@ -153,7 +153,7 @@ getVerb = Verb("get")
 getVerb.addSynonym("take")
 getVerb.addSynonym("pick")
 getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"], ["pick", "up", "<dobj>"], ["pick", "<dobj>", "up"]]
-getVerb.preposition = ["up"]
+#getVerb.preposition = ["up"]
 getVerb.dscope = "near"
 getVerb.hasDobj = True
 
@@ -244,7 +244,7 @@ dropVerb.addSynonym("put")
 dropVerb.syntax = [["drop", "<dobj>"], ["put", "down", "<dobj>"], ["put", "<dobj>", "down"]]
 dropVerb.hasDobj = True
 dropVerb.dscope = "inv"
-dropVerb.preposition = ["down"]
+#dropVerb.preposition = ["down"]
 
 def dropVerbFunc(me, app, dobj, skip=False):
 	"""Drop a Thing from the contains
@@ -287,7 +287,7 @@ setOnVerb.dscope = "inv"
 setOnVerb.itype = "Surface"
 setOnVerb.hasIobj = True
 setOnVerb.iscope = "room"
-setOnVerb.preposition = ["on"]
+#setOnVerb.preposition = ["on"]
 
 def setOnVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Put a Thing on a Surface
@@ -360,7 +360,7 @@ setInVerb.dscope = "inv"
 setInVerb.itype = "Container"
 setInVerb.hasIobj = True
 setInVerb.iscope = "room"
-setInVerb.preposition = ["in"]
+#setInVerb.preposition = ["in"]
 
 def setInVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Put a Thing in a Container
@@ -422,7 +422,7 @@ setUnderVerb.dscope = "inv"
 setUnderVerb.hasIobj = True
 setUnderVerb.iscope = "room"
 setUnderVerb.itype = "UnderSpace"
-setUnderVerb.preposition = ["under"]
+#setUnderVerb.preposition = ["under"]
 
 def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Put a Thing under an UnderSpace
@@ -666,7 +666,7 @@ examineVerb.addSynonym("look")
 examineVerb.syntax = [["examine", "<dobj>"], ["x", "<dobj>"], ["look", "at", "<dobj>"], ["look", "<dobj>"]]
 examineVerb.hasDobj = True
 examineVerb.dscope = "near"
-examineVerb.preposition = ["at"]
+#examineVerb.preposition = ["at"]
 examineVerb.far_dobj = True
 
 def examineVerbFunc(me, app, dobj, skip=False):
@@ -692,7 +692,7 @@ lookInVerb.syntax = [["look", "in", "<dobj>"]]
 lookInVerb.hasDobj = True
 lookInVerb.dscope = "near"
 lookInVerb.dtype = "Container"
-lookInVerb.preposition = ["in"]
+#lookInVerb.preposition = ["in"]
 
 def lookInVerbFunc(me, app, dobj, skip=False):
 	"""Look inside a Thing """
@@ -733,7 +733,7 @@ lookUnderVerb.syntax = [["look", "under", "<dobj>"]]
 lookUnderVerb.hasDobj = True
 lookUnderVerb.dscope = "near"
 lookUnderVerb.dtype = "UnderSpace"
-lookUnderVerb.preposition = ["under"]
+#lookUnderVerb.preposition = ["under"]
 
 def lookUnderVerbFunc(me, app, dobj, skip=False):
 	"""Look under a Thing """
@@ -775,7 +775,7 @@ askVerb.hasDobj = True
 askVerb.hasIobj = True
 askVerb.iscope = "knows"
 askVerb.impDobj = True
-askVerb.preposition = ["about"]
+#askVerb.preposition = ["about"]
 askVerb.dtype = "Actor"
 
 def getImpAsk(me, app):
@@ -828,7 +828,7 @@ def askVerbFunc(me, app, dobj, iobj, skip=False):
 			iobj = dobj
 		if iobj.ix in dobj.ask_topics:
 			# call the ask function for iobj
-			dobj.ask_topics[iobj].func(app)
+			dobj.ask_topics[iobj.ix].func(app)
 		else:
 			dobj.defaultTopic(app)
 	else:
@@ -846,7 +846,7 @@ tellVerb.hasDobj = True
 tellVerb.hasIobj = True
 tellVerb.iscope = "knows"
 tellVerb.impDobj = True
-tellVerb.preposition = ["about"]
+#tellVerb.preposition = ["about"]
 tellVerb.dtype = "Actor"
 
 def getImpTell(me, app):
@@ -897,7 +897,7 @@ def tellVerbFunc(me, app, dobj, iobj, skip=False):
 		if iobj==reflexive:	
 				iobj = dobj
 		if iobj.ix in dobj.tell_topics:
-			dobj.tell_topics[iobj].func(app)
+			dobj.tell_topics[iobj.ix].func(app)
 		else:
 			dobj.defaultTopic(app)
 	else:
@@ -915,7 +915,7 @@ giveVerb.hasDobj = True
 giveVerb.hasIobj = True
 giveVerb.iscope = "inv"
 giveVerb.impDobj = True
-giveVerb.preposition = ["to"]
+#giveVerb.preposition = ["to"]
 giveVerb.dtype = "Actor"
 
 def getImpGive(me, app):
@@ -945,7 +945,7 @@ def getImpGive(me, app):
 # replace default getImpDobj method
 giveVerb.getImpDobj = getImpGive
 
-def giveVerbFunc(me, app, dobj, iobj):
+def giveVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Give an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	if not skip:
@@ -963,7 +963,7 @@ def giveVerbFunc(me, app, dobj, iobj):
 	
 	if isinstance(dobj, actor.Actor):
 		if iobj.ix in dobj.give_topics:
-			dobj.give_topics[iobj].func(app)
+			dobj.give_topics[iobj.ix].func(app)
 			if iobj.give:
 				me.contains[dobj.ix].remove(dobj)
 				if me.contains[dobj.ix] == []:
@@ -1000,7 +1000,7 @@ showVerb.hasDobj = True
 showVerb.hasIobj = True
 showVerb.iscope = "inv"
 showVerb.impDobj = True
-showVerb.preposition = ["to"]
+#showVerb.preposition = ["to"]
 showVerb.dtype = "Actor"
 
 def getImpShow(me, app):
@@ -1065,7 +1065,7 @@ wearVerb.syntax = [["put", "on", "<dobj>"], ["put", "<dobj>", "on"], ["wear", "<
 wearVerb.hasDobj = True
 wearVerb.dtype = "Clothing"
 wearVerb.dscope = "inv"
-wearVerb.preposition = ["on"]
+#wearVerb.preposition = ["on"]
 
 def wearVerbFunc(me, app, dobj, skip=False):
 	"""Wear a piece of clothing
@@ -1104,7 +1104,7 @@ doffVerb.addSynonym("remove")
 doffVerb.syntax = [["take", "off", "<dobj>"], ["take", "<dobj>", "off"], ["doff", "<dobj>"], ["remove", "<dobj>"]]
 doffVerb.hasDobj = True
 doffVerb.dscope = "wearing"
-doffVerb.preposition = ["off"]
+#doffVerb.preposition = ["off"]
 
 def doffVerbFunc(me, app, dobj, skip=False):
 	"""Take off a piece of clothing
@@ -1137,7 +1137,7 @@ doffVerb.verbFunc = doffVerbFunc
 lieDownVerb = Verb("lie")
 lieDownVerb.addSynonym("lay")
 lieDownVerb.syntax = [["lie", "down"], ["lay", "down"]]
-lieDownVerb.preposition = ["down"]
+#lieDownVerb.preposition = ["down"]
 
 def lieDownVerbFunc(me, app):
 	"""Take off a piece of clothing
@@ -1161,7 +1161,7 @@ lieDownVerb.verbFunc = lieDownVerbFunc
 standUpVerb = Verb("stand")
 standUpVerb.addSynonym("get")
 standUpVerb.syntax = [["stand", "up"], ["stand"], ["get", "up"]]
-standUpVerb.preposition = ["up"]
+#standUpVerb.preposition = ["up"]
 
 def standUpVerbFunc(me, app):
 	"""Take off a piece of clothing
@@ -1185,7 +1185,7 @@ standUpVerb.verbFunc = standUpVerbFunc
 # intransitive verb
 sitDownVerb = Verb("sit")
 sitDownVerb.syntax = [["sit", "down"], ["sit"]]
-sitDownVerb.preposition = ["down"]
+#sitDownVerb.preposition = ["down"]
 
 def sitDownVerbFunc(me, app):
 	"""Take off a piece of clothing
@@ -1211,7 +1211,7 @@ standOnVerb = Verb("stand", "stand on")
 standOnVerb.syntax = [["stand", "on", "<dobj>"]]
 standOnVerb.hasDobj = True
 standOnVerb.dscope = "room"
-standOnVerb.preposition = ["on"]
+#standOnVerb.preposition = ["on"]
 
 def standOnVerbFunc(me, app, dobj, skip=False):
 	"""Sit on a Surface where canSit is True
@@ -1261,7 +1261,7 @@ sitOnVerb = Verb("sit", "sit on")
 sitOnVerb.syntax = [["sit", "on", "<dobj>"], ["sit", "down", "on", "<dobj>"]]
 sitOnVerb.hasDobj = True
 sitOnVerb.dscope = "room"
-sitOnVerb.preposition = ["down", "on"]
+#sitOnVerb.preposition = ["down", "on"]
 
 def sitOnVerbFunc(me, app, dobj, skip=False):
 	"""Stand on a Surface where canStand is True
@@ -1311,7 +1311,7 @@ lieOnVerb.addSynonym("lay")
 lieOnVerb.syntax = [["lie", "on", "<dobj>"], ["lie", "down", "on", "<dobj>"], ["lay", "on", "<dobj>"], ["lay", "down", "on", "<dobj>"]]
 lieOnVerb.hasDobj = True
 lieOnVerb.dscope = "room"
-lieOnVerb.preposition = ["down", "on"]
+#lieOnVerb.preposition = ["down", "on"]
 
 def lieOnVerbFunc(me, app, dobj):
 	"""Lie on a Surface where canLie is True
@@ -1360,7 +1360,7 @@ sitInVerb = Verb("sit", "sit in")
 sitInVerb.syntax = [["sit", "in", "<dobj>"], ["sit", "down", "in", "<dobj>"]]
 sitInVerb.hasDobj = True
 sitInVerb.dscope = "room"
-sitInVerb.preposition = ["down", "in"]
+#sitInVerb.preposition = ["down", "in"]
 
 # when the Chair subclass of Surface is implemented, redirect to sit on if dobj is a Chair
 def sitInVerbFunc(me, app, dobj, skip=False):
@@ -1399,7 +1399,7 @@ standInVerb = Verb("stand", "stand in")
 standInVerb.syntax = [["stand", "in", "<dobj>"]]
 standInVerb.hasDobj = True
 standInVerb.dscope = "room"
-standInVerb.preposition = ["in"]
+#standInVerb.preposition = ["in"]
 
 def standInVerbFunc(me, app, dobj, skip=False):
 	"""Sit on a Surface where canSit is True
@@ -1439,7 +1439,7 @@ lieInVerb.addSynonym("lay")
 lieInVerb.syntax = [["lie", "in", "<dobj>"], ["lie", "down", "in", "<dobj>"], ["lay", "in", "<dobj>"], ["lay", "down", "in", "<dobj>"]]
 lieInVerb.hasDobj = True
 lieInVerb.dscope = "room"
-lieInVerb.preposition = ["down", "in"]
+#lieInVerb.preposition = ["down", "in"]
 
 def lieInVerbFunc(me, app, dobj, skip=False):
 	"""Lie on a Surface where canLie is True
@@ -1481,7 +1481,7 @@ climbOnVerb.hasDobj = True
 climbOnVerb.dscope = "room"
 climbOnVerb.dtype = "Surface"
 climbOnVerb.dobj_direction = "u"
-climbOnVerb.preposition = ["on", "up"]
+#climbOnVerb.preposition = ["on", "up"]
 
 def climbOnVerbFunc(me, app, dobj, skip=False):
 	"""Climb on a Surface where one of more of canStand/canSit/canLie is True
@@ -1522,7 +1522,7 @@ climbOnVerb.verbFunc = climbOnVerbFunc
 # intransitive verb
 climbUpVerb = Verb("climb")
 climbUpVerb.syntax = [["climb", "up"], ["climb"]]
-climbUpVerb.preposition = ["up"]
+#climbUpVerb.preposition = ["up"]
 
 def climbUpVerbFunc(me, app):
 	"""Climb up to the room above
@@ -1543,7 +1543,7 @@ climbUpVerb.verbFunc = climbUpVerbFunc
 climbDownVerb = Verb("climb", "climb down")
 climbDownVerb.addSynonym("get")
 climbDownVerb.syntax = [["climb", "off"], ["get", "off"], ["climb", "down"], ["get", "down"]]
-climbDownVerb.preposition = ["off", "down"]
+#climbDownVerb.preposition = ["off", "down"]
 
 def climbDownVerbFunc(me, app):
 	"""Climb down from a Surface you currently occupy
@@ -1577,7 +1577,7 @@ climbDownFromVerb.addSynonym("get")
 climbDownFromVerb.syntax = [["climb", "off", "<dobj>"], ["get", "off", "<dobj>"], ["climb", "down", "from", "<dobj>"], ["get", "down", "from", "<dobj>"], ["climb", "down", "<dobj>"]]
 climbDownFromVerb.hasDobj = True
 climbDownFromVerb.dscope = "room"
-climbDownFromVerb.preposition = ["off", "down", "from"]
+#climbDownFromVerb.preposition = ["off", "down", "from"]
 climbDownFromVerb.dobj_direction = "d"
 
 def climbDownFromVerbFunc(me, app, dobj, skip=False):
@@ -1636,7 +1636,7 @@ climbInVerb.addSynonym("go")
 climbInVerb.syntax = [["climb", "in", "<dobj>"], ["get", "in", "<dobj>"], ["climb", "into", "<dobj>"], ["get", "into", "<dobj>"], ["enter", "<dobj>"], ["go", "in", "<dobj>"], ["go", "into", "<dobj>"]]
 climbInVerb.hasDobj = True
 climbInVerb.dscope = "room"
-climbInVerb.preposition = ["in", "into"]
+#climbInVerb.preposition = ["in", "into"]
 
 def climbInVerbFunc(me, app, dobj, skip=False):
 	"""Climb in a Container where one of more of canStand/canSit/canLie is True
@@ -1686,7 +1686,7 @@ climbInVerb.verbFunc = climbInVerbFunc
 climbOutVerb = Verb("climb", "climb out")
 climbOutVerb.addSynonym("get")
 climbOutVerb.syntax = [["climb", "out"], ["get", "out"]]
-climbOutVerb.preposition = ["out"]
+#climbOutVerb.preposition = ["out"]
 
 def climbOutVerbFunc(me, app):
 	"""Climb out of a Container you currently occupy
@@ -1717,7 +1717,7 @@ climbOutOfVerb.addSynonym("exit")
 climbOutOfVerb.syntax = [["climb", "out", "of", "<dobj>"], ["get", "out", "of", "<dobj>"], ["exit", "<dobj>"]]
 climbOutOfVerb.hasDobj = True
 climbOutOfVerb.dscope = "room"
-climbOutOfVerb.preposition = ["out", "of"]
+#climbOutOfVerb.preposition = ["out", "of"]
 
 def climbOutOfVerbFunc(me, app, dobj, skip=False):
 	"""Climb down from a Surface you currently occupy
@@ -2032,7 +2032,7 @@ unlockWithVerb.syntax = [["unlock", "<dobj>", "using", "<iobj>"], ["unlock", "<d
 ["open", "<dobj>", "using", "<iobj>"], ["open", "<dobj>", "with", "<iobj>"]]
 unlockWithVerb.hasDobj = True
 unlockWithVerb.hasIobj = True
-unlockWithVerb.preposition = ["with", "using"]
+#unlockWithVerb.preposition = ["with", "using"]
 unlockWithVerb.dscope = "near"
 unlockWithVerb.iscope = "inv"
 
@@ -2107,7 +2107,7 @@ lockWithVerb.addSynonym("bolt")
 lockWithVerb.syntax = [["lock", "<dobj>", "using", "<iobj>"], ["lock", "<dobj>", "with", "<iobj>"], ["bolt", "<dobj>", "with", "<iobj>"], ["bolt", "<dobj>", "using", "<iobj>"]]
 lockWithVerb.hasDobj = True
 lockWithVerb.hasIobj = True
-lockWithVerb.preposition = ["with", "using"]
+#lockWithVerb.preposition = ["with", "using"]
 lockWithVerb.dscope = "near"
 lockWithVerb.iscope = "inv"
 

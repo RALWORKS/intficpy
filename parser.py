@@ -206,7 +206,6 @@ def getVerb(app, input_tokens):
 	# look up first word in verb dictionary
 	if input_tokens[0] in vocab.verbDict:
 		verbs = list(vocab.verbDict[input_tokens[0]])
-		verbs = matchPrepositions(verbs, input_tokens)
 	else:
 		if not lastTurn.ambiguous:
 			app.printToGUI("I don't understand the verb: " + input_tokens[0])
@@ -299,9 +298,8 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 def matchPrepositions(verbs, input_tokens):
 	"""Check for prepositions in the tokenized player command, and remove any candidate verbs whose preposition does not match
 	Takes arguments verbs, a list of Verb objects (verb.py), and input_tokens, the tokenized player command (list of strings)
-	Called by getVerb
+	Not currently used by parser
 	Returns a list of Verb objects or an empty list """
-	#prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around", "to", "about"]
 	remove_verb = []
 	for p in vocab.english.prepositions:
 		if p in input_tokens and len(input_tokens) > 1:
@@ -662,7 +660,11 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 	Called by callVerb
 	Returns a single Thing object (thing.py) or None """
 	# get noun (last word)
-	if lastTurn.things != [] and noun_adj_arr[-1] not in vocab.nounDict:
+	endnoun = True
+	for item in lastTurn.things:
+		if noun_adj_arr[-1] in item.adjectives:
+			endnoun = False
+	if lastTurn.things != [] and (noun_adj_arr[-1] not in vocab.nounDict or not endnoun):
 		noun = lastTurn.ambig_noun
 		if noun:
 			noun_adj_arr.append(noun)

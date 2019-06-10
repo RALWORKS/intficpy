@@ -1,5 +1,4 @@
 import pickle
-import copy
 import importlib
 import types
 import inspect
@@ -14,23 +13,18 @@ from . import travel
 # SERIALIZER.PY - the save/load system for IntFicPy
 # Defines the SaveState class, with methods for saving and loading games
 ##############################################################
-# TODO: save creator defined variables
-# TODO: save me.knows_about
-# TODO: implement a check for validity of save files prior to trying to load
+# TODO: do not load bad save files. create a back up of game state before attempting to load, and restore in the event of an error AT ANY POINT during loading
 
 class SaveState:
 	"""The SaveState class is the outline for a save state, and the methods used in saving/loading
-	Methods used in saving are encodeNested, and saveState
-	Methods used in loading are dictLookup, addSubContains, decodeNested, and loadState"""
+	Methods used in saving are saveState, and simplifyAttribute
+	Methods used in loading are dictLookup, and loadState"""
 	def __init__(self):
-		self.custom_globals = []
-		self.player = False
-		self.rooms = {}
-		self.klist = []
+		pass
 					
 	def saveState(self, me, f, main_file):
 		"""Serializes game state and writes to a file
-		Takes arguments me, the Player object, and f, the path to write to
+		Takes arguments me, the Player object, f, the path to write to, and main_file, the main Python file for the current game
 		Returns True if successful, False if failed """
 		saveDict = {}
 		main_module = importlib.import_module(main_file)
@@ -93,7 +87,11 @@ class SaveState:
 		return True
 	
 	def simplifyAttr(self, value, main_module):
-		if isinstance(value, thing.Thing) or isinstance(value, actor.Actor) or isinstance(value, score.Achievement) or isinstance(value, score.AbstractScore) or isinstance(value, score.Ending) or isinstance(value, thing.Abstract) or isinstance(value, actor.Topic) or isinstance(value, travel.TravelConnector) or isinstance(value, room.Room):
+		"""Gets the unique key for objects that are instances of IntFicPy engine classes 
+		(Thing, Actor, Achievement, Ending, Abstranct, Topic, TravelConnector, or Room)
+		and replaces user-defined functions with function names
+		Takes arguments value, (the attribute to be simplified), and main_module (the imported Python file of the current game) """
+		if isinstance(value, thing.Thing) or isinstance(value, actor.Actor) or isinstance(value, score.Achievement) or isinstance(value, score.Ending) or isinstance(value, thing.Abstract) or isinstance(value, actor.Topic) or isinstance(value, travel.TravelConnector) or isinstance(value, room.Room):
 			out = "<obj>" + value.ix
 			return out
 		elif isinstance(value, types.FunctionType):
@@ -168,8 +166,8 @@ class SaveState:
 	# NOTE: Currently breaks for invalid save files
 	def loadState(self, me, f, app, main_file):
 		"""Deserializes and reconstructs the saved Player object and game state
-		Takes arguments me, the game's current Player object (to be overwritten), f, the file to read, and app, the PyQt5 GUI application
-		Returns True"""
+		Takes arguments me, the game's current Player object, f, the file to read, app, the PyQt5 GUI application, and main_file, the Python file of the current game
+		Returns True if successful, else False """
 		main_module = importlib.import_module(main_file)
 		if not f:
 			return False
@@ -177,7 +175,11 @@ class SaveState:
 			return False
 		savefile = open(f, "rb")
 		loadDict = pickle.load(savefile)
-		score.score.total = loadDict["score"]["total"]
+		# superficial check for save file validity - a file that fails is definitely not valid
+		try:
+			score.score.total = loadDict["score"]["total"]
+		except:
+			return False
 		score.score.possible = loadDict["score"]["possible"]
 		score.score.achievements = []
 		for ach in loadDict["score"]["achievements"]:
