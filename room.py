@@ -4,7 +4,6 @@ from . import thing
 # ROOM.PY - verbs for IntFicPy 
 # Defines the Room class
 ##############################################################
-# TODO: implement walls as interactable objects (north, south, east and west) and outdoor rooms (no walls)
 
 
 # a dictionary of the indeces of all Room objects, mapped to their object
@@ -54,6 +53,7 @@ class Room:
 		self.addThing(self.floor)
 		
 		self.north_wall = thing.Thing("wall")
+		self.north_wall.addSynonym("walls")
 		self.north_wall.setAdjectives(["north"])
 		self.north_wall.invItem = False
 		self.north_wall.describeThing("")
@@ -62,6 +62,7 @@ class Room:
 		self.walls.append(self.north_wall)
 		
 		self.south_wall = thing.Thing("wall")
+		self.south_wall.addSynonym("walls")
 		self.south_wall.setAdjectives(["south"])
 		self.south_wall.invItem = False
 		self.south_wall.describeThing("")
@@ -70,6 +71,7 @@ class Room:
 		self.walls.append(self.south_wall)
 		
 		self.east_wall = thing.Thing("wall")
+		self.east_wall.addSynonym("walls")
 		self.east_wall.setAdjectives(["east"])
 		self.east_wall.invItem = False
 		self.east_wall.describeThing("")
@@ -78,6 +80,7 @@ class Room:
 		self.walls.append(self.east_wall)
 		
 		self.west_wall = thing.Thing("wall")
+		self.west_wall.addSynonym("walls")
 		self.west_wall.setAdjectives(["west"])
 		self.west_wall.invItem = False
 		self.west_wall.describeThing("")
@@ -242,6 +245,7 @@ class OutdoorRoom(Room):
 		# room properties
 		self.name = name
 		self.desc = desc
+		self.fulldesc = desc
 		self.hasWalls = False
 		self.contains = {}
 		self.sub_contains = {}

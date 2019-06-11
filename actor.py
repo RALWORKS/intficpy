@@ -45,12 +45,12 @@ class Actor(Thing):
 		# the default description of the Actor in a room
 		self.base_desc = self.getArticle().capitalize() + name + " is here. "
 		if self.position != "standing":
-			self.desc = self.base_desc + " " +  self.getArticle().capitalize() + self.name + " is " + self.position + " down."
+			self.desc = self.base_desc + " " +  (self.getArticle(True) + self.name).capitalize() + " is " + self.position + " down."
 		else:
 			self.desc = self.base_desc
 		self.base_xdesc = self.base_desc
 		if self.position != "standing":
-			self.xdesc = self.base_xdesc + " " + self.getArticle().capitalize() + self.name + " is " + self.position + " down."
+			self.xdesc = self.base_xdesc + " " + (self.getArticle(True) + self.name).capitalize()  + " is " + self.position + " down."
 		else:
 			self.desc = self.base_desc
 		self.cannotTakeMsg = "You cannot take a person."
@@ -95,11 +95,15 @@ class Actor(Thing):
 	
 	def describeThing(self, description):
 		self.base_desc = description
-		self.desc = self.base_desc + " " +  self.getArticle().capitalize() + self.name + " is " + self.position + " down."
+		self.desc = self.base_desc
+		if self.position != "standing":
+			self.desc = self.base_desc + " " + (self.getArticle(True) + self.name).capitalize()  + " is " + self.position + " down."
 	
 	def xdescribeThing(self, description):
 		self.base_xdesc = description
-		self.xdesc = self.base_xdesc + " " +  self.getArticle().capitalize() + self.name + " is " + self.position + " down."
+		self.xdesc = self.base_xdesc
+		if self.position != "standing":
+			self.xdesc = self.base_xdesc + " " + (self.getArticle(True) + self.name).capitalize()  + " is " + self.position + " down."
 	
 	def addThing(self, item):
 		"""Add an item to contents, update descriptions

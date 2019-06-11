@@ -521,7 +521,7 @@ def knowsRangeCheck(me, thing):
 	"""Check if the Player knows about a Thing
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
-	if not thing.ix in me.knows_about:
+	if (not thing.ix in me.knows_about) or (not thing.distinct):
 		return False
 	else:
 		return True

@@ -22,6 +22,7 @@ class Thing:
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
+		self.distinct = True
 		# False except when Thing is the face of a TravelConnector
 		self.connection = False
 		self.direction = False
@@ -137,6 +138,7 @@ class Thing:
 			vocab.nounDict[synonym].append(out)
 		out.desc = self.desc
 		out.xdesc = self.xdesc
+		out.distinct = False
 		return out
 	
 	def copyThingUniqueIx(self):
@@ -152,6 +154,7 @@ class Thing:
 			vocab.nounDict[synonym].append(out)
 		out.desc = self.desc
 		out.xdesc = self.xdesc
+		out.distinct = False
 		return out
 	
 	def describeThing(self, description):
@@ -221,6 +224,7 @@ class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
 	def __init__(self, name, me):
 		"""Sets the essential properties for a new Surface object """
+		self.distinct = True
 		self.me = me
 		self.contains_preposition = "on"
 		self.contains_preposition_inverse = "off"
@@ -459,6 +463,7 @@ class Container(Thing):
 	def __init__(self, name, me):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
+		self.distinct = True
 		self.me = me
 		self.size = 50
 		self.contains_preposition = "in"
@@ -795,6 +800,7 @@ class AbstractClimbable(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
+		self.distinct = True
 		# connector properties
 		self.twin = False
 		self.connection = False
@@ -846,6 +852,7 @@ class Door(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
+		self.distinct = True
 		# door properties
 		self.direction = False
 		self.twin = False
@@ -956,6 +963,7 @@ class Key(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
+		self.distinct = True
 		# key properties
 		self.lock = False
 		# False except when Thing is the face of a TravelConnector
@@ -1009,6 +1017,7 @@ class Lock(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
+		self.distinct = True
 		# lock
 		self.is_locked = is_locked
 		self.key_obj = key_obj
@@ -1109,6 +1118,7 @@ class Abstract(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
+		self.distinct = True
 		# properties
 		self.far_away = False
 		self.is_composite = False
@@ -1149,6 +1159,7 @@ class UnderSpace(Thing):
 	def __init__(self, name, me):
 		"""Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
+		self.distinct = True
 		self.me = me
 		self.far_away = False
 		self.revealed = False
@@ -1495,3 +1506,5 @@ def getNested(target):
 reflexive = Abstract("itself")
 reflexive.addSynonym("himself")
 reflexive.addSynonym("herself")
+reflexive.addSynonym("themself")
+reflexive.addSynonym("themselves")
