@@ -157,6 +157,36 @@ class Thing:
 		out.distinct = False
 		return out
 	
+	def setFromPrototype(self, item):
+		if not isinstance(item, Thing):
+			print("Error: " + self.verbose_name + " cannot set attributes from non Thing prototype")
+			return False
+		else:
+			if self.name in vocab.nounDict:
+				if self in vocab.nounDict[self.name]:
+					vocab.nounDict[self.name].remove(self)
+					if vocab.nounDict[self.name] == []:
+						del vocab.nounDict[self.name]
+			for synonym in self.synonyms:
+				if self in vocab.nounDict[synonym]:
+					if self in vocab.nounDict[synonym]:
+						vocab.nounDict[synonym].remove(self)
+						if vocab.nounDict[synonym] == []:
+							del vocab.nounDict[synonym]
+			for attr, value in item.__dict__.items():
+				if attr != "ix":
+					setattr(self, attr, value)
+			if self.name in vocab.nounDict:
+				vocab.nounDict[self.name].append(self)
+			else:
+				vocab.nounDict[self.name] = [self]
+			for synonym in self.synonyms:
+				if synonym in vocab.nounDict:
+					vocab.nounDict[synonym].append(self)
+				else:
+					vocab.nounDict[synonym] = [self]
+			return True
+				
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = description

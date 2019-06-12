@@ -470,11 +470,7 @@ def travelN(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.north:
-		try:
-			msg = loc.n_false_msg
-		except AttributeError:
-			msg = "You cannot go north from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.n_false_msg)
 	elif isinstance(loc.north, TravelConnector):
 		loc.north.travel(me, app)
 	else:
@@ -483,7 +479,7 @@ def travelN(me, app):
 			me.location.removeThing(me)
 		me.location = loc.north
 		me.location.addThing(me)
-		app.printToGUI("You go north.")
+		app.printToGUI(loc.n_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -497,11 +493,7 @@ def travelNE(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.northeast:
-		try:
-			msg = loc.ne_false_msg
-		except AttributeError:
-			msg = "You cannot go northeast from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.ne_false_msg)
 	elif isinstance(loc.northeast, TravelConnector):
 		loc.northeast.travel(me, app)
 	else:		
@@ -510,7 +502,7 @@ def travelNE(me, app):
 			me.location.removeThing(me)
 		me.location = loc.northeast
 		me.location.addThing(me)
-		app.printToGUI("You go northeast.")
+		app.printToGUI(loc.ne_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -524,11 +516,7 @@ def travelE(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.east:
-		try:
-			msg = loc.e_false_msg
-		except AttributeError:
-			msg = "You cannot go east from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.e_false_msg)
 	elif isinstance(loc.east, TravelConnector):
 		loc.east.travel(me, app)
 	else:
@@ -537,7 +525,7 @@ def travelE(me, app):
 			me.location.removeThing(me)
 		me.location = loc.east
 		me.location.addThing(me)
-		app.printToGUI("You go east.")
+		app.printToGUI(loc.e_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -551,11 +539,7 @@ def travelSE(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.southeast:
-		try:
-			msg = loc.se_false_msg
-		except AttributeError:
-			msg = "You cannot go southeast from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.se_false_msg)
 	elif isinstance(loc.southeast, TravelConnector):
 		loc.southeast.travel(me, app)
 	else:
@@ -564,7 +548,7 @@ def travelSE(me, app):
 			me.location.removeThing(me)
 		me.location = loc.southeast
 		me.location.addThing(me)
-		app.printToGUI("You go southeast.")
+		app.printToGUI(loc.se_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -578,11 +562,7 @@ def travelS(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.south:
-		try:
-			msg = loc.s_false_msg
-		except AttributeError:
-			msg = "You cannot go south from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.s_false_msg)
 	elif isinstance(loc.south, TravelConnector):
 		loc.south.travel(me, app)
 	else:
@@ -591,7 +571,7 @@ def travelS(me, app):
 			me.location.removeThing(me)
 		me.location = loc.south
 		me.location.addThing(me)
-		app.printToGUI("You go south.")
+		app.printToGUI(loc.s_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -605,11 +585,7 @@ def travelSW(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.southwest:
-		try:
-			msg = loc.sw_false_msg
-		except AttributeError:
-			msg = "You cannot go southwest from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.sw_false_msg)
 	elif isinstance(loc.southwest, TravelConnector):
 		loc.southwest.travel(me, app)
 	else:
@@ -618,7 +594,7 @@ def travelSW(me, app):
 			me.location.removeThing(me)
 		me.location = loc.southwest
 		me.location.addThing(me)
-		app.printToGUI("You go southwest.")
+		app.printToGUI(loc.sw_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -632,11 +608,7 @@ def travelW(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.west:
-		try:
-			msg = loc.w_false_msg
-		except AttributeError:
-			msg = "You cannot go west from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.w_false_msg)
 	elif isinstance(loc.west, TravelConnector):
 		loc.west.travel(me, app)
 	else:
@@ -645,7 +617,7 @@ def travelW(me, app):
 			me.location.removeThing(me)
 		me.location = loc.west
 		me.location.addThing(me)
-		app.printToGUI("You go west.")
+		app.printToGUI(loc.w_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -660,11 +632,7 @@ def travelNW(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.northwest:
-		try:
-			msg = loc.nw_false_msg
-		except AttributeError:
-			msg = "You cannot go northwest from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.nw_false_msg)
 	elif isinstance(loc.northwest, TravelConnector):
 		loc.northwest.travel(me, app)
 	else:
@@ -673,7 +641,7 @@ def travelNW(me, app):
 			me.location.removeThing(me)
 		me.location = loc.northwest
 		me.location.addThing(me)
-		app.printToGUI("You go northwest.")
+		app.printToGUI(loc.nw_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -688,11 +656,7 @@ def travelU(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.up:
-		try:
-			msg = loc.u_false_msg
-		except AttributeError:
-			msg = "You cannot go up from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.u_false_msg)
 	elif isinstance(loc.up, TravelConnector):
 		loc.up.travel(me, app)
 	else:
@@ -701,7 +665,7 @@ def travelU(me, app):
 			me.location.removeThing(me)
 		me.location = loc.up
 		me.location.addThing(me)
-		app.printToGUI("You go up.")
+		app.printToGUI(loc.u_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -716,11 +680,7 @@ def travelD(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.down:
-		try:
-			msg = loc.d_false_msg
-		except AttributeError:
-			msg = "You cannot go down from here."
-		app.printToGUI(msg)
+		app.printToGUI(loc.d_false_msg)
 	elif isinstance(loc.down, TravelConnector):
 		loc.down.travel(me, app)
 	else:
@@ -729,7 +689,7 @@ def travelD(me, app):
 			me.location.removeThing(me)
 		me.location = loc.down
 		me.location.addThing(me)
-		app.printToGUI("You go down.")
+		app.printToGUI(loc.d_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -745,7 +705,7 @@ def travelOut(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.exit:
-		app.printToGUI("There is no obvious exit. ")
+		app.printToGUI(loc.exit_false_msg)
 	elif isinstance(loc.exit, TravelConnector):
 		loc.exit.travel(me, app)
 	else:
@@ -754,7 +714,7 @@ def travelOut(me, app):
 			me.location.removeThing(me)
 		me.location = loc.exit
 		me.location.addThing(me)
-		app.printToGUI("You exit. ")
+		app.printToGUI(loc.exit_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
@@ -770,7 +730,7 @@ def travelIn(me, app):
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
 	if not loc.entrance:
-		app.printToGUI("There is no obvious entrance. ")
+		app.printToGUI(loc.entrance_false_msg)
 	elif isinstance(loc.entrance, TravelConnector):
 		loc.entrance.travel(me, app)
 	else:
@@ -779,7 +739,7 @@ def travelIn(me, app):
 			me.location.removeThing(me)
 		me.location = loc.entrance
 		me.location.addThing(me)
-		app.printToGUI("You enter. ")
+		app.printToGUI(loc.entrance_msg)
 		try:
 			me.location.arriveFunc(me, app)
 		except AttributeError:
