@@ -76,6 +76,7 @@ class Actor(Thing):
 		self.ix = "actor" + str(actor_ix)
 		actor_ix = actor_ix + 1
 		actors[self.ix] = self
+		self.known_ix = self.ix
 	
 	def makeProper(self, proper_name):
 		"""Makes the name of an Actor into proper name
@@ -288,7 +289,7 @@ class Player(Actor):
 		self.ix = "actor" + str(actor_ix)
 		actor_ix = actor_ix + 1
 		actors[self.ix] = self
-		#self.gameOpening = False
+		self.known_ix = self.ix
 		
 	def setPlayer(self):
 		self.addSynonym("me")

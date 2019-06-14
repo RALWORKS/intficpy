@@ -96,6 +96,45 @@ class TravelConnector:
 			else:
 				print("error: invalid direction input for TravelConnector: " + d[x])
 	
+	def setFromPrototype(self, connector):
+		from . import vocab
+		x = 0
+		self.entranceA_msg = connector.entranceA_msg
+		self.entranceB_msg = connector.entranceB_msg
+		for x in range(0, 2):
+			print(x)
+			for synonym in self.interactables[x].synonyms:
+				if synonym in vocab.nounDict:
+					if self.interactables[x] in vocab.nounDict[synonym]:
+						vocab.nounDict[synonym].remove(self.interactables[x])
+						if vocab.nounDict[synonym]==[]:
+							del vocab.nounDict[synonym]
+			for adj in self.interactables[x].adjectives:
+				remove_list = []
+				if adj not in directionDict and adj!="upward" and adj!="downward":
+					remove_list.append(adj)
+				for adj in remove_list:
+					if adj in self.interactables[x].adjectives:
+						self.interactables[x].adjectives.remove(adj)
+				for adj in connector.interactables[x].adjectives:
+					if adj not in directionDict and adj!="upward" and adj!="downward" and adj not in self.interactables[x].adjectives:
+						self.interactables[x].adjectives.append(adj)
+			
+			for attr, value in connector.interactables[x].__dict__.items():
+				if attr=="direction" or attr=="adjectives" or attr=="ix":
+					pass
+				else:
+					setattr(self.interactables[x], attr, value)
+				
+			add = self.interactables[x].synonyms + [self.interactables[x].name]
+			for noun in add:
+				if noun in vocab.nounDict:
+					if self.interactables[x] not in vocab.nounDict[noun]:
+						vocab.nounDict[noun].append(self.interactables[x])
+				else:
+					vocab.nounDict[noun] = [self.interactables[x]]
+			x = x + 1
+			
 	def travel(self, me, app):
 		outer_loc = me.getOutermostLocation()
 		if not self.can_pass:
@@ -312,6 +351,7 @@ class LadderConnector(TravelConnector):
 		self.cannot_pass_msg = "The way is blocked. "
 		self.entranceA = thing.AbstractClimbable("ladder")
 		self.entranceB = thing.AbstractClimbable("ladder")
+		self.interactables = [self.entranceA, self.entranceB]
 		self.entranceA.connection = self
 		self.entranceB.connection = self
 		self.entranceA.direction = "u"

@@ -220,13 +220,13 @@ class Room:
 					desc_loc = key
 				elif item.parent_obj:
 					child_items.append(item.ix)
+				# give player "knowledge" of a thing upon having it described
+				if item.known_ix not in me.knows_about:
+					me.knows_about.append(item.known_ix)
 			if desc_loc != key and key not in child_items and len(things) > 1:
 				self.fulldesc = self.fulldesc + " There are " + str(len(things)) + " " + things[0].getPlural() + " here. "
 			elif desc_loc != key and key not in child_items and len(things) > 0:	
 				self.fulldesc = self.fulldesc + " " + things[0].desc
-			# give player "knowledge" of a thing upon having it described
-			if key not in me.knows_about:
-				me.knows_about.append(key)
 		if desc_loc:
 			self.fulldesc = self.fulldesc + "<br>"
 			if len(self.contains[desc_loc]) > 2:

@@ -22,7 +22,7 @@ class Thing:
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
-		self.distinct = True
+		self.known_ix = self.ix
 		# False except when Thing is the face of a TravelConnector
 		self.connection = False
 		self.direction = False
@@ -138,11 +138,12 @@ class Thing:
 			vocab.nounDict[synonym].append(out)
 		out.desc = self.desc
 		out.xdesc = self.xdesc
-		out.distinct = False
 		return out
 	
 	def copyThingUniqueIx(self):
-		"""Copy a Thing, creating a new index. NOT safe to use for dynamic item duplication. """
+		"""Copy a Thing, creating a new index. NOT safe to use for dynamic item duplication. 
+		The copy object is by default treated as not distinct from the original in Player knowledge (me.knows_about dictionary). 
+		To override this behaviour, manually set the copy's known_ix to its own ix property. """
 		out = copy.copy(self)
 		global thing_ix
 		out.ix = "thing" + str(thing_ix)
@@ -154,7 +155,6 @@ class Thing:
 			vocab.nounDict[synonym].append(out)
 		out.desc = self.desc
 		out.xdesc = self.xdesc
-		out.distinct = False
 		return out
 	
 	def setFromPrototype(self, item):
@@ -254,7 +254,14 @@ class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
 	def __init__(self, name, me):
 		"""Sets the essential properties for a new Surface object """
-		self.distinct = True
+		# indexing and adding to dictionary for save/load
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# properties
+		self.desc_reveal = True
+		self.known_ix = self.ix
 		self.me = me
 		self.contains_preposition = "on"
 		self.contains_preposition_inverse = "off"
@@ -266,6 +273,7 @@ class Surface(Thing):
 		self.canLie = False
 		# the items on the Surface
 		self.contains = {}
+		self.synonyms = []
 		# items contained by items on the Surface
 		# accessible by default, but not shown in outermost description
 		self.sub_contains = {}
@@ -294,11 +302,6 @@ class Surface(Thing):
 			vocab.nounDict[name].append(self)
 		else:
 			vocab.nounDict[name] = [self]
-		# indexing and adding to dictionary for save/load
-		global thing_ix
-		self.ix = "thing" + str(thing_ix)
-		thing_ix = thing_ix + 1
-		things[self.ix] = self
 
 	def containsListUpdate(self):
 		"""Update description of contents
@@ -347,7 +350,8 @@ class Surface(Thing):
 				for item in self.children:
 					self.xdesc = self.xdesc + item.desc
 					self.desc = self.desc + item.desc
-			self.desc = self.desc + onlist
+			if self.desc_reveal:
+				self.desc = self.desc + onlist
 			self.xdesc = self.xdesc + onlist
 		else:
 			self.desc = self.base_desc + onlist
@@ -493,7 +497,12 @@ class Container(Thing):
 	def __init__(self, name, me):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
-		self.distinct = True
+		# index and add to dictionary for save/load
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		self.known_ix = self.ix
 		self.me = me
 		self.size = 50
 		self.contains_preposition = "in"
@@ -519,6 +528,7 @@ class Container(Thing):
 		self.name = name
 		self.verbose_name = name
 		self.adjectives = []
+		self.synonyms = []
 		self.give = False
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
@@ -531,11 +541,6 @@ class Container(Thing):
 			vocab.nounDict[name].append(self)
 		else:
 			vocab.nounDict[name] = [self]
-		# index and add to dictionary for save/load
-		global thing_ix
-		self.ix = "thing" + str(thing_ix)
-		thing_ix = thing_ix + 1
-		things[self.ix] = self
 	
 	def containsListUpdate(self):
 		"""Update description for addition/removal of items from the Container instance """
@@ -830,7 +835,7 @@ class AbstractClimbable(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
-		self.distinct = True
+		self.known_ix = self.ix
 		# connector properties
 		self.twin = False
 		self.connection = False
@@ -882,7 +887,7 @@ class Door(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
-		self.distinct = True
+		self.known_ix = self.ix
 		# door properties
 		self.direction = False
 		self.twin = False
@@ -993,7 +998,7 @@ class Key(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
-		self.distinct = True
+		self.known_ix = self.ix
 		# key properties
 		self.lock = False
 		# False except when Thing is the face of a TravelConnector
@@ -1047,7 +1052,7 @@ class Lock(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
-		self.distinct = True
+		self.known_ix = self.ix
 		# lock
 		self.is_locked = is_locked
 		self.key_obj = key_obj
@@ -1148,7 +1153,7 @@ class Abstract(Thing):
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
-		self.distinct = True
+		self.known_ix = self.ix
 		# properties
 		self.far_away = False
 		self.is_composite = False
@@ -1189,7 +1194,13 @@ class UnderSpace(Thing):
 	def __init__(self, name, me):
 		"""Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
-		self.distinct = True
+		# index and add to dictionary for save/load
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		# properties
+		self.known_ix = self.ix
 		self.me = me
 		self.far_away = False
 		self.revealed = False
@@ -1224,11 +1235,6 @@ class UnderSpace(Thing):
 			vocab.nounDict[name].append(self)
 		else:
 			vocab.nounDict[name] = [self]
-		# index and add to dictionary for save/load
-		global thing_ix
-		self.ix = "thing" + str(thing_ix)
-		thing_ix = thing_ix + 1
-		things[self.ix] = self
 	
 	def containsListUpdate(self):
 		"""Update description for addition/removal of items from the Container instance """
