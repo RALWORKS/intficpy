@@ -37,9 +37,9 @@ class RunEvery:
 	def __init__(self):
 		self.funcs = []
 	
-	def runAll(self, app):
+	def runAll(self, me, app):
 		for func in self.funcs:
-			func(app)
+			func(me, app)
 	
 	def add(self, daemon):
 		self.funcs.append(daemon)
@@ -504,6 +504,23 @@ def roomRangeCheck(me, thing):
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
 	out_loc = me.getOutermostLocation()
+	if out_loc.dark:
+		from .thing import LightSource
+		lightsource = False
+		for key in out_loc.contains:
+				for item in out_loc.contains[key]:
+					if isinstance(item, LightSource):
+						if item.is_lit:
+							lightsource = item
+							break
+		for key in me.contains:
+			for item in me.contains[key]:
+				if isinstance(item, LightSource):
+					if item.is_lit:
+						lightsource = item
+						break
+		if not lightsource:
+			return False
 	if thing.ix in out_loc.contains:
 		if thing not in out_loc.contains[thing.ix]:
 			return False
@@ -531,13 +548,35 @@ def nearRangeCheck(me, thing):
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
 	out_loc = me.getOutermostLocation()
+	too_dark = False
+	if out_loc.dark:
+		from .thing import LightSource
+		lightsource = None
+		for key in out_loc.contains:
+				for item in out_loc.contains[key]:
+					if isinstance(item, LightSource):
+						if item.is_lit:
+							lightsource = item
+							break
+		for key in me.contains:
+			for item in me.contains[key]:
+				if isinstance(item, LightSource):
+					if item.is_lit:
+						lightsource = item
+						break
+		if not lightsource:
+			too_dark = True
 	if thing.ix in out_loc.contains:
 		if thing not in out_loc.contains[thing.ix]:
+			return False
+		elif too_dark:
 			return False
 		else:
 			return True
 	elif thing.ix in out_loc.sub_contains:
 		if thing not in out_loc.sub_contains[thing.ix]:
+			return False
+		elif too_dark:
 			return False
 		else:
 			return True
@@ -627,7 +666,7 @@ def checkRange(me, app, things, scope):
 			return things2
 	return things
 
-def verbScopeError(app, scope, noun_adj_arr):
+def verbScopeError(app, scope, noun_adj_arr, me):
 	"""Prints the appropriate Thing out of scope message
 	Takes arguments app, pointing to the PyQt app, scope, a string, and noun_adj_arr, a list of strings
 	Called by getThing and checkAdjectives
@@ -638,7 +677,28 @@ def verbScopeError(app, scope, noun_adj_arr):
 		lastTurn.err = True
 		return None
 	elif scope=="room" or scope =="near":
-		app.printToGUI("I don't see any " + noun + " here.")
+		out_loc = me.getOutermostLocation()
+		if out_loc.dark:
+			from .thing import LightSource
+			lightsource = None
+			for key in out_loc.contains:
+				for item in out_loc.contains[key]:
+					if isinstance(item, LightSource):
+						if item.is_lit:
+							lightsource = item
+							break
+			for key in me.contains:
+				for item in me.contains[key]:
+					if isinstance(item, LightSource):
+						if item.is_lit:
+							lightsource = item
+							break
+			if not lightsource:
+				app.printToGUI("It's too dark to see anything. ")
+			else:
+				app.printToGUI("I don't see any " + noun + " here.")
+		else:
+			app.printToGUI("I don't see any " + noun + " here.")
 		lastTurn.err = True
 		return None
 	elif scope=="knows":
@@ -679,7 +739,7 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 		else:
 			things = []
 	if len(things) == 0:
-		return verbScopeError(app, scope, noun_adj_arr)
+		return verbScopeError(app, scope, noun_adj_arr, me)
 	else:
 		thing = checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_direction)
 		return thing
@@ -758,7 +818,7 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 		lastTurn.things = things
 		return None
 	else:
-		return verbScopeError(app, scope, noun_adj_arr)
+		return verbScopeError(app, scope, noun_adj_arr, me)
 
 def callVerb(me, app, cur_verb, obj_words):
 	"""Gets the Thing objects (if any) referred to in the player command, then calls the verb function
@@ -1068,7 +1128,7 @@ def initGame(me, app, main_file):
 	else:
 		app.newBox(1)
 	roomDescribe(me, app)
-	daemons.runAll(app)
+	daemons.runAll(me, app)
 
 
 # NOTE: This function has not been updated recently, and may require modification to accomodate all features

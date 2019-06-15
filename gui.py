@@ -96,7 +96,7 @@ class App(QWidget):
 		else:
 			# parse string
 			parseInput(self.me, self, input_string)
-			parser.daemons.runAll(self)
+			parser.daemons.runAll(self.me, self)
 	
 	def newBox(self, box_style):
 		"""Creates a new QFrame to wrap text in the game output area

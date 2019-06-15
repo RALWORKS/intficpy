@@ -69,6 +69,15 @@ class Thing:
 		if not self.ix in me.knows_about:
 			me.knows_about.append(self.ix)
 	
+	def getOutermostLocation(self):
+		"""Gets the Thing's current room 
+		Takes argument app, pointing to the PyQt5 GUI"""
+		from .room import Room 
+		x = self.location
+		while not isinstance(x, Room):
+			x = x.location
+		return x
+	
 	def addSynonym(self, word):
 		"""Adds a synonym (noun) that can be used to refer to a Thing
 		Takes argument word, a string, which should be a single noun """
@@ -824,6 +833,118 @@ class Clothing(Thing):
 	# all clothing is wearable
 	wearable = True
 	# uses __init__ from Thing
+
+class LightSource(Thing):
+	"""Class for Things that are light sources """
+	def __init__(self, name):
+		"""Set basic properties for the LightSource instance
+		Takes argument name, a single noun (string)"""
+		# index and add to dictionary for save/load
+		global thing_ix
+		# indexing
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		self.known_ix = self.ix
+		# Thing properties
+		self.size = 20
+		self.far_away = False
+		self.state_desc = ""
+		self.is_composite = False
+		self.parent_obj = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.name = name
+		self.verbose_name = name
+		self.adjectives = []
+		self.synonyms = []
+		self.give = False
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		# LightSource properties
+		self.is_lit = False
+		self.player_can_light = True
+		self.player_can_extinguish = True
+		self.consumable = False
+		self.turns_left = 20
+		self.room_lit_msg = "The " + self.name + " lights your way. "
+		self.light_msg = "You light the " + self.name + ". "
+		self.already_lit_msg = "The " + self.name + " is already lit. "
+		self.extinguish_msg = "You extinguish the " + self.name + ". "
+		self.already_extinguished_msg = "The " + self.name + " is not lit. "
+		self.cannot_light_msg = "You cannot light the " + self.name + ". "
+		self.cannot_extinguish_msg = "You cannot extinguish the " + self.name + ". "
+		self.cannot_light_expired_msg = "The " + self.name + " is used up. "
+		self.extinguishing_expired_msg = "The light of the " + self.name + " dims to nothing. "
+		self.expiry_warning = "The " + self.name + " fickers. "
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def light(self, app):
+		if self.is_lit:
+			app.printToGUI(self.already_lit_msg)
+			return True
+		elif self.consumable and not self.turns_left:
+			app.printToGUI(self.cannot_light_expired_msg)
+			return False
+		elif not self.player_can_light:
+			app.printToGUI(self.cannot_light_msg)
+			return False
+		else:
+			if self.consumable:
+				# add the consumeLightSource daemon
+				from .parser import daemons
+				daemons.add(self.consumeLightSourceDaemon)
+			app.printToGUI(self.light_msg)
+			self.is_lit = True
+	
+	def extinguish(self, app):
+		if not self.is_lit:
+			app.printToGUI(self.already_extinguished_msg)
+			return True
+		elif not self.player_can_extinguish:
+			app.printToGUI(self.cannot_extinguish_msg)
+			return False
+		else:
+			if self.consumable:
+				# remove the consumeLightSource daemon
+				from .parser import daemons
+				if self.consumeLightSourceDaemon in daemons.funcs:
+					daemons.remove(self.consumeLightSourceDaemon)
+			app.printToGUI(self.extinguish_msg)
+			self.is_lit = False
+			
+	def consumeLightSourceDaemon(self, me, app):
+		"""Runs every turn while a consumable light source is active, to keep track of time left. """
+		from .parser import lastTurn, daemons
+		from .verb import helpVerb, helpVerbVerb, aboutVerb
+		if not (lastTurn.verb==helpVerb or lastTurn.verb==helpVerbVerb or lastTurn.verb==aboutVerb or lastTurn.ambiguous):
+			self.turns_left = self.turns_left - 1
+			if self.turns_left == 0:
+				if me.getOutermostLocation() == self.getOutermostLocation():
+					app.printToGUI(self.extinguishing_expired_msg)
+				self.is_lit = False
+				if self.consumeLightSourceDaemon in daemons.funcs:
+					daemons.remove(self.consumeLightSourceDaemon)
+			elif me.getOutermostLocation() == self.getOutermostLocation():
+				if self.turns_left < 5:
+					app.printToGUI(self.expiry_warning + str(self.turns_left) + " turns left. ")
+				elif (self.turns_left % 5)==0:
+					app.printToGUI(self.expiry_warning + str(self.turns_left) + " turns left. ")
 
 class AbstractClimbable(Thing):
 	"""Represents one end of a staircase or ladder.

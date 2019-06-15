@@ -68,6 +68,10 @@ class Room:
 		self.hasWalls = False
 		self.contains = {}
 		self.sub_contains = {}
+		self.dark = False
+		self.dark_desc = "It's too dark to see. "
+		self.dark_msg = "It's too dark to find your way. "
+		self.dark_visible_exits = []
 		self.walls = []
 		
 		self.floor = thing.Thing("floor")
@@ -211,6 +215,25 @@ class Room:
 	
 	def describe(self, me, app):
 		"""Prints the Room title and description and lists items in the Room """
+		if self.dark:
+			lightsource = None
+			for key in self.contains:
+				for item in self.contains[key]:
+					if isinstance(item, thing.LightSource):
+						if item.is_lit:
+							lightsource = item
+							break
+			for key in me.contains:
+				for item in me.contains[key]:
+					if isinstance(item, thing.LightSource):
+						if item.is_lit:
+							lightsource = item
+							break
+			if lightsource:
+				app.printToGUI(item.room_lit_msg)
+			else:
+				app.printToGUI(self.dark_desc)
+				return False
 		self.fulldesc = self.desc
 		desc_loc = False
 		child_items = []
@@ -242,6 +265,7 @@ class Room:
 				self.getLocContents(me)
 		app.printToGUI("<b>" + self.name + "</b>")
 		app.printToGUI(self.fulldesc)
+		return True
 
 class OutdoorRoom(Room):
 	"""Room is the class for outdoor locations in an IntFicPy game
@@ -299,6 +323,10 @@ class OutdoorRoom(Room):
 		self.hasWalls = False
 		self.contains = {}
 		self.sub_contains = {}
+		self.dark = False
+		self.dark_desc = "It's too dark to see. "
+		self.dark_msg = "It's too dark to find your way. "
+		self.dark_visible_exits = []
 		self.walls = []
 		
 		self.floor = thing.Thing("ground")

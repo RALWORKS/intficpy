@@ -52,7 +52,7 @@ def opening(a):
 	a.printToGUI("<b>WIND AND OCEAN: by JSMaika</b><br> <<m>> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area.")
 parser.lastTurn.gameOpening = opening
 
-def windFunc(a):
+def windFunc(me, a):
 	p = random.randint(1,7)
 	if p>6:
 		a.newBox(1)

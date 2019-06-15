@@ -48,7 +48,7 @@ def opening(a):
 	a.printToGUI("WIND AND OCEAN: by JSMaika", True)
 me.gameOpening = opening
 
-def windFunc(a):
+def windFunc(me, a):
 	p = random.randint(1,7)
 	if p>6:
 		a.newBox(1)

@@ -2198,3 +2198,59 @@ def goVerbFunc(me, app, dobj):
 # replace the default verbFunc method
 goVerb.verbFunc = goVerbFunc
 
+# LIGHT (LightSource)
+# transitive verb, no indirect object
+lightVerb = Verb("light")
+lightVerb.syntax = [["light", "<dobj>"]]
+lightVerb.hasDobj = True
+lightVerb.dscope = "near"
+lightVerb.dtype = "LightSource"
+
+def lightVerbFunc(me, app, dobj, skip=False):
+	"""Light a LightSource """
+	# print the target's xdesc (examine descripion)
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.lightVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.LightSource):
+		return dobj.light(app)
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is not a light source. ")
+		return False
+
+# replace default verbFunc method
+lightVerb.verbFunc = lightVerbFunc
+
+# EXTINGUISH (LightSource)
+# transitive verb, no indirect object
+extinguishVerb = Verb("extinguish")
+extinguishVerb.addSynonym("put")
+extinguishVerb.syntax = [["extinguish", "<dobj>"], ["put", "out", "<dobj>"], ["put", "<dobj>", "out"]]
+extinguishVerb.hasDobj = True
+extinguishVerb.dscope = "near"
+extinguishVerb.dtype = "LightSource"
+
+def extinguishVerbFunc(me, app, dobj, skip=False):
+	"""Extinguish a LightSource """
+	# print the target's xdesc (examine descripion)
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.extinguishVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.LightSource):
+		return dobj.extinguish(app)
+	else:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is not a light source. ")
+		return False
+
+# replace default verbFunc method
+extinguishVerb.verbFunc = extinguishVerbFunc
