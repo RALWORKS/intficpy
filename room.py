@@ -230,7 +230,7 @@ class Room:
 							lightsource = item
 							break
 			if lightsource:
-				app.printToGUI(item.room_lit_msg)
+				app.printToGUI(lightsource.room_lit_msg)
 			else:
 				app.printToGUI(self.dark_desc)
 				return False

@@ -12,7 +12,9 @@ class VocabObject:
 	def __init__(self):
 		self.prepositions = []
 		self.articles = []
+		self.keywords = []
 
 english = VocabObject()
 english.prepositions = ["in", "out", "up", "down", "on", "under", "over", "through", "at", "across", "with", "off", "around", "to", "about", "from", "into", "using"]
 english.articles = ["a", "an", "the"]
+english.keywords = ["all", "everything"]

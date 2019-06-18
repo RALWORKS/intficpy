@@ -1,5 +1,5 @@
-#import string
-import re
+import string
+#import re
 import importlib
 
 # intficpy framework files
@@ -109,7 +109,9 @@ def cleanInput(input_string, record=True):
 	Takes the raw user input (string)
 	Returns a string """
 	input_string = input_string.lower()
-	input_string = re.sub(r'[^\w\s]','',input_string)
+	#input_string = re.sub(r'[^\w\s]','',input_string)
+	exclude = set(string.punctuation)
+	input_string = ''.join(ch for ch in input_string if ch not in exclude)
 	if record:
 		lastTurn.turn_list.append(input_string)
 	return input_string
@@ -150,22 +152,23 @@ def extractInline(app, output_string, main_file):
 				if "(" in func:
 					start_arg = func.index("(") + 1
 					end_arg = func.index(")")
-					args = func[start_arg: end_arg]
-					args = tokenize(args)
-					arg2 = []
-					i = 0
-					while i < len(args):
-						try:
-							defined = eval(args[i])
-						except:
-							defined = False	
-						if not defined:
-							arg2.append("main_module." + args[i])
-						else:
-							arg2.append(args[i])
-						i = i + 1
-					args = " ".join(arg2)
-					func = func[:start_arg] + args + ")"
+					if func[start_arg:end_arg] != " " and func[start_arg:end_arg] != "":
+						args = func[start_arg: end_arg]
+						args = tokenize(args)
+						arg2 = []
+						i = 0
+						while i < len(args):
+							try:
+								defined = eval(args[i])
+							except:
+								defined = False	
+							if not defined:
+								arg2.append("main_module." + args[i])
+							else:
+								arg2.append(args[i])
+							i = i + 1
+						args = " ".join(arg2)
+						func = func[:start_arg] + args + ")"
 				out = eval(func)
 				if isinstance(out, str):
 					output_tokens[word_ix] = out
@@ -206,6 +209,7 @@ def getVerb(app, input_tokens):
 	# look up first word in verb dictionary
 	if input_tokens[0] in vocab.verbDict:
 		verbs = list(vocab.verbDict[input_tokens[0]])
+		verbs = matchPrepKeywords(verbs, input_tokens)
 	else:
 		if not lastTurn.ambiguous:
 			app.printToGUI("I don't understand the verb: " + input_tokens[0])
@@ -235,7 +239,16 @@ def verbByObjects(app, input_tokens, verbs):
 			if i==0:
 				nearMatch.append([cur_verb, verb_form])
 	if len(nearMatch) == 0:
-		app.printToGUI("Please rephrase")
+		ambiguous_verb = False
+		if lastTurn.ambig_noun:
+			terms = vocab.nounDict[lastTurn.ambig_noun]
+			for term in terms:
+				if input_tokens[0] in term.adjectives or input_tokens[0] in term.synonyms:
+					ambiguous_verb = True
+				elif input_tokens[0]==term.name:
+					ambiguous_verb = True
+		if not ambiguous_verb:
+			app.printToGUI("Please rephrase")
 		lastTurn.err = True
 		return None
 	else:
@@ -265,11 +278,29 @@ def verbByObjects(app, input_tokens, verbs):
 		if len(nearMatch)==1:
 			return nearMatch[0]
 		elif len(nearMatch) > 1:
-			app.printToGUI("Please rephrase")
+			ambiguous_verb = False
+			if lastTurn.ambig_noun:
+				terms = vocab.nounDict[lastTurn.ambig_noun]
+				for term in terms:
+					if input_tokens[0] in term.adjectives or input_tokens[0] in term.synonyms:
+						ambiguous_verb = True
+					elif input_tokens[0]==term.name:
+						ambiguous_verb = True
+			if not ambiguous_verb:
+				app.printToGUI("Please rephrase")
 			lastTurn.err = True
 			return None
 		else:
-			app.printToGUI("Please rephrase")
+			ambiguous_verb = False
+			if lastTurn.ambig_noun:
+				terms = vocab.nounDict[lastTurn.ambig_noun]
+				for term in terms:
+					if input_tokens[0] in term.adjectives or input_tokens[0] in term.synonyms:
+						ambiguous_verb = True
+					elif input_tokens[0]==term.name:
+						ambiguous_verb = True
+			if not ambiguous_verb:
+				app.printToGUI("Please rephrase")
 			lastTurn.err = True
 			return None
 
@@ -295,7 +326,7 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 			extra.remove(word)
 	return extra
 
-def matchPrepositions(verbs, input_tokens):
+def matchPrepKeywords(verbs, input_tokens):
 	"""Check for prepositions in the tokenized player command, and remove any candidate verbs whose preposition does not match
 	Takes arguments verbs, a list of Verb objects (verb.py), and input_tokens, the tokenized player command (list of strings)
 	Not currently used by parser
@@ -320,6 +351,26 @@ def matchPrepositions(verbs, input_tokens):
 				if not verb.preposition and not exempt:
 					remove_verb.append(verb)
 				elif not p in verb.preposition and not exempt:
+					remove_verb.append(verb)
+	for p in vocab.english.keywords:
+		if p in input_tokens and len(input_tokens) > 1:
+			exempt = False
+			for verb in verbs:
+				ix = input_tokens.index(p) + 1
+				if ix<len(input_tokens):
+					noun = input_tokens[ix]
+					while not noun in vocab.nounDict:
+						ix = ix + 1
+						if ix >= len(input_tokens):
+							break
+						noun = input_tokens[ix]
+					if noun in vocab.nounDict:
+						for item in vocab.nounDict[noun]:
+							if p in item.adjectives:
+								exempt = True
+				if not verb.keywords and not exempt:
+					remove_verb.append(verb)
+				elif not p in verb.keywords and not exempt:
 					remove_verb.append(verb)
 	for verb in remove_verb:
 		if verb in verbs:
@@ -521,18 +572,19 @@ def roomRangeCheck(me, thing):
 						break
 		if not lightsource:
 			return False
+	if thing.ix in me.contains:
+		if thing in me.contains[thing.ix]:
+			return False
+	if thing.ix in me.sub_contains:
+		if thing in me.sub_contains[thing.ix]:
+			return False
 	if thing.ix in out_loc.contains:
-		if thing not in out_loc.contains[thing.ix]:
-			return False
-		else:
+		if thing in out_loc.contains[thing.ix]:
 			return True
-	elif thing.ix in out_loc.sub_contains:
-		if thing not in out_loc.sub_contains[thing.ix]:
-			return False
-		else:
+	if thing.ix in out_loc.sub_contains:
+		if thing in out_loc.sub_contains[thing.ix]:
 			return True
-	else:
-		return False
+	return False
 
 def knowsRangeCheck(me, thing):
 	"""Check if the Player knows about a Thing
@@ -803,7 +855,7 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 		#app.printToGUI("Which " + noun + " do you mean?")
 		msg = "Do you mean "
 		for thing in things:
-			msg = msg + "the " + thing.verbose_name
+			msg = msg + thing.getArticle(True) + thing.verbose_name
 			# add appropriate punctuation and "or"
 			if thing is things[-1]:
 				msg = msg + "?"
@@ -901,9 +953,11 @@ def callVerb(me, app, cur_verb, obj_words):
 		me.contains.append(cur_iobj)
 	
 	if cur_verb.hasIobj:
-		if not cur_dobj or not cur_iobj:
+		if not cur_iobj:
 			return False
-		else:
+		elif not cur_dobj and cur_verb.hasDobj:
+			return False
+		elif cur_verb.hasDobj:
 			if cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
 				verb.dropVerb.verbFunc(me, app, cur_iobj)
 			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
@@ -928,6 +982,23 @@ def callVerb(me, app, cur_verb, obj_words):
 			lastTurn.convNode = False
 			lastTurn.specialTopics = {}
 			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
+			return True
+		else:
+			if cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
+				verb.dropVerb.verbFunc(me, app, cur_iobj)
+			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
+				app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
+				success = verb.getVerb.verbFunc(me, app, cur_iobj)
+				if not success:	
+					return False
+				if not cur_iobj.invItem:
+					app.printToGUI("You cannot take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".")
+					return False
+			elif cur_verb.iscope == "inv" and wearRangeCheck(me, cur_iobj):
+				verb.doffVerb.verbFunc(me, app, cur_iobj)
+			lastTurn.convNode = False
+			lastTurn.specialTopics = {}
+			cur_verb.verbFunc(me, app, cur_iobj)
 			return True
 	elif cur_verb.hasDobj:
 		if not cur_dobj:
@@ -1051,7 +1122,7 @@ def parseInput(me, app, input_string):
 	if not lastTurn.gameEnding:
 		if len(input_tokens)==0:
 			#app.printToGUI("I don't understand.")
-			#lastTurn.err = True
+			lastTurn.err = True
 			return 0
 		if saveLoadCheck(input_tokens, me, app):
 			return 0

@@ -49,6 +49,7 @@ class Thing:
 		self.location = False
 		self.name = name
 		self.synonyms = []
+		self.manual_update = False
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
 		# Thing instances that are not Actors cannot be spoken to
@@ -99,7 +100,7 @@ class Thing:
 			if vocab.nounDict[word] == []:
 				del vocab.nounDict[word]
 	
-	def setAdjectives(self, adj_list, update_desc=True):
+	def setAdjectives(self, adj_list, update_desc=False):
 		"""Sets adjectives for a Thing
 		Takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
 		Game creators should set update_desc to False if using a custom desc or xdesc for a Thing """
@@ -199,6 +200,13 @@ class Thing:
 	def describeThing(self, description):
 		self.base_desc = description
 		self.desc = description
+		if self.parent_obj:
+			if not self.parent_obj.children_desc:
+				self.parent_obj.desc = self.parent_obj.base_desc
+				self.parent_obj.xdesc = self.parent_obj.base_xdesc
+				for item in self.parent_obj.children:
+					self.parent_obj.desc = self.parent_obj.desc + item.base_desc
+					self.parent_obj.xdesc = self.parent_obj.xdesc + item.base_desc
 		if self.is_composite:
 			if self.children_desc:
 				self.desc = self.desc + self.children_desc
@@ -238,25 +246,15 @@ class Thing:
 		elif isinstance(item, Thing):
 			self.child_Containers.append(item)
 		self.location.addThing(item)
-		item.setAdjectives(item.adjectives + self.adjectives + [self.name])
-		#self.children_desc = ""
-		#item.describeThing("")
-		item.xdescribeThing("You notice nothing remarkable about " + item.getArticle(True) + item.verbose_name + ". ")
 		item.invItem = False
-		if isinstance(self, Container):
-			self.updateDesc()
+		if isinstance(self, Container) or isinstance(self, Surface):
 			self.containsListUpdate()
-		if isinstance(self, Surface):
-			self.containsListUpdate()
-	
+
 	def describeChildren(self, description):
 		self.children_desc = description
 		self.desc = self.desc + self.children_desc
 		self.xdesc = self.xdesc + self.children_desc
-		if isinstance(self, Container):
-			self.updateDesc()
-			self.containsListUpdate()
-		if isinstance(self, Surface):
+		if isinstance(self, Container) or isinstance(self, Surface):
 			self.containsListUpdate()
 
 class Surface(Thing):
@@ -292,6 +290,7 @@ class Surface(Thing):
 		self.parent_obj = False
 		self.size = 50
 		self.name = name
+		self.manual_update = False
 		# verbose_name will be updated by Thing method setAdjectives 
 		self.verbose_name = name
 		self.give = False
@@ -312,7 +311,7 @@ class Surface(Thing):
 		else:
 			vocab.nounDict[name] = [self]
 
-	def containsListUpdate(self):
+	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description of contents
 		Called when a Thing is added or removed """
 		from .actor import Player
@@ -359,12 +358,15 @@ class Surface(Thing):
 				for item in self.children:
 					self.xdesc = self.xdesc + item.desc
 					self.desc = self.desc + item.desc
-			if self.desc_reveal:
+			if self.desc_reveal and update_desc:
 				self.desc = self.desc + onlist
-			self.xdesc = self.xdesc + onlist
+			if update_xdesc:	
+				self.xdesc = self.xdesc + onlist
 		else:
-			self.desc = self.base_desc + onlist
-			self.xdesc = self.base_xdesc + onlist
+			if self.desc_reveal and update_desc:
+				self.desc = self.desc + onlist
+			if update_xdesc:	
+				self.xdesc = self.xdesc + onlist
 		self.contains_desc = onlist
 	
 	def addOn(self, item):
@@ -419,7 +421,7 @@ class Surface(Thing):
 			self.location.sub_contains[item.ix] = [item]
 		self.containsListUpdate()
 
-	def removeThing(self, item):
+	def removeThing(self, item, update_desc=True, update_xdesc=True):
 		"""Remove a Thing from a Surface """
 		if isinstance(item, Container):
 			if item.lock_obj:
@@ -466,7 +468,7 @@ class Surface(Thing):
 					del self.contains[item.ix]
 				rval = True
 				item.location = False
-				self.containsListUpdate()
+				self.containsListUpdate(update_desc, update_xdesc)
 		if item.ix in self.sub_contains:
 			if item in self.sub_contains[item.ix]:
 				self.sub_contains[item.ix].remove(item)
@@ -474,7 +476,7 @@ class Surface(Thing):
 					del self.sub_contains[item.ix]
 				rval = True
 				item.location = False
-				self.containsListUpdate()
+				self.containsListUpdate(update_desc, update_xdesc)
 		return rval
 			
 
@@ -536,6 +538,7 @@ class Container(Thing):
 		self.sub_contains = {}
 		self.name = name
 		self.verbose_name = name
+		self.manual_update = False
 		self.adjectives = []
 		self.synonyms = []
 		self.give = False
@@ -551,7 +554,7 @@ class Container(Thing):
 		else:
 			vocab.nounDict[name] = [self]
 	
-	def containsListUpdate(self):
+	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description for addition/removal of items from the Container instance """
 		from .actor import Player
 		desc = self.base_desc
@@ -607,15 +610,19 @@ class Container(Thing):
 				for item in self.children:
 					self.xdesc = self.xdesc + item.desc
 					self.desc = self.desc + item.desc
-			self.desc = self.desc + inlist
-			self.xdesc = self.xdesc + inlist
+			if update_desc:
+				self.desc = self.desc + inlist
+			if update_xdesc:
+				self.xdesc = self.xdesc + inlist
 		else:
-			self.desc = desc + inlist
-			self.xdesc = xdesc + self.lock_desc + inlist
+			if update_desc:
+				self.desc = desc + inlist
+			if update_xdesc:
+				self.xdesc = xdesc + self.lock_desc + inlist
 		self.contains_desc = inlist
 		return True
 	
-	def addIn(self, item):
+	def addIn(self, item, update_desc=True, update_xdesc=True):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
 		from . import actor
@@ -663,7 +670,7 @@ class Container(Thing):
 		if self.has_lid:
 			if not self.is_open:
 				self.hideContents()
-		self.containsListUpdate()
+		self.containsListUpdate(update_desc, update_xdesc)
 	
 	def revealContents(self):
 		list_version = list(self.contains.keys())
@@ -701,7 +708,7 @@ class Container(Thing):
 							del next_loc.sub_contains[item.ix]
 					next_loc = next_loc.location
 	
-	def removeThing(self, item):
+	def removeThing(self, item, update_desc=True, update_xdesc=True):
 		"""Remove an item from contents, update decription """
 		if isinstance(item, Container):
 			if item.lock_obj:
@@ -748,7 +755,7 @@ class Container(Thing):
 					del self.contains[item.ix]
 				rval = True
 				item.location = False
-				self.containsListUpdate()
+				self.containsListUpdate(update_desc, update_xdesc)
 		if item.ix in self.sub_contains:
 			if item in self.sub_contains[item.ix]:
 				self.sub_contains[item.ix].remove(item)
@@ -756,7 +763,7 @@ class Container(Thing):
 					del self.sub_contains[item.ix]
 				rval = True
 				item.location = False
-				self.containsListUpdate()
+				self.containsListUpdate(update_desc, update_xdesc)
 		return rval
 	
 	def setLock(self, lock_obj):
@@ -772,7 +779,7 @@ class Container(Thing):
 					self.lock_desc = " It is unlocked. "
 				lock_obj.describeThing("")
 				lock_obj.xdescribeThing("You notice nothing remarkable about " + lock_obj.getArticle(True) + lock_obj.verbose_name + ". ")
-				self.updateDesc()
+				self.containsListUpdate()
 			else:
 				print("Cannot set lock_obj for " + self.verbose_name + ": lock_obj.parent already set ")
 		else:
@@ -798,9 +805,6 @@ class Container(Thing):
 			else:
 				for item in self.children:
 					self.xdesc = self.xdesc + item.desc
-		self.containsListUpdate()
-	
-	def updateDesc(self):
 		self.containsListUpdate()
 	
 	def giveLid(self):
@@ -864,14 +868,15 @@ class LightSource(Thing):
 		self.contains = {}
 		self.sub_contains = {}
 		self.name = name
+		self.manual_update = False
 		self.verbose_name = name
 		self.adjectives = []
 		self.synonyms = []
 		self.give = False
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
-		self.desc = self.base_desc
-		self.xdesc = self.base_xdesc
+		self.desc = self.base_desc + "It is currently not lit. "
+		self.xdesc = self.base_xdesc + "It is currently not lit. "
 		# LightSource properties
 		self.is_lit = False
 		self.player_can_light = True
@@ -887,13 +892,34 @@ class LightSource(Thing):
 		self.cannot_extinguish_msg = "You cannot extinguish the " + self.name + ". "
 		self.cannot_light_expired_msg = "The " + self.name + " is used up. "
 		self.extinguishing_expired_msg = "The light of the " + self.name + " dims to nothing. "
-		self.expiry_warning = "The " + self.name + " fickers. "
+		self.expiry_warning = "The " + self.name + " flickers. "
+		self.lit_desc = "It is currently lit. "
+		self.not_lit_desc = "It is currently not lit. "
+		self.expired_desc = "It is burnt out. "
 		# add name to list of nouns
 		if name in vocab.nounDict:
 			vocab.nounDict[name].append(self)
 		else:
 			vocab.nounDict[name] = [self]
 	
+	def describeThing(self, description):
+		self.base_desc = description
+		if self.is_lit:
+			self.desc = self.base_desc + self.lit_desc
+		elif self.consumable and not self.turns_left:
+			self.desc = self.base_desc + self.expired_desc
+		else:
+			self.desc = self.base_desc + self.not_lit_desc
+	
+	def xdescribeThing(self, description):
+		self.base_xdesc = description
+		if self.is_lit:
+			self.xdesc = self.base_xdesc + self.lit_desc
+		elif self.consumable and not self.turns_left:
+			self.xdesc = self.base_xdesc + self.expired_desc
+		else:
+			self.xdesc = self.base_xdesc + self.not_lit_desc
+		
 	def light(self, app):
 		if self.is_lit:
 			app.printToGUI(self.already_lit_msg)
@@ -901,43 +927,41 @@ class LightSource(Thing):
 		elif self.consumable and not self.turns_left:
 			app.printToGUI(self.cannot_light_expired_msg)
 			return False
-		elif not self.player_can_light:
-			app.printToGUI(self.cannot_light_msg)
-			return False
 		else:
 			if self.consumable:
 				# add the consumeLightSource daemon
 				from .parser import daemons
 				daemons.add(self.consumeLightSourceDaemon)
-			app.printToGUI(self.light_msg)
 			self.is_lit = True
+			self.desc = self.base_desc + self.lit_desc
+			self.xdesc = self.base_xdesc + self.lit_desc
 	
 	def extinguish(self, app):
 		if not self.is_lit:
 			app.printToGUI(self.already_extinguished_msg)
 			return True
-		elif not self.player_can_extinguish:
-			app.printToGUI(self.cannot_extinguish_msg)
-			return False
 		else:
 			if self.consumable:
 				# remove the consumeLightSource daemon
 				from .parser import daemons
 				if self.consumeLightSourceDaemon in daemons.funcs:
 					daemons.remove(self.consumeLightSourceDaemon)
-			app.printToGUI(self.extinguish_msg)
 			self.is_lit = False
+			self.desc = self.base_desc + self.not_lit_desc
+			self.xdesc = self.base_xdesc + self.not_lit_desc
 			
 	def consumeLightSourceDaemon(self, me, app):
 		"""Runs every turn while a consumable light source is active, to keep track of time left. """
 		from .parser import lastTurn, daemons
 		from .verb import helpVerb, helpVerbVerb, aboutVerb
-		if not (lastTurn.verb==helpVerb or lastTurn.verb==helpVerbVerb or lastTurn.verb==aboutVerb or lastTurn.ambiguous):
+		if not (lastTurn.verb==helpVerb or lastTurn.verb==helpVerbVerb or lastTurn.verb==aboutVerb or lastTurn.ambiguous or lastTurn.err):
 			self.turns_left = self.turns_left - 1
 			if self.turns_left == 0:
 				if me.getOutermostLocation() == self.getOutermostLocation():
 					app.printToGUI(self.extinguishing_expired_msg)
 				self.is_lit = False
+				self.desc = self.base_desc + self.expired_desc
+				self.xdesc = self.base_xdesc + self.expired_desc
 				if self.consumeLightSourceDaemon in daemons.funcs:
 					daemons.remove(self.consumeLightSourceDaemon)
 			elif me.getOutermostLocation() == self.getOutermostLocation():
@@ -983,6 +1007,7 @@ class AbstractClimbable(Thing):
 		self.wearable = False
 		self.location = False
 		self.name = name
+		self.manual_update = False
 		self.synonyms = []
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
@@ -1039,6 +1064,7 @@ class Door(Thing):
 		self.wearable = False
 		self.location = False
 		self.name = name
+		self.manual_update = False
 		self.synonyms = []
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
@@ -1147,6 +1173,7 @@ class Key(Thing):
 		self.wearable = False
 		self.location = False
 		self.name = name
+		self.manual_update = False
 		self.synonyms = []
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
@@ -1208,6 +1235,7 @@ class Lock(Thing):
 		self.location = False
 		self.name = name
 		self.synonyms = []
+		self.manual_update = False
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
 		# Thing instances that are not Actors cannot be spoken to
@@ -1230,7 +1258,7 @@ class Lock(Thing):
 		self.xdesc = self.base_xdesc + self.state_desc
 		if self.parent_obj:
 			self.parent_obj.lock_desc = " It is unlocked. "
-			self.parent_obj.updateDesc()
+			self.parent_obj.containsListUpdate()
 		if self.twin:
 			if self.twin.is_locked:
 				self.twin.makeUnlocked()
@@ -1241,7 +1269,7 @@ class Lock(Thing):
 		self.xdesc = self.base_xdesc + self.state_desc
 		if self.parent_obj:
 			self.parent_obj.lock_desc = " It is locked. "
-			self.parent_obj.updateDesc()
+			self.parent_obj.containsListUpdate()
 		if self.twin:
 			if not self.twin.is_locked:
 				self.twin.makeLocked()
@@ -1253,7 +1281,7 @@ class Lock(Thing):
 			if self.children_desc:
 				self.desc = self.desc + self.children_desc
 			else:
-				for item in children:
+				for item in self.children:
 					self.desc = self.desc + item.desc
 	
 	def xdescribeThing(self, description):
@@ -1263,7 +1291,7 @@ class Lock(Thing):
 			if self.children_desc:
 				self.xdesc = self.xdesc + self.children_desc
 			else:
-				for item in children:
+				for item in self.children:
 					self.xdesc = self.xdesc + item.desc
 	
 class Abstract(Thing):
@@ -1291,6 +1319,7 @@ class Abstract(Thing):
 		self.location = False
 		self.name = name
 		self.synonyms = []
+		self.manual_update = False
 		# verbose name will be updated when adjectives are added
 		self.verbose_name = name
 		self.give = False
@@ -1344,6 +1373,7 @@ class UnderSpace(Thing):
 		self.name = name
 		self.verbose_name = name
 		self.adjectives = []
+		self.manual_update = False
 		self.give = False
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 		self.base_xdesc = self.base_desc
@@ -1357,7 +1387,7 @@ class UnderSpace(Thing):
 		else:
 			vocab.nounDict[name] = [self]
 	
-	def containsListUpdate(self):
+	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description for addition/removal of items from the Container instance """
 		from .actor import Player
 		desc = self.base_desc
@@ -1403,14 +1433,16 @@ class UnderSpace(Thing):
 				self.desc = self.desc + self.children_desc
 				self.xdesc = self.xdesc + self.children_desc
 			else:
-				for item in children:
+				for item in self.children:
 					self.desc = self.desc + item.desc
 					self.xdesc = self.xdesc + item.desc
 			self.desc = self.desc + inlist
 			self.xdesc = self.xdesc + inlist
 		else:
-			self.desc = desc + inlist
-			self.xdesc = xdesc + inlist
+			if update_desc:
+				self.desc = desc + inlist
+			if update_xdesc:
+				self.xdesc = xdesc + inlist
 		self.contains_desc = inlist
 		return True
 	
@@ -1515,7 +1547,7 @@ class UnderSpace(Thing):
 		self.revealed = revealed
 		self.containsListUpdate()
 	
-	def removeThing(self, item):
+	def removeThing(self, item, update_desc=True, update_xdesc=True):
 		"""Remove an item from contents, update decription """
 		if isinstance(item, Container):
 			if item.lock_obj:
@@ -1562,7 +1594,7 @@ class UnderSpace(Thing):
 					del self.contains[item.ix]
 				rval = True
 				item.location = False
-				self.containsListUpdate()
+				self.containsListUpdate(update_desc, update_xdesc)
 		if item.ix in self.sub_contains:
 			if item in self.sub_contains[item.ix]:
 				self.sub_contains[item.ix].remove(item)
@@ -1570,7 +1602,7 @@ class UnderSpace(Thing):
 					del self.sub_contains[item.ix]
 				rval = True
 				item.location = False
-				self.containsListUpdate()
+				self.containsListUpdate(update_desc, update_xdesc)
 		return rval
 			
 	def describeThing(self, description):
