@@ -40,6 +40,7 @@ class Actor(Thing):
 		self.sub_contains = {}
 		self.name = name
 		self.is_composite = False
+		self.commodity = False
 		# verbose_name is modified when adjectives are applied using the setAdjectives method of the Thing class
 		self.verbose_name = name
 		# the default description of the Actor in a room
@@ -60,12 +61,20 @@ class Actor(Thing):
 		elif self not in vocab.nounDict[name]:
 			vocab.nounDict[name].append(self)
 		# topics for conversation
+		self.for_sale = {}
+		self.will_buy = {}
 		self.ask_topics = {}
 		self.tell_topics = {}
 		self.give_topics = {}
 		self.show_topics = {}
 		self.special_topics = {}
 		self.special_topics_alternate_keys = {}
+		self.sticky_topic = None
+		self.hi_topic = None
+		self.return_hi_topic = None
+		self.said_hi = False
+		self.hermit_topic = None
+		self.manual_suggest = False
 		# prints when player's question/statement does not match a topis
 		self.default_topic = "No response."
 		# specifies the article to use in output
@@ -83,16 +92,18 @@ class Actor(Thing):
 		Takes a string argument proper_name
 		Called by the game creator """
 	# NOTE: currently enters vocab words incorrectly if proper_name contains multiple words
-		self.name = proper_name
-		self.desc = proper_name + " is here."
+		from.parser import cleanInput, tokenize, removeArticles
+		token_name = proper_name
+		token_name = cleanInput(token_name, False)
+		token_name = tokenize(token_name)
+		token_name = removeArticles(token_name)
+		self.name = token_name[-1]
+		self.setAdjectives(self.adjectives + token_name)
+		for tok in token_name:
+			self.addSynonym(tok)
+		self.verbose_name = proper_name
+		#self.desc = proper_name + " is here."
 		self.hasArticle = False
-		# convert to lowercase for addition to nounDict
-		proper_name = proper_name.lower()
-		# add name to nounDict
-		if proper_name not in vocab.nounDict:
-			vocab.nounDict[proper_name] = [self]
-		elif self not in vocab.nounDict[proper_name]:
-			vocab.nounDict[proper_name].append(self)
 	
 	def describeThing(self, description):
 		self.base_desc = description
@@ -198,9 +209,24 @@ class Actor(Thing):
 				item.location = False
 		return rval
 	
+	def setHiTopics(self, hi_topic, return_hi_topic):
+		self.said_hi = False
+		hi_topic.owner = self
+		return_hi_topic.owner = self
+		self.hi_topic = hi_topic
+		self.return_hi_topic = return_hi_topic
+		
+	def setHermitTopic(self, hermit_topic):
+		self.hermit_topic = hermit_topic
+		hermit_topic.owner = self
+	
+	def removeHermitTopic(self):
+		self.hermit_topic = None
+	
 	def addTopic(self, ask_tell_give_show, topic, thing):
 		"""Adds a conversation topic to the Actor
 		Takes argument ask_tell, a string """
+		topic.owner = self
 		if "ask" in ask_tell_give_show or ask_tell_give_show=="all":
 			self.ask_topics[thing.ix] = topic
 		if "tell" in ask_tell_give_show or ask_tell_give_show=="all":
@@ -222,12 +248,25 @@ class Actor(Thing):
 			if x in self.special_topics_alternate_keys:
 				del self.special_topics_alternate_keys[x]
 	
+	def removeAllSpecialTopics(self):
+		topics = []
+		for suggestion in self.special_topics:
+			topics.append(self.special_topics[suggestion])
+		for topic in topics:
+			self.removeSpecialTopic(topic)
+	
+	def removeAllTopics(self):
+		self.ask_topics = {}
+		self.tell_topics = {}
+		self.give_topics = {}
+		self.show_topics = {}
+	
 	def printSuggestions(self, app):
 		from .parser import lastTurn
 		if self.special_topics != {}:
+			lastTurn.convNode = True
 			for suggestion in self.special_topics:
 				app.printToGUI("(You could " + suggestion + ")")
-				lastTurn.convNode = True
 				lastTurn.specialTopics[suggestion] = self.special_topics[suggestion]
 			for phrasing in self.special_topics_alternate_keys:
 				lastTurn.specialTopics[phrasing] = self.special_topics_alternate_keys[phrasing]
@@ -237,7 +276,21 @@ class Actor(Thing):
 		Should be overwritten by the game creator for an instance to create special responses
 		Takes argument app, pointing to the PyQt5 GUI"""
 		app.printToGUI(self.default_topic)
-		#self.printSuggestions(app)
+		self.printSuggestions(app)
+	
+	def addSelling(self, item, currency, price, stock):
+		"""item is the Thing for sale (by the unit), currency is the Thing to offer in exchange 
+		(use currency.copyThing() for duplicates), price is the number of the currency Things required,
+		and stock is the number of a given Thing the Actor has to sell (set to True for infinite) """
+		if item.ix not in self.for_sale:
+			self.for_sale[item.ix] = SaleItem(item, currency, price, stock)
+	
+	def addWillBuy(self, item, currency, price, max_wanted):
+		"""item is the Thing the Actor wishes to purchase (by the unit), currency is the Thing the Actor will offer in exchange 
+		(use currency.copyThing() for duplicates), price is the number of the currency Things the Actor will give,
+		and max_wanted is the number of a given Thing the Actor is willing to buy (set to True for infinite) """
+		if item.ix not in self.will_buy:
+			self.will_buy[item.ix] = SaleItem(item, currency, price, max_wanted)
 	
 	def getOutermostLocation(self):
 		"""Gets the Actor's current room 
@@ -274,6 +327,14 @@ class Player(Actor):
 		self.base_desc = ""
 		self.xdesc="You notice nothing remarkable about yourself. "
 		self.base_xdesc = "You notice nothing remarkable about yourself. "
+		self.sticky_topic = None
+		self.hi_topic = None
+		self.return_hi_topic = None
+		self.said_hi = False
+		self.hermit_topic = None
+		self.manual_suggest = False
+		self.for_sale = {}
+		self.will_buy = {}
 		self.ask_topics = {}
 		self.tell_topics = {}
 		self.give_topics = {}
@@ -285,6 +346,7 @@ class Player(Actor):
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
+		self.commodity = False
 		global actor_ix
 		self.ix = "actor" + str(actor_ix)
 		actor_ix = actor_ix + 1
@@ -326,9 +388,13 @@ class Topic:
 		self.ix = "topic" + str(topic_ix)
 		topic_ix = topic_ix + 1
 		topics[self.ix] = self
+		self.owner = None
 	
-	def func(self, app):
+	def func(self, app, suggest=True):
 		app.printToGUI(self.text)
+		if self.owner and suggest:
+			if not self.owner.manual_suggest:
+				self.owner.printSuggestions(app)
 
 class SpecialTopic:
 	"""class for conversation topics"""
@@ -342,6 +408,68 @@ class SpecialTopic:
 	
 	def addAlternatePhrasing(self, phrasing):
 		self.alternate_phrasings.append(phrasing)
+
+class SaleItem:
+	def __init__(self, item, currency, price, number):
+		self.ix = item.ix
+		self.thing = item
+		self.currency = currency
+		self.price = price
+		self.number = number
+		self.wants = number
+		self.out_stock_msg = "That item is out of stock. "
+		self.wants_no_more_msg = None
+		self.purchase_msg = "You purchase " + item.lowNameArticle(False) + ". "
+		self.sell_msg = "You sell " + item.lowNameArticle(True) + ". "
+	
+	def buyUnit(self, me, app):
+		for i in range(0, self.price):
+			if self.currency.ix in me.contains:
+				me.removeThing(me.contains[self.currency.ix][0])
+			elif self.currency.ix in me.sub_contains:
+				me.removeThing(me.sub_contains[self.currency.ix][0])
+		if self.price > 1:
+			app.printToGUI("(Lost: " + str(self.price) + " " + self.currency.getPlural() + ")")
+		else:
+			app.printToGUI("(Lost: " + str(self.price) + " " + self.currency.verbose_name + ")")
+		if self.number is True:
+			obj = self.thing.copyThing()
+		elif self.number > 1:
+			obj = self.thing.copyThing()
+		else:
+			obj = self.thing
+			obj.location.removeThing(obj)
+		me.addThing(obj)
+		if not self.number is True:
+			self.number = self.number -1
+		app.printToGUI("(Received: " + obj.verbose_name + ") ")
+	
+	def afterBuy(self, me, app):
+		pass
+	def beforeBuy(self, me, app):
+		pass
+	def soldOut(self, me, app):
+		pass
+		
+	def sellUnit(self, me, app):
+		me.removeThing(self.thing)
+		app.printToGUI("(Lost: " + self.thing.verbose_name + ")")
+		for i in range(0, self.price):
+			me.addThing(self.currency)
+		if not self.number is True:
+			self.number = self.number -1
+		if self.price > 1:
+			app.printToGUI("(Received: " + str(self.price) + " " + self.currency.getPlural() + ") ")
+		else:
+			app.printToGUI("(Received: " + str(self.price) + " " + self.currency.verbose_name + ") ")
+
+	def afterSell(self, me, app):
+		pass
+	def beforeSell(self, me, app):
+		pass
+	def boughtAll(self, me, app):
+		pass
+
 
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces

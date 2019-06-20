@@ -113,7 +113,10 @@ def cleanInput(input_string, record=True):
 	exclude = set(string.punctuation)
 	input_string = ''.join(ch for ch in input_string if ch not in exclude)
 	if record:
+		from .serializer import curSave
 		lastTurn.turn_list.append(input_string)
+		if curSave.recfile:
+			curSave.recfile.write(input_string + "\n")
 	return input_string
 
 def tokenize(input_string):
@@ -146,6 +149,9 @@ def extractInline(app, output_string, main_file):
 	remove_func = []
 	for word_ix, word in enumerate(output_tokens):
 		if word[0:2] == "<<":
+			if not word[-2:] == ">>":
+				print("Bad inline call \033[1m" + word + "\033[0m -- Missing \">>\" or missing trailing space")
+				continue
 			func = word[2:-2]
 			if len(func)>1:
 				func = "main_module." + func
@@ -158,20 +164,26 @@ def extractInline(app, output_string, main_file):
 						arg2 = []
 						i = 0
 						while i < len(args):
+							found = True
 							try:
-								defined = eval(args[i])
+								eval(args[i])
 							except:
-								defined = False	
-							if not defined:
-								arg2.append("main_module." + args[i])
+								found = False
+							if not found:	
+								cur_arg = "main_module." + args[i]
 							else:
-								arg2.append(args[i])
+								cur_arg = args[i]
+							arg2.append(cur_arg)
 							i = i + 1
 						args = " ".join(arg2)
 						func = func[:start_arg] + args + ")"
 				out = eval(func)
 				if isinstance(out, str):
 					output_tokens[word_ix] = out
+					if (word_ix + 1) < len(output_tokens):
+						if output_tokens[word_ix + 1] in vocab.english.no_space_before:
+							output_tokens[word_ix] = out + output_tokens[word_ix + 1]
+							remove_func.append(output_tokens[word_ix + 1])
 				else:
 					remove_func.append(word)
 	for word in remove_func:
@@ -453,7 +465,8 @@ def checkObj(me, app, cur_verb, dobj, iobj):
 			if not dobj:
 				missing = True
 			else:
-				dobj = [dobj.verbose_name]
+				#dobj = [dobj.verbose_name]
+				pass
 		else:
 			app.printToGUI("Please be more specific")
 			lastTurn.err = True
@@ -464,7 +477,8 @@ def checkObj(me, app, cur_verb, dobj, iobj):
 			if not iobj:
 				missing = True
 			else:
-				iobj = [iobj.verbose_name]
+				#iobj = [iobj.verbose_name]
+				pass
 		else:
 			app.printToGUI("Please be more specific")
 			lastTurn.err = True
@@ -1013,14 +1027,18 @@ def callVerb(me, app, cur_verb, obj_words):
 					return False
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
-			cur_verb.verbFunc(me, app, cur_dobj)
 			lastTurn.convNode = False
 			lastTurn.specialTopics = {}
+			cur_verb.verbFunc(me, app, cur_dobj)
+			#lastTurn.convNode = False
+			#lastTurn.specialTopics = {}
 			return True
 	else:
-		cur_verb.verbFunc(me, app)
 		lastTurn.convNode = False
 		lastTurn.specialTopics = {}
+		cur_verb.verbFunc(me, app)
+		#lastTurn.convNode = False
+		#lastTurn.specialTopics = {}
 		return True
 
 def disambig(me, app, input_tokens):

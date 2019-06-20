@@ -265,6 +265,10 @@ class Room:
 				self.getLocContents(me)
 		app.printToGUI("<b>" + self.name + "</b>")
 		app.printToGUI(self.fulldesc)
+		try: 
+			self.desc_func(me, app)
+		except AttributeError:
+			pass
 		return True
 
 class OutdoorRoom(Room):

@@ -20,7 +20,7 @@ class SaveState:
 	Methods used in saving are saveState, and simplifyAttribute
 	Methods used in loading are dictLookup, and loadState"""
 	def __init__(self):
-		pass
+		self.recfile = None
 					
 	def saveState(self, me, f, main_file):
 		"""Serializes game state and writes to a file
@@ -254,6 +254,23 @@ class SaveState:
 					else:
 						setattr(obj, key2, loadDict[key][key2])
 		return True
+	
+	def recordOn(self, app, f):
+		app.printToGUI("**RECORDING ON**")
+		if not f:
+			return False
+		if f[-4:]!=".txt":
+			return False
+		self.recfile = open(f, "w")
+		if not self.recfile:
+			app.printToGUI("Please select a valid file name to record moves. ")
+		
+	def recordOff(self, app):
+		app.printToGUI("**RECORDING OFF**")
+		if self.recfile:
+			self.recfile.close()
+			self.recfile = None
+		
 # the SaveState object
 curSave = SaveState()
 

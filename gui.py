@@ -262,6 +262,27 @@ class App(QWidget):
 			fname = fname + ".sav"
 		return fname
 	
+	def getRecordFileGUI(self):
+		"""Creates a QFileDialog when the user types save, and validates the selected file name
+		Returns the file name or None"""
+		cwd = os.getcwd()
+		fname = QFileDialog.getSaveFileName(self, 'Choose where to save the record', cwd, "Text Files (*.txt)")
+		fname = fname[0]
+		if len(fname) == 0:
+			return None
+		# add .sav extension if necessary
+		self.newBox(1)
+		if not "." in fname:
+			fname = fname + ".txt"
+		elif (fname.index(".") - len(fname)) != -4:
+			ex_start = fname.index(".")
+			fname = fname[0:ex_start]
+			fname = fname + ".txt"
+		elif fname[-4:]!=".txt":
+			fname = fname[0:-4]
+			fname = fname + ".txt"
+		return fname
+	
 	def getLoadFileGUI(self):
 		"""Creates a QFileDialog when the user types load, and validates the selected file name
 		Returns the file name if extension is sav, else return None """
@@ -274,6 +295,22 @@ class App(QWidget):
 		if len(fname) < 4:
 			return None 
 		elif fname[-4:]==".sav":
+			return fname
+		else:
+			return None
+	
+	def getPlayBackFileGUI(self):
+		"""Creates a QFileDialog when the user types load, and validates the selected file name
+		Returns the file name if extension is sav, else return None """
+		cwd = os.getcwd()
+		#fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
+		fname = QFileDialog.getOpenFileName(self, 'Select file to play back', cwd, "Text files (*.txt)")
+		fname = fname[0]
+		# add .sav extension if necessary
+		self.newBox(1)
+		if len(fname) < 4:
+			return None 
+		elif fname[-4:]==".txt":
 			return fname
 		else:
 			return None

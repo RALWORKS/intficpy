@@ -860,6 +860,81 @@ def lookUnderVerbFunc(me, app, dobj, skip=False):
 
 lookUnderVerb.verbFunc = lookUnderVerbFunc
 
+# TALK TO (Actor)
+# transitive verb with indirect object
+# implicit direct object enabled
+talkToVerb = Verb("talk", "talk to")
+talkToVerb.addSynonym("greet")
+talkToVerb.addSynonym("say")
+talkToVerb.addSynonym("hi")
+talkToVerb.addSynonym("hello")
+talkToVerb.syntax = [["talk", "to", "<dobj>"], ["talk", "with", "<dobj>"], ["talk", "<dobj>"], ["greet", "<dobj>"], ["hi", "<dobj>"], ["hello", "<dobj>"], ["say", "hi", "<dobj>"], ["say", "hi", "to", "<dobj>"], ["say", "hello", "<dobj>"], ["say", "hello", "to", "<dobj>"]]
+talkToVerb.hasDobj = True
+talkToVerb.impDobj = True
+talkToVerb.preposition = ["to", "with"]
+talkToVerb.dtype = "Actor"
+
+def getImpTalkTo(me, app):
+	"""If no dobj is specified, try to guess the Actor
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	# import parser to gain access to the record of the last turn
+	from . import parser
+	people = []
+	# find every Actor in the current location
+	for key, items in me.location.contains.items():
+		for item in items:
+			if isinstance(item, actor.Actor)  and not item==me:
+				people.append(item)
+	if len(people)==0:
+		app.printToGUI("There's no one here to talk to.")
+	elif len(people)==1:
+		# ask the only actor in the room
+		return people[0]
+	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		# ask whomever the player last interracted with
+		return parser.lastTurn.dobj
+	else:
+		# turn disambiguation mode on
+		app.printToGUI("Please specify a person to talk to. ")
+		parser.lastTurn.ambiguous = True
+
+# replace default getImpDobj method
+talkToVerb.getImpDobj = getImpTalkTo
+
+def talkToVerbFunc(me, app, dobj, skip=False):
+	"""Talk to an Actor
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	from .thing import reflexive
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.talkToVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = dobj.talkToVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, actor.Actor):
+		if dobj.hermit_topic:
+			dobj.hermit_topic.func(app, False)
+		elif dobj.sticky_topic:
+			dobj.sticky_topic.func(app)
+		elif dobj.hi_topic and not dobj.said_hi:
+			dobj.hi_topic.func(app)
+			dobj.said_hi = True
+		elif dobj.return_hi_topic:
+			dobj.return_hi_topic.func(app)
+		else:
+			dobj.defaultTopic(app)
+	else:
+		app.printToGUI("You cannot talk to that.")
+
+# replace default verbFunc method
+talkToVerb.verbFunc = talkToVerbFunc
+
 # ASK (Actor)
 # transitive verb with indirect object
 # implicit direct object enabled
@@ -903,6 +978,11 @@ def askVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Ask an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	from .thing import reflexive
+	if isinstance(dobj, actor.Actor):
+		if dobj.hermit_topic:
+			dobj.hermit_topic.func(app, False)
+			return True
+			
 	if not skip:
 		runfunc = True
 		try:
@@ -918,11 +998,21 @@ def askVerbFunc(me, app, dobj, iobj, skip=False):
 	
 	if isinstance(dobj, actor.Actor):
 		# try to find the ask topic for iobj
+		if dobj.hi_topic and not dobj.said_hi:
+			dobj.hi_topic.func(app, False)
+			dobj.said_hi = True
 		if iobj==reflexive:	
 			iobj = dobj
 		if iobj.ix in dobj.ask_topics:
 			# call the ask function for iobj
-			dobj.ask_topics[iobj.ix].func(app)
+			if dobj.sticky_topic:
+				dobj.ask_topics[iobj.ix].func(app, False)
+				dobj.sticky_topic.func(app)
+			else:
+				dobj.ask_topics[iobj.ix].func(app)
+		elif dobj.sticky_topic:
+			dobj.defaultTopic(app, False)
+			dobj.sticky_topic.func(app)
 		else:
 			dobj.defaultTopic(app)
 	else:
@@ -974,6 +1064,10 @@ def tellVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Tell an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	from .thing import reflexive
+	if isinstance(dobj, actor.Actor):
+		if dobj.hermit_topic:
+			dobj.hermit_topic.func(app, False)
+			return True
 	if not skip:
 		runfunc = True
 		try:
@@ -988,10 +1082,20 @@ def tellVerbFunc(me, app, dobj, iobj, skip=False):
 			return True
 	
 	if isinstance(dobj, actor.Actor):
+		if dobj.hi_topic and not dobj.said_hi:
+			dobj.hi_topic.func(app, False)
+			dobj.said_hi = True
 		if iobj==reflexive:	
 				iobj = dobj
 		if iobj.ix in dobj.tell_topics:
-			dobj.tell_topics[iobj.ix].func(app)
+			if dobj.sticky_topic:
+				dobj.tell_topics[iobj.ix].func(app, False)
+				dobj.sticky_topic.func(app)
+			else:
+				dobj.tell_topics[iobj.ix].func(app)
+		elif dobj.sticky_topic:
+			dobj.defaultTopic(app, False)
+			dobj.sticky_topic.func(app)
 		else:
 			dobj.defaultTopic(app)
 	else:
@@ -1042,6 +1146,10 @@ giveVerb.getImpDobj = getImpGive
 def giveVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Give an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if isinstance(dobj, actor.Actor):
+		if dobj.hermit_topic:
+			dobj.hermit_topic.func(app, False)
+			return True
 	if not skip:
 		runfunc = True
 		try:
@@ -1056,8 +1164,15 @@ def giveVerbFunc(me, app, dobj, iobj, skip=False):
 			return True
 	
 	if isinstance(dobj, actor.Actor):
+		if dobj.hi_topic and not dobj.said_hi:
+			dobj.hi_topic.func(app, False)
+			dobj.said_hi = True
 		if iobj.ix in dobj.give_topics:
-			dobj.give_topics[iobj.ix].func(app)
+			if dobj.sticky_topic:
+				dobj.give_topics[iobj.ix].func(app, False)
+				dobj.sticky_topic.func(app)	
+			else:
+				dobj.give_topics[iobj.ix].func(app)
 			if iobj.give:
 				me.contains[dobj.ix].remove(dobj)
 				if me.contains[dobj.ix] == []:
@@ -1076,6 +1191,9 @@ def giveVerbFunc(me, app, dobj, iobj, skip=False):
 						iobj.sub_contains[t.ix] = [t]
 				dobj.addIn(iobj)
 			return True
+		elif dobj.sticky_topic:
+			dobj.defaultTopic(app, False)
+			dobj.sticky_topic.func(app)	
 		else:
 			dobj.defaultTopic(app)
 			return True
@@ -1127,6 +1245,10 @@ showVerb.getImpDobj = getImpShow
 def showVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Show an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if isinstance(dobj, actor.Actor):
+		if dobj.hermit_topic:
+			dobj.hermit_topic.func(app, False)
+			return True
 	if not skip:
 		runfunc = True
 		try:
@@ -1140,10 +1262,21 @@ def showVerbFunc(me, app, dobj, iobj, skip=False):
 		if not runfunc:
 			return True
 	if isinstance(dobj, actor.Actor):
+		if dobj.hi_topic and not dobj.said_hi:
+			dobj.hi_topic.func(app, False)
+			dobj.said_hi = True
 		if iobj.ix in dobj.show_topics:
-			dobj.show_topics[iobj.ix].func(app)
+			if dobj.sticky_topic:
+				dobj.show_topics[iobj.ix].func(app, False)
+				dobj.sticky_topic.func(app)
+			else:
+				dobj.show_topics[iobj.ix].func(app)
+		elif dobj.sticky_topic:
+			dobj.defaultTopic(app, False)
+			dobj.sticky_topic.func(app)
 		else:
 			dobj.defaultTopic(app)
+
 	else:
 		app.printToGUI("You cannot talk to that.")
 
@@ -1590,7 +1723,7 @@ def climbOnVerbFunc(me, app, dobj, skip=False):
 		if not runfunc:
 			return True
 	
-	if isinstance(dobj, thing.AbstractClimbable):
+	if dobj.connection:
 		if dobj.direction=="u":
 			dobj.connection.travel(me, app)
 		else:
@@ -1687,7 +1820,7 @@ def climbDownFromVerbFunc(me, app, dobj, skip=False):
 		if not runfunc:
 			return True
 	
-	if isinstance(dobj, thing.AbstractClimbable):
+	if dobj.connection:
 		if dobj.direction=="d":
 			dobj.connection.travel(me, app)
 			return True
@@ -2379,3 +2512,292 @@ def waitVerbFunc(me, app):
 # replace default verbFunc method
 waitVerb.verbFunc = waitVerbFunc
 
+# USE (THING)
+# transitive verb, no indirect object
+useVerb = Verb("use")
+useVerb.syntax = [["use", "<dobj>"]]
+useVerb.hasDobj = True
+useVerb.dscope = "near"
+
+def useVerbFunc(me, app, dobj, skip=False):
+	"""Use a Thing
+	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.useVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+		if isinstance(dobj, thing.LightSource):
+			return lightVerb.verbFunc(me, app, dobj)
+		elif isinstance(dobj, thing.Key):
+			from .parser import lastTurn
+			app.printToGUI("What would you like to unlock with " + dobj.lowNameArticle(True) + "?")
+			lastTurn.verb = unlockWithVerb
+			lastTurn.iobj = dobj
+			lastTurn.dobj = False
+			lastTurn.ambiguous = True
+		else:
+			app.printToGUI(dobj.capNameArticle(True) + " has no obvious use. ")
+			return False
+# replace the default verbFunc method
+useVerb.verbFunc = useVerbFunc
+
+# BUY FROM
+# transitive verb with indirect object
+buyFromVerb = Verb("buy", "buy from")
+buyFromVerb.addSynonym("purchase")
+buyFromVerb.syntax = [["buy", "<dobj>", "from", "<iobj>"], ["purchase", "<dobj>", "from", "<iobj>"]]
+buyFromVerb.hasDobj = True
+buyFromVerb.dscope = "knows"
+buyFromVerb.hasIobj = True
+buyFromVerb.iscope = "room"
+buyFromVerb.itype = "Actor"
+buyFromVerb.preposition = ["from"]
+
+def buyFromVerbFunc(me, app, dobj, iobj, skip=False):
+	"""Buy something from a person
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.buyFromVerbDobj(me, app)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.buyFromVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if not isinstance(iobj, actor.Actor):
+		app.printToGUI("You cannot buy anything from " + iobj.lowNameArticle(False) + ". ")
+		return False
+	elif iobj == me:
+		app.printToGUI("You cannot buy anything from yourself. ")
+		return False
+	elif isinstance(dobj, actor.Actor):
+		if not dobj.commodity:
+			app.printToGUI("You cannot buy or sell a person. ")
+			return False
+	if dobj.ix not in iobj.for_sale:
+		app.printToGUI(iobj.capNameArticle(True) + " doesn't sell " + dobj.lowNameArticle(False) + ". ")
+		return False
+	elif not iobj.for_sale[dobj.ix].number:
+		app.printToGUI(iobj.for_sale[dobj.ix].out_stock_msg)
+		return False
+	else:
+		currency = iobj.for_sale[dobj.ix].currency
+		currency_ix = currency.ix
+		mycurrency = 0
+		if currency_ix in me.contains:
+			mycurrency = mycurrency + len(me.contains[currency_ix])
+		if currency_ix in me.sub_contains:
+			mycurrency = mycurrency + len(me.sub_contains[currency_ix])
+		if mycurrency < iobj.for_sale[dobj.ix].price:
+			app.printToGUI("You don't have enough " + currency.getPlural() + " to purchase " + dobj.lowNameArticle(False) + ". <br> (requires " + str(iobj.for_sale[dobj.ix].price) + ") ")
+			return False
+		else:
+			app.printToGUI(iobj.for_sale[dobj.ix].purchase_msg)
+			iobj.for_sale[dobj.ix].beforeBuy(me, app)
+			iobj.for_sale[dobj.ix].buyUnit(me, app)
+			iobj.for_sale[dobj.ix].afterBuy(me, app)
+			if not iobj.for_sale[dobj.ix].number:
+				iobj.for_sale[dobj.ix].soldOut(me, app)
+			return True
+	
+# replace the default verbFunc method
+buyFromVerb.verbFunc = buyFromVerbFunc
+
+# BUY
+# transitive verb
+buyVerb = Verb("buy")
+buyVerb.addSynonym("purchase")
+buyVerb.syntax = [["buy", "<dobj>"], ["purchase", "<dobj>"]]
+buyVerb.hasDobj = True
+buyVerb.dscope = "knows"
+
+def buyVerbFunc(me, app, dobj):
+	"""Redriect to buy from
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
+	from .parser import lastTurn
+	people = []
+	# find every Actor in the current location
+	for key, items in me.location.contains.items():
+		for item in items:
+			if isinstance(item, actor.Actor)  and not item==me:
+				people.append(item)
+	if len(people)==0:
+		app.printToGUI("There's no one here to buy from. ")
+	elif len(people)==1:
+		# ask the only actor in the room
+		iobj = people[0]
+		return buyFromVerb.verbFunc(me, app, dobj, iobj)
+	else:
+		listpeople = "Would you like to buy from "
+		for p in people:
+			listpeople = listpeople + p.lowNameArticle(True)
+			if p is people[-1]:
+				listpeople = listpeople + "? "
+			elif p is people[-2]:
+				listpeople = listpeople + " or "
+			else:
+				listpeople = listpeople + ", "
+		app.printToGUI(listpeople)
+		lastTurn.verb = buyFromVerb
+		lastTurn.dobj = dobj
+		lastTurn.iobj = False
+		lastTurn.things = people
+		lastTurn.ambiguous = True
+
+# replace the default verbFunc method
+buyVerb.verbFunc = buyVerbFunc
+
+# SELL TO
+# transitive verb with indirect object
+sellToVerb = Verb("sell", "sell to")
+sellToVerb.syntax = [["sell", "<dobj>", "to", "<iobj>"]]
+sellToVerb.hasDobj = True
+sellToVerb.dscope = "inv"
+sellToVerb.hasIobj = True
+sellToVerb.iscope = "room"
+sellToVerb.itype = "Actor"
+sellToVerb.preposition = ["to"]
+
+def sellToVerbFunc(me, app, dobj, iobj, skip=False):
+	"""Sell something to a person
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.sellToVerbDobj(me, app)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.sellToVerbIobj(me, app, dobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if not isinstance(iobj, actor.Actor):
+		app.printToGUI("You cannot sell anything to " + iobj.lowNameArticle(False) + ". ")
+		return False
+	elif iobj == me:
+		app.printToGUI("You cannot sell anything to yourself. ")
+		return False
+	if dobj.ix not in iobj.will_buy:
+		app.printToGUI(iobj.capNameArticle(True) + " doesn't want to buy " + dobj.lowNameArticle(True) + ". ")
+		return False
+	elif not iobj.will_buy[dobj.ix].number:
+		app.printToGUI(iobj.capNameArticle(True) + " will not buy any more " + dobj.getPlural() + ". ")
+		return False
+	else:
+		app.printToGUI(iobj.will_buy[dobj.ix].sell_msg)
+		iobj.will_buy[dobj.ix].beforeSell(me, app)
+		iobj.will_buy[dobj.ix].sellUnit(me, app)
+		iobj.will_buy[dobj.ix].afterSell(me, app)
+		if not iobj.will_buy[dobj.ix].number:
+			iobj.will_buy[dobj.ix].boughtAll(me, app)
+		return True
+	
+# replace the default verbFunc method
+sellToVerb.verbFunc = sellToVerbFunc
+
+# SELL
+# transitive verb
+sellVerb = Verb("sell")
+sellVerb.syntax = [["sell", "<dobj>"]]
+sellVerb.hasDobj = True
+sellVerb.dscope = "inv"
+
+def sellVerbFunc(me, app, dobj):
+	"""Redriect to sell to
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
+	from .parser import lastTurn
+	people = []
+	# find every Actor in the current location
+	for key, items in me.location.contains.items():
+		for item in items:
+			if isinstance(item, actor.Actor)  and not item==me:
+				people.append(item)
+	if len(people)==0:
+		app.printToGUI("There's no one here to sell to. ")
+	elif len(people)==1:
+		# ask the only actor in the room
+		iobj = people[0]
+		return sellToVerb.verbFunc(me, app, dobj, iobj)
+	else:
+		listpeople = "Would you like to sell it to "
+		for p in people:
+			listpeople = listpeople + p.lowNameArticle(True)
+			if p is people[-1]:
+				listpeople = listpeople + "? "
+			elif p is people[-2]:
+				listpeople = listpeople + " or "
+			else:
+				listpeople = listpeople + ", "
+		app.printToGUI(listpeople)
+		lastTurn.verb = sellToVerb
+		lastTurn.dobj = dobj
+		lastTurn.iobj = False
+		lastTurn.things = people
+		lastTurn.ambiguous = True
+
+# replace the default verbFunc method
+sellVerb.verbFunc = sellVerbFunc
+
+# RECORD ON
+# intransitive verb
+recordOnVerb = Verb("record", "record on")
+recordOnVerb.addSynonym("recording")
+recordOnVerb.syntax = [["record", "on"], ["recording", "on"]]
+recordOnVerb.preposition = ["on"]
+
+def recordOnVerbFunc(me, app):
+	"""Take all obvious invItems in the current room
+	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
+	from .serializer import curSave
+	f = app.getRecordFileGUI()
+	curSave.recordOn(app, f)
+	
+# replace the default verb function
+recordOnVerb.verbFunc = recordOnVerbFunc
+
+# RECORD OFF
+# intransitive verb
+recordOffVerb = Verb("record", "record off")
+recordOffVerb.addSynonym("recording")
+recordOffVerb.syntax = [["record", "off"], ["recording", "off"]]
+recordOffVerb.preposition = ["off"]
+
+def recordOffVerbFunc(me, app):
+	"""Take all obvious invItems in the current room
+	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
+	from .serializer import curSave
+	curSave.recordOff(app)
+	
+# replace the default verb function
+recordOffVerb.verbFunc = recordOffVerbFunc
+
+# RECORD OFF
+# intransitive verb
+playBackVerb = Verb("playback")
+playBackVerb.syntax = [["playback"]]
+
+def playBackVerbFunc(me, app):
+	"""Take all obvious invItems in the current room
+	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
+	from .parser import parseInput
+	f = app.getPlayBackFileGUI()
+	play = open(f, "r")
+	lines = play.readlines()
+	app.printToGUI("**STARTING PLAYBACK** ")
+	for line in lines:
+		app.printToGUI("> " + line)
+		parseInput(me, app, line)
+	play.close()
+	app.printToGUI("**PLAYBACK COMPLETE** ")
+# replace the default verb function
+playBackVerb.verbFunc = playBackVerbFunc

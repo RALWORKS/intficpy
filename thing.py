@@ -67,8 +67,8 @@ class Thing:
 			vocab.nounDict[name] = [self]
 	
 	def makeKnown(self, me):
-		if not self.ix in me.knows_about:
-			me.knows_about.append(self.ix)
+		if not self.known_ix in me.knows_about:
+			me.knows_about.append(self.known_ix)
 	
 	def getOutermostLocation(self):
 		"""Gets the Thing's current room 
@@ -109,7 +109,16 @@ class Thing:
 		if update_desc:
 			self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
 			self.desc = self.base_desc
-
+	
+	def capNameArticle(self, definite=False):
+		out  = self.getArticle(definite) + self.verbose_name
+		first = out[0].upper()
+		out = first + out[1:]
+		return out
+	
+	def lowNameArticle(self, definite=False):
+		return self.getArticle(definite) + self.verbose_name
+	
 	def getArticle(self, definite=False):
 		"""Gets the correct article for a Thing
 		Takes argument definite (defaults to False), which specifies whether the article is definite
