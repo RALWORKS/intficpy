@@ -91,7 +91,7 @@ class SaveState:
 		(Thing, Actor, Achievement, Ending, Abstranct, Topic, TravelConnector, or Room)
 		and replaces user-defined functions with function names
 		Takes arguments value, (the attribute to be simplified), and main_module (the imported Python file of the current game) """
-		if isinstance(value, thing.Thing) or isinstance(value, actor.Actor) or isinstance(value, score.Achievement) or isinstance(value, score.Ending) or isinstance(value, thing.Abstract) or isinstance(value, actor.Topic) or isinstance(value, travel.TravelConnector) or isinstance(value, room.Room):
+		if isinstance(value, thing.Thing) or isinstance(value, actor.Actor) or isinstance(value, score.Achievement) or isinstance(value, score.Ending) or isinstance(value, thing.Abstract) or isinstance(value, actor.Topic) or isinstance(value, travel.TravelConnector) or isinstance(value, room.Room) or isinstance(value, actor.SpecialTopic)  or isinstance(value, actor.SaleItem):
 			out = "<obj>" + value.ix
 			return out
 		elif isinstance(value, types.FunctionType):
@@ -103,7 +103,7 @@ class SaveState:
 			x = 0
 			for x in range (0, len(value)):
 				val = value[x]
-				if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room):
+				if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room) or isinstance(val, actor.SpecialTopic)  or isinstance(val, actor.SaleItem):
 					out.append("<obj>" + val.ix)
 				elif isinstance(val, types.FunctionType):
 					#func = getattr(main_module, value[x])
@@ -121,7 +121,7 @@ class SaveState:
 					x = 0
 					for x in range (0, len(value[key])):
 						val = value[key][x]
-						if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room):
+						if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room) or isinstance(val, actor.SpecialTopic) or isinstance(val, actor.SaleItem):
 							out[key].append("<obj>" + val.ix)
 						elif isinstance(val, types.FunctionType):
 							#func = getattr(main_module, value[key][x])
@@ -129,7 +129,7 @@ class SaveState:
 						else:
 							out[key].append(val)
 						x = x + 1
-				elif isinstance(value[key], thing.Thing) or isinstance(value[key], actor.Actor) or isinstance(value[key], score.Achievement) or isinstance(value[key], score.AbstractScore) or isinstance(value[key], score.Ending) or isinstance(value[key], thing.Abstract) or isinstance(value[key], actor.Topic) or isinstance(value[key], travel.TravelConnector) or isinstance(value[key], room.Room):
+				elif isinstance(value[key], thing.Thing) or isinstance(value[key], actor.Actor) or isinstance(value[key], score.Achievement) or isinstance(value[key], score.AbstractScore) or isinstance(value[key], score.Ending) or isinstance(value[key], thing.Abstract) or isinstance(value[key], actor.Topic) or isinstance(value[key], travel.TravelConnector) or isinstance(value[key], room.Room) or isinstance(value[key], actor.SpecialTopic) or isinstance(value[key], actor.SaleItem):
 					out[key] = "<obj>" + value[key].ix
 				elif isinstance(value[key], types.FunctionType):
 					#func = getattr(main_module, value[key])

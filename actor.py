@@ -402,6 +402,10 @@ class SpecialTopic:
 		self.text = topic_text
 		self.suggestion = suggestion
 		self.alternate_phrasings = []
+		global topic_ix
+		self.ix = "topic" + str(topic_ix)
+		topic_ix = topic_ix + 1
+		topics[self.ix] = self
 	
 	def func(self, app):
 		app.printToGUI(self.text)
@@ -421,6 +425,10 @@ class SaleItem:
 		self.wants_no_more_msg = None
 		self.purchase_msg = "You purchase " + item.lowNameArticle(False) + ". "
 		self.sell_msg = "You sell " + item.lowNameArticle(True) + ". "
+		global topic_ix
+		self.ix = "topic" + str(topic_ix)
+		topic_ix = topic_ix + 1
+		topics[self.ix] = self
 	
 	def buyUnit(self, me, app):
 		for i in range(0, self.price):
