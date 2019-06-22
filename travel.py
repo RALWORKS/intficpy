@@ -12,7 +12,6 @@ connectors = {}
 # index of a Thing will always be the same provided the game file is written according to the rules
 connector_ix = 0
 
-
 class TravelConnector:
 	"""Base class for travel connectors
 	Links two rooms together"""
@@ -552,7 +551,36 @@ def preRemovePlayer(me, app):
 			if x.sub_contains[me.ix]==[]:
 				del x.sub_contains[me.ix]
 			x = x.location
-		
+
+def getDirectionFromString(loc, input_string):
+	if input_string in ["n", "north"]:
+		return loc.north
+	elif input_string in ["ne", "northeast"]:
+		return loc.northeast
+	elif input_string in ["e", "east"]:
+		return loc.east
+	elif input_string in ["se", "southeast"]:
+		return loc.southeast
+	elif input_string in ["s", "south"]:
+		return loc.southeast
+	elif input_string in ["sw", "southwest"]:
+		return loc.southwest
+	elif input_string in ["w", "west"]:
+		return loc.west
+	elif input_string in ["nw", "northwest"]:
+		return loc.northwest
+	elif input_string in ["u", "up", "upward"]:
+		return loc.up
+	elif input_string in ["d", "down", "downward"]:
+		return loc.down
+	elif input_string=="in":
+		return loc.entrance
+	elif input_string=="out":
+		return loc.exit
+	else:
+		print(input_string + "not a direction")
+		return False
+
 def travelN(me, app):
 	"""Travel north
 	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
@@ -861,4 +889,4 @@ def travelIn(me, app):
 		me.location.describe(me, app)
 
 # maps user input to travel functions
-directionDict = {"n": travelN, "north": travelN, "ne": travelNE, "northeast": travelNE, "e": travelE, "east": travelE, "se": travelSE, "southeast": travelSE, "s": travelS, "south": travelS, "sw": travelSW, "southwest": travelSW, "w": travelW, "west": travelW, "nw": travelNW, "northwest": travelNW, "up": travelU, "u": travelU, "down": travelD, "d": travelD, "in": travelIn, "out": travelOut}
+directionDict = {"n": travelN, "north": travelN, "ne": travelNE, "northeast": travelNE, "e": travelE, "east": travelE, "se": travelSE, "southeast": travelSE, "s": travelS, "south": travelS, "sw": travelSW, "southwest": travelSW, "w": travelW, "west": travelW, "nw": travelNW, "northwest": travelNW, "up": travelU, "u": travelU, "upward": travelU, "down": travelD, "d": travelD, "downward": travelD, "in": travelIn, "out": travelOut}

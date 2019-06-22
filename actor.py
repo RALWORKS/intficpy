@@ -41,6 +41,7 @@ class Actor(Thing):
 		self.name = name
 		self.is_composite = False
 		self.commodity = False
+		self.can_lead = False
 		# verbose_name is modified when adjectives are applied using the setAdjectives method of the Thing class
 		self.verbose_name = name
 		# the default description of the Actor in a room
@@ -347,6 +348,7 @@ class Player(Actor):
 		self.hasArticle = True
 		self.isDefinite = False
 		self.commodity = False
+		self.can_lead = False
 		global actor_ix
 		self.ix = "actor" + str(actor_ix)
 		actor_ix = actor_ix + 1

@@ -36,7 +36,7 @@ class Verb:
 		self.itype = False
 		self.impDobj = False
 		self.impIobj = False
-		self.preposition = False
+		self.preposition = []
 		self.keywords = []
 		self.dobj_direction = False
 		self.iobj_direction = False
@@ -2801,3 +2801,42 @@ def playBackVerbFunc(me, app):
 	app.printToGUI("**PLAYBACK COMPLETE** ")
 # replace the default verb function
 playBackVerb.verbFunc = playBackVerbFunc
+
+# LEAD (person) (direction)
+# transitive verb with indirect object
+leadDirVerb = Verb("lead")
+leadDirVerb.syntax = [["lead", "<dobj>", "<iobj>"]]
+leadDirVerb.hasDobj = True
+leadDirVerb.hasIobj = True
+leadDirVerb.iscope = "direction"
+leadDirVerb.dscope = "room"
+
+def leadDirVerbFunc(me, app, dobj, iobj):
+	"""Lead an Actor in a direction
+	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
+	from .travel import TravelConnector
+	if not isinstance(dobj, actor.Actor):
+		app.printToGUI("You cannot lead that. ")
+		return False
+	elif dobj.can_lead:
+		from intficpy.travel import getDirectionFromString, directionDict
+		destination = getDirectionFromString(dobj.getOutermostLocation(), iobj)
+		if not destination:
+			app.printToGUI("You cannot lead " + dobj.lowNameArticle(True) + " that way. ")
+			return False
+		if isinstance(destination, TravelConnector):
+			if not destination.can_pass:
+				app.printToGUI(destination.cannot_pass_msg)
+				return False
+			elif dobj.getOutermostLocation() == destination.pointA:
+				destination = destination.pointB
+			else:
+				destination = destination.pointA
+		dobj.location.removeThing(dobj)
+		destination.addThing(dobj)
+		directionDict[iobj](me, app)
+	else:
+		app.printToGUI(dobj.capNameArticle(True) + " doesn't want to be led. ")
+
+# replace the default verbFunc method
+leadDirVerb.verbFunc = leadDirVerbFunc
