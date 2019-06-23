@@ -125,7 +125,7 @@ class Actor(Thing):
 		if isinstance(item, thing.Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
-					if not item.lock_obj in self.contains[lock_obj.ix]:
+					if not item.lock_obj in self.contains[item.lock_obj.ix]:
 						self.addThing(item.lock_obj)
 				else:
 					self.addThing(item.lock_obj)

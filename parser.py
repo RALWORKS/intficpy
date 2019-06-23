@@ -282,21 +282,11 @@ def verbByObjects(app, input_tokens, verbs):
 			iobj = False
 			dobj = False
 			# get Dobj
-			if cur_verb.hasDobj and cur_verb.dscope not in ["direction", "text"]:
-				dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens)
-			elif cur_verb.hasDobj:
-				if not cur_verb.hasIobj or not adjacent:
-					dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens)
-				else:
-					objects = adjacentStrObj(app, verb_form, input_tokens, 0)
-			# get Iobj
-			if cur_verb.hasIobj and cur_verb.iscope not in ["direction", "text"]:
-				iobj = analyzeSyntax(app, verb_form, "<iobj>", input_tokens)
-			elif cur_verb.hasIobj:
-				if not cur_verb.hasDobj or not adjacent:
-					iobj = analyzeSyntax(app, verb_form, "<iobj>", input_tokens)
-				else:
-					objects = adjacentStrObj(app, verb_form, input_tokens, 1)
+			if adjacent:
+				objects = adjacentStrObj(app, verb_form, input_tokens, 1)
+			else:
+				dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens, False)
+				iobj = analyzeSyntax(app, verb_form, "<iobj>", input_tokens, False)
 			if objects:
 				dobj = objects[0]
 				iobj = objects[1]
@@ -463,25 +453,17 @@ def getGrammarObj(me, app, cur_verb, input_tokens, verb_form):
 			adjacent = True
 	# if verb_object.hasDobj, search verb.syntax for <dobj>, get index
 	# get Dobj
-	if cur_verb.hasDobj and cur_verb.dscope not in ["direction", "text"]:
-		dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens)
-	elif cur_verb.hasDobj:
-		if not cur_verb.hasIobj or not adjacent:
+	if adjacent:
+		objects = adjacentStrObj(app, verb_form, input_tokens, 0)
+	else:
+		if cur_verb.hasDobj:
 			dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens)
 		else:
-			objects = adjacentStrObj(app, verb_form, input_tokens, 0)
-	else:
-		dobj = None
-	# get Iobj
-	if cur_verb.hasIobj and cur_verb.iscope not in ["direction", "text"]:	
-		iobj = analyzeSyntax(app, verb_form, "<iobj>", input_tokens)
-	elif cur_verb.hasIobj:
-		if not cur_verb.hasDobj or not adjacent:
+			dobj = None
+		if cur_verb.hasIobj:
 			iobj = analyzeSyntax(app, verb_form, "<iobj>", input_tokens)
 		else:
-			objects = adjacentStrObj(app, verb_form, input_tokens, 1)
-	else:
-		iobj = None
+			iobj = None
 	if objects:
 		dobj = objects[0]
 		iobj = objects[1]
@@ -824,10 +806,11 @@ def checkRange(me, app, things, scope):
 		for thing in things:
 			if not nearRangeCheck(me, thing):
 				out_range.append(thing)
-	else:
-		# assume scope equals "inv"
+	elif scope=="inv":
 		for thing in things:
-			if not invRangeCheck(me, thing):
+			if roomRangeCheck(me, thing):
+				pass
+			elif not invRangeCheck(me, thing):
 				out_range.append(thing)
 	# remove items that require implicit actions in the event of ambiguity
 	for thing in out_range:
@@ -1100,24 +1083,21 @@ def callVerb(me, app, cur_verb, obj_words):
 	if cur_verb.hasIobj:
 		if not cur_iobj:
 			return False
-		elif not cur_dobj and cur_verb.hasDobj:
-			return False
-		elif cur_verb.hasDobj: # iobj is needed, dobj is needed, and both are present
-			if cur_verb.iscope=="text" or cur_verb.iscope=="direction":
-				pass
-			elif cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
-				verb.dropVerb.verbFunc(me, app, cur_iobj)
-			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
-				app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
-				success = verb.getVerb.verbFunc(me, app, cur_iobj)
-				if not success:	
-					return False
-				if not cur_iobj.invItem:
-					app.printToGUI("You cannot take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".")
-					return False
-			elif cur_verb.iscope == "inv" and wearRangeCheck(me, cur_iobj):
-				verb.doffVerb.verbFunc(me, app, cur_iobj)
-			if cur_verb.dscope=="text"  or cur_verb.iscope=="direction":
+		if cur_verb.iscope=="text" or cur_verb.iscope=="direction":
+			pass
+		elif cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
+			verb.dropVerb.verbFunc(me, app, cur_iobj)
+		elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
+			app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
+			success = verb.getVerb.verbFunc(me, app, cur_iobj)
+			if not success:	
+				return False
+			if not cur_iobj.invItem:
+				app.printToGUI("You cannot take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".")
+				return False
+		elif cur_verb.iscope == "inv" and wearRangeCheck(me, cur_iobj):
+			verb.doffVerb.verbFunc(me, app, cur_iobj)
+			if cur_verb.dscope=="text"  or cur_verb.dscope=="direction":
 				pass
 			elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
@@ -1126,55 +1106,10 @@ def callVerb(me, app, cur_verb, obj_words):
 				success = verb.getVerb.verbFunc(me, app, cur_dobj)
 				if not success:	
 					return False
-			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
-				verb.doffVerb.verbFunc(me, app, cur_dobj)
-			lastTurn.convNode = False
-			lastTurn.specialTopics = {}
-			if cur_verb.iscope=="text":
-				cur_iobj = " ".join(cur_iobj)
-			elif cur_verb.dscope=="text":
-				cur_dobj = " ".join(cur_dobj)
-			if cur_verb.iscope=="direction":
-				cur_iobj = " ".join(cur_iobj)
-				correct = directionRangeCheck(me, cur_iobj)
-				if not correct:
-					app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
-					return False
-			elif cur_verb.dscope=="direction":
-				cur_dobj = " ".join(cur_dobj)
-				correct = directionRangeCheck(me, cur_dobj)
-				if not correct:
-					return False
-			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
-			return True
-		else: # iobj is needed, dobj NOT is needed, and iobj is present
-			if cur_verb.iscope=="text" or cur_verb.dscope=="direction":
-				pass
-			elif cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
-				verb.dropVerb.verbFunc(me, app, cur_iobj)
-			elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
-				app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
-				success = verb.getVerb.verbFunc(me, app, cur_iobj)
-				if not success:	
-					return False
-			elif cur_verb.iscope == "inv" and wearRangeCheck(me, cur_iobj):
-				verb.doffVerb.verbFunc(me, app, cur_iobj)
-			lastTurn.convNode = False
-			lastTurn.specialTopics = {}
-			if cur_verb.iscope=="text":
-				cur_iobj = " ".join(cur_iobj)
-			if cur_verb.iscope=="direction":
-				cur_iobj = " ".join(cur_iobj)
-				correct = directionRangeCheck(me, cur_iobj)
-				if not correct:
-					app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
-					return False
-			cur_verb.verbFunc(me, app, cur_iobj)
-			return True
-	elif cur_verb.hasDobj:
+	if cur_verb.hasDobj:
 		if not cur_dobj:
 			return False
-		else: # dobj only is required, and dobj is present
+		else:
 			if cur_verb.dscope=="text"  or cur_verb.dscope=="direction":
 				pass
 			elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
@@ -1196,12 +1131,34 @@ def callVerb(me, app, cur_verb, obj_words):
 				if not correct:
 					app.printToGUI(cur_dobj.capitalize() + " is not a direction I recognize. ")
 					return False
-			cur_verb.verbFunc(me, app, cur_dobj)
-			return True
-	else:
+			
+		if cur_verb.iscope=="text":
+			cur_iobj = " ".join(cur_iobj)
+		elif cur_verb.dscope=="text":
+			cur_dobj = " ".join(cur_dobj)
+		if cur_verb.iscope=="direction":
+			cur_iobj = " ".join(cur_iobj)
+			correct = directionRangeCheck(me, cur_iobj)
+			if not correct:
+				app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
+				return False
+		elif cur_verb.dscope=="direction":
+			cur_dobj = " ".join(cur_dobj)
+			correct = directionRangeCheck(me, cur_dobj)
+			if not correct:
+				app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
+				return False
+			
 		lastTurn.convNode = False
 		lastTurn.specialTopics = {}
-		cur_verb.verbFunc(me, app)
+		if cur_verb.hasDobj and cur_verb.hasIobj:
+			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
+		elif cur_verb.hasDobj:
+			cur_verb.verbFunc(me, app, cur_dobj)
+		elif cur_verb.hasIobj:
+			cur_verb.verbFunc(me, app, cur_iobj)
+		else:
+			cur_verb.verbFunc(me, app)
 		return True
 
 def disambig(me, app, input_tokens):
