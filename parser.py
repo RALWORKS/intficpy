@@ -282,7 +282,9 @@ def verbByObjects(app, input_tokens, verbs):
 			iobj = False
 			dobj = False
 			# get Dobj
-			if adjacent:
+			if adjacent and verb.dscope in ["text", "direction"]:
+				objects = adjacentStrObj(app, verb_form, input_tokens, 0)
+			elif adjacent and verb.iscope in ["text", "direction"]:
 				objects = adjacentStrObj(app, verb_form, input_tokens, 1)
 			else:
 				dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens, False)
@@ -453,8 +455,10 @@ def getGrammarObj(me, app, cur_verb, input_tokens, verb_form):
 			adjacent = True
 	# if verb_object.hasDobj, search verb.syntax for <dobj>, get index
 	# get Dobj
-	if adjacent:
-		objects = adjacentStrObj(app, verb_form, input_tokens, 0)
+	if adjacent and cur_verb.dscope in ["text", "direction"]:
+				objects = adjacentStrObj(app, verb_form, input_tokens, 0)
+	elif adjacent and cur_verb.iscope in ["text", "direction"]:
+		objects = adjacentStrObj(app, verb_form, input_tokens, 1)
 	else:
 		if cur_verb.hasDobj:
 			dobj = analyzeSyntax(app, verb_form, "<dobj>", input_tokens)
@@ -501,7 +505,8 @@ def adjacentStrObj(app, verb_form, input_tokens, strobj):
 	
 	if x==0: # thing follows string
 		if not objs[-1] in vocab.nounDict:
-			app.printToGUI("Please rephrase ")
+			#app.printToGUI("Please rephrase ")
+			return [None, None]
 		things = vocab.nounDict[objs[-1]]
 		i = len(objs) - 2
 		while i > 0:
@@ -522,8 +527,10 @@ def adjacentStrObj(app, verb_form, input_tokens, strobj):
 		for word in objs:
 			if word in vocab.nounDict:
 				noun = word
+				break
 		if not noun:
-			app.printToGUI("Please rephrase ")
+			#app.printToGUI("Please rephrase ")
+			return [None, None]
 		start_str = objs.index(noun) + 1
 		end_str = len(objs) - 1
 		strobj = objs[start_str:]
@@ -1079,7 +1086,7 @@ def callVerb(me, app, cur_verb, obj_words):
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
 		cur_iobj.location.removeThing(cur_iobj)
 		me.addThing(cur_iobj)
-	
+
 	if cur_verb.hasIobj:
 		if not cur_iobj:
 			return False
@@ -1117,7 +1124,7 @@ def callVerb(me, app, cur_verb, obj_words):
 			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
 				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
 				success = verb.getVerb.verbFunc(me, app, cur_dobj)
-				if not success:	
+				if not success:
 					return False
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
 				verb.doffVerb.verbFunc(me, app, cur_dobj)
@@ -1131,35 +1138,34 @@ def callVerb(me, app, cur_verb, obj_words):
 				if not correct:
 					app.printToGUI(cur_dobj.capitalize() + " is not a direction I recognize. ")
 					return False
-			
-		if cur_verb.iscope=="text":
-			cur_iobj = " ".join(cur_iobj)
-		elif cur_verb.dscope=="text":
-			cur_dobj = " ".join(cur_dobj)
-		if cur_verb.iscope=="direction":
-			cur_iobj = " ".join(cur_iobj)
-			correct = directionRangeCheck(me, cur_iobj)
-			if not correct:
-				app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
-				return False
-		elif cur_verb.dscope=="direction":
-			cur_dobj = " ".join(cur_dobj)
-			correct = directionRangeCheck(me, cur_dobj)
-			if not correct:
-				app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
-				return False
-			
-		lastTurn.convNode = False
-		lastTurn.specialTopics = {}
-		if cur_verb.hasDobj and cur_verb.hasIobj:
-			cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
-		elif cur_verb.hasDobj:
-			cur_verb.verbFunc(me, app, cur_dobj)
-		elif cur_verb.hasIobj:
-			cur_verb.verbFunc(me, app, cur_iobj)
-		else:
-			cur_verb.verbFunc(me, app)
-		return True
+	if cur_verb.iscope=="text":
+		cur_iobj = " ".join(cur_iobj)
+	elif cur_verb.dscope=="text":
+		cur_dobj = " ".join(cur_dobj)
+	if cur_verb.iscope=="direction":
+		cur_iobj = " ".join(cur_iobj)
+		correct = directionRangeCheck(me, cur_iobj)
+		if not correct:
+			app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
+			return False
+	elif cur_verb.dscope=="direction":
+		cur_dobj = " ".join(cur_dobj)
+		correct = directionRangeCheck(me, cur_dobj)
+		if not correct:
+			app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
+			return False
+
+	lastTurn.convNode = False
+	lastTurn.specialTopics = {}
+	if cur_verb.hasDobj and cur_verb.hasIobj:
+		cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
+	elif cur_verb.hasDobj:
+		cur_verb.verbFunc(me, app, cur_dobj)
+	elif cur_verb.hasIobj:
+		cur_verb.verbFunc(me, app, cur_iobj)
+	else:
+		cur_verb.verbFunc(me, app)
+	return True
 
 def disambig(me, app, input_tokens):
 	"""When disambiguation mode is active, use the player input to specify the target for the previous turn's ambiguous command
