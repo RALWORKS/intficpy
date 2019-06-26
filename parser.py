@@ -344,6 +344,7 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 	the command (lists of strings), and input tokens, the 	tokenized player command (list of strings)
 	Called by verbByObjects
 	Returns a list, empty or containing one word strings (extra words)"""
+	from . import vocab
 	accounted = []
 	extra = list(input_tokens)
 	for word in extra:
@@ -351,10 +352,32 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 			accounted.append(word)
 		if dobj:
 			if word in dobj:
-				accounted.append(word)
+				if word in vocab.english.prepositions or word in vocab.english.keywords:
+					noun = dobj[-1]
+					exempt = False
+					if noun in vocab.nounDict:
+						for item in vocab.nounDict[noun]:
+							if word in item.adjectives:
+								exempt = True
+								break
+					if exempt:
+						accounted.append(word)
+				else:
+					accounted.append(word)
 		if iobj:
 			if word in iobj:
-				accounted.append(word)
+				if word in vocab.english.prepositions or word in vocab.english.keywords:
+					noun = iobj[-1]
+					exempt = False
+					if noun in vocab.nounDict:
+						for item in vocab.nounDict[noun]:
+							if word in item.adjectives:
+								exempt = True
+								break
+					if exempt:
+						accounted.append(word)
+				else:
+					accounted.append(word)
 	for word in accounted:
 		if word in extra:
 			extra.remove(word)
@@ -737,33 +760,33 @@ def nearRangeCheck(me, thing):
 						lightsource = item
 						break
 		if not lightsource:
-			too_dark = True
+			too_dark = Trues
+	found = False
 	if thing.ix in out_loc.contains:
 		if thing not in out_loc.contains[thing.ix]:
-			return False
+			pass
 		elif too_dark:
-			return False
+			pass
 		else:
-			return True
-	elif thing.ix in out_loc.sub_contains:
+			found = True
+	if thing.ix in out_loc.sub_contains:
 		if thing not in out_loc.sub_contains[thing.ix]:
-			return False
+			pass
 		elif too_dark:
-			return False
+			pass
 		else:
-			return True
-	elif thing.ix in me.contains:
+			found = True
+	if thing.ix in me.contains:
 		if thing not in me.contains[thing.ix]:
-			return False
+			pass
 		else:
-			return True
-	elif thing.ix in me.sub_contains:
+			found = True
+	if thing.ix in me.sub_contains:
 		if thing not in me.sub_contains[thing.ix]:
-			return False
+			pass
 		else:
-			return True
-	else:
-		return False
+			found = True
+	return found
 
 def invRangeCheck(me, thing):
 	"""Check if the Thing is in the Player contains
@@ -801,7 +824,7 @@ def checkRange(me, app, things, scope):
 		for thing in things:
 			if not roomRangeCheck(me, thing) and invRangeCheck(me, thing):
 				#implicit drop
-				#verb.dropVerb.verbFunc(me, app, thing)
+				verb.dropVerb.verbFunc(me, app, thing)
 				pass
 			elif not roomRangeCheck(me, thing):
 				out_range.append(thing)
@@ -966,11 +989,22 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 					remove_wrong.append(item)
 		if len(things) > len(remove_wrong):
 			for item in remove_wrong:
-				things.remove(item)
+				if item in things:
+					things.remove(item)
+	elif len(things) > 1:
+		remove_child = []
+		for item in things:
+			if item.is_composite:
+				for item2 in things:
+					if item2 in item.children:
+						remove_child.append(item2)
+		if len(things) > len(remove_child):
+			for item in remove_child:
+				if item in things:
+					things.remove(item)
 	if len(things)==1:	
 			return things[0]
 	elif len(things) >1:
-		#app.printToGUI("Which " + noun + " do you mean?")
 		msg = "Do you mean "
 		for thing in things:
 			msg = msg + thing.getArticle(True) + thing.verbose_name
@@ -1029,6 +1063,8 @@ def callVerb(me, app, cur_verb, obj_words):
 	# check if any of the item's component parts should be passed as dobj/iobj instead
 	if cur_verb.iscope=="text" or cur_verb.iscope=="direction":
 		pass
+	if not cur_iobj:
+		pass
 	elif not isinstance(cur_iobj, thing.Container) and cur_verb.itype=="Container" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
 		if cur_iobj.child_Containers != []:
 			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Containers, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
@@ -1048,9 +1084,11 @@ def callVerb(me, app, cur_verb, obj_words):
 			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_UnderSpaces, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 			lastTurn.iobj = None
 			if cur_iobj:
-				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
+				#app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
 				lastTurn.iobj = cur_iobj
 	if cur_verb.dscope=="text" or cur_verb.dscope=="direction":
+		pass
+	if not cur_dobj:
 		pass
 	elif not isinstance(cur_dobj, thing.Container) and cur_verb.dtype=="Container" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
 		if cur_dobj.child_Containers != []:
@@ -1071,7 +1109,7 @@ def callVerb(me, app, cur_verb, obj_words):
 			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_UnderSpaces, cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 			lastTurn.dobj = False
 			if cur_dobj:
-				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
+				#app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
 				lastTurn.iobj = cur_dobj
 	# apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
 	if cur_verb.dscope=="text" or not cur_dobj or cur_verb.dscope=="direction":
@@ -1157,11 +1195,18 @@ def callVerb(me, app, cur_verb, obj_words):
 
 	lastTurn.convNode = False
 	lastTurn.specialTopics = {}
+	
 	if cur_verb.hasDobj and cur_verb.hasIobj:
+		if (cur_verb.dscope!="inv" or cur_verb.iscope!="inv") and me.position!="standing":
+			verb.standUpVerb.verbFunc(me, app)
 		cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
 	elif cur_verb.hasDobj:
+		if cur_verb.dscope!="inv" and me.position!="standing":
+			verb.standUpVerb.verbFunc(me, app)
 		cur_verb.verbFunc(me, app, cur_dobj)
 	elif cur_verb.hasIobj:
+		if cur_verb.iscope!="inv" and me.position!="standing":
+			verb.standUpVerb.verbFunc(me, app)
 		cur_verb.verbFunc(me, app, cur_iobj)
 	else:
 		cur_verb.verbFunc(me, app)

@@ -562,7 +562,7 @@ def getDirectionFromString(loc, input_string):
 	elif input_string in ["se", "southeast"]:
 		return loc.southeast
 	elif input_string in ["s", "south"]:
-		return loc.southeast
+		return loc.south
 	elif input_string in ["sw", "southwest"]:
 		return loc.southwest
 	elif input_string in ["w", "west"]:

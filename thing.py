@@ -221,6 +221,8 @@ class Thing:
 				self.desc = self.desc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 		
 	def xdescribeThing(self, description):
@@ -231,6 +233,8 @@ class Thing:
 				self.xdesc = self.xdesc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.xdesc = self.xdesc + item.desc
 		
 	def addComposite(self, item):
@@ -270,7 +274,7 @@ class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
 	def __init__(self, name, me):
 		"""Sets the essential properties for a new Surface object """
-		# indexing and adding to dictionary for save/load
+		# indexing and addThing to dictionary for save/load
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
@@ -325,6 +329,10 @@ class Surface(Thing):
 		Called when a Thing is added or removed """
 		from .actor import Player
 		onlist = " On the " + self.name + " is "
+		if update_desc:
+			self.compositeBaseDesc()
+		if update_xdesc:
+			self.compositeBasexDesc()
 		# iterate through contents, appending the verbose_name of each to onlist
 		list_version = list(self.contains.keys())
 		player_here = False
@@ -337,7 +345,7 @@ class Surface(Thing):
 					list_version.remove(key)
 		for key in list_version:
 			if len(self.contains[key]) > 1:
-				onlist = onlist + str(len(things)) + " " + self.contains[key][0].verbose_name
+				onlist = onlist + str(len(things)) + " " + self.contains[key][0].getPlural()
 			else:
 				onlist = onlist + self.contains[key][0].getArticle() + self.contains[key][0].verbose_name
 			if key is list_version[-1]:
@@ -359,42 +367,44 @@ class Surface(Thing):
 		# append onlist to description
 		if self.is_composite:
 			if self.children_desc:
-				self.desc = self.base_desc + self.children_desc
-				self.xdesc = self.base_xdesc + self.children_desc
+				self.desc = self.desc + self.children_desc
+				self.xdesc = self.xdesc + self.children_desc
 			else:
-				self.xdesc = self.base_xdesc
-				self.desc = self.base_desc
+				self.xdesc = self.xdesc
+				self.desc = self.desc
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.xdesc = self.xdesc + item.desc
 					self.desc = self.desc + item.desc
 			if self.desc_reveal and update_desc:
 				self.desc = self.desc + onlist
 			if update_xdesc:	
-				self.xdesc = self.xdesc + onlist
+				self.xdesc = self.desc + onlist
 		else:
 			if self.desc_reveal and update_desc:
-				self.desc = self.desc + onlist
+				self.desc = self.base_desc + onlist
 			if update_xdesc:	
-				self.xdesc = self.xdesc + onlist
+				self.xdesc = self.base_xdesc + onlist
 		self.contains_desc = onlist
 	
-	def addOn(self, item):
+	def addThing(self, item):
 		"""Add a Thing to a Surface
 		Takes argument item, pointing to a Thing"""
 		from . import actor
 		if isinstance(item, Container):
 			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
 				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
-					self.addOn(item.lock_obj)
+					self.addThing(item.lock_obj)
 			elif item.lock_obj:
-				self.addOn(item.lock_obj)
+				self.addThing(item.lock_obj)
 		if item.is_composite:
 			for item2 in item.children:
 				if item2.ix in self.contains:
 					if not item2 in self.contains[item2.ix]:
-						self.addOn(item2)
+						self.addThing(item2)
 				else:
-					self.addOn(item2)
+					self.addThing(item2)
 		item.location = self
 		# nested items
 		nested = getNested(item)
@@ -460,7 +470,7 @@ class Surface(Thing):
 			if item.ix in next_loc.sub_contains:
 				if item in next_loc.sub_contains[item.ix]:
 					next_loc.sub_contains[item.ix].remove(item)
-					if next_loc.sub_contains[item.ix] == {}:
+					if next_loc.sub_contains[item.ix] == []:
 						del next_loc.sub_contains[item.ix]
 			for t in nested:
 				if t.ix in next_loc.sub_contains:
@@ -488,6 +498,31 @@ class Surface(Thing):
 				self.containsListUpdate(update_desc, update_xdesc)
 		return rval
 			
+	def compositeBaseDesc(self):
+		if self.is_composite:
+			if self.children_desc:
+				self.desc = self.base_desc + self.children_desc
+			else:
+				self.desc = self.base_desc
+				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
+					self.desc = self.desc + item.desc
+		else:
+			self.desc = self.base_desc
+	
+	def compositeBasexDesc(self):
+		if self.is_composite:
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				self.xdesc = self.base_xdesc
+				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
+					self.desc = self.xdesc + item.desc
+		else:
+			self.xdesc = self.desc
 
 	def describeThing(self, description):
 		self.base_desc = description
@@ -497,6 +532,8 @@ class Surface(Thing):
 			else:
 				self.desc = self.base_desc
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 		self.containsListUpdate()
 	
@@ -508,6 +545,8 @@ class Surface(Thing):
 			else:
 				self.xdesc = self.base_xdesc
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.xdesc + item.desc
 		self.containsListUpdate()
 	
@@ -566,8 +605,14 @@ class Container(Thing):
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description for addition/removal of items from the Container instance """
 		from .actor import Player
-		desc = self.base_desc
-		xdesc = self.base_xdesc
+		#desc = self.base_desc
+		#xdesc = self.base_xdesc
+		if update_desc:
+			self.compositeBaseDesc()
+		if update_xdesc:
+			self.compositeBasexDesc()
+		desc = self.desc
+		xdesc = self.xdesc
 		if self.has_lid:
 			desc = desc + self.state_desc
 			xdesc = xdesc + self.state_desc
@@ -617,12 +662,14 @@ class Container(Thing):
 				self.xdesc = self.base_xdesc
 				self.desc = self.base_desc
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.xdesc = self.xdesc + item.desc
 					self.desc = self.desc + item.desc
 			if update_desc:
-				self.desc = self.desc + inlist
+				self.desc = desc + inlist
 			if update_xdesc:
-				self.xdesc = self.xdesc + inlist
+				self.xdesc = xdesc + inlist
 		else:
 			if update_desc:
 				self.desc = desc + inlist
@@ -631,7 +678,33 @@ class Container(Thing):
 		self.contains_desc = inlist
 		return True
 	
-	def addIn(self, item, update_desc=True, update_xdesc=True):
+	def compositeBaseDesc(self):
+		if self.is_composite:
+			if self.children_desc:
+				self.desc = self.base_desc + self.children_desc
+			else:
+				self.desc = self.base_desc
+				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
+					self.desc = self.desc + item.desc
+		else:
+			self.desc = self.base_desc
+	
+	def compositeBasexDesc(self):
+		if self.is_composite:
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				self.xdesc = self.base_xdesc
+				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
+					self.desc = self.xdesc + item.desc
+		else:
+			self.xdesc = self.desc
+	
+	def addThing(self, item, update_desc=True, update_xdesc=True):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
 		from . import actor
@@ -639,16 +712,16 @@ class Container(Thing):
 		if isinstance(item, Container):
 			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
 				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
-					self.addIn(item.lock_obj)
+					self.addThing(item.lock_obj)
 			elif item.lock_obj:
-				self.addIn(item.lock_obj)
+				self.addThing(item.lock_obj)
 		if item.is_composite:
 			for item2 in item.children:
 				if item2.ix in self.contains:
 					if not item2 in self.contains[item2.ix]:
-						self.addIn(item2)
+						self.addThing(item2)
 				else:
-					self.addIn(item2)
+					self.addThing(item2)
 		# nested items
 		nested = getNested(item)
 		next_loc = self.location
@@ -747,7 +820,7 @@ class Container(Thing):
 			if item.ix in next_loc.sub_contains:
 				if item in next_loc.sub_contains[item.ix]:
 					next_loc.sub_contains[item.ix].remove(item)
-					if next_loc.sub_contains[item.ix] == {}:
+					if next_loc.sub_contains[item.ix] == []:
 						del next_loc.sub_contains[item.ix]
 			for t in nested:
 				if t.ix in next_loc.sub_contains:
@@ -802,6 +875,8 @@ class Container(Thing):
 				self.desc = self.desc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 		self.containsListUpdate()
 	
@@ -813,6 +888,8 @@ class Container(Thing):
 				self.xdesc = self.xdesc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.xdesc = self.xdesc + item.desc
 		self.containsListUpdate()
 	
@@ -1121,6 +1198,8 @@ class Door(Thing):
 				self.desc = self.desc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 		
 	def xdescribeThing(self, description):
@@ -1131,6 +1210,8 @@ class Door(Thing):
 				self.xdesc = self.xdesc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.xdesc = self.xdesc + item.desc
 		
 	def updateDesc(self):
@@ -1142,6 +1223,8 @@ class Door(Thing):
 				self.xdesc = self.xdesc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 					self.xdesc = self.xdesc + item.desc
 
@@ -1291,6 +1374,8 @@ class Lock(Thing):
 				self.desc = self.desc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 	
 	def xdescribeThing(self, description):
@@ -1301,6 +1386,8 @@ class Lock(Thing):
 				self.xdesc = self.xdesc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.xdesc = self.xdesc + item.desc
 	
 class Abstract(Thing):
@@ -1396,6 +1483,32 @@ class UnderSpace(Thing):
 		else:
 			vocab.nounDict[name] = [self]
 	
+	def compositeBaseDesc(self):
+		if self.is_composite:
+			if self.children_desc:
+				self.desc = self.base_desc + self.children_desc
+			else:
+				self.desc = self.base_desc
+				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
+					self.desc = self.desc + item.desc
+		else:
+			self.desc = self.base_desc
+	
+	def compositeBasexDesc(self):
+		if self.is_composite:
+			if self.children_desc:
+				self.xdesc = self.xdesc + self.children_desc
+			else:
+				self.xdesc = self.base_xdesc
+				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
+					self.desc = self.xdesc + item.desc
+		else:
+			self.xdesc = self.desc
+	
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description for addition/removal of items from the Container instance """
 		from .actor import Player
@@ -1443,6 +1556,8 @@ class UnderSpace(Thing):
 				self.xdesc = self.xdesc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 					self.xdesc = self.xdesc + item.desc
 			self.desc = self.desc + inlist
@@ -1459,18 +1574,25 @@ class UnderSpace(Thing):
 		from . import actor
 		self.revealed = True
 		self.containsListUpdate()
-		next_loc = self.location
 		for key in self.contains:
+			next_loc = self.location
 			for item in self.contains[key]:
-				nested = getNested(item)
+				contentshidden = False
+				if isinstance(item, Container):
+					if item.has_lid:
+						if item.is_open==False:
+							contentshidden = True
 				while next_loc:
-					if not isinstance(item, actor.Actor):
-						for t in nested:
-							if t.ix in next_loc.sub_contains:
-								if not t in next_loc.sub_contains[t.ix]:
-									next_loc.sub_contains[t.ix].append(t)
-							else:
-								next_loc.sub_contains[t.ix] = [t]
+					if not contentshidden:
+						nested = getNested(item)
+						if not isinstance(item, actor.Actor):
+							for t in nested:
+								print(t.name)
+								if t.ix in next_loc.sub_contains:
+									if not t in next_loc.sub_contains[t.ix]:
+										next_loc.sub_contains[t.ix].append(t)
+								else:
+									next_loc.sub_contains[t.ix] = [t]
 					if item.ix in next_loc.sub_contains:
 						if not item in next_loc.sub_contains[item.ix]:
 							next_loc.sub_contains[item.ix].append(item)
@@ -1506,7 +1628,7 @@ class UnderSpace(Thing):
 		else:
 			return [out, False]
 
-	def addUnder(self, item, revealed=False):
+	def addThing(self, item, revealed=False):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
 		from . import actor
@@ -1514,17 +1636,22 @@ class UnderSpace(Thing):
 		if isinstance(item, Container):
 			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
 				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
-					self.addIn(item.lock_obj)
+					self.addThing(item.lock_obj)
 			elif item.lock_obj:
-				self.addIn(item.lock_obj)
+				self.addThing(item.lock_obj)
 		if item.is_composite:
 			for item2 in item.children:
 				if item2.ix in self.contains:
 					if not item2 in self.contains[item2.ix]:
-						self.addIn(item2)
+						self.addThing(item2)
 				else:
-					self.addIn(item2)
+					self.addThing(item2)
 		# nested items
+		contentshidden = False
+		if isinstance(item, Container):
+			if item.has_lid:
+				if item.is_open==False:
+					contentshidden = True
 		nested = getNested(item)
 		next_loc = self.location
 		if revealed:
@@ -1586,7 +1713,7 @@ class UnderSpace(Thing):
 			if item.ix in next_loc.sub_contains:
 				if item in next_loc.sub_contains[item.ix]:
 					next_loc.sub_contains[item.ix].remove(item)
-					if next_loc.sub_contains[item.ix] == {}:
+					if next_loc.sub_contains[item.ix] == []:
 						del next_loc.sub_contains[item.ix]
 			for t in nested:
 				if t.ix in next_loc.sub_contains:
@@ -1622,6 +1749,8 @@ class UnderSpace(Thing):
 				self.desc = self.desc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.desc = self.desc + item.desc
 		self.containsListUpdate()
 	
@@ -1633,6 +1762,8 @@ class UnderSpace(Thing):
 				self.xdesc = self.xdesc + self.children_desc
 			else:
 				for item in self.children:
+					if item in self.child_UnderSpaces:
+						continue
 					self.xdesc = self.xdesc + item.desc
 		self.containsListUpdate()
 	
@@ -1640,65 +1771,85 @@ class UnderSpace(Thing):
 		self.containsListUpdate()
 			
 def getNested(target):
-	"""Use a depth first search to find all nested Things in Containers and Surfaces
+	"""Find revealed nested Things
 	Takes argument target, pointing to a Thing
 	Returns a list of Things
 	Used by multiple verbs """
 	# list to populate with found Things
 	nested = []
 	# iterate through top level contents
-	for key, items in target.contains.items():
-		for item in items:
-			lvl = 0
-			push = False
-			# a dictionary of levels used to keep track of what has not yet been searched
-			lvl_dict = {}
-			lvl_dict[0] = []
-			# get a list of things in the top level
-			for key, things in item.contains.items():
-				for thing in things:
-					lvl_dict[0].append(thing)
-			# a list of the parent items of each level
-			# last item is current parent
-			lvl_parent = [item]
-			if item not in nested:
-				nested.append(item)
-			# when the bottom level is empty, the search is complete
-			while lvl_dict[0] != []:
-				# a list of searched items to remove from the level
-				remove_scanned = []
-				# pop to lower level if empty
-				if lvl_dict[lvl]==[]:
-					lvl_dict[lvl-1].remove(lvl_parent[-1])
-					lvl_parent = lvl_parent[:-1]
-					lvl = lvl - 1
-				# scan items on current level
-				for y in lvl_dict[lvl]:
-					if not y in nested:
-						nested.append(y)
-					# if y contains items, push into y.contains 
-					if y.contains != {}:
-						lvl = lvl + 1
-						lvl_dict[lvl] = []
-						for things, key in item.contains.items():
-							for thing in things:
-								lvl_dict[lvl].append(thing)
-						lvl_parent.append(y)
-						push = True
-						#break
-					else:
-						remove_scanned.append(y)
-				# remove scanned items from lvl_dict
-				for r in remove_scanned:
-					# NOTE: this will break for duplicate objects with contents
-					if push:
-						lvl_dict[lvl-1].remove(r)
-					else:
-						lvl_dict[lvl].remove(r)
-				
-				# reset push marker
-				push = False
+	if isinstance(target, Container):
+		if target.has_lid:
+			if target.is_open==False:
+				return []
+	for key in target.contains:
+		for item in target.contains[key]:
+			nested.append(item)
+	for key in target.sub_contains:
+		for item in target.sub_contains[key]:
+			nested.append(item)
 	return nested
+
+class Transparent(Thing):
+	"""Transparent Things 
+	Set the look_through_desc property to print the same string every time look through [instance as dobj] is used
+	Replace default lookThrough method for more complicated behaviour """
+	def __init__(self, name):
+		"""Sets essential properties for the Transparent instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		self.known_ix = self.ix
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.far_away = False
+		self.is_composite = False
+		self.parent_obj = False
+		self.size = 50
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		self.manual_update = False
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.give = False
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		self.look_through_desc = "Looking through reveals nothing of interest. "
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def lookThrough(self, me, app):
+		"""Called when the Transparent instance is dobj for verb look through
+		Creators should overwrite for more complex behaviour """
+		app.printToGUI(self.look_through_desc)
 
 # hacky solution for reflexive pronouns (himself/herself/itself)
 reflexive = Abstract("itself")

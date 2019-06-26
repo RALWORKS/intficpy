@@ -482,63 +482,22 @@ class SaleItem:
 
 
 def getNested(target):
-	"""Use a depth first search to find all nested Things in Containers and Surfaces
+	"""Find revealed nested Things
 	Takes argument target, pointing to a Thing
 	Returns a list of Things
 	Used by multiple verbs """
+	from .thing import Container
 	# list to populate with found Things
 	nested = []
 	# iterate through top level contents
-	for key, items in target.contains.items():
-		for item in items:
-			lvl = 0
-			push = False
-			# a dictionary of levels used to keep track of what has not yet been searched
-			lvl_dict = {}
-			lvl_dict[0] = []
-			# get a list of things in the top level
-			for key, things in item.contains.items():
-				for thing in things:
-					lvl_dict[0].append(thing)
-			# a list of the parent items of each level
-			# last item is current parent
-			lvl_parent = [item]
-			if item not in nested:
-				nested.append(item)
-			# when the bottom level is empty, the search is complete
-			while lvl_dict[0] != []:
-				# a list of searched items to remove from the level
-				remove_scanned = []
-				# pop to lower level if empty
-				if lvl_dict[lvl]==[]:
-					lvl_dict[lvl-1].remove(lvl_parent[-1])
-					lvl_parent = lvl_parent[:-1]
-					lvl = lvl - 1
-				# scan items on current level
-				for y in lvl_dict[lvl]:
-					if not y in nested:
-						nested.append(y)
-					# if y contains items, push into y.contains 
-					if y.contains != {}:
-						lvl = lvl + 1
-						lvl_dict[lvl] = []
-						for things, key in item.contains.items():
-							for thing in things:
-								lvl_dict[lvl].append(thing)
-						lvl_parent.append(y)
-						push = True
-						#break
-					else:
-						remove_scanned.append(y)
-				# remove scanned items from lvl_dict
-				for r in remove_scanned:
-					# NOTE: this will break for duplicate objects with contents
-					if push:
-						lvl_dict[lvl-1].remove(r)
-					else:
-						lvl_dict[lvl].remove(r)
-				
-				# reset push marker
-				push = False
+	if isinstance(target, Container):
+		if target.has_lid:
+			if target.is_open==False:
+				return []
+	for key in target.contains:
+		for item in target.contains[key]:
+			nested.append(item)
+	for key in target.sub_contains:
+		for item in target.sub_contains[key]:
+			nested.append(item)
 	return nested
-

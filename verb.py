@@ -313,12 +313,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
 	if dobj.invItem and me.removeThing(dobj):
 		app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
 		dobj.location = me.location
-		if isinstance(dobj.location, thing.Surface):
-			dobj.location.addOn(dobj)
-		elif isinstance(dobj.location, thing.Container):
-			dobj.location.addIn(dobj)
-		else:	
-			dobj.location.addThing(dobj)
+		dobj.location.addThing(dobj)
 	# if dobj is in sub_contains, remove it
 	# set the Thing's location property
 	elif dobj.parent_obj:
@@ -424,7 +419,7 @@ def setOnVerbFunc(me, app, dobj, iobj, skip=False):
 				iobj.sub_contains[t.ix].append(t)
 			else:
 				iobj.sub_contains[t.ix] = [t]
-		iobj.addOn(dobj)
+		iobj.addThing(dobj)
 	# if iobj is not a Surface
 	else:
 		app.printToGUI("There is no surface to set it on.")
@@ -488,9 +483,9 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
 			else:
 				iobj.sub_contains[t.ix] = [t]
 		if iobj.manual_update:
-			iobj.addIn(dobj, False, False)
+			iobj.addThing(dobj, False, False)
 		else:
-			iobj.addIn(dobj)
+			iobj.addThing(dobj)
 		return True
 	elif isinstance(iobj, thing.Container):
 		app.printToGUI("The " + dobj.verbose_name + " is too big to fit inside the " + iobj.verbose_name + ".")
@@ -552,7 +547,7 @@ def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
 				iobj.sub_contains[t.ix].append(t)
 			else:
 				iobj.sub_contains[t.ix] = [t]
-		iobj.addUnder(dobj, True)
+		iobj.addThing(dobj, True)
 		return True
 	elif dobj.size > iobj.size:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is too big to fit under " + iobj.getArticle(True) + iobj.verbose_name + ". ")
@@ -595,7 +590,10 @@ def invVerbFunc(me, app):
 			if me.contains[key][0].contains != {}:
 				# remove capitalization and terminating period from contains_desc
 				c = me.contains[key][0].contains_desc.lower()
-				c =c[1:-1]
+				if c[0]==" ":
+					c =c[1:-1]
+				else:
+					c = c[:-1]
 				invdesc = invdesc + " (" + c + ")"
 			# add appropriate punctuation and "and"
 			if key is list_version[-1]:
@@ -779,6 +777,39 @@ def examineVerbFunc(me, app, dobj, skip=False):
 # replace default verbFunc method
 examineVerb.verbFunc = examineVerbFunc
 
+# LOOK THROUGH
+# transitive verb, no indirect object
+lookThroughVerb = Verb("look")
+lookThroughVerb.syntax = [["look", "through", "<dobj>"]]
+lookThroughVerb.hasDobj = True
+lookThroughVerb.dscope = "near"
+lookThroughVerb.preposition = ["through"]
+lookThroughVerb.dtype = "Transparent"
+
+def lookThroughVerbFunc(me, app, dobj, skip=False):
+	"""look through a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.lookThroughVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.Transparent):
+		dobj.lookThrough(me, app)
+		return True
+	elif isinstance(dobj, actor.Actor):
+		app.printToGUI("You cannot look through a person. ")
+		return False
+	else:
+		app.printToGUI("You cannot look through " + dobj.lowNameArticle(True) + ". ")
+		return False
+
+# replace default verbFunc method
+lookThroughVerb.verbFunc = lookThroughVerbFunc
+
+
 # LOOK IN 
 # transitive verb, no indirect object
 lookInVerb = Verb("look", "look in")
@@ -831,7 +862,6 @@ lookUnderVerb.preposition = ["under"]
 
 def lookUnderVerbFunc(me, app, dobj, skip=False):
 	"""Look under a Thing """
-	# print the target's xdesc (examine descripion)
 	if not skip:
 		runfunc = True
 		try:
@@ -881,7 +911,8 @@ def getImpTalkTo(me, app):
 	from . import parser
 	people = []
 	# find every Actor in the current location
-	for key, items in me.location.contains.items():
+	loc = me.getOutermostLocation()
+	for key, items in loc.contains.items():
 		for item in items:
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
@@ -953,8 +984,9 @@ def getImpAsk(me, app):
 	# import parser to gain access to the record of the last turn
 	from . import parser
 	people = []
+	loc = me.getOutermostLocation()
 	# find every Actor in the current location
-	for key, items in me.location.contains.items():
+	for key, items in loc.contains.items():
 		for item in items:
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
@@ -1039,8 +1071,9 @@ def getImpTell(me, app):
 	# import parser to gain access to the record of the last turn
 	from . import parser
 	people = []
+	loc = me.getOutermostLocation()
 	# find every Actor in the current location
-	for key, items in me.location.contains.items():
+	for key, items in loc.contains.items():
 		for item in items:
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
@@ -1122,8 +1155,9 @@ def getImpGive(me, app):
 	# import parser to gain access to the record of the last turn
 	from . import parser
 	people = []
+	loc = me.getOutermostLocation()
 	# find every Actor in the current location
-	for key, items in me.location.contains.items():
+	for key, items in loc.contains.items():
 		for item in items:
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
@@ -1189,7 +1223,7 @@ def giveVerbFunc(me, app, dobj, iobj, skip=False):
 						iobj.sub_contains[t.ix].append(t)
 					else:
 						iobj.sub_contains[t.ix] = [t]
-				dobj.addIn(iobj)
+				dobj.addThing(iobj)
 			return True
 		elif dobj.sticky_topic:
 			dobj.defaultTopic(app, False)
@@ -1221,8 +1255,9 @@ def getImpShow(me, app):
 	# import parser to gain access to the record of the last turn
 	from . import parser
 	people = []
+	loc = me.getOutermostLocation()
 	# find every Actor in the current location
-	for key, items in me.location.contains.items():
+	for key, items in loc.contains.items():
 		for item in items:
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
@@ -1372,7 +1407,7 @@ def lieDownVerbFunc(me, app):
 	if me.position != "lying":
 		if isinstance(me.location, thing.Thing):
 			if not me.location.canLie:
-				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ".)")
+				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ")")
 				outer_loc = me.getOutermostLocation()
 				me.location.removeThing(me)
 				outer_loc.addThing(me) 
@@ -1396,7 +1431,7 @@ def standUpVerbFunc(me, app):
 	if me.position != "standing":
 		if isinstance(me.location, thing.Thing):
 			if not me.location.canStand:
-				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ".)")
+				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ")")
 				outer_loc = me.getOutermostLocation()
 				me.location.removeThing(me)
 				outer_loc.addThing(me) 
@@ -1420,7 +1455,7 @@ def sitDownVerbFunc(me, app):
 	if me.position != "sitting":
 		if isinstance(me.location, thing.Thing):
 			if not me.location.canSit:
-				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ".)")
+				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ")")
 				outer_loc = me.getOutermostLocation()
 				me.location.removeThing(me)
 				outer_loc.addThing(me) 
@@ -1473,7 +1508,7 @@ def standOnVerbFunc(me, app, dobj, skip=False):
 			me.location.contains[me.ix].remove(me)
 			if me.location.contains[me.ix] == []:
 				del me.location.contains[me.ix]
-		dobj.addOn(me)
+		dobj.addThing(me)
 		me.makeStanding()
 	else:
 		app.printToGUI("You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1523,7 +1558,7 @@ def sitOnVerbFunc(me, app, dobj, skip=False):
 			me.location.contains[me.ix].remove(me)
 			if me.location.contains[me.ix] == []:
 				del me.location.contains[me.ix]
-		dobj.addOn(me)
+		dobj.addThing(me)
 		me.makeSitting()
 	else:
 		app.printToGUI("You cannot sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1572,7 +1607,7 @@ def lieOnVerbFunc(me, app, dobj):
 			me.location.contains[me.ix].remove(me)
 			if me.location.contains[me.ix] == []:
 				del me.location.contains[me.ix]
-		dobj.addOn(me)
+		dobj.addThing(me)
 		me.makeLying()
 		return  True
 	else:
@@ -1611,7 +1646,7 @@ def sitInVerbFunc(me, app, dobj, skip=False):
 			me.location.contains[me.ix].remove(me)
 			if me.location.contains[me.ix] == []:
 				del me.location.contains[me.ix]
-		dobj.addIn(me)
+		dobj.addThing(me)
 		me.makeSitting()
 	else:
 		app.printToGUI("You cannot sit in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
@@ -1649,7 +1684,7 @@ def standInVerbFunc(me, app, dobj, skip=False):
 			me.location.contains[me.ix].remove(me)
 			if me.location.contains[me.ix] == []:
 				del me.location.contains[me.ix]
-		dobj.addIn(me)
+		dobj.addThing(me)
 		me.makeStanding()
 		return True
 	else:
@@ -1689,7 +1724,7 @@ def lieInVerbFunc(me, app, dobj, skip=False):
 			me.location.contains[me.ix].remove(me)
 			if me.location.contains[me.ix] == []:
 				del me.location.contains[me.ix]
-		dobj.addIn(me)
+		dobj.addThing(me)
 		me.makeLying()
 		return True
 	else:
@@ -1783,14 +1818,7 @@ def climbDownVerbFunc(me, app):
 		app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 		outer_loc = me.location.location
 		me.location.removeThing(me)
-		if isinstance(outer_loc, thing.Surface):
-			outer_loc.addOn(me)
-		elif isinstance(outer_loc, thing.Container):
-			outer_loc.addIn(me)
-		elif isinstance(outer_loc, room.Room):
-			outer_loc.addThing(me)
-		else:
-			print("Unsupported outer location type: " + outer_loc.name)
+		outer_loc.addThing(me)
 	else:
 		app.printToGUI("You cannot climb down from here. ")
 
@@ -1832,18 +1860,7 @@ def climbDownFromVerbFunc(me, app, dobj, skip=False):
 			app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 			outer_loc = me.location.location
 			me.location.removeThing(me)
-			if isinstance(outer_loc, thing.Surface):
-				outer_loc.addOn(me)
-				return True
-			elif isinstance(outer_loc, thing.Container):
-				outer_loc.addIn(me)
-				return True
-			elif isinstance(outer_loc, room.Room):
-				outer_loc.addThing(me) 
-				return True
-			else:
-				print("Unsupported outer location type: " + outer_loc.name)
-				return False
+			outer_loc.addThing(me) 
 		else:
 			app.printToGUI("You cannot climb down from here. ")
 			return False
@@ -1922,14 +1939,7 @@ def climbOutVerbFunc(me, app):
 		app.printToGUI("You climb out of " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 		outer_loc = me.location.location
 		me.location.removeThing(me)
-		if isinstance(outer_loc, thing.Surface):
-			outer_loc.addOn(me)
-		elif isinstance(outer_loc, thing.Container):
-			outer_loc.addIn(me)
-		elif isinstance(outer_loc, room.Room):
-			outer_loc.addThing(me) 
-		else:
-			print("Unsupported outer location type: " + outer_loc.name)
+		outer_loc.addThing(me) 
 	else:
 		app.printToGUI("You cannot climb out of here. ")
 
@@ -1964,18 +1974,8 @@ def climbOutOfVerbFunc(me, app, dobj, skip=False):
 			app.printToGUI("You climb out of " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 			outer_loc = me.location.location
 			me.location.removeThing(me)
-			if isinstance(outer_loc, thing.Surface):
-				outer_loc.addOn(me)
-				return True
-			elif isinstance(outer_loc, thing.Container):
-				outer_loc.addIn(me)
-				return True
-			elif isinstance(outer_loc, room.Room):
-				outer_loc.addThing(me)
-				return True
-			else:
-				print("Unsupported outer location type: " + outer_loc.name)
-				return True
+			outer_loc.addThing(me)
+			return True
 		else:
 			app.printToGUI("You cannot climb out of here. ")
 			return False
@@ -2539,6 +2539,11 @@ def useVerbFunc(me, app, dobj, skip=False):
 			lastTurn.iobj = dobj
 			lastTurn.dobj = False
 			lastTurn.ambiguous = True
+		elif isinstance(dobj, thing.Transparent):
+			return lookThroughVerb.verbFunc(me, app, dobj)
+		elif isinstance(dobj, actor.Actor):
+			app.printToGUI("You cannot use people. ")
+			return False
 		else:
 			app.printToGUI(dobj.capNameArticle(True) + " has no obvious use. ")
 			return False
@@ -2672,7 +2677,7 @@ def sellToVerbFunc(me, app, dobj, iobj, skip=False):
 	if not skip:
 		runfunc = True
 		try:
-			runfunc = dobj.sellToVerbDobj(me, app)
+			runfunc = dobj.sellToVerbDobj(me, app, iobj)
 		except AttributeError:
 			pass
 		try:
@@ -2811,10 +2816,18 @@ leadDirVerb.hasIobj = True
 leadDirVerb.iscope = "direction"
 leadDirVerb.dscope = "room"
 
-def leadDirVerbFunc(me, app, dobj, iobj):
+def leadDirVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Lead an Actor in a direction
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	from .travel import TravelConnector
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.leadDirVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
 	if not isinstance(dobj, actor.Actor):
 		app.printToGUI("You cannot lead that. ")
 		return False
@@ -2840,3 +2853,69 @@ def leadDirVerbFunc(me, app, dobj, iobj):
 
 # replace the default verbFunc method
 leadDirVerb.verbFunc = leadDirVerbFunc
+
+# BREAK
+# transitive verb, no indirect object
+breakVerb = Verb("break")
+breakVerb.syntax = [["break", "<dobj>"]]
+breakVerb.hasDobj = True
+breakVerb.dscope = "near"
+
+def breakVerbFunc(me, app, dobj, skip=False):
+	"""break a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.breakVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	app.printToGUI("Violence isn't the answer to this one. ")
+
+# replace default verbFunc method
+breakVerb.verbFunc = breakVerbFunc
+
+# KICK
+# transitive verb, no indirect object
+kickVerb = Verb("kick")
+kickVerb.syntax = [["kick", "<dobj>"]]
+kickVerb.hasDobj = True
+kickVerb.dscope = "near"
+
+def kickVerbFunc(me, app, dobj, skip=False):
+	"""kick a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.kickVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	app.printToGUI("Violence isn't the answer to this one. ")
+
+# replace default verbFunc method
+kickVerb.verbFunc = kickVerbFunc
+
+# KILL
+# transitive verb, no indirect object
+killVerb = Verb("kill")
+killVerb.syntax = [["kill", "<dobj>"]]
+killVerb.hasDobj = True
+killVerb.dscope = "near"
+
+def killVerbFunc(me, app, dobj, skip=False):
+	"""kill a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.killVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	app.printToGUI("Violence isn't the answer to this one. ")
+
+# replace default verbFunc method
+killVerb.verbFunc = killVerbFunc
