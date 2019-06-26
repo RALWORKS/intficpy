@@ -794,21 +794,22 @@ def invRangeCheck(me, thing):
 	Returns True if within range, False otherwise """
 	if thing.ix in me.contains:
 		if thing not in me.contains[thing.ix]:
-			return False
+			pass
 		else:
 			return True
-	elif thing.ix in me.sub_contains:
+	if thing.ix in me.sub_contains:
 		if thing not in me.sub_contains[thing.ix]:
 			return False
 		else:
 			return True
-	else:
-		return False
+	return False
 
 def directionRangeCheck(me, thing):
 	from .travel import directionDict
 	if thing in directionDict:
 		return True
+	else:
+		return False
 
 def checkRange(me, app, things, scope):
 	"""Eliminates all grammatical object candidates that are not within the scope of the current verb
