@@ -78,7 +78,7 @@ opal = Thing("opal")
 opal.makeUnique()
 opal.size = 25
 
-box.addIn(opal)
+box.addThing(opal)
 
 opaltaken = False
 
@@ -112,7 +112,7 @@ underbench.verbose_name = "space under the bench"
 nails = Thing("nails")
 nails.addSynonym("can")
 nails.setAdjectives(["can", "of"])
-bench.addOn(nails)
+bench.addThing(nails)
 
 emptycan = Container("can", me)
 emptycan.setAdjectives(["empty", "old"])

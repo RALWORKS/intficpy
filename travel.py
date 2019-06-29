@@ -140,7 +140,7 @@ class TravelConnector:
 			app.printToGUI(self.cannot_pass_msg)
 			return False
 		if outer_loc == self.pointA:
-			if outer_loc.dark and (self.entranceA.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me)  and (self.entranceA.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 			preRemovePlayer(me, app)
@@ -165,7 +165,7 @@ class TravelConnector:
 				me.location.describe(me, app)
 				return True
 		elif outer_loc == self.pointB:
-			if outer_loc.dark and (self.entranceB.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me)  and (self.entranceB.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 			preRemovePlayer(me, app)
@@ -299,11 +299,11 @@ class DoorConnector(TravelConnector):
 		outer_loc = me.getOutermostLocation()
 		preRemovePlayer(me, app)
 		if outer_loc == self.pointA:
-			if outer_loc.dark and (self.entranceA.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me)  and (self.entranceA.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 		else:
-			if outer_loc.dark and (self.entranceB.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me) and (self.entranceB.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 		
@@ -398,7 +398,7 @@ class LadderConnector(TravelConnector):
 	def travel(self, me, app):
 		outer_loc = me.getOutermostLocation()
 		if outer_loc == self.pointA:
-			if outer_loc.dark and (self.entranceA.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me)  and (self.entranceA.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 			preRemovePlayer(me, app)
@@ -417,7 +417,7 @@ class LadderConnector(TravelConnector):
 			me.location.describe(me, app)
 			return True
 		elif outer_loc == self.pointB:
-			if outer_loc.dark and (self.entranceB.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me)  and (self.entranceB.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 			preRemovePlayer(me, app)
@@ -491,7 +491,7 @@ class StaircaseConnector(TravelConnector):
 			app.printToGUI(self.cannot_pass_msg)
 			return False
 		elif outer_loc == self.pointA:
-			if outer_loc.dark and (self.entranceA.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me)  and (self.entranceA.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 			preRemovePlayer(me, app)
@@ -510,7 +510,7 @@ class StaircaseConnector(TravelConnector):
 			me.location.describe(me, app)
 			return True
 		elif outer_loc == self.pointB:
-			if outer_loc.dark and (self.entranceB.direction not in outer_loc.dark_visible_exits):
+			if not outer_loc.resolveDarkness(me)  and (self.entranceB.direction not in outer_loc.dark_visible_exits):
 				app.printToGUI(outer_loc.dark_msg)
 				return False
 			preRemovePlayer(me, app)
@@ -587,7 +587,7 @@ def travelN(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("n" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me) and ("n" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.north:
 		app.printToGUI(loc.n_false_msg)
@@ -612,7 +612,7 @@ def travelNE(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("ne" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("ne" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.northeast:
 		app.printToGUI(loc.ne_false_msg)
@@ -637,7 +637,7 @@ def travelE(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("e" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("e" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.east:
 		app.printToGUI(loc.e_false_msg)
@@ -662,7 +662,7 @@ def travelSE(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("se" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("se" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.southeast:
 		app.printToGUI(loc.se_false_msg)
@@ -687,7 +687,7 @@ def travelS(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("s" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("s" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.south:
 		app.printToGUI(loc.s_false_msg)
@@ -712,7 +712,7 @@ def travelSW(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("sw" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("sw" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.southwest:
 		app.printToGUI(loc.sw_false_msg)
@@ -737,7 +737,7 @@ def travelW(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("w" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("w" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.west:
 		app.printToGUI(loc.w_false_msg)
@@ -763,7 +763,7 @@ def travelNW(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("nw" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("nw" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.northwest:
 		app.printToGUI(loc.nw_false_msg)
@@ -789,7 +789,7 @@ def travelU(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("u" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("u" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.up:
 		app.printToGUI(loc.u_false_msg)
@@ -815,7 +815,7 @@ def travelD(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("d" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("d" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.down:
 		app.printToGUI(loc.d_false_msg)
@@ -842,7 +842,7 @@ def travelOut(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("exit" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("exit" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.exit:
 		app.printToGUI(loc.exit_false_msg)
@@ -869,7 +869,7 @@ def travelIn(me, app):
 	loc = me.getOutermostLocation()
 	if me.position != "standing":
 		verb.standUpVerb.verbFunc(me, app)
-	if loc.dark and ("entrance" not in loc.dark_visible_exits):
+	if not loc.resolveDarkness(me)  and ("entrance" not in loc.dark_visible_exits):
 		app.printToGUI(loc.dark_msg)
 	elif not loc.entrance:
 		app.printToGUI(loc.entrance_false_msg)

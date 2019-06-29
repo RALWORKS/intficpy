@@ -698,23 +698,8 @@ def roomRangeCheck(me, thing):
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
 	out_loc = me.getOutermostLocation()
-	if out_loc.dark:
-		from .thing import LightSource
-		lightsource = False
-		for key in out_loc.contains:
-				for item in out_loc.contains[key]:
-					if isinstance(item, LightSource):
-						if item.is_lit:
-							lightsource = item
-							break
-		for key in me.contains:
-			for item in me.contains[key]:
-				if isinstance(item, LightSource):
-					if item.is_lit:
-						lightsource = item
-						break
-		if not lightsource:
-			return False
+	if not out_loc.resolveDarkness(me):
+		return False
 	if thing.ix in me.contains:
 		if thing in me.contains[thing.ix]:
 			return False
@@ -743,24 +728,7 @@ def nearRangeCheck(me, thing):
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
 	out_loc = me.getOutermostLocation()
-	too_dark = False
-	if out_loc.dark:
-		from .thing import LightSource
-		lightsource = None
-		for key in out_loc.contains:
-				for item in out_loc.contains[key]:
-					if isinstance(item, LightSource):
-						if item.is_lit:
-							lightsource = item
-							break
-		for key in me.contains:
-			for item in me.contains[key]:
-				if isinstance(item, LightSource):
-					if item.is_lit:
-						lightsource = item
-						break
-		if not lightsource:
-			too_dark = Trues
+	too_dark = not out_loc.resolveDarkness(me)
 	found = False
 	if thing.ix in out_loc.contains:
 		if thing not in out_loc.contains[thing.ix]:
@@ -833,7 +801,7 @@ def checkRange(me, app, things, scope):
 		for thing in things:
 			if not knowsRangeCheck(me, thing):
 				out_range.append(thing)
-	elif scope=="near":
+	elif scope=="near" or scope=="roomflex":
 		for thing in things:
 			if not nearRangeCheck(me, thing):
 				out_range.append(thing)
@@ -850,7 +818,7 @@ def checkRange(me, app, things, scope):
 	out_range = []
 	if len(things) > 1:
 		for thing in things:
-			if scope=="room" and not roomRangeCheck(me, thing):
+			if scope in ["room", "roomflex"] and not roomRangeCheck(me, thing):
 				out_range.append(thing)
 			elif scope=="inv" and not invRangeCheck(me, thing):
 				out_range.append(thing)
@@ -870,27 +838,10 @@ def verbScopeError(app, scope, noun_adj_arr, me):
 		app.printToGUI("You aren't wearing any " + noun + ".")
 		lastTurn.err = True
 		return None
-	elif scope=="room" or scope =="near":
+	elif scope=="room" or scope =="near" or scope=="roomflex":
 		out_loc = me.getOutermostLocation()
-		if out_loc.dark:
-			from .thing import LightSource
-			lightsource = None
-			for key in out_loc.contains:
-				for item in out_loc.contains[key]:
-					if isinstance(item, LightSource):
-						if item.is_lit:
-							lightsource = item
-							break
-			for key in me.contains:
-				for item in me.contains[key]:
-					if isinstance(item, LightSource):
-						if item.is_lit:
-							lightsource = item
-							break
-			if not lightsource:
-				app.printToGUI("It's too dark to see anything. ")
-			else:
-				app.printToGUI("I don't see any " + noun + " here.")
+		if not out_loc.resolveDarkness(me):
+			app.printToGUI("It's too dark to see anything. ")
 		else:
 			app.printToGUI("I don't see any " + noun + " here.")
 		lastTurn.err = True
@@ -1115,11 +1066,15 @@ def callVerb(me, app, cur_verb, obj_words):
 	# apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
 	if cur_verb.dscope=="text" or not cur_dobj or cur_verb.dscope=="direction":
 		pass
+	elif not cur_dobj.location:
+		pass
 	elif cur_dobj.location.location==me:
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
 		cur_dobj.location.removeThing(cur_dobj)
 		me.addThing(cur_dobj)
 	if cur_verb.iscope=="text" or not cur_iobj or cur_verb.iscope=="direction":
+		pass
+	elif not cur_iobj.location:
 		pass
 	elif cur_iobj.location.location==me:
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")

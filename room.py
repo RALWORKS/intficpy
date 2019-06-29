@@ -213,6 +213,27 @@ class Room:
 					onlist = onlist + ", "
 			self.fulldesc = self.fulldesc + onlist
 	
+	def resolveDarkness(self, me):
+		can_see = True
+		if self.dark:
+			from .thing import LightSource
+			lightsource = None
+			for key in self.contains:
+					for item in self.contains[key]:
+						if isinstance(item, LightSource):
+							if item.is_lit:
+								lightsource = item
+								break
+			for key in me.contains:
+				for item in me.contains[key]:
+					if isinstance(item, LightSource):
+						if item.is_lit:
+							lightsource = item
+							break
+			if not lightsource:
+				can_see = False
+		return can_see
+	
 	def describe(self, me, app):
 		"""Prints the Room title and description and lists items in the Room """
 		if self.dark:

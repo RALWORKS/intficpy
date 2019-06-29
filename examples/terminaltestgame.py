@@ -78,7 +78,7 @@ startroom.addThing(bench)
 nails = Thing("nails")
 nails.addSynonym("can")
 nails.setAdjectives(["can", "of"])
-bench.addOn(nails)
+bench.addThing(nails)
 
 emptycan = Container("can")
 emptycan.setAdjectives(["empty", "old"])

@@ -309,7 +309,7 @@ class Player(Actor):
 		Takes argument loc, a Room"""
 		#self.location = loc
 		self.name = name
-		self.verbose_name = name
+		self.verbose_name = "yourself"
 		self.is_composite = False
 		self.invItem = False
 		self.far_away = False
@@ -345,7 +345,7 @@ class Player(Actor):
 		self.default_topic = "No one responds. This should come as a relief."
 		self.knows_about = []
 		self.isPlural = False
-		self.hasArticle = True
+		self.hasArticle = False
 		self.isDefinite = False
 		self.commodity = False
 		self.can_lead = False
@@ -448,7 +448,8 @@ class SaleItem:
 			obj = self.thing.copyThing()
 		else:
 			obj = self.thing
-			obj.location.removeThing(obj)
+			if obj.location:
+				obj.location.removeThing(obj)
 		me.addThing(obj)
 		if not self.number is True:
 			self.number = self.number -1

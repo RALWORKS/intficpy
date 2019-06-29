@@ -602,6 +602,9 @@ class Container(Thing):
 		else:
 			vocab.nounDict[name] = [self]
 	
+	def updateDesc(self):
+		self.containsListUpdate(True, True)
+	
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description for addition/removal of items from the Container instance """
 		from .actor import Player
@@ -1350,7 +1353,7 @@ class Lock(Thing):
 		self.xdesc = self.base_xdesc + self.state_desc
 		if self.parent_obj:
 			self.parent_obj.lock_desc = " It is unlocked. "
-			self.parent_obj.containsListUpdate()
+			self.parent_obj.updateDesc()
 		if self.twin:
 			if self.twin.is_locked:
 				self.twin.makeUnlocked()
@@ -1361,7 +1364,7 @@ class Lock(Thing):
 		self.xdesc = self.base_xdesc + self.state_desc
 		if self.parent_obj:
 			self.parent_obj.lock_desc = " It is locked. "
-			self.parent_obj.containsListUpdate()
+			self.parent_obj.updateDesc()
 		if self.twin:
 			if not self.twin.is_locked:
 				self.twin.makeLocked()
@@ -1851,6 +1854,132 @@ class Transparent(Thing):
 		Creators should overwrite for more complex behaviour """
 		app.printToGUI(self.look_through_desc)
 
+class Readable(Thing):
+	"""Readable Things 
+	Set the read_desc property to print the same string every time read [instance as dobj] is used
+	Replace default readText method for more complicated behaviour """
+	def __init__(self, name, text="There's nothing written here. "):
+		"""Sets essential properties for the Readable instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		self.known_ix = self.ix
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.far_away = False
+		self.is_composite = False
+		self.parent_obj = False
+		self.size = 50
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		self.manual_update = False
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.give = False
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		self.read_desc = text
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def readText(self, me, app):
+		"""Called when the Transparent instance is dobj for verb look through
+		Creators should overwrite for more complex behaviour """
+		app.printToGUI(self.read_desc)
+
+class Book(Readable):
+	"""Readable that can be opened """
+	def __init__(self, name, text="There's nothing written here. "):
+		"""Sets essential properties for the Book instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		self.known_ix = self.ix
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.far_away = False
+		self.is_composite = False
+		self.parent_obj = False
+		self.size = 50
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		self.manual_update = False
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.give = False
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		self.read_desc = text
+		self.is_open = False
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def makeOpen(self):
+		self.is_open = True
+		self.desc = self.base_desc + "It is open. "
+		self.xdesc = self.base_xdesc + "It is open. "
+		
+	def makeClosed(self):
+		self.is_open = False
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		
 # hacky solution for reflexive pronouns (himself/herself/itself)
 reflexive = Abstract("itself")
 reflexive.addSynonym("himself")

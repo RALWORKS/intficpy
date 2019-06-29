@@ -155,7 +155,8 @@ getVerb.addSynonym("take")
 getVerb.addSynonym("pick")
 getVerb.syntax = [["get", "<dobj>"], ["take", "<dobj>"], ["pick", "up", "<dobj>"], ["pick", "<dobj>", "up"]]
 getVerb.preposition = ["up"]
-getVerb.dscope = "near"
+#getVerb.dscope = "near"
+getVerb.dscope = "roomflex"
 getVerb.hasDobj = True
 
 def getVerbFunc(me, app, dobj, skip=False):
@@ -824,7 +825,7 @@ def lookInVerbFunc(me, app, dobj, skip=False):
 	if not skip:
 		runfunc = True
 		try:
-			runfunc = dobj.lookInVerbDobj(me, app, iobj)
+			runfunc = dobj.lookInVerbDobj(me, app)
 		except AttributeError:
 			pass
 		if not runfunc:
@@ -889,6 +890,38 @@ def lookUnderVerbFunc(me, app, dobj, skip=False):
 		return False
 
 lookUnderVerb.verbFunc = lookUnderVerbFunc
+
+# READ
+# transitive verb, no indirect object
+readVerb = Verb("read")
+readVerb.syntax = [["read", "<dobj>"]]
+readVerb.hasDobj = True
+readVerb.dscope = "near"
+readVerb.dtype = "Readable"
+
+def readVerbFunc(me, app, dobj, skip=False):
+	"""look through a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.readVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.Book):
+		if not dobj.is_open:
+			openVerb.verbFunc(me, app, dobj)
+		dobj.readText(me, app)
+	elif isinstance(dobj, thing.Readable):
+		dobj.readText(me, app)
+		return True
+	else:
+		app.printToGUI("There's nothing written there. ")
+		return False
+
+# replace default verbFunc method
+readVerb.verbFunc = readVerbFunc
 
 # TALK TO (Actor)
 # transitive verb with indirect object
@@ -1996,7 +2029,11 @@ openVerb.dscope = "near"
 def openVerbFunc(me, app, dobj, skip=False):
 	"""Open a Thing with an open property
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
-	if dobj.lock_obj:
+	try:
+		lock = dobj.lock_obj
+	except:
+		lock = None
+	if lock:
 		if dobj.lock_obj.is_locked:
 			try:
 				app.printToGUI(dobj.cannotOpenLockedMsg)
