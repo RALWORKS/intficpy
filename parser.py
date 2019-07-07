@@ -1365,6 +1365,6 @@ def mainLoop(me, app):
 		else:
 			# parse string
 			if (not lastTurn.ambiguous) and (not lastTurn.err):
-				daemons.runAll(app)
+				daemons.runAll(me, app)
 			parseInput(me, app, input_string)
 	print("") # empty line for output formatting

@@ -285,6 +285,7 @@ class Surface(Thing):
 		self.me = me
 		self.contains_preposition = "on"
 		self.contains_preposition_inverse = "off"
+		self.connection = False
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -294,6 +295,7 @@ class Surface(Thing):
 		# the items on the Surface
 		self.contains = {}
 		self.synonyms = []
+		self.location = False
 		# items contained by items on the Surface
 		# accessible by default, but not shown in outermost description
 		self.sub_contains = {}
@@ -370,8 +372,6 @@ class Surface(Thing):
 				self.desc = self.desc + self.children_desc
 				self.xdesc = self.xdesc + self.children_desc
 			else:
-				self.xdesc = self.xdesc
-				self.desc = self.desc
 				for item in self.children:
 					if item in self.child_UnderSpaces:
 						continue
@@ -380,7 +380,7 @@ class Surface(Thing):
 			if self.desc_reveal and update_desc:
 				self.desc = self.desc + onlist
 			if update_xdesc:	
-				self.xdesc = self.desc + onlist
+				self.xdesc = self.xdesc + onlist
 		else:
 			if self.desc_reveal and update_desc:
 				self.desc = self.base_desc + onlist
@@ -520,9 +520,9 @@ class Surface(Thing):
 				for item in self.children:
 					if item in self.child_UnderSpaces:
 						continue
-					self.desc = self.xdesc + item.desc
+					self.desc = self.desc + item.desc
 		else:
-			self.xdesc = self.desc
+			self.xdesc = self.base_xdesc
 
 	def describeThing(self, description):
 		self.base_desc = description
@@ -547,7 +547,7 @@ class Surface(Thing):
 				for item in self.children:
 					if item in self.child_UnderSpaces:
 						continue
-					self.desc = self.xdesc + item.desc
+					self.desc = self.desc + item.desc
 		self.containsListUpdate()
 	
 # NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
@@ -566,6 +566,7 @@ class Container(Thing):
 		self.size = 50
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
+		self.connection = False
 		self.far_away = False
 		self.has_lid = False
 		self.lock_obj = False
@@ -596,6 +597,7 @@ class Container(Thing):
 		self.xdesc = self.base_xdesc
 		# description of contents
 		self.contains_desc = ""
+		self.location = False
 		# add name to list of nouns
 		if name in vocab.nounDict:
 			vocab.nounDict[name].append(self)
@@ -670,14 +672,14 @@ class Container(Thing):
 					self.xdesc = self.xdesc + item.desc
 					self.desc = self.desc + item.desc
 			if update_desc:
-				self.desc = desc + inlist
+				self.desc = self.desc + inlist
 			if update_xdesc:
-				self.xdesc = xdesc + inlist
+				self.xdesc = self.xdesc + inlist
 		else:
 			if update_desc:
-				self.desc = desc + inlist
+				self.desc = self.desc + inlist
 			if update_xdesc:
-				self.xdesc = xdesc + self.lock_desc + inlist
+				self.xdesc = self.xdesc + self.lock_desc + inlist
 		self.contains_desc = inlist
 		return True
 	
@@ -703,9 +705,9 @@ class Container(Thing):
 				for item in self.children:
 					if item in self.child_UnderSpaces:
 						continue
-					self.desc = self.xdesc + item.desc
+					self.desc = self.desc + item.desc
 		else:
-			self.xdesc = self.desc
+			self.xdesc = self.base_xdesc
 	
 	def addThing(self, item, update_desc=True, update_xdesc=True):
 		"""Add an item to contents, update descriptions
@@ -941,6 +943,7 @@ class LightSource(Thing):
 		self.known_ix = self.ix
 		# Thing properties
 		self.size = 20
+		self.connection = False
 		self.far_away = False
 		self.state_desc = ""
 		self.is_composite = False
@@ -985,6 +988,7 @@ class LightSource(Thing):
 		self.lit_desc = "It is currently lit. "
 		self.not_lit_desc = "It is currently not lit. "
 		self.expired_desc = "It is burnt out. "
+		self.location = False
 		# add name to list of nouns
 		if name in vocab.nounDict:
 			vocab.nounDict[name].append(self)
@@ -1403,6 +1407,7 @@ class Abstract(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# properties
+		self.connection = False
 		self.far_away = False
 		self.is_composite = False
 		self.parent_obj = False
@@ -1449,10 +1454,12 @@ class UnderSpace(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# properties
+		self.connection = False
 		self.known_ix = self.ix
 		self.me = me
 		self.far_away = False
 		self.revealed = False
+		self.state_desc = ""
 		self.size = 50
 		self.contains_preposition = "under"
 		self.contains_preposition_inverse = "out"
@@ -1508,15 +1515,17 @@ class UnderSpace(Thing):
 				for item in self.children:
 					if item in self.child_UnderSpaces:
 						continue
-					self.desc = self.xdesc + item.desc
+					self.desc = self.desc + item.desc
 		else:
-			self.xdesc = self.desc
+			self.xdesc = self.base_xdesc
 	
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
-		"""Update description for addition/removal of items from the Container instance """
+		"""Update description for addition/removal of items from the UnderSpace instance """
 		from .actor import Player
-		desc = self.base_desc
-		xdesc = self.base_xdesc
+		#desc = self.base_desc
+		#xdesc = self.base_xdesc
+		self.compositeBaseDesc()
+		self.compositeBasexDesc()
 		if not self.revealed:
 			return False
 		inlist = " " + self.contains_preposition.capitalize() + " " + self.getArticle(True) + self.verbose_name + " is "
@@ -1567,9 +1576,9 @@ class UnderSpace(Thing):
 			self.xdesc = self.xdesc + inlist
 		else:
 			if update_desc:
-				self.desc = desc + inlist
+				self.desc = self.desc + inlist
 			if update_xdesc:
-				self.xdesc = xdesc + inlist
+				self.xdesc = self.xdesc + inlist
 		self.contains_desc = inlist
 		return True
 	
@@ -1590,7 +1599,6 @@ class UnderSpace(Thing):
 						nested = getNested(item)
 						if not isinstance(item, actor.Actor):
 							for t in nested:
-								print(t.name)
 								if t.ix in next_loc.sub_contains:
 									if not t in next_loc.sub_contains[t.ix]:
 										next_loc.sub_contains[t.ix].append(t)
@@ -1631,11 +1639,12 @@ class UnderSpace(Thing):
 		else:
 			return [out, False]
 
-	def addThing(self, item, revealed=False):
+	def addThing(self, item):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
 		from . import actor
 		item.location = self
+		revealed = self.revealed
 		if isinstance(item, Container):
 			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
 				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
@@ -1979,7 +1988,65 @@ class Book(Readable):
 		self.is_open = False
 		self.desc = self.base_desc
 		self.xdesc = self.base_xdesc
-		
+
+class Pressable(Thing):
+	"""Things that do something when pressed
+	Game creators should redefine the pressThing method for the instance to trigger events when the press/push verb is used """
+	def __init__(self, name):
+		"""Sets essential properties for the Pressable instance """
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		self.known_ix = self.ix
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.far_away = False
+		self.is_composite = False
+		self.parent_obj = False
+		self.size = 50
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.isDefinite = False
+		self.invItem = True
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		self.manual_update = False
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.give = False
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def pressThing(self, me, app):
+		"""Game creators should redefine this method for their Pressable instances """
+		app.printToGUI(self.capNameArticle(True) + " has been pressed. ")
+
 # hacky solution for reflexive pronouns (himself/herself/itself)
 reflexive = Abstract("itself")
 reflexive.addSynonym("himself")

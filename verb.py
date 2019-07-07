@@ -540,15 +540,17 @@ def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
 		nested = getNested(dobj)
 		for t in nested:
 			#me.sub_contains.remove(t)
-			del me.sub_contains[t.ix][0]
-			if me.sub_contains[t.ix] == []:
-				del me.sub_contains[t.ix]
+			if t.ix in me.sub_contains:
+				if t in me.sub_contains[t.ix]:
+					me.sub_contains[t.ix].remove(t)
+				if me.sub_contains[t.ix] == []:
+					del me.sub_contains[t.ix]
 			#iobj.sub_contains.append(t)
 			if t.ix in iobj.sub_contains:
 				iobj.sub_contains[t.ix].append(t)
 			else:
 				iobj.sub_contains[t.ix] = [t]
-		iobj.addThing(dobj, True)
+		iobj.addThing(dobj)
 		return True
 	elif dobj.size > iobj.size:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is too big to fit under " + iobj.getArticle(True) + iobj.verbose_name + ". ")
@@ -577,10 +579,15 @@ def invVerbFunc(me, app):
 		# the string to print listing the contains
 		invdesc = "You have "
 		list_version = list(me.contains.keys())
+		remove_child = []
 		for key in list_version:
 			for thing in me.contains[key]:
 				if thing.parent_obj:
-					list_version.remove(key)
+					#list_version.remove(key)
+					remove_child.append(key)
+		for key in remove_child:
+			if key in list_version:
+				list_version.remove(key)
 		for key in list_version:
 			if len(me.contains[key]) > 1:
 				# fix for containers?
@@ -2831,16 +2838,22 @@ playBackVerb.syntax = [["playback"]]
 def playBackVerbFunc(me, app):
 	"""Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-	from .parser import parseInput
+	from .parser import parseInput, lastTurn, daemons
 	f = app.getPlayBackFileGUI()
+	if not f:
+		app.printToGUI("No file selected. ")
+		return False
 	play = open(f, "r")
 	lines = play.readlines()
 	app.printToGUI("**STARTING PLAYBACK** ")
 	for line in lines:
 		app.printToGUI("> " + line)
+		if (not lastTurn.ambiguous) and (not lastTurn.err):
+			daemons.runAll(me, app)
 		parseInput(me, app, line)
 	play.close()
 	app.printToGUI("**PLAYBACK COMPLETE** ")
+	return True
 # replace the default verb function
 playBackVerb.verbFunc = playBackVerbFunc
 
@@ -2956,3 +2969,147 @@ def killVerbFunc(me, app, dobj, skip=False):
 
 # replace default verbFunc method
 killVerb.verbFunc = killVerbFunc
+
+# JUMP
+# intransitive verb
+jumpVerb = Verb("jump")
+jumpVerb.syntax = [["jump"]]
+
+def jumpVerbFunc(me, app):
+	"""Jump in place
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
+	app.printToGUI("You jump in place. ")
+# replace default verbFunc method
+jumpVerb.verbFunc = jumpVerbFunc
+
+# JUMP OVER
+# transitive verb
+jumpOverVerb = Verb("jump")
+jumpOverVerb.syntax = [["jump", "over", "<dobj>"], ["jump", "across", "<dobj>"]]
+jumpOverVerb.preposition = ["over", "across"]
+jumpOverVerb.hasDobj = True
+jumpOverVerb.dscope = "room"
+
+def jumpOverVerbFunc(me, app, dobj, skip=False):
+	"""Jump over a Thing
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.jumpOverVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if dobj.size < 50:
+		app.printToGUI("There's no reason to jump over that. ")
+	else:
+		app.printToGUI(dobj.capNameArticle(True) + " is too big to easily jump over. ")
+	return False
+# replace default verbFunc method
+jumpOverVerb.verbFunc = jumpOverVerbFunc
+
+# JUMP IN
+# transitive verb
+jumpInVerb = Verb("jump")
+jumpInVerb.syntax = [["jump", "in", "<dobj>"], ["jump", "into", "<dobj>"]]
+jumpInVerb.preposition = ["in", "into"]
+jumpInVerb.hasDobj = True
+jumpInVerb.dscope = "room"
+
+def jumpInVerbFunc(me, app, dobj, skip=False):
+	"""Jump in a Thing
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.jumpInVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	app.printToGUI("You cannot jump into that. ")
+	return False
+# replace default verbFunc method
+jumpInVerb.verbFunc = jumpInVerbFunc
+
+# JUMP ON
+# transitive verb
+jumpOnVerb = Verb("jump")
+jumpOnVerb.syntax = [["jump", "on", "<dobj>"], ["jump", "onto", "<dobj>"]]
+jumpOnVerb.preposition = ["on", "onto"]
+jumpOnVerb.hasDobj = True
+jumpOnVerb.dscope = "room"
+
+def jumpOnVerbFunc(me, app, dobj, skip=False):
+	"""Jump on a Thing
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.jumpOnVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	app.printToGUI("You cannot jump onto that. ")
+	return False
+# replace default verbFunc method
+jumpOnVerb.verbFunc = jumpOnVerbFunc
+
+# PRESS
+# transitive verb, no indirect object
+pressVerb = Verb("press")
+pressVerb.addSynonym("depress")
+pressVerb.syntax = [["press", "<dobj>"], ["depress", "<dobj>"], ["press", "on", "<dobj>"]]
+pressVerb.hasDobj = True
+pressVerb.dscope = "near"
+pressVerb.preposition = ["on"]
+pressVerb.dtype = "Pressable"
+
+def pressVerbFunc(me, app, dobj, skip=False):
+	"""press a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.pressVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.Pressable):
+		app.printToGUI("You press " + dobj.lowNameArticle(True) + ". ")
+		dobj.pressThing(me, app)
+	else:
+		app.printToGUI("Pressing " + dobj.lowNameArticle(True) + " has no effect. ")
+		return False
+
+# replace default verbFunc method
+pressVerb.verbFunc = pressVerbFunc
+
+# PUSH
+# transitive verb, no indirect object
+pushVerb = Verb("push")
+pushVerb.syntax = [["push", "<dobj>"], ["push", "on", "<dobj>"]]
+pushVerb.hasDobj = True
+pushVerb.dscope = "near"
+pushVerb.preposition = ["on"]
+
+def pushVerbFunc(me, app, dobj, skip=False):
+	"""push a Thing """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.pushVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.Pressable):
+		pressVerb.verbFunc(me, app, dobj)
+	else:
+		app.printToGUI("You push on " + dobj.lowNameArticle(True) + ", to no productive end. ")
+		return False
+
+# replace default verbFunc method
+pushVerb.verbFunc = pushVerbFunc

@@ -212,14 +212,17 @@ class Actor(Thing):
 	
 	def setHiTopics(self, hi_topic, return_hi_topic):
 		self.said_hi = False
-		hi_topic.owner = self
-		return_hi_topic.owner = self
+		if hi_topic:
+			hi_topic.owner = self
+		if return_hi_topic:
+			return_hi_topic.owner = self
 		self.hi_topic = hi_topic
 		self.return_hi_topic = return_hi_topic
 		
 	def setHermitTopic(self, hermit_topic):
 		self.hermit_topic = hermit_topic
-		hermit_topic.owner = self
+		if hermit_topic:
+			hermit_topic.owner = self
 	
 	def removeHermitTopic(self):
 		self.hermit_topic = None

@@ -135,6 +135,12 @@ class TravelConnector:
 			x = x + 1
 			
 	def travel(self, me, app):
+		try:
+			barrier = self.barrierFunc(me, app)
+		except:
+			barrier = False
+		if barrier:
+			return False
 		outer_loc = me.getOutermostLocation()
 		if not self.can_pass:
 			app.printToGUI(self.cannot_pass_msg)
@@ -315,6 +321,12 @@ class DoorConnector(TravelConnector):
 				opened = verb.openVerb.verbFunc(me, app, self.entranceA)
 				if not opened:
 					return False
+			try:
+				barrier = self.barrierFunc(me, app)
+			except:
+				barrier = False
+			if barrier:
+				return False
 			#preRemovePlayer(me, app)
 			if me.location:
 				me.location.removeThing(me)
@@ -335,6 +347,12 @@ class DoorConnector(TravelConnector):
 				opened = verb.openVerb.verbFunc(me, app, self.entranceB)
 				if not opened:
 					return False
+			try:
+				barrier = self.barrierFunc(me, app)
+			except:
+				barrier = False
+			if barrier:
+				return False
 			#preRemovePlayer(me, app)
 			if me.location:
 				me.location.removeThing(me)
@@ -396,6 +414,12 @@ class LadderConnector(TravelConnector):
 				print("error: invalid direction input for LadderConnector: " + d[x])
 	
 	def travel(self, me, app):
+		try:
+			barrier = self.barrierFunc(me, app)
+		except:
+			barrier = False
+		if barrier:
+			return False
 		outer_loc = me.getOutermostLocation()
 		if outer_loc == self.pointA:
 			if not outer_loc.resolveDarkness(me)  and (self.entranceA.direction not in outer_loc.dark_visible_exits):
@@ -486,6 +510,12 @@ class StaircaseConnector(TravelConnector):
 				print("error: invalid direction input for StaircaseConnector: " + d[x])
 	
 	def travel(self, me, app):
+		try:
+			barrier = self.barrierFunc(me, app)
+		except:
+			barrier = False
+		if barrier:
+			return False
 		outer_loc = me.getOutermostLocation()
 		if not self.can_pass:
 			app.printToGUI(self.cannot_pass_msg)
