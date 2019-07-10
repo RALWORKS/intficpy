@@ -75,6 +75,7 @@ class Room:
 		self.walls = []
 		
 		self.floor = thing.Thing("floor")
+		self.floor.known_ix = None
 		self.floor.addSynonym("ground")
 		self.floor.invItem = False
 		self.floor.describeThing("")
@@ -116,6 +117,8 @@ class Room:
 		self.west_wall.xdescribeThing("You notice nothing remarkable about the west wall.")
 		self.addThing(self.west_wall)
 		self.walls.append(self.west_wall)
+		for wall in self.walls:
+			wall.known_ix = None
 	
 	def addThing(self, item):
 		"""Places a Thing in a Room
@@ -282,7 +285,8 @@ class Room:
 					child_items.append(item.ix)
 				# give player "knowledge" of a thing upon having it described
 				if item.known_ix not in me.knows_about:
-					me.knows_about.append(item.known_ix)
+					#me.knows_about.append(item.known_ix)
+					item.makeKnown(me)
 			if desc_loc != key and key not in child_items and len(things) > 1:
 				self.fulldesc = self.fulldesc + " There are " + str(len(things)) + " " + things[0].getPlural() + " here. "
 			elif desc_loc != key and key not in child_items and len(things) > 0:	
@@ -375,6 +379,7 @@ class OutdoorRoom(Room):
 		self.floor.describeThing("")
 		self.floor.xdescribeThing("You notice nothing remarkable about the ground.")
 		self.addThing(self.floor)
+		self.floor.known_ix = None
 
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces

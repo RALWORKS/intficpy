@@ -67,7 +67,7 @@ class Thing:
 			vocab.nounDict[name] = [self]
 	
 	def makeKnown(self, me):
-		if not self.known_ix in me.knows_about:
+		if self.known_ix and (not self.known_ix in me.knows_about):
 			me.knows_about.append(self.known_ix)
 	
 	def getOutermostLocation(self):
@@ -2178,7 +2178,7 @@ class Liquid(Thing):
 			else:
 				if self.size <= vessel_left:
 					vessel_liquid.size = vessel_liquid.size + self.size
-					self.location.remove(self)
+					self.location.removeThing(self)
 					return True
 				else:
 					subtract = vessel.size - vessel_liquid.size

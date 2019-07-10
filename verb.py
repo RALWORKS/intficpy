@@ -3319,7 +3319,7 @@ def fillFromVerbFunc(me, app, dobj, iobj, skip=False):
 			if liquid_contents and liquid_contents.liquid_type != liquid.liquid_type:
 				success = liquid_contents.mixWith(dobj)
 				if not success:
-					app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + iobj.lowNameArticle(True) + ". ")
+					app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + dobj.lowNameArticle(True) + ". ")
 					return False
 				else:
 					return True
@@ -3377,7 +3377,7 @@ def fillWithVerbFunc(me, app, dobj, iobj, skip=False):
 		if liquid_contents and liquid_contents.liquid_type != iobj.liquid_type:
 			success = liquid_contents.mixWith(dobj)
 			if not success:
-				app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + iobj.lowNameArticle(True) + ". ")
+				app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + dobj.lowNameArticle(True) + ". ")
 				return False
 			else:
 				return True
