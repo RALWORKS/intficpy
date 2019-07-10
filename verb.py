@@ -396,17 +396,30 @@ def setOnVerbFunc(me, app, dobj, iobj, skip=False):
 	
 	outer_loc = me.getOutermostLocation()
 	if iobj==outer_loc.floor:
-		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on the ground.")
-		me.removeThing(dobj)
-		outer_loc.addThing(dobj)
-		return True
+		if me.removeThing(dobj):	
+			app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on the ground.")
+			outer_loc.addThing(dobj)
+			return True
+		elif dobj.parent_obj:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
+			return False
+		else:
+			app.printToGUI("ERROR: cannot remove object from inventory ")
+			return False
 	if isinstance(iobj, thing.Surface):
-		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
-		me.removeThing(dobj)
-		iobj.addThing(dobj)
+		if me.removeThing(dobj):	
+			app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
+			iobj.addThing(dobj)
+			return True
+		elif dobj.parent_obj:
+			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
+			return False
+		else:
+			app.printToGUI("ERROR: cannot remove object from inventory ")
+			return False
 	# if iobj is not a Surface
 	else:
-		app.printToGUI("There is no surface to set it on.")
+		app.printToGUI("You cannot set anything on that. ")
 
 # replace the default verbFunc method
 setOnVerb.verbFunc = setOnVerbFunc
@@ -443,7 +456,9 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
 			pass
 		if not runfunc:
 			return True
-			
+	if dobj.parent_obj:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
+		return False
 	if isinstance(iobj, thing.Container) and iobj.has_lid:
 		if not iobj.is_open:
 			app.printToGUI("You cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " is closed.")
@@ -504,25 +519,12 @@ def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
 			return True
 	
 	outer_loc = me.getOutermostLocation()
+	if dobj.parent_obj:
+		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
+		return False
 	if isinstance(iobj, thing.UnderSpace) and dobj.size <= iobj.size:
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " " + iobj.contains_preposition + " " + iobj.getArticle(True) + iobj.verbose_name + ".")
-		me.contains[dobj.ix].remove(dobj)
-		if me.contains[dobj.ix] == []:
-			del me.contains[dobj.ix]
-		# remove all nested objects for dobj from contains
-		nested = getNested(dobj)
-		for t in nested:
-			#me.sub_contains.remove(t)
-			if t.ix in me.sub_contains:
-				if t in me.sub_contains[t.ix]:
-					me.sub_contains[t.ix].remove(t)
-				if me.sub_contains[t.ix] == []:
-					del me.sub_contains[t.ix]
-			#iobj.sub_contains.append(t)
-			if t.ix in iobj.sub_contains:
-				iobj.sub_contains[t.ix].append(t)
-			else:
-				iobj.sub_contains[t.ix] = [t]
+		me.removeThing(dobj)
 		iobj.addThing(dobj)
 		return True
 	elif dobj.size > iobj.size:
@@ -546,10 +548,11 @@ def invVerbFunc(me, app):
 	"""View the player's contains
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# describe contains
-	if len(me.contains)==0:
+	if me.contains=={}:
 		app.printToGUI("You don't have anything with you.")
 	else:
 		# the string to print listing the contains
+		print(me.contains)
 		invdesc = "You have "
 		list_version = list(me.contains.keys())
 		remove_child = []
