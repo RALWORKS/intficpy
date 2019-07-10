@@ -33,6 +33,7 @@ class Actor(Thing):
 		self.synonyms = []
 		self.special_plural = False
 		self.isPlural = False
+		self.location = None
 		self.hasArticle = True
 		self.isDefinite = False
 		self.position = "standing"
@@ -346,7 +347,6 @@ class Player(Actor):
 		self.special_topics = {}
 		self.special_topics_alternate_keys = {}
 		self.default_topic = "No one responds. This should come as a relief."
-		self.knows_about = []
 		self.isPlural = False
 		self.hasArticle = False
 		self.isDefinite = False
@@ -357,6 +357,7 @@ class Player(Actor):
 		actor_ix = actor_ix + 1
 		actors[self.ix] = self
 		self.known_ix = self.ix
+		self.knows_about = [self.ix]
 		
 	def setPlayer(self):
 		self.addSynonym("me")

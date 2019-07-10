@@ -188,6 +188,13 @@ def getVerbFunc(me, app, dobj, skip=False):
 		else:
 			app.printToGUI("Could not move player out of " + dobj.verbose_name)
 			return False		
+	if not me.position=="standing":
+		app.printToGUI("(First standing up)")
+		standUpVerb.verbFunc(me, app)
+	if isinstance(dobj, thing.Liquid):
+		container = dobj.getContainer()
+		if container:
+			dobj = container
 	if dobj.invItem:
 		if dobj.ix in me.contains:
 			if dobj in me.contains[dobj.ix]:
@@ -311,6 +318,10 @@ def dropVerbFunc(me, app, dobj, skip=False):
 			pass
 		if not runfunc:
 			return True
+	if isinstance(dobj, thing.Liquid):
+		container = dobj.getContainer()
+		if container:
+			dobj = container
 	if dobj.invItem and me.removeThing(dobj):
 		app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
 		dobj.location = me.location
@@ -386,40 +397,12 @@ def setOnVerbFunc(me, app, dobj, iobj, skip=False):
 	outer_loc = me.getOutermostLocation()
 	if iobj==outer_loc.floor:
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on the ground.")
-		me.contains[dobj.ix].remove(dobj)
-		if me.contains[dobj.ix] == []:
-			del me.contains[dobj.ix]
-		# remove all nested objects for dobj from contains
-		nested = getNested(dobj)
-		for t in nested:
-			#me.sub_contains.remove(t)
-			del me.sub_contains[t.ix][0]
-			if me.sub_contains[t.ix] == []:
-				del me.sub_contains[t.ix]
-			#iobj.sub_contains.append(t)
-			if t.ix in outer_loc.sub_contains:
-				outer_loc.sub_contains[t.ix].append(t)
-			else:
-				outer_loc.sub_contains[t.ix] = [t]
+		me.removeThing(dobj)
 		outer_loc.addThing(dobj)
 		return True
 	if isinstance(iobj, thing.Surface):
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
-		me.contains[dobj.ix].remove(dobj)
-		if me.contains[dobj.ix] == []:
-			del me.contains[dobj.ix]
-		# remove all nested objects for dobj from contains
-		nested = getNested(dobj)
-		for t in nested:
-			#me.sub_contains.remove(t)
-			del me.sub_contains[t.ix][0]
-			if me.sub_contains[t.ix] == []:
-				del me.sub_contains[t.ix]
-			#iobj.sub_contains.append(t)
-			if t.ix in iobj.sub_contains:
-				iobj.sub_contains[t.ix].append(t)
-			else:
-				iobj.sub_contains[t.ix] = [t]
+		me.removeThing(dobj)
 		iobj.addThing(dobj)
 	# if iobj is not a Surface
 	else:
@@ -463,26 +446,16 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
 			
 	if isinstance(iobj, thing.Container) and iobj.has_lid:
 		if not iobj.is_open:
-			app.printToGUI("You  cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " is closed.")
+			app.printToGUI("You cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " is closed.")
 			return False
 	if isinstance(iobj, thing.Container) and iobj.size >= dobj.size:
+		liquid = iobj.containsLiquid()
+		if liquid:
+			app.printToGUI("You cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " has " + liquid.lowNameArticle() + " in it. ")
+			return False
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " in " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		#me.contains.remove(dobj)
-		me.contains[dobj.ix].remove(dobj)
-		if me.contains[dobj.ix] == []:
-			del me.contains[dobj.ix]
-		# remove all nested objects for dobj from contains
-		nested = getNested(dobj)
-		for t in nested:
-			#me.sub_contains.remove(t)
-			del me.sub_contains[t.ix][0]
-			if me.sub_contains[t.ix] == []:
-				del me.sub_contains[t.ix]
-			#iobj.sub_contains.append(t)
-			if t.ix in iobj.sub_contains:
-				iobj.sub_contains[t.ix].append(t)
-			else:
-				iobj.sub_contains[t.ix] = [t]
+		me.removeThing(dobj)
 		if iobj.manual_update:
 			iobj.addThing(dobj, False, False)
 		else:
@@ -848,7 +821,7 @@ def lookInVerbFunc(me, app, dobj, skip=False):
 			app.printToGUI(dobj.contains_desc)
 			for key in dobj.contains:
 				if key not in me.knows_about:
-					me.know_about.append(key)
+					me.knows_about.append(key)
 			return True
 		else:
 			app.printToGUI("The " + dobj.verbose_name + " is empty.")
@@ -1248,21 +1221,7 @@ def giveVerbFunc(me, app, dobj, iobj, skip=False):
 			else:
 				dobj.give_topics[iobj.ix].func(app)
 			if iobj.give:
-				me.contains[dobj.ix].remove(dobj)
-				if me.contains[dobj.ix] == []:
-					del me.contains[dobj.ix]
-				# remove all nested objects for dobj from contains
-				nested = getNested(dobj)
-				for t in nested:
-					#me.sub_contains.remove(t)
-					del me.sub_contains[t.ix][0]
-					if me.sub_contains[t.ix] == []:
-						del me.sub_contains[t.ix]
-					#iobj.sub_contains.append(t)
-					if t.ix in iobj.sub_contains:
-						iobj.sub_contains[t.ix].append(t)
-					else:
-						iobj.sub_contains[t.ix] = [t]
+				me.removeThing(dobj)
 				dobj.addThing(iobj)
 			return True
 		elif dobj.sticky_topic:
@@ -3113,3 +3072,322 @@ def pushVerbFunc(me, app, dobj, skip=False):
 
 # replace default verbFunc method
 pushVerb.verbFunc = pushVerbFunc
+
+# POUR OUT
+# transitive verb, no indirect object
+pourOutVerb = Verb("pour")
+pourOutVerb.addSynonym("dump")
+pourOutVerb.syntax = [["pour", "<dobj>"], ["pour", "out", "<dobj>"], ["pour", "<dobj>", "out"], ["dump", "<dobj>"], ["dump", "out", "<dobj>"], ["dump", "<dobj>", "out"]]
+pourOutVerb.hasDobj = True
+pourOutVerb.dscope = "inv"
+pourOutVerb.preposition = ["out"]
+
+def pourOutVerbFunc(me, app, dobj, skip=False):
+	"""Pour a Liquid out of a Container """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.pourOutVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.Container):
+		loc = me.getOutermostLocation()
+		if dobj.has_lid:
+			if not dobj.is_open:
+				app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+				return False
+		if dobj.contains=={}:
+			app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+			return True
+		liquid = dobj.containsLiquid()
+		if not liquid:
+			app.printToGUI("You dump the contents of " + dobj.lowNameArticle(True) + " onto the ground. ")
+			containslist = []
+			for key in dobj.contains:
+				for item in dobj.contains[key]:
+					containslist.append(item)
+			for item in containslist:
+				dobj.removeThing(item)
+				loc.addThing(item)
+			return True
+		else:
+			dobj = liquid
+	if isinstance(dobj, thing.Liquid):
+		if not dobj.getContainer:
+			app.printToGUI("It isn't in a container you can dump it from. ")
+			return False
+		elif not dobj.can_pour_out:
+			app.printToGUI(dobj.cannotPourOutMsg)
+			return False
+		app.printToGUI("You dump out " + dobj.lowNameArticle(True) + ". ")
+		dobj.dumpLiquid()
+		return True
+	app.printToGUI("You can't dump that out. ")
+	return False
+
+# replace default verbFunc method
+pourOutVerb.verbFunc = pourOutVerbFunc
+
+# DRINK
+# transitive verb, no indirect object
+drinkVerb = Verb("drink")
+drinkVerb.syntax = [["drink", "<dobj>"], ["drink", "from", "<dobj>"], ["drink", "out", "of", "<dobj>"]]
+drinkVerb.hasDobj = True
+drinkVerb.dscope = "inv"
+drinkVerb.preposition = ["out", "from"]
+drinkVerb.keywords = ["of"]
+
+def drinkVerbFunc(me, app, dobj, skip=False):
+	"""Drink a Liquid """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.drinkVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.Container):
+		loc = me.getOutermostLocation()
+		if dobj.has_lid:
+			if not dobj.is_open:
+				app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+				return False
+		if dobj.contains=={}:
+			app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+			return True
+		liquid = dobj.containsLiquid()
+		if not liquid:
+			app.printToGUI("There is nothing you can drink in " + dobj.lowNameArticle(True) + ". ")
+			return False
+		else:
+			dobj = liquid
+	if isinstance(dobj, thing.Liquid):
+		container = dobj.getContainer()
+		if not dobj.can_drink:
+			app.printToGUI(dobj.cannotDrinkMsg)
+			return False
+		dobj.drinkLiquid(me, app)
+		return True
+	app.printToGUI("You cannot drink that. ")
+	return False
+
+# replace default verbFunc method
+drinkVerb.verbFunc = drinkVerbFunc
+
+# POUR INTO
+# transitive verb, with indirect object
+pourIntoVerb = Verb("pour")
+pourIntoVerb.addSynonym("dump")
+pourIntoVerb.syntax = [["pour", "<dobj>", "into", "<iobj>"], ["pour", "<dobj>", "in", "<iobj>"], ["dump", "<dobj>", "into", "<iobj>"], ["dump", "<dobj>", "in", "<iobj>"]]
+pourIntoVerb.hasDobj = True
+pourIntoVerb.hasIobj = True
+pourIntoVerb.dscope = "inv"
+pourIntoVerb.iscope = "near"
+pourIntoVerb.preposition = ["in", "into"]
+
+def pourIntoVerbFunc(me, app, dobj, iobj, skip=False):
+	"""Pour a Liquid from one Container to another """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.pourIntoVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(dobj, thing.Container):
+		loc = me.getOutermostLocation()
+		if dobj.has_lid:
+			if not dobj.is_open:
+				app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+				return False
+		if dobj.contains=={}:
+			app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+			return True
+		liquid = dobj.containsLiquid()
+		if not liquid:
+			if not isinstance(iobj, thing.Container):
+				app.printToGUI(iobj.capNameArticle(True) + " is not a container. ")
+				return False
+			app.printToGUI("You dump the contents of " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) + ". ")
+			containslist = []
+			for key in dobj.contains:
+				for item in dobj.contains[key]:
+					containslist.append(item)
+			for item in containslist:
+				dobj.removeThing(item)
+				if item.size < iobj.size:
+					iobj.addThing(item)
+				else:
+					app.printToGUI(item.capNameArticle(True) + " is too large to fit inside. It falls to the ground.")
+					loc.addThing(item)
+			return True
+		else:
+			dobj = liquid
+	if isinstance(dobj, thing.Liquid):
+		if not dobj.getContainer:
+			app.printToGUI("It isn't in a container you can dump it from. ")
+			return False
+		elif not iobj.holds_liquid:
+			app.printToGUI(iobj.capNameArticle(True) + " cannot hold a liquid. ")
+			return False		
+		spaceleft = iobj.liquidRoomLeft()
+		liquid_contents = iobj.containsLiquid()
+		if iobj.has_lid:
+			if not iobj.is_open:
+				app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+				return False
+		if iobj.contains != {} and not liquid_contents:
+			app.printToGUI("(First attempting to empty " + iobj.lowNameArticle(True)+ ")")
+			success = pourOutVerb.verbFunc(me, app, iobj)
+			if not success:
+				return False
+		if liquid_contents and liquid_contents.liquid_type != dobj.liquid_type:
+			success = liquid_contents.mixWith(dobj)
+			if not success:
+				app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + iobj.lowNameArticle(True) + ". ")
+				return False
+			else:
+				return True
+		elif dobj.size <= spaceleft:
+			app.printToGUI("You dump " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) +  ". ")
+		elif spaceleft == 0:
+			app.printToGUI(iobj.capNameArticle(True) +  " is already full. ")
+		elif dobj.size > spaceleft:
+			app.printToGUI("You dump some of " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) +  ". ")
+		return dobj.fillVessel(iobj)
+	app.printToGUI("You can't dump that out. ")
+	return False
+
+# replace default verbFunc method
+pourIntoVerb.verbFunc = pourIntoVerbFunc
+
+# FILL FROM
+# transitive verb, with indirect object
+fillFromVerb = Verb("fill")
+fillFromVerb.syntax = [["fill", "<dobj>", "from", "<iobj>"], ["fill", "<dobj>", "in", "<iobj>"]]
+fillFromVerb.hasDobj = True
+fillFromVerb.hasIobj = True
+fillFromVerb.dscope = "inv"
+fillFromVerb.iscope = "near"
+fillFromVerb.preposition = ["from", "in"]
+
+def fillFromVerbFunc(me, app, dobj, iobj, skip=False):
+	"""Pour a Liquid from one Container to another """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.fillFromVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if isinstance(iobj, thing.Container):
+		loc = me.getOutermostLocation()
+		if iobj.has_lid:
+			if not iobj.is_open:
+				app.printToGUI(iobj.capNameArticle(True) + " is closed. ")
+				return False
+		if iobj.contains=={}:
+			app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+			return True
+		liquid = iobj.containsLiquid()
+		if not liquid:
+			app.printToGUI("There is no liquid in " + dobj.lowNameArticle(True) + ". ")
+			return False
+		else:
+			if not dobj.holds_liquid:
+				app.printToGUI(iobj.capNameArticle(True) + " cannot hold a liquid. ")
+				return False
+			if dobj.has_lid:
+				if not dobj.is_open:
+					app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+					return False
+			spaceleft = dobj.liquidRoomLeft()
+			liquid_contents = dobj.containsLiquid()
+			if dobj.contains != {} and not liquid_contents:
+				app.printToGUI("(First attempting to empty " + iobj.lowNameArticle(True)+ ")")
+				success = pourOutVerb.verbFunc(me, app, iobj)
+				if not success:
+					return False
+			if liquid_contents and liquid_contents.liquid_type != liquid.liquid_type:
+				success = liquid_contents.mixWith(dobj)
+				if not success:
+					app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + iobj.lowNameArticle(True) + ". ")
+					return False
+				else:
+					return True
+			elif liquid.size <= spaceleft:
+				app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + liquid.lowNameArticle() + ", emptying " + iobj.lowNameArticle(True) +  ". ")
+			elif spaceleft == 0:
+				app.printToGUI(dobj.capNameArticle(True) +  " is already full. ")
+			elif liquid.size > spaceleft:
+				app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + liquid.lowNameArticle() + " from " + iobj.lowNameArticle(True) +  ". ")
+			return liquid.fillVessel(dobj)
+	app.printToGUI("You can't fill that. ")
+	return False
+
+# replace default verbFunc method
+fillFromVerb.verbFunc = fillFromVerbFunc
+
+# FILL WITH
+# transitive verb, with indirect object
+fillWithVerb = Verb("fill")
+fillWithVerb.syntax = [["fill", "<dobj>", "with", "<iobj>"]]
+fillWithVerb.hasDobj = True
+fillWithVerb.hasIobj = True
+fillWithVerb.dscope = "inv"
+fillWithVerb.iscope = "near"
+fillWithVerb.preposition = ["with"]
+
+def fillWithVerbFunc(me, app, dobj, iobj, skip=False):
+	"""Pour a Liquid from one Container to another """
+	if not skip:
+		runfunc = True
+		try:
+			runfunc = dobj.fillWithVerbDobj(me, app)
+		except AttributeError:
+			pass
+		if not runfunc:
+			return True
+	if not isinstance(dobj, thing.Container):
+		app.printToGUI("You cannot fill " + dobj.lowNameArticle(True) + ". ")
+		return False
+	if isinstance(iobj, thing.Liquid):
+		if not dobj.holds_liquid:
+			app.printToGUI(iobj.capNameArticle(True) + " cannot hold a liquid. ")
+			return False
+		if dobj.has_lid:
+			if not dobj.is_open:
+				app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+				return False
+		spaceleft = dobj.liquidRoomLeft()
+		liquid_contents = dobj.containsLiquid()
+		if dobj.contains != {} and not liquid_contents:
+			app.printToGUI("(First attempting to empty " + iobj.lowNameArticle(True)+ ")")
+			success = pourOutVerb.verbFunc(me, app, iobj)
+			if not success:
+				return False
+		if liquid_contents and liquid_contents.liquid_type != iobj.liquid_type:
+			success = liquid_contents.mixWith(dobj)
+			if not success:
+				app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + iobj.lowNameArticle(True) + ". ")
+				return False
+			else:
+				return True
+		container = iobj.getContainer()
+		if iobj.size <= spaceleft:
+			app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + iobj.lowNameArticle() + ", emptying " + container.lowNameArticle(True) +  ". ")
+		elif spaceleft == 0:
+			app.printToGUI(dobj.capNameArticle(True) +  " is already full. ")
+		elif iobj.size > spaceleft:
+			app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + iobj.lowNameArticle() + ". ")
+		return iobj.fillVessel(dobj)
+	app.printToGUI("You can't fill " + dobj.lowNameArticle(True) + " with that. ")
+	return False
+
+# replace default verbFunc method
+fillWithVerb.verbFunc = fillWithVerbFunc

@@ -811,6 +811,9 @@ def checkRange(me, app, things, scope):
 				pass
 			elif not invRangeCheck(me, thing):
 				out_range.append(thing)
+	else:
+		print("ERROR: incorrect verb scope \"" + scope + "\".")
+		things = []
 	# remove items that require implicit actions in the event of ambiguity
 	for thing in out_range:
 		things.remove(thing)
@@ -1068,6 +1071,8 @@ def callVerb(me, app, cur_verb, obj_words):
 		pass
 	elif not cur_dobj.location:
 		pass
+	elif cur_dobj.location.location==me and isinstance(cur_dobj, thing.Liquid):
+		cur_dobj = cur_dobj.getContainer()
 	elif cur_dobj.location.location==me:
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
 		cur_dobj.location.removeThing(cur_dobj)

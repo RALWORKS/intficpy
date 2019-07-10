@@ -79,6 +79,23 @@ class Thing:
 			x = x.location
 		return x
 	
+	def containsItem(self, item):
+		"""Returns True if item is in the Thing's contains or sub_contains dictionary """
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				return True
+		if item.ix in self.sub_contains:
+			if item in self.sub_contains[item.ix]:
+				return True
+		return False
+	
+	def strictContainsItem(self, item):
+		"""Returns True only if item is in the Thing's contains dictionary (top level)"""
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				return True
+		return False
+	
 	def addSynonym(self, word):
 		"""Adds a synonym (noun) that can be used to refer to a Thing
 		Takes argument word, a string, which should be a single noun """
@@ -567,6 +584,7 @@ class Container(Thing):
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
 		self.connection = False
+		self.holds_liquid = False
 		self.far_away = False
 		self.has_lid = False
 		self.lock_obj = False
@@ -871,6 +889,22 @@ class Container(Thing):
 				print("Cannot set lock_obj for " + self.verbose_name + ": lock_obj.parent already set ")
 		else:
 			print("Cannot set lock_obj for " + self.verbose_name + ": not a Lock ")
+	
+	def containsLiquid(self):
+		"""Returns  the first Liquid found in the Container or None"""
+		for key in self.contains:
+			for item in self.contains[key]:
+				if isinstance(item, Liquid):
+					return item
+		return None
+	
+	def liquidRoomLeft(self):
+		"""Returns the portion of the Container's size not taken up by a liquid"""
+		liquid = self.containsLiquid()
+		if not liquid:
+			return self.size
+		return self.size - liquid.size
+		
 			
 	def describeThing(self, description):
 		self.base_desc = description
@@ -2046,6 +2080,155 @@ class Pressable(Thing):
 	def pressThing(self, me, app):
 		"""Game creators should redefine this method for their Pressable instances """
 		app.printToGUI(self.capNameArticle(True) + " has been pressed. ")
+
+class Liquid(Thing):
+	"""Liquid represents liquid
+	Can fill a container where holds_liquid is True, can be poured, and can optionally be drunk 
+	Game creators should redefine the pressThing method for the instance to trigger events when the press/push verb is used """
+	def __init__(self, name, liquid_type):
+		"""Sets essential properties for the Liquid instance 
+		The liquid_type property should be a short description of what the liquid is, such as "water" or "motor oil"
+		This will be used to determine what liquids can be merged and mixed
+		Replace the mixWith property to allow mixing of Liquids"""
+		# indexing for save
+		global thing_ix
+		self.ix = "thing" + str(thing_ix)
+		thing_ix = thing_ix + 1
+		things[self.ix] = self
+		self.known_ix = self.ix
+		# False except when Thing is the face of a TravelConnector
+		self.connection = False
+		self.direction = False
+		# thing properties
+		self.can_drink = True
+		self.can_pour_out = True
+		self.can_fill_from = True
+		self.infinite_well = False
+		self.liquid_type = liquid_type
+		self.cannotPourOutMsg = "You shouldn't dump that out. "
+		self.cannotDrinkMsg = "You shouldn't drink that. "
+		self.far_away = False
+		self.is_composite = False
+		self.parent_obj = False
+		self.size = 50
+		self.contains_preposition = False
+		self.contains_preposition_inverse = False
+		self.canSit = False
+		self.canStand = False
+		self.canLie = False
+		self.isPlural = False
+		self.special_plural = False
+		self.hasArticle = True
+		self.is_numberless = True
+		self.isDefinite = False
+		self.invItem = False
+		self.adjectives = []
+		self.cannotTakeMsg = "You cannot take that."
+		self.contains = {}
+		self.sub_contains = {}
+		self.wearable = False
+		self.location = False
+		self.name = name
+		self.synonyms = []
+		self.manual_update = False
+		# verbose name will be updated when adjectives are added
+		self.verbose_name = name
+		# Thing instances that are not Actors cannot be spoken to
+		self.give = False
+		# the default description to print from the room
+		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
+		self.base_xdesc = self.base_desc
+		self.desc = self.base_desc
+		self.xdesc = self.base_xdesc
+		# the default description for the examine command
+		# add name to list of nouns
+		if name in vocab.nounDict:
+			vocab.nounDict[name].append(self)
+		else:
+			vocab.nounDict[name] = [self]
+	
+	def getContainer(self):
+		"""Redirect to the Container rather than the Liquid for certain verbs (i.e. take) """
+		if isinstance(self.location, Container):
+			return self.location
+		else:
+			return None
+	
+	def dumpLiquid(self):
+		"""Defines what happens when the Liquid is dumped out"""
+		loc = self.getOutermostLocation()
+		if not isinstance(self.location, Container) or not self.can_pour_out:
+			return False
+		self.location.removeThing(self)
+		loc.addThing(self)
+		self.describeThing(self.capNameArticle() + " has been spilled on the ground here. ")
+		self.invItem = False
+		self.can_fill_from = False
+		return True
+	
+	def fillVessel(self, vessel):
+		"""Used for verbs fill from and pour into """
+		vessel_liquid = vessel.containsLiquid()
+		vessel_left = vessel.liquidRoomLeft()
+		if vessel_liquid:
+			if vessel_left==0:
+				return False
+			elif vessel_liquid.liquid_type != self.liquid_type:
+				return self.mixWith(vessel_liquid)
+			else:
+				if self.size <= vessel_left:
+					vessel_liquid.size = vessel_liquid.size + self.size
+					self.location.remove(self)
+					return True
+				else:
+					subtract = vessel.size - vessel_liquid.size
+					vessel_liquid.size = vessel.size
+					self.size = self.size - subtract
+					return True
+		else:
+			if self.infinite_well:
+				vessel_liquid = self.copyThingUniqueIx()
+				vessel_liquid.infinite_well = False
+				vessel_liquid.size = vessel.size
+				return True
+			elif vessel.size>=self.size:
+				self.location.removeThing(self)
+				vessel.addThing(self)
+				return True
+			elif vessel.size < self.size:
+				add_liquid = self.copyThingUniqueIx()
+				add_liquid.size = vessel.size
+				vessel.addThing(add_liquid)
+				self.size = self.size - vessel.size
+				return True
+	
+	def mixWith(self, mix_in):
+		"""Replace to allow mixing of specific Liquids
+		Return True when a mixture is allowed, False otherwise """
+		return False
+		
+	def drinkLiquid(self, me, app):
+		"""Replace for custom effects for drinking the Liquid """
+		self.location.removeThing(self)
+		app.printToGUI("You drink " + self.lowNameArticle(True) + ". ")
+		return True
+	
+	def getArticle(self, definite=False):
+		"""Gets the correct article for a Thing
+		Takes argument definite (defaults to False), which specifies whether the article is definite
+		Returns a string """
+		if not self.hasArticle:
+			return ""
+		elif definite or self.isDefinite:
+			return "the "
+		elif self.is_numberless:
+			return ""
+		else:
+			if self.verbose_name[0] in ["a", "e", "i", "o", "u"]:
+				return "an "
+			else:
+				return "a "
+			
 
 # hacky solution for reflexive pronouns (himself/herself/itself)
 reflexive = Abstract("itself")

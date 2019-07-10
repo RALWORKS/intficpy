@@ -213,6 +213,22 @@ class Room:
 					onlist = onlist + ", "
 			self.fulldesc = self.fulldesc + onlist
 	
+	def containsItem(self, item):
+		"""Returns True if item is in the Room's contains or sub_contains dictionary """
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				return True
+		if item.ix in self.sub_contains:
+			if item in self.sub_contains[item.ix]:
+				return True
+		return False
+	
+	def strictContainsItem(self, item):
+		"""Returns True only if item is in the Room's contains dictionary (top level)"""
+		if item.ix in self.contains:
+			if item in self.contains[item.ix]:
+				return True
+		return False
 	def resolveDarkness(self, me):
 		can_see = True
 		if self.dark:
