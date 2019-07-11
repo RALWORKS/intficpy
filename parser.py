@@ -7,6 +7,7 @@ from . import vocab
 from . import verb
 from . import thing
 from . import serializer
+from . import room
 
 ##############################################################
 # PARSER.PY - the parser for IntFicPy 
@@ -23,6 +24,7 @@ class TurnInfo:
 	dobj = False
 	iobj = False
 	ambig_noun = None
+	find_by_loc = False
 	turn_list = []
 	back = 0
 	gameOpening = False
@@ -892,6 +894,32 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 		thing = checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_direction)
 		return thing
 
+def verboseNamesMatch(things):
+	"""Check if any of the potential grammatical objects have identical verbose names
+	Takes the list of things associated with the direct or indirect object 
+	Returns a list of two items: 
+		Item one is True if duplicates are present, else False
+		Item two is dictionary mapping verbose names to lists of Things from the input with that name"""
+	duplicates_present = False
+	name_dict = {}
+	for item in things:
+		if item.verbose_name in name_dict:
+			name_dict[item.verbose_name].append(item)
+		else:
+			name_dict[item.verbose_name] = [item]
+	for name in name_dict:
+		if len(name_dict[name]) > 1:
+			duplicates_present = True
+			break
+	return [duplicates_present, name_dict]
+
+def locationsDistinct(things):
+	"""Check if identically named items can be distinguished by their locations
+	Takes a list of items to check
+	Returns False if all locations are the same, True otherwise """
+	locs = [item.location for item in things]
+	return not locs.count(locs[1]) == len(locs)
+
 def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_direction):
 	"""If there are multiple Thing objects matching the noun, check the adjectives to narrow down to exactly 1
 	Takes arguments app, noun_adj_arr, a list of strings referring to an in game item, taken from the player command,noun (string), things, a list of Thing objects
@@ -960,16 +988,72 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 	if len(things)==1:	
 			return things[0]
 	elif len(things) >1:
+		name_match = verboseNamesMatch(things)
+		name_dict = name_match[1] # dictionary of verbose_names from the current set of things
 		msg = "Do you mean "
-		for thing in things:
-			msg = msg + thing.getArticle(True) + thing.verbose_name
-			# add appropriate punctuation and "or"
-			if thing is things[-1]:
-				msg = msg + "?"
-			elif thing is things[-2]:
-				msg = msg + ", or "
-			else:
-				msg = msg + ", "
+		scanned_keys = []
+		if name_match[0]: # there is at least one set of duplicate verbose_names
+			things = [] # empty things to reorder elements according to the order printed, since we are using name_dict
+			for name in name_dict: # use name_dict for disambiguation message composition rather than things
+				scanned_keys.append(name)
+				unscanned = list(set(name_dict.keys()) - set(scanned_keys))
+				if len(name_dict[name]) > 1:
+					if locationsDistinct(name_dict[name]):
+						for item in name_dict[name]:
+							things.append(item)
+							loc = item.location
+							if isinstance(loc, room.Room):
+								msg += item.lowNameArticle(True) + " on " + loc.floor.lowNameArticle(True) + " (" + str(things.index(item) + 1) + ")"
+							else:
+								msg += item.lowNameArticle(True) + " " + loc.contains_preposition + " " + loc.lowNameArticle(True) + " (" + str(things.index(item) + 1) + ")"
+							if item is name_dict[name][-1] and not len(unscanned):
+								msg += "?"
+							elif item is name_dict[name][-1] and len(unscanned) == 1 and len(name_dict[unscanned[0]])==1:
+								msg += ", or "
+							elif len(name_dict[name]) == 1:
+								msg += ", "
+							elif item is name_dict[name][-2] and not len(unscanned):
+								msg += ", or "
+							else:
+								msg += ", "
+					else:
+						for item in name_dict[name]:
+							things.append(item)
+							msg += item.lowNameArticle(True)  + " (" + str(things.index(item) + 1) + ")"
+							if item is name_dict[name][-1] and not len(unscanned):
+								msg += "?"
+							elif item is name_dict[name][-1] and len(unscanned) == 1 and len(name_dict[unscanned[0]])==1:
+								msg += ", or "
+							elif len(name_dict[name]) == 1:
+								msg += ", "
+							elif item is name_dict[name][-2] and not len(unscanned):
+								msg += ", or "
+							else:
+								msg += ", "
+				else:
+					for item in name_dict[name]:
+						things.append(item)
+						msg += item.lowNameArticle(True)  + " (" + str(things.index(item) + 1) + ")"
+						if item is name_dict[name][-1] and not len(unscanned):
+							msg += "?"
+						elif item is name_dict[name][-1] and len(unscanned) == 1 and len(name_dict[unscanned[0]])==1:
+								msg += ", or "
+						elif len(name_dict[name]) == 1:
+							msg += ", "
+						elif item is name_dict[name][-2] and not len(unscanned):
+							msg += ", or "
+						else:
+							msg += ", "
+		else:		
+			for thing in things:
+				msg = msg + thing.getArticle(True) + thing.verbose_name + " (" + str(things.index(thing) + 1) + ")"
+				# add appropriate punctuation and "or"
+				if thing is things[-1]:
+					msg = msg + "?"
+				elif thing is things[-2]:
+					msg = msg + ", or "
+				else:
+					msg = msg + ", "
 		app.printToGUI(msg)
 		# turn ON disambiguation mode for next turn
 		lastTurn.ambiguous = True
