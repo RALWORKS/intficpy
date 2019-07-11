@@ -366,7 +366,8 @@ dropAllVerb.verbFunc = dropAllVerbFunc
 # transitive verb with indirect object
 setOnVerb = Verb("set", "set on")
 setOnVerb.addSynonym("put")
-setOnVerb.syntax = [["put", "<dobj>", "on", "<iobj>"], ["set", "<dobj>", "on", "<iobj>"]]
+setOnVerb.addSynonym("place")
+setOnVerb.syntax = [["put", "<dobj>", "on", "<iobj>"], ["set", "<dobj>", "on", "<iobj>"], ["place", "<dobj>", "on", "<iobj>"]]
 setOnVerb.hasDobj = True
 setOnVerb.dscope = "inv"
 setOnVerb.itype = "Surface"
@@ -429,7 +430,8 @@ setOnVerb.verbFunc = setOnVerbFunc
 setInVerb = Verb("set", "set in")
 setInVerb.addSynonym("put")
 setInVerb.addSynonym("insert")
-setInVerb.syntax = [["put", "<dobj>", "in", "<iobj>"], ["set", "<dobj>", "in", "<iobj>"], ["insert", "<dobj>", "into", "<iobj>"]]
+setInVerb.addSynonym("place")
+setInVerb.syntax = [["put", "<dobj>", "in", "<iobj>"], ["set", "<dobj>", "in", "<iobj>"], ["insert", "<dobj>", "into", "<iobj>"], ["place", "<dobj>", "in", "<iobj>"]]
 setInVerb.hasDobj = True
 setInVerb.dscope = "inv"
 setInVerb.itype = "Container"
@@ -490,7 +492,8 @@ setInVerb.verbFunc = setInVerbFunc
 # transitive verb with indirect object
 setUnderVerb = Verb("set", "set under")
 setUnderVerb.addSynonym("put")
-setUnderVerb.syntax = [["put", "<dobj>", "under", "<iobj>"], ["set", "<dobj>", "under", "<iobj>"]]
+setUnderVerb.addSynonym("place")
+setUnderVerb.syntax = [["put", "<dobj>", "under", "<iobj>"], ["set", "<dobj>", "under", "<iobj>"], ["place", "<dobj>", "under", "<iobj>"]]
 setUnderVerb.hasDobj = True
 setUnderVerb.dscope = "inv"
 setUnderVerb.hasIobj = True
@@ -552,7 +555,6 @@ def invVerbFunc(me, app):
 		app.printToGUI("You don't have anything with you.")
 	else:
 		# the string to print listing the contains
-		print(me.contains)
 		invdesc = "You have "
 		list_version = list(me.contains.keys())
 		remove_child = []
@@ -2474,6 +2476,7 @@ extinguishVerb.syntax = [["extinguish", "<dobj>"], ["put", "out", "<dobj>"], ["p
 extinguishVerb.hasDobj = True
 extinguishVerb.dscope = "near"
 extinguishVerb.dtype = "LightSource"
+extinguishVerb.preposition = ["out"]
 
 def extinguishVerbFunc(me, app, dobj, skip=False):
 	"""Extinguish a LightSource """
@@ -3122,7 +3125,7 @@ def pourOutVerbFunc(me, app, dobj, skip=False):
 			app.printToGUI("It isn't in a container you can dump it from. ")
 			return False
 		elif not dobj.can_pour_out:
-			app.printToGUI(dobj.cannotPourOutMsg)
+			app.printToGUI(dobj.cannot_pour_out_msg)
 			return False
 		app.printToGUI("You dump out " + dobj.lowNameArticle(True) + ". ")
 		dobj.dumpLiquid()
@@ -3170,8 +3173,9 @@ def drinkVerbFunc(me, app, dobj, skip=False):
 	if isinstance(dobj, thing.Liquid):
 		container = dobj.getContainer()
 		if not dobj.can_drink:
-			app.printToGUI(dobj.cannotDrinkMsg)
+			app.printToGUI(dobj.cannot_drink_msg)
 			return False
+		app.printToGUI("You drink " + dobj.lowNameArticle(True) + ". ")
 		dobj.drinkLiquid(me, app)
 		return True
 	app.printToGUI("You cannot drink that. ")
@@ -3196,7 +3200,11 @@ def pourIntoVerbFunc(me, app, dobj, iobj, skip=False):
 	if not skip:
 		runfunc = True
 		try:
-			runfunc = dobj.pourIntoVerbDobj(me, app)
+			runfunc = dobj.pourIntoVerbDobj(me, app, iobj)
+		except AttributeError:
+			pass
+		try:
+			runfunc = iobj.pourIntoVerbIobj(me, app, dobj)
 		except AttributeError:
 			pass
 		if not runfunc:
@@ -3249,19 +3257,22 @@ def pourIntoVerbFunc(me, app, dobj, iobj, skip=False):
 			if not success:
 				return False
 		if liquid_contents and liquid_contents.liquid_type != dobj.liquid_type:
-			success = liquid_contents.mixWith(dobj)
+			success = liquid_contents.mixWith(me, app, liquid_contents, dobj)
 			if not success:
-				app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + iobj.lowNameArticle(True) + ". ")
+				app.printToGUI(iobj.capNameArticle(True) + " is already full of " + liquid_contents.lowNameArticle() + ". ")
 				return False
 			else:
 				return True
-		elif dobj.size <= spaceleft:
-			app.printToGUI("You dump " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) +  ". ")
-		elif spaceleft == 0:
-			app.printToGUI(iobj.capNameArticle(True) +  " is already full. ")
-		elif dobj.size > spaceleft:
-			app.printToGUI("You dump some of " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) +  ". ")
-		return dobj.fillVessel(iobj)
+		elif liquid_contents:
+			if liquid_contents.infinite_well:
+				app.printToGUI("You pour " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) + ". ")
+				dobj.location.removeThing(dobj)
+				return True
+			app.printToGUI(iobj.capNameArticle(True) +  " already has " + liquid_contents.lowNameArticle() + " in it. ")
+			return False
+		else:
+			app.printToGUI("You pour " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) + ". ")	
+			return dobj.fillVessel(iobj)
 	app.printToGUI("You can't dump that out. ")
 	return False
 
@@ -3295,7 +3306,7 @@ def fillFromVerbFunc(me, app, dobj, iobj, skip=False):
 				app.printToGUI(iobj.capNameArticle(True) + " is closed. ")
 				return False
 		if iobj.contains=={}:
-			app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+			app.printToGUI(iobj.capNameArticle(True) + " is empty. ")
 			return True
 		liquid = iobj.containsLiquid()
 		if not liquid:
@@ -3303,7 +3314,7 @@ def fillFromVerbFunc(me, app, dobj, iobj, skip=False):
 			return False
 		else:
 			if not dobj.holds_liquid:
-				app.printToGUI(iobj.capNameArticle(True) + " cannot hold a liquid. ")
+				app.printToGUI(dobj.capNameArticle(True) + " cannot hold a liquid. ")
 				return False
 			if dobj.has_lid:
 				if not dobj.is_open:
@@ -3316,19 +3327,21 @@ def fillFromVerbFunc(me, app, dobj, iobj, skip=False):
 				success = pourOutVerb.verbFunc(me, app, iobj)
 				if not success:
 					return False
+			if not liquid.can_fill_from:
+				app.printToGUI(liquid.cannot_fill_from_msg)
+				return False
 			if liquid_contents and liquid_contents.liquid_type != liquid.liquid_type:
-				success = liquid_contents.mixWith(dobj)
+				success = liquid_contents.mixWith(me, app, liquid_contents, dobj)
 				if not success:
 					app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + dobj.lowNameArticle(True) + ". ")
 					return False
 				else:
 					return True
-			elif liquid.size <= spaceleft:
-				app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + liquid.lowNameArticle() + ", emptying " + iobj.lowNameArticle(True) +  ". ")
-			elif spaceleft == 0:
-				app.printToGUI(dobj.capNameArticle(True) +  " is already full. ")
-			elif liquid.size > spaceleft:
+			
+			elif liquid.infinite_well:
 				app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + liquid.lowNameArticle() + " from " + iobj.lowNameArticle(True) +  ". ")
+			else:
+				app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + liquid.lowNameArticle() + ", taking all of it. ")
 			return liquid.fillVessel(dobj)
 	app.printToGUI("You can't fill that. ")
 	return False
@@ -3361,7 +3374,7 @@ def fillWithVerbFunc(me, app, dobj, iobj, skip=False):
 		return False
 	if isinstance(iobj, thing.Liquid):
 		if not dobj.holds_liquid:
-			app.printToGUI(iobj.capNameArticle(True) + " cannot hold a liquid. ")
+			app.printToGUI(dobj.capNameArticle(True) + " cannot hold a liquid. ")
 			return False
 		if dobj.has_lid:
 			if not dobj.is_open:
@@ -3374,20 +3387,21 @@ def fillWithVerbFunc(me, app, dobj, iobj, skip=False):
 			success = pourOutVerb.verbFunc(me, app, iobj)
 			if not success:
 				return False
+		if not iobj.can_fill_from:
+			app.printToGUI(iobj.cannot_fill_from_msg)
+			return False
 		if liquid_contents and liquid_contents.liquid_type != iobj.liquid_type:
-			success = liquid_contents.mixWith(dobj)
+			success = liquid_contents.mixWith(me, app, liquid_contents, dobj)
 			if not success:
 				app.printToGUI("There is already " + liquid_contents.lowNameArticle() + " in " + dobj.lowNameArticle(True) + ". ")
 				return False
 			else:
 				return True
 		container = iobj.getContainer()
-		if iobj.size <= spaceleft:
-			app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + iobj.lowNameArticle() + ", emptying " + container.lowNameArticle(True) +  ". ")
-		elif spaceleft == 0:
-			app.printToGUI(dobj.capNameArticle(True) +  " is already full. ")
-		elif iobj.size > spaceleft:
-			app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + iobj.lowNameArticle() + ". ")
+		if iobj.infinite_well:
+				app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + iobj.lowNameArticle() + ". ")
+		else:
+			app.printToGUI("You fill " + dobj.lowNameArticle(True) + " with " + iobj.lowNameArticle() + ", taking all of it. ")	
 		return iobj.fillVessel(dobj)
 	app.printToGUI("You can't fill " + dobj.lowNameArticle(True) + " with that. ")
 	return False

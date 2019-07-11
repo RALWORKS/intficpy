@@ -172,8 +172,11 @@ class Thing:
 		out.setAdjectives(out.adjectives)
 		for synonym in out.synonyms:
 			vocab.nounDict[synonym].append(out)
+		out.verbose_name = self.verbose_name
 		out.desc = self.desc
 		out.xdesc = self.xdesc
+		out.contains = {}
+		out.sub_contains = {}
 		return out
 	
 	def copyThingUniqueIx(self):
@@ -189,8 +192,11 @@ class Thing:
 		out.setAdjectives(out.adjectives)
 		for synonym in out.synonyms:
 			vocab.nounDict[synonym].append(out)
+		out.verbose_name = self.verbose_name
 		out.desc = self.desc
 		out.xdesc = self.xdesc
+		out.contains = {}
+		out.sub_contains = {}
 		return out
 	
 	def setFromPrototype(self, item):
@@ -298,6 +304,7 @@ class Surface(Thing):
 		things[self.ix] = self
 		# properties
 		self.desc_reveal = True
+		self.xdesc_reveal = True
 		self.known_ix = self.ix
 		self.me = me
 		self.contains_preposition = "on"
@@ -581,6 +588,8 @@ class Container(Thing):
 		self.known_ix = self.ix
 		self.me = me
 		self.size = 50
+		self.desc_reveal = True
+		self.xdesc_reveal = True
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
 		self.connection = False
@@ -689,14 +698,14 @@ class Container(Thing):
 						continue
 					self.xdesc = self.xdesc + item.desc
 					self.desc = self.desc + item.desc
-			if update_desc:
+			if update_desc and self.desc_reveal:
 				self.desc = self.desc + inlist
-			if update_xdesc:
+			if update_xdesc and self.xdesc_reveal:
 				self.xdesc = self.xdesc + inlist
 		else:
-			if update_desc:
+			if update_desc and self.desc_reveal:
 				self.desc = self.desc + inlist
-			if update_xdesc:
+			if update_xdesc and self.xdesc_reveal:
 				self.xdesc = self.xdesc + self.lock_desc + inlist
 		self.contains_desc = inlist
 		return True
@@ -1488,6 +1497,8 @@ class UnderSpace(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# properties
+		self.desc_reveal = True
+		self.xdesc_reveal = True
 		self.connection = False
 		self.known_ix = self.ix
 		self.me = me
@@ -1606,13 +1617,12 @@ class UnderSpace(Thing):
 						continue
 					self.desc = self.desc + item.desc
 					self.xdesc = self.xdesc + item.desc
+			#self.desc = self.desc + inlist
+			#self.xdesc = self.xdesc + inlist
+		if update_desc and self.desc_reveal:
 			self.desc = self.desc + inlist
+		if update_xdesc and self.xdesc_reveal:
 			self.xdesc = self.xdesc + inlist
-		else:
-			if update_desc:
-				self.desc = self.desc + inlist
-			if update_xdesc:
-				self.xdesc = self.xdesc + inlist
 		self.contains_desc = inlist
 		return True
 	
@@ -2104,9 +2114,11 @@ class Liquid(Thing):
 		self.can_pour_out = True
 		self.can_fill_from = True
 		self.infinite_well = False
+		self.liquid_for_transfer = self
 		self.liquid_type = liquid_type
-		self.cannotPourOutMsg = "You shouldn't dump that out. "
-		self.cannotDrinkMsg = "You shouldn't drink that. "
+		self.cannot_fill_from_msg = "You are unable to collect any of the spilled " + name + ". "
+		self.cannot_pour_out_msg = "You shouldn't dump that out. "
+		self.cannot_drink_msg = "You shouldn't drink that. "
 		self.far_away = False
 		self.is_composite = False
 		self.parent_obj = False
@@ -2173,36 +2185,25 @@ class Liquid(Thing):
 		if vessel_liquid:
 			if vessel_left==0:
 				return False
+			if not self.can_fill_from:
+				return False
 			elif vessel_liquid.liquid_type != self.liquid_type:
 				return self.mixWith(vessel_liquid)
 			else:
-				if self.size <= vessel_left:
-					vessel_liquid.size = vessel_liquid.size + self.size
-					self.location.removeThing(self)
-					return True
-				else:
-					subtract = vessel.size - vessel_liquid.size
-					vessel_liquid.size = vessel.size
-					self.size = self.size - subtract
-					return True
+				return False
 		else:
 			if self.infinite_well:
-				vessel_liquid = self.copyThingUniqueIx()
-				vessel_liquid.infinite_well = False
-				vessel_liquid.size = vessel.size
+				vessel_liquid = self.liquid_for_transfer.copyThing()
+				#vessel_liquid.infinite_well = False
+				#vessel_liquid.size = vessel.size
+				vessel.addThing(vessel_liquid)
 				return True
-			elif vessel.size>=self.size:
+			else:
 				self.location.removeThing(self)
-				vessel.addThing(self)
-				return True
-			elif vessel.size < self.size:
-				add_liquid = self.copyThingUniqueIx()
-				add_liquid.size = vessel.size
-				vessel.addThing(add_liquid)
-				self.size = self.size - vessel.size
+				vessel.addThing(self.liquid_for_transfer)
 				return True
 	
-	def mixWith(self, mix_in):
+	def mixWith(self, me, app, base_liquid, mix_in):
 		"""Replace to allow mixing of specific Liquids
 		Return True when a mixture is allowed, False otherwise """
 		return False
@@ -2210,7 +2211,6 @@ class Liquid(Thing):
 	def drinkLiquid(self, me, app):
 		"""Replace for custom effects for drinking the Liquid """
 		self.location.removeThing(self)
-		app.printToGUI("You drink " + self.lowNameArticle(True) + ". ")
 		return True
 	
 	def getArticle(self, definite=False):

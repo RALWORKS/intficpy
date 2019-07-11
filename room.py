@@ -79,7 +79,7 @@ class Room:
 		self.floor.addSynonym("ground")
 		self.floor.invItem = False
 		self.floor.describeThing("")
-		self.floor.xdescribeThing("You notice nothing remarkable about the floor.")
+		self.floor.xdescribeThing("You notice nothing remarkable about the floor. ")
 		self.addThing(self.floor)
 		
 		self.north_wall = thing.Thing("wall")
@@ -87,7 +87,7 @@ class Room:
 		self.north_wall.setAdjectives(["north"])
 		self.north_wall.invItem = False
 		self.north_wall.describeThing("")
-		self.north_wall.xdescribeThing("You notice nothing remarkable about the north wall.")
+		self.north_wall.xdescribeThing("You notice nothing remarkable about the north wall. ")
 		self.addThing(self.north_wall)
 		self.walls.append(self.north_wall)
 		
@@ -96,7 +96,7 @@ class Room:
 		self.south_wall.setAdjectives(["south"])
 		self.south_wall.invItem = False
 		self.south_wall.describeThing("")
-		self.south_wall.xdescribeThing("You notice nothing remarkable about the south wall.")
+		self.south_wall.xdescribeThing("You notice nothing remarkable about the south wall. ")
 		self.addThing(self.south_wall)
 		self.walls.append(self.south_wall)
 		
@@ -105,7 +105,7 @@ class Room:
 		self.east_wall.setAdjectives(["east"])
 		self.east_wall.invItem = False
 		self.east_wall.describeThing("")
-		self.east_wall.xdescribeThing("You notice nothing remarkable about the east wall.")
+		self.east_wall.xdescribeThing("You notice nothing remarkable about the east wall. ")
 		self.addThing(self.east_wall)
 		self.walls.append(self.east_wall)
 		
@@ -114,7 +114,7 @@ class Room:
 		self.west_wall.setAdjectives(["west"])
 		self.west_wall.invItem = False
 		self.west_wall.describeThing("")
-		self.west_wall.xdescribeThing("You notice nothing remarkable about the west wall.")
+		self.west_wall.xdescribeThing("You notice nothing remarkable about the west wall. ")
 		self.addThing(self.west_wall)
 		self.walls.append(self.west_wall)
 		for wall in self.walls:
@@ -377,7 +377,7 @@ class OutdoorRoom(Room):
 		self.floor = thing.Thing("ground")
 		self.floor.invItem = False
 		self.floor.describeThing("")
-		self.floor.xdescribeThing("You notice nothing remarkable about the ground.")
+		self.floor.xdescribeThing("You notice nothing remarkable about the ground. ")
 		self.addThing(self.floor)
 		self.floor.known_ix = None
 
