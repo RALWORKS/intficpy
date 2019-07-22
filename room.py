@@ -439,6 +439,7 @@ class RoomGroup:
 			member.ceiling.setFromPrototype(self.ceiling)
 		if self.floor:
 			member.floor.setFromPrototype(self.floor)
+		member.room_group = self
 		
 	def setMembers(self, members_arr):
 		self.members = []
