@@ -23,6 +23,8 @@ class Room:
 		room_ix = room_ix + 1
 		rooms[self.ix] = self
 		self.location = None
+		# area or room type
+		self.room_group = None
 		# travel connections can be set to other Rooms after initialization
 		self.north = None
 		self.n_false_msg = "You cannot go north from here. "
@@ -81,6 +83,14 @@ class Room:
 		self.floor.describeThing("")
 		self.floor.xdescribeThing("You notice nothing remarkable about the floor. ")
 		self.addThing(self.floor)
+		
+		self.ceiling = thing.Thing("ceiling")
+		self.ceiling.known_ix = None
+		self.ceiling.invItem = False
+		self.ceiling.far_away = True
+		self.ceiling.describeThing("")
+		self.ceiling.xdescribeThing("You notice nothing remarkable about the ceiling. ")
+		self.addThing(self.ceiling)
 		
 		self.north_wall = thing.Thing("wall")
 		self.north_wall.addSynonym("walls")
@@ -323,6 +333,8 @@ class OutdoorRoom(Room):
 		room_ix = room_ix + 1
 		rooms[self.ix] = self
 		self.location = False
+		# area or room type
+		self.room_group = None
 		# travel connections can be set to other Rooms after initialization
 		self.north = None
 		self.n_false_msg = "You cannot go north from here. "
@@ -380,6 +392,59 @@ class OutdoorRoom(Room):
 		self.floor.xdescribeThing("You notice nothing remarkable about the ground. ")
 		self.addThing(self.floor)
 		self.floor.known_ix = None
+		
+		self.ceiling = thing.Thing("sky")
+		self.ceiling.known_ix = None
+		self.ceiling.invItem = False
+		self.ceiling.far_away = True
+		self.ceiling.describeThing("")
+		self.ceiling.xdescribeThing("You notice nothing remarkable about the sky. ")
+		self.addThing(self.ceiling)
+
+class RoomGroup:
+	"""Group similar Rooms and OutdoorRooms to modify shared features """
+	def __init__(self):
+		# indexing
+		global room_ix
+		self.ix = "room" + str(room_ix)
+		room_ix = room_ix + 1
+		rooms[self.ix] = self
+		# attributes
+		self.members = []
+		self.ceiling = None
+		self.floor = None
+		# not yet implemented
+		self.listen_desc = None
+		self.smell_desc = None
+	
+	def setGroupCeiling(self, ceiling):
+		self.ceiling = ceiling
+		if self.ceiling:
+			for item in self.members:
+				item.ceiling.setFromPrototype(ceiling)
+	
+	def setGroupFloor(self, floor):
+		self.floor = floor
+		if self.floor:
+			for item in self.members:
+				item.floor.setFromPrototype(floor)
+	
+	def updateMembers(self):
+		self.setGroupFloor(self.floor)	
+		self.setGroupCeiling(self.floor)
+		
+	def addMember(self, member):
+		self.members.append(member)
+		if self.ceiling:
+			member.ceiling.setFromPrototype(self.ceiling)
+		if self.floor:
+			member.floor.setFromPrototype(self.floor)
+		
+	def setMembers(self, members_arr):
+		self.members = []
+		for item in members_arr:
+			self.addMember(item)
+	
 
 def getNested(target):
 	"""Use a depth first search to find all nested Things in Containers and Surfaces
