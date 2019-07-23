@@ -932,13 +932,13 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 		lastTurn.things = []
 		lastTurn.err = False
 		lastTurn.ambig_noun = None
-	try:
-		n_select = int(noun_adj_arr[0])
-	except:
-		n_select = -1
-	if n_select <= len(things) and n_select > 0:
-		n_select = n_select - 1
-		return things[n_select]
+		try:
+			n_select = int(noun_adj_arr[0])
+		except:
+			n_select = -1
+		if n_select <= len(things) and n_select > 0:
+			n_select = n_select - 1
+			return things[n_select]
 	if noun:
 		adj_i = noun_adj_arr.index(noun) - 1
 	else:
