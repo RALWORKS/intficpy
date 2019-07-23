@@ -22,6 +22,7 @@ class SaveState:
 	Methods used in loading are dictLookup, and loadState"""
 	def __init__(self):
 		self.recfile = None
+		self.placed_things = []
 					
 	def saveState(self, me, f, main_file):
 		"""Serializes game state and writes to a file
@@ -174,6 +175,14 @@ class SaveState:
 			print("unexpected ix format")
 			return None
 	
+	def placeThing(self, ix):
+		item = self.dictLookup(ix)
+		if ix in self.placed_things:
+			item = item.copyThing()
+		else:
+			self.placed_things.append(ix)
+		return item
+	
 	def deserializeMethod(self, method_arr):
 		if not isinstance(method_arr, list):
 			print("ERROR: badly encoded method: " + str(method_arr))
@@ -241,7 +250,10 @@ class SaveState:
 									if isinstance(x, str):
 										if "<obj>" in x:
 											x = x[5:]
-											attr[key3].append(self.dictLookup(x))
+											if key2 == "contains":
+												attr[key3].append(self.placeThing(x))
+											else:
+												attr[key3].append(self.dictLookup(x))
 										elif "<func>" in x:
 											x = x[6:]
 											attr[key3].append(getattr(main_module, x))
