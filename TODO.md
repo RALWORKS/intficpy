@@ -6,16 +6,13 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + default save location should be home folder
 ### Serializer
 + check validity of save file before trying to load
-+ save parser.daemons
 ### Terminal Mode
 + some non graphical features may not be available in terminal mode
 + replace html tags
 + make sure new version of inine functions works correctly
 
 ## FEATURES THAT REQUIRE TESTING
-+ make sure the search function finds all Things in the location/inventory
 + the MORE or m built in inline function needs more testing and possible refining
-+ test thing.copyThing with saving and loading
 + Abstract class - try breaking it with features that shouldn't be used
 + inline functions with multiple arguments
 + give thing with give enabled
