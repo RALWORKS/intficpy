@@ -8,6 +8,7 @@ from . import room
 from . import actor
 from . import score
 from . import travel
+from . import parser
 
 ##############################################################
 # SERIALIZER.PY - the save/load system for IntFicPy
@@ -78,6 +79,9 @@ class SaveState:
 				saveDict[key] = {}
 				for attr, value in actor.topics[key].__dict__.items():
 					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+		saveDict["daemons"] = []
+		for item in parser.daemons.funcs:
+			saveDict["daemons"].append(self.simplifyAttr(item, main_module))
 		if not "." in f:
 			f = f + ".sav"
 		savefile = open(f,"wb+")
@@ -97,6 +101,13 @@ class SaveState:
 		elif isinstance(value, types.FunctionType):
 			#func = getattr(main_module, value)
 			out = "<func>" + value.__name__
+			return out
+		elif isinstance(value, types.MethodType):
+			#func = getattr(main_module, value)
+			meth_nam = value.__name__
+			meth_inst = value.__self__
+			out = ["<meth>", meth_nam, self.simplifyAttr(meth_inst, main_module)]
+			#print(out)
 			return out
 		elif isinstance(value, list):
 			out = []
@@ -162,7 +173,19 @@ class SaveState:
 		else:
 			print("unexpected ix format")
 			return None
-
+	
+	def deserializeMethod(self, method_arr):
+		if not isinstance(method_arr, list):
+			print("ERROR: badly encoded method: " + str(method_arr))
+			return None
+		if not len(method_arr) == 3:
+			print("ERROR: badly encoded method: " + str(method_arr))
+			return None
+		obj = method_arr[2][5:]
+		obj = self.dictLookup(obj)
+		out = getattr(obj, method_arr[1])
+		return out
+	
 	# NOTE: Currently breaks for invalid save files
 	def loadState(self, me, f, app, main_file):
 		"""Deserializes and reconstructs the saved Player object and game state
@@ -186,15 +209,30 @@ class SaveState:
 			score.score.achievements.append(self.dictLookup(ach[5:]))
 		for name in loadDict["vars"]:
 			setattr(main_module, name, loadDict["vars"][name])
+		parser.daemons.funcs = []
+		for value in loadDict["daemons"]:
+			if value[0] == "<meth>":
+				x = self.deserializeMethod(value)
+			else:
+				x = value[6:]
+				x = getattr(main_module, x)
+			parser.daemons.add(x)
+			#parser.daemons.add(name)
 		for key in loadDict:
-			if key=="vars" or key=="score":
+			if key=="vars" or key=="score" or key=="daemons":
 				pass
 			else:
 				obj = self.dictLookup(key)
 				for key2 in loadDict[key]:
-					attr = getattr(obj, key2)
-					if isinstance(attr, dict):
-						setattr(obj, key2, {})
+					#attr = getattr(obj, key2)
+					#if isinstance(attr, dict):
+					try:
+						attr = getattr(obj, key2)
+					except:
+						setattr(obj, key2, None)
+						attr = getattr(obj, key2)
+						
+					if isinstance(loadDict[key][key2], dict):
 						attr = {}
 						for key3 in loadDict[key][key2]:
 							if isinstance(loadDict[key][key2][key3], list):
@@ -225,7 +263,8 @@ class SaveState:
 									attr[key3] = loadDict[key][key2][key3]
 						setattr(obj, key2, attr)
 					elif isinstance(loadDict[key][key2], list):
-						setattr(obj, key2, [])
+						#setattr(obj, key2, [])
+						attr = []
 						for x in loadDict[key][key2]:
 							if isinstance(x, str):
 								if "<obj>" in x:
@@ -251,6 +290,8 @@ class SaveState:
 						else:
 							attr = loadDict[key][key2]
 							setattr(obj, key2, attr)
+					elif isinstance(attr, types.MethodType):
+						pass
 					else:
 						setattr(obj, key2, loadDict[key][key2])
 		return True

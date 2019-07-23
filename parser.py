@@ -47,7 +47,8 @@ class RunEvery:
 		self.funcs.append(daemon)
 	
 	def remove(self, daemon):
-		self.funcs.remove(daemon)
+		if daemon in self.funcs:
+			self.funcs.remove(daemon)
 
 daemons = RunEvery()
 
