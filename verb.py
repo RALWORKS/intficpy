@@ -228,7 +228,9 @@ def getVerbFunc(me, app, dobj, skip=False):
 					app.printToGUI(msg)
 		while isinstance(dobj.location, thing.Thing):
 			old_loc = dobj.location
-			if dobj.location.manual_update:
+			if not isinstance(dobj.location, room.Room):
+				dobj.location.removeThing(dobj)
+			elif dobj.location.manual_update:
 				dobj.location.removeThing(dobj, False, False)
 			else:
 				dobj.location.removeThing(dobj)

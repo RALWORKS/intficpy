@@ -875,11 +875,17 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 	for item in lastTurn.things:
 		if noun_adj_arr[-1] in item.adjectives:
 			endnoun = False
+	try:
+		t_ix = int(noun_adj_arr[-1])
+	except:
+		t_ix = -1
 	if lastTurn.things != [] and (noun_adj_arr[-1] not in vocab.nounDict or not endnoun):
 		noun = lastTurn.ambig_noun
 		if noun:
 			noun_adj_arr.append(noun)
 		things = lastTurn.things
+	elif lastTurn.ambiguous and t_ix <= len(lastTurn.things) and t_ix > 0:
+		return lastTurn.things[t_ix - 1]
 	else:
 		noun = noun_adj_arr[-1]
 		# get list of associated Things
@@ -1005,6 +1011,8 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 							loc = item.location
 							if isinstance(loc, room.Room):
 								msg += item.lowNameArticle(True) + " on " + loc.floor.lowNameArticle(True) + " (" + str(things.index(item) + 1) + ")"
+							elif loc == me:
+								msg += item.lowNameArticle(True) + " in your inventory (" + str(things.index(item) + 1) + ")"
 							else:
 								msg += item.lowNameArticle(True) + " " + loc.contains_preposition + " " + loc.lowNameArticle(True) + " (" + str(things.index(item) + 1) + ")"
 							if item is name_dict[name][-1] and not len(unscanned):

@@ -23,12 +23,15 @@ class SaveState:
 	def __init__(self):
 		self.recfile = None
 		self.placed_things = []
+		self.rooms_loaded = []
+		self.found_items = []
 					
 	def saveState(self, me, f, main_file):
 		"""Serializes game state and writes to a file
 		Takes arguments me, the Player object, f, the path to write to, and main_file, the main Python file for the current game
 		Returns True if successful, False if failed """
 		saveDict = {}
+		self.found_items = []
 		main_module = importlib.import_module(main_file)
 		creatorvars = dir(main_module)
 		saveDict["vars"] = {}
@@ -64,7 +67,10 @@ class SaveState:
 			if key not in saveDict:	
 				saveDict[key] = {}
 				for attr, value in room.rooms[key].__dict__.items():
-					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+					if attr == "contains":
+						saveDict[key][attr] = self.encodeRoomContents(room.rooms[key])
+					else:
+						saveDict[key][attr] = self.simplifyAttr(value, main_module)
 		for key in score.endings:
 			if key not in saveDict:	
 				saveDict[key] = {}
@@ -90,6 +96,17 @@ class SaveState:
 		pickle.dump(saveDict, savefile, 0)
 		savefile.close()
 		return True
+	
+	def encodeRoomContents(self, obj_in):
+			dict_out = {}
+			for key in obj_in.contains:
+				dict_out[key] = []
+				for item in obj_in.contains[key]:
+					if not item in self.found_items:
+						self.found_items.append(item)
+						item_entry = self.encodeRoomContents(item)
+						dict_out[key].append([item.ix, item_entry, False])
+			return dict_out
 	
 	def simplifyAttr(self, value, main_module):
 		"""Gets the unique key for objects that are instances of IntFicPy engine classes 
@@ -162,7 +179,10 @@ class SaveState:
 		elif "actor" in ix:
 			return actor.actors[ix]
 		elif "room" in ix:
-			return room.rooms[ix]
+			out = room.rooms[ix]
+			if ix not in self.rooms_loaded:
+				self.rooms_loaded.append(ix)
+			return out
 		elif "topic" in ix:
 			return actor.topics[ix]
 		elif "connector" in ix:
@@ -175,14 +195,6 @@ class SaveState:
 			print("unexpected ix format")
 			return None
 	
-	def placeThing(self, ix):
-		item = self.dictLookup(ix)
-		if ix in self.placed_things:
-			item = item.copyThing()
-		else:
-			self.placed_things.append(ix)
-		return item
-	
 	def deserializeMethod(self, method_arr):
 		if not isinstance(method_arr, list):
 			print("ERROR: badly encoded method: " + str(method_arr))
@@ -194,6 +206,42 @@ class SaveState:
 		obj = self.dictLookup(obj)
 		out = getattr(obj, method_arr[1])
 		return out
+	
+	
+	def populateRooms(self, loadDict):
+		"""Updates the location, contains and subcontains properties of every item in every saved room """
+		for key in self.rooms_loaded:
+			item = loadDict[key]
+			obj = self.dictLookup(key)
+			if not isinstance(obj, room.Room):
+				continue
+			obj.contains = {}
+			obj.sub_contains = {}
+			self.searchContains(obj, item["contains"])
+			
+	def addThingByIx(self, destination, ix):
+		"""Adds a Thing to a location (Room/Thing) by index. Makes a copy if a Thing of the specified index has already been placed. 
+		destination is a Thing/Room (or subclass)
+		ix is the index generated at the Thing's creation (ix property/loadDict key)"""
+		if ix in self.placed_things:
+			item = self.dictLookup(ix).copyThing()
+		else:
+			self.placed_things.append(ix)
+			item = self.dictLookup(ix)
+		destination.addThing(item)
+		return item
+	
+	def searchContains(self, root_obj, dict_in):
+		"""Uses a recursive depth first search to place all items in the correct location 
+		root_obj is the object to populate, dict_in is the dictionary to read from """
+		for key in dict_in:
+			for item in dict_in[key]:
+				if not item[2]:
+					found_obj = self.addThingByIx(root_obj, key)
+					found_obj.contains = {}
+					found_obj.sub_contains = {}
+					item[2] = True
+					self.searchContains(found_obj, item[1])	
 	
 	# NOTE: Currently breaks for invalid save files
 	def loadState(self, me, f, app, main_file):
@@ -239,10 +287,13 @@ class SaveState:
 						attr = getattr(obj, key2)
 					except:
 						setattr(obj, key2, None)
-						attr = getattr(obj, key2)
-						
+						attr = getattr(obj, key2)	
 					if isinstance(loadDict[key][key2], dict):
 						attr = {}
+						if key2 in ["contains", "sub_contains"]:
+							# handle IFP item placement in populateRooms()
+							#self.markContentsUndiscovered(loadDict[key][key2])
+							continue
 						for key3 in loadDict[key][key2]:
 							if isinstance(loadDict[key][key2][key3], list):
 								attr[key3] = []
@@ -250,10 +301,7 @@ class SaveState:
 									if isinstance(x, str):
 										if "<obj>" in x:
 											x = x[5:]
-											if key2 == "contains":
-												attr[key3].append(self.placeThing(x))
-											else:
-												attr[key3].append(self.dictLookup(x))
+											attr[key3].append(self.dictLookup(x))
 										elif "<func>" in x:
 											x = x[6:]
 											attr[key3].append(getattr(main_module, x))
@@ -306,6 +354,7 @@ class SaveState:
 						pass
 					else:
 						setattr(obj, key2, loadDict[key][key2])
+		self.populateRooms(loadDict)	
 		return True
 	
 	def recordOn(self, app, f):
