@@ -9,6 +9,7 @@ from . import actor
 from . import score
 from . import travel
 from . import parser
+from . import tools
 
 ##############################################################
 # SERIALIZER.PY - the save/load system for IntFicPy
@@ -48,11 +49,27 @@ class SaveState:
 				saveDict["score"][attr] = out
 			else:
 				saveDict["score"][attr] = self.simplifyAttr(value, main_module)
+		saveDict["hints"] = {}
+		for attr, value in score.hints.__dict__.items():
+			if isinstance(value, list):
+				out = []
+				for x in value:
+					out.append(self.simplifyAttr(x, main_module))
+				saveDict["hints"][attr] = out
+			else:
+				saveDict["hints"][attr] = self.simplifyAttr(value, main_module)
 		for key in thing.things:
 			if key not in saveDict:	
 				saveDict[key] = {}
 				for attr, value in thing.things[key].__dict__.items():
 					saveDict[key][attr] = self.simplifyAttr(value, main_module)
+		for key in score.hintnodes:
+			if key not in saveDict:	
+				saveDict[key] = {}
+				for attr, value in score.hintnodes[key].__dict__.items():
+					if attr=="hints":
+						continue
+					saveDict[key][attr] = self.simplifyAttr(value, main_module)			
 		for key in travel.connectors:
 			if key not in saveDict:	
 				saveDict[key] = {}
@@ -113,7 +130,7 @@ class SaveState:
 		(Thing, Actor, Achievement, Ending, Abstranct, Topic, TravelConnector, or Room)
 		and replaces user-defined functions with function names
 		Takes arguments value, (the attribute to be simplified), and main_module (the imported Python file of the current game) """
-		if isinstance(value, thing.Thing) or isinstance(value, actor.Actor) or isinstance(value, score.Achievement) or isinstance(value, score.Ending) or isinstance(value, thing.Abstract) or isinstance(value, actor.Topic) or isinstance(value, travel.TravelConnector) or isinstance(value, room.Room) or isinstance(value, actor.SpecialTopic)  or isinstance(value, actor.SaleItem):
+		if tools.isSerializableClassInstance(value):
 			out = "<obj>" + value.ix
 			return out
 		elif isinstance(value, types.FunctionType):
@@ -178,6 +195,8 @@ class SaveState:
 			return thing.things[ix]
 		elif "actor" in ix:
 			return actor.actors[ix]
+		elif "hintnode" in ix:
+			return score.hintnodes[ix]
 		elif "room" in ix:
 			out = room.rooms[ix]
 			if ix not in self.rooms_loaded:
@@ -264,6 +283,10 @@ class SaveState:
 		score.score.achievements = []
 		for ach in loadDict["score"]["achievements"]:
 			score.score.achievements.append(self.dictLookup(ach[5:]))
+		score.hints.stack = []
+		for item in loadDict["hints"]["stack"]:
+			score.hints.stack.append(self.dictLookup(item[5:]))
+		score.hints.cur_node = self.dictLookup(loadDict["hints"]["cur_node"][5:]) 
 		for name in loadDict["vars"]:
 			setattr(main_module, name, loadDict["vars"][name])
 		parser.daemons.funcs = []
@@ -276,7 +299,7 @@ class SaveState:
 			parser.daemons.add(x)
 			#parser.daemons.add(name)
 		for key in loadDict:
-			if key=="vars" or key=="score" or key=="daemons":
+			if key=="vars" or key=="score" or key=="daemons" or key=="hints":
 				pass
 			else:
 				obj = self.dictLookup(key)

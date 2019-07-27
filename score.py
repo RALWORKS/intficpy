@@ -10,6 +10,8 @@ achievements = {}
 achievement_ix = 0
 endings = {}
 ending_ix = 0
+hintnodes = {}
+hintnode_ix = 0
 
 class Achievement:
 	"""Class for achievements in the IntFicPy game"""
@@ -122,6 +124,10 @@ class Hint:
 
 class HintNode:
 	def __init__(self, hints):
+		global hintnode_ix
+		self.ix = "hintnode" + str(hintnode_ix)
+		hintnode_ix += 1
+		hintnodes[self.ix] = self
 		self.cur_hint = 0
 		self.hints = []
 		self.next_node = None
