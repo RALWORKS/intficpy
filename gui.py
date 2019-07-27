@@ -315,4 +315,3 @@ class App(QWidget):
 		else:
 			return None
 
-

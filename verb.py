@@ -697,20 +697,20 @@ def helpVerbVerbFunc(me, app, dobj):
 					ix = form.index("<dobj>")
 					if verb.dtype=="Actor":
 						out[ix] = "(person)"
-					elif verb.dtype=="Direction":
+					elif verb.dscope=="direction":
 						out[ix] = "(direction)"
-					elif verb.dtype=="String":
-						out[ix] = "(word)"
+					elif verb.dscope=="text":
+						out[ix] = "(word or number)"
 					else:
 						out[ix] = "(thing)"
 				if "<iobj>" in form:
 					ix = form.index("<iobj>")
 					if verb.itype=="Actor":
 						out[ix] = "(person)"
-					elif verb.itype=="Direction":
+					elif verb.iscope=="direction":
 						out[ix] = "(direction)"
-					elif verb.dtype=="String":
-						out[ix] = "(word)"
+					elif verb.iscope=="text":
+						out[ix] = "(word or number)"
 					else:
 						out[ix] = "(thing)"
 				out = " ".join(out)
@@ -720,6 +720,26 @@ def helpVerbVerbFunc(me, app, dobj):
 		
 # replace default verbFunc method
 helpVerbVerb.verbFunc = helpVerbVerbFunc
+
+# VIEW HINT
+# intransitive verb
+hintVerb = Verb("hint")
+hintVerb.syntax = [["hint"]]
+hintVerb.hasDobj = False
+
+def hintVerbFunc(me, app):
+	"""View the current score
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from .score import hints
+	if hints.cur_node:
+		if len(hints.cur_node.hints) > 0:
+			hints.cur_node.nextHint(app)
+			return True
+	app.printToGUI("There are no hints currently available. ")
+	return False
+		
+# replace default verbFunc method
+hintVerb.verbFunc = hintVerbFunc
 
 # LOOK (general)
 # intransitive verb
@@ -2426,7 +2446,6 @@ goVerb = Verb("go")
 goVerb.syntax = [["go", "<dobj>"]]
 goVerb.hasDobj = True
 goVerb.dscope = "direction"
-goVerb.dtype = "Direction"
 
 def goVerbFunc(me, app, dobj):
 	"""Empty function which should never be evaluated
@@ -2832,6 +2851,7 @@ leadDirVerb.hasDobj = True
 leadDirVerb.hasIobj = True
 leadDirVerb.iscope = "direction"
 leadDirVerb.dscope = "room"
+leadDirVerb.dtype = "Actor"
 
 def leadDirVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Lead an Actor in a direction

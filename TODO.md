@@ -22,6 +22,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Convenience & Ease of Use
 + better ordering in room descriptions
 ### Essential New Features
++ add a set_hint_node property to Topic and SpecialTopic, to advance the current hint when a conversation point is reached
 ### Other New Features
 + strdobj/striobj, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary") Watch out for adjacent objects in verb syntax.
 + display the game title in the GUI window title

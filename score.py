@@ -65,3 +65,91 @@ class Ending:
 		app.printToGUI("<b>" + self.title + "</b>")
 		app.printToGUI(self.desc)
 		parser.lastTurn.gameEnding = True
+
+class HintSystem:
+	def __init__(self):
+		self.cur_node = None
+		self.stack = []
+	
+	def setNode(self, node):
+		from .score import HintNode
+		if not node:
+			self.cur_node = None
+			return True
+		if not isinstance(node, HintNode):
+			print(node)
+			print("ERROR: not a HintNode - cannot use as current hint ")
+			return False
+		elif not node.complete:
+			self.cur_node = node
+			if node not in self.stack:
+				self.stack.append(node)
+		return True
+			
+	def closeNode(self, node):
+		node.complete = True
+		if node in self.stack:
+			self.stack.remove(node)
+		if node.next_node:
+			x = node.next_node
+			while x:
+				if not x.complete:
+					self.setNode(x)
+					return 0
+				x = x.next_node
+		if len(self.stack) > 0:
+			self.setNode(self.stack[-1])
+			return 0
+		self.setNode(None)
+		return 0
+
+hints = HintSystem()
+		
+class Hint:
+	def __init__(self, text, achievement=None, cost=0):
+		self.text = text
+		self.achievement = achievement
+		self.cost = cost
+		self.shown = False
+	
+	def giveHint(self, app):
+		app.printToGUI(self.text)
+		if isinstance(self.achievement, Achievement) and self.cost > 0 and not self.shown:
+			self.achievement.points -= self.cost
+			if self.achievement.points < 0:
+				self.achievement.points = 0
+		self.shown = True
+
+class HintNode:
+	def __init__(self, hints):
+		self.cur_hint = 0
+		self.hints = []
+		self.next_node = None
+		self.complete = False
+		for x in hints:
+			if not isinstance(x, Hint):
+				print(x)
+				print("ERROR: not a Hint - cannot add to HintNode ")
+		self.hints = hints
+	
+	def setHints(self, hints):
+		for x in hints:
+			if not isinstance(x, Hint):
+				print(x)
+				print("ERROR: not a Hint - cannot add to HintNode ")
+				return False
+		self.hints = hints
+	
+	def nextHint(self, app):
+		"""Gives the next hint associated with the HintNode
+		Returns True if a hint can be given, False on failure """
+		if len(self.hints) == 0:
+			print("ERROR: cannot use nextHint on empty HintNode ")
+			return False
+		self.hints[self.cur_hint].giveHint(app)
+		self.cur_hint += 1
+		if self.cur_hint == len(self.hints):
+			self.cur_hint -= 1
+			return False
+		else:
+			return True
