@@ -22,31 +22,77 @@ tBold.setBold(True)
 
 main_file = ""
 
+scroll_style = """
+        /* VERTICAL */
+        QWidget {
+        	background: #efefef; 
+        }
+        QScrollBar:vertical {
+            border: none;
+            background: #a3a3a3;
+            border-radius: 6px;
+            width: 30px;
+            margin: 10px 8px 10px 8px;
+        }
+
+        QScrollBar::handle:vertical {
+            background: #d0d0d0;
+            border-radius: 6px;
+        }
+
+        QScrollBar::add-line:vertical {
+            background: none;
+            height: 10px;
+            subcontrol-position: bottom;
+            subcontrol-origin: margin;
+        }
+
+        QScrollBar::sub-line:vertical {
+            background: none;
+            height: 10px;
+            subcontrol-position: top left;
+            subcontrol-origin: margin;
+            position: absolute;
+        }
+
+        QScrollBar:up-arrow:vertical, QScrollBar::down-arrow:vertical {
+            background: none;
+        }
+
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+            background: none;
+        }
+    """
+
 class Prelim:
 	def __init__(self, main_name):
 		global main_file
 		main_file = main_name
 
-class App(QWidget):
+class App(QMainWindow):
 	"""The App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods """
 
-	def __init__(self, me):
+	def __init__(self, me, style1="background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px", style2="background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px", scroll_style=scroll_style, app_style="QFrame { border:none;}"):
 		"""Initialize the GUI
 		Takes argument me, pointing to the Player """
 		from .thing import reflexive
 		super().__init__()
 		reflexive.makeKnown(me)
+		self.setObjectName("MainWindow")
 		self.title = 'IntFicPy'
 		self.left = 10
 		self.top = 10
 		self.width = 640
 		self.height = 480
+		self.box_style1 = style1
+		self.box_style2 = style2
+		self.scroll_style = scroll_style
 		self.initUI()
 		self.showMaximized()
 		self.me = me
-		#self.newBox(1)
+		#self.newBox(self.box_style1)
 		parser.initGame(me, self, main_file)
-		self.setStyleSheet('QFrame { border:none;}')
+		self.setStyleSheet(app_style)
 		self.new_obox = False
 		# used for game-interrupting cutscenes
 		# populated by enterForMore()
@@ -57,31 +103,43 @@ class App(QWidget):
 		self.setWindowTitle(self.title)
 		self.setGeometry(self.left, self.top, self.width, self.height)
 		
-		self.textbox = QLineEdit(self)
+		#self.widget.resize(self.width, self.height)
+		#self.widget.setLayout(self.main_layout)
+		
+		#   Container Widget
+		self.widget = QWidget()
+		self.setCentralWidget(self.widget)
+		self.main_layout = QVBoxLayout()
+		self.widget.setLayout(self.main_layout)
+		
+		# TextBox
+		self.textbox = QLineEdit()
 		self.textbox.resize(280,30)
 		
-		 #   Container Widget
-		self.widget = QWidget()
-		#   Layout of Container Widget
-		self.layout = QVBoxLayout(self)
-		self.layout.setContentsMargins(15, 15, 15, 30)
-		self.widget.setLayout(self.layout)
-		
 		#   Scroll Area Properties
+		self.scroll_container = QWidget()
+		self.scroll_container_layout = QVBoxLayout(self.scroll_container)
+		
+		self.scroll_widget = QWidget()
+		self.scroll_widget_layout = QVBoxLayout()
+		self.scroll_widget_layout.setContentsMargins(15, 15, 15, 30)
+		self.scroll_widget.setLayout(self.scroll_widget_layout)
+		
 		self.scroll = QScrollArea()
 		self.scroll.setFrameShape(QFrame.Box)
 		self.scroll.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
 		self.scroll.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
 		self.scroll.setWidgetResizable(True)
-		self.scroll.setWidget(self.widget)
+		self.scroll.setWidget(self.scroll_widget)
+		self.scroll_container_layout.addWidget(self.scroll)
 		
-		self.layout.setAlignment(QtCore.Qt.AlignTop)
+		self.scroll_widget_layout.setAlignment(QtCore.Qt.AlignTop)
 		
-		self.mainbox = QVBoxLayout()
-		self.mainbox.addWidget(self.scroll)
-		self.mainbox.addWidget(self.textbox)
+		self.main_layout.addWidget(self.scroll_container)
+		self.main_layout.addWidget(self.textbox)
+		self.main_layout.setContentsMargins(10, 10, 10, 10)
 		
-		self.setLayout(self.mainbox)
+		self.scroll_container.setStyleSheet(self.scroll_style)
 		
 		self.cutscene = []
 		self.anykeyformore = False
@@ -106,24 +164,22 @@ class App(QWidget):
 		self.obox.setFrameStyle(QFrame.StyledPanel)
 		#self.olayout = QVBoxLayout()
 		#self.obox.setLayout(self.olayout)
-		#self.layout.addWidget(self.obox)
-		if box_style==2:
-			self.obox.setStyleSheet("background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px")
-		else:
-			self.obox.setStyleSheet("background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px")
+		#self.scroll_widget_layout.addWidget(self.obox)
+		self.obox.setStyleSheet(box_style)
+		
 	
 	def on_click(self):
 		"""Echos input, cleans input, and sends input to turnMain
 		Called when the user presses return """
 		textboxValue = self.textbox.text()
 		self.textbox.setText("")
-		self.newBox(2)
+		self.newBox(self.box_style2)
 		t_echo = "> " + textboxValue
 		self.printToGUI(t_echo)
 		input_string = textboxValue.lower()
 		input_string = re.sub(r'[^\w\s]','',input_string)
 		if input_string != "save" and input_string != "load":
-			self.newBox(1)
+			self.newBox(self.box_style1)
 		self.turnMain(textboxValue)
 	
 	def keyPressEvent(self, event):
@@ -159,7 +215,7 @@ class App(QWidget):
 		except:
 			self.new_obox = False
 		if self.new_obox:
-			self.layout.addWidget(self.obox)
+			self.scroll_widget_layout.addWidget(self.obox)
 			self.olayout = QVBoxLayout()
 			self.obox.setLayout(self.olayout)
 			self.new_obox = False
@@ -190,10 +246,10 @@ class App(QWidget):
 		self.waiting = False
 		self.cutscene[0] = self.cutscene[0] + " [MORE]"
 		
-		self.newBox(1)
+		self.newBox(self.box_style1)
 		
 		if self.new_obox:
-			self.layout.addWidget(self.obox)
+			self.scroll_widget_layout.addWidget(self.obox)
 			self.olayout = QVBoxLayout()
 			self.obox.setLayout(self.olayout)
 			self.new_obox = False
@@ -215,12 +271,12 @@ class App(QWidget):
 	
 	def cutsceneNext(self):
 		self.anykeyformore = False
-		self.newBox(1)
+		self.newBox(self.box_style1)
 		if self.cutscene[0] != self.cutscene[-1]:
 			self.cutscene[0] = self.cutscene[0] + " [MORE]"
 		
 		if self.new_obox:
-			self.layout.addWidget(self.obox)
+			self.scroll_widget_layout.addWidget(self.obox)
 			self.olayout = QVBoxLayout()
 			self.obox.setLayout(self.olayout)
 			self.new_obox = False
@@ -250,7 +306,7 @@ class App(QWidget):
 		if len(fname) == 0:
 			return None
 		# add .sav extension if necessary
-		self.newBox(1)
+		self.newBox(self.box_style1)
 		if not "." in fname:
 			fname = fname + ".sav"
 		elif (fname.index(".") - len(fname)) != -4:
@@ -271,7 +327,7 @@ class App(QWidget):
 		if len(fname) == 0:
 			return None
 		# add .sav extension if necessary
-		self.newBox(1)
+		self.newBox(self.box_style1)
 		if not "." in fname:
 			fname = fname + ".txt"
 		elif (fname.index(".") - len(fname)) != -4:
@@ -291,7 +347,7 @@ class App(QWidget):
 		fname = QFileDialog.getOpenFileName(self, 'Load save file', cwd, "Save files (*.sav)")
 		fname = fname[0]
 		# add .sav extension if necessary
-		self.newBox(1)
+		self.newBox(self.box_style1)
 		if len(fname) < 4:
 			return None 
 		elif fname[-4:]==".sav":
@@ -307,7 +363,7 @@ class App(QWidget):
 		fname = QFileDialog.getOpenFileName(self, 'Select file to play back', cwd, "Text files (*.txt)")
 		fname = fname[0]
 		# add .sav extension if necessary
-		self.newBox(1)
+		self.newBox(self.box_style1)
 		if len(fname) < 4:
 			return None 
 		elif fname[-4:]==".txt":

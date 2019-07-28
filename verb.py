@@ -2833,7 +2833,9 @@ def playBackVerbFunc(me, app):
 	lines = play.readlines()
 	app.printToGUI("**STARTING PLAYBACK** ")
 	for line in lines:
+		app.newBox(app.box_style2)
 		app.printToGUI("> " + line)
+		app.newBox(app.box_style1)
 		if (not lastTurn.ambiguous) and (not lastTurn.err):
 			daemons.runAll(me, app)
 		parseInput(me, app, line)

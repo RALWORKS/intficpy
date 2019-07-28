@@ -1303,7 +1303,7 @@ def saveLoadCheck(input_tokens, me, app):
 		# app.getSaveFileGUI is not defined for terminal version
 		fname = app.getSaveFileGUI()
 		if not fname:
-			app.newBox(1)
+			app.newBox(app.box_style1)
 			app.printToGUI("Could not save game")
 		else:
 			serializer.curSave.saveState(me, fname, aboutGame.main_file)
@@ -1437,10 +1437,10 @@ def initGame(me, app, main_file):
 	quit = False
 	aboutGame.main_file = main_file
 	if not lastTurn.gameOpening == False:
-		#app.newBox(1)
+		#app.newBox(app.box_style1)
 		lastTurn.gameOpening(app)
 	else:
-		app.newBox(1)
+		app.newBox(app.box_style1)
 	roomDescribe(me, app)
 	daemons.runAll(me, app)
 
