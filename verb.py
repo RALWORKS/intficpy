@@ -2051,6 +2051,8 @@ def openVerbFunc(me, app, dobj, skip=False):
 	if state==False:
 		app.printToGUI("You open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		dobj.makeOpen()
+		if isinstance(dobj, thing.Container):
+			lookInVerb.verbFunc(me, app, dobj)
 		return True
 	else:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is already open. ")

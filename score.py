@@ -72,43 +72,84 @@ class HintSystem:
 	def __init__(self):
 		self.cur_node = None
 		self.stack = []
+		self.pending = []
+		self.pending_daemon = False
+	
+	def addPending(self, node):
+		if node not in self.pending:
+			self.pending.append(node)
+		if self.pending and not self.pending_daemon:	
+			from .parser import daemons
+			self.pending_daemon = True
+			if not self.checkPending in daemons.funcs:
+				daemons.add(self.checkPending)
+	
+	def checkPending(self, me, app):
+		if self.pending:
+			remove_nodes = []
+			for node in self.pending:
+					if not node.checkRequiredIncomplete():
+						remove_nodes.append(node)
+						node.complete = True # not sure about this 
+					elif self.setNode(node):
+						remove_nodes.append(node)
+			for node in remove_nodes:
+				self.pending.remove(node)
+	
+	def setNextNodeFrom(self, node):
+		x = node
+		if not x:
+			return False
+		nodes_checked = [] # record checked nodes to prevent an infinite loop
+		nodes_checked.append(x)
+		while x:
+			if not isinstance(x, HintNode):
+				print(x)
+				print("ERROR: not a HintNode - cannot use as current hint ")
+				return False
+			if not x.complete:
+				if not x.checkRequiredIncomplete():
+					x.complete = True # not sure
+					if x in self.stack:
+						self.stack.remove(x)
+					return False
+				if not x.checkRequiredComplete():
+					self.addPending(x)
+					return False
+				else:
+					if x not in self.stack:
+						self.stack.append(x)
+					self.cur_node = x
+					return True
+			x = x.next_node
+			if x in nodes_checked:
+				break
+			nodes_checked.append(x)
+		return False
 	
 	def setNode(self, node):
-		from .score import HintNode
-		if not node:
-			self.cur_node = None
-			return True
-		if not isinstance(node, HintNode):
-			print(node)
-			print("ERROR: not a HintNode - cannot use as current hint ")
-			return False
-		elif not node.complete:
-			self.cur_node = node
-			if node not in self.stack:
-				self.stack.append(node)
+		success = self.setNextNodeFrom(node)
+		if not success:
+			if self.stack:
+				self.cur_node = self.stack[-1]
+			else:
+				self.cur_node = None
 		return True
 			
 	def closeNode(self, node):
 		node.complete = True
 		if node in self.stack:
 			self.stack.remove(node)
-		if node.next_node:
-			x = node.next_node
-			while x:
-				if not x.complete:
-					self.setNode(x)
-					return 0
-				x = x.next_node
-		if len(self.stack) > 0:
-			self.setNode(self.stack[-1])
-			return 0
-		self.setNode(None)
-		return 0
+		return self.setNode(node)
 
 hints = HintSystem()
 		
 class Hint:
 	def __init__(self, text, achievement=None, cost=0):
+		global hintnode_ix
+		self.ix = "hintnode" + str(hintnode_ix)
+		hintnode_ix += 1
+		hintnodes[self.ix] = self
 		self.text = text
 		self.achievement = achievement
 		self.cost = cost
@@ -137,6 +178,21 @@ class HintNode:
 				print(x)
 				print("ERROR: not a Hint - cannot add to HintNode ")
 		self.hints = hints
+		# nodes that must be complete/incomplete in order to open node
+		self.open_require_nodes_complete = []
+		self.open_require_nodes_incomplete = []
+	
+	def checkRequiredComplete(self):
+		if self.open_require_nodes_complete:
+			nodes_complete = [item.complete for item in self.open_require_nodes_complete]
+			return all(nodes_complete)
+		return True
+	
+	def checkRequiredIncomplete(self):
+		if self.open_require_nodes_incomplete:
+			nodes_incomplete = [(not item.complete) for item in self.open_require_nodes_complete]
+			return all(nodes_incomplete)
+		return True
 	
 	def setHints(self, hints):
 		for x in hints:
@@ -149,13 +205,31 @@ class HintNode:
 	def nextHint(self, app):
 		"""Gives the next hint associated with the HintNode
 		Returns True if a hint can be given, False on failure """
+		from .parser import lastTurn, cleanInput
 		if len(self.hints) == 0:
 			print("ERROR: cannot use nextHint on empty HintNode ")
 			return False
-		self.hints[self.cur_hint].giveHint(app)
-		self.cur_hint += 1
+		if previousTurnHint():
+			self.cur_hint += 1
 		if self.cur_hint == len(self.hints):
 			self.cur_hint -= 1
-			return False
+		self.hints[self.cur_hint].giveHint(app)
+		t = "(Hint tier " + str(self.cur_hint + 1) + "/" + str(len(self.hints))
+		if not self.cur_hint < len(self.hints) - 1:
+			t += ")"
 		else:
-			return True
+			t += " - type hint now to show next)"
+		app.printToGUI(t)
+		if self.cur_hint < (len(self.hints) - 1):
+			if not self.hints[self.cur_hint + 1].shown and self.hints[self.cur_hint + 1].achievement:
+				if self.hints[self.cur_hint + 1].cost == 1:
+					app.printToGUI("(Next tier costs 1 point)")
+				else:
+					app.printToGUI("(Next tier costs " + str(self.hints[self.cur_hint + 1].cost) + " points)")
+		return True
+
+def previousTurnHint():
+	from .parser import lastTurn, cleanInput
+	if len(lastTurn.turn_list) < 2:
+		return False
+	return cleanInput(lastTurn.turn_list[-2], False) =="hint"

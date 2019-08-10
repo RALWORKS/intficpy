@@ -38,6 +38,7 @@ scroll_style = """
         QScrollBar::handle:vertical {
             background: #d0d0d0;
             border-radius: 6px;
+            min-height: 15px;
         }
 
         QScrollBar::add-line:vertical {
