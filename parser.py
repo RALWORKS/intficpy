@@ -310,6 +310,8 @@ def verbByObjects(app, input_tokens, verbs):
 				removeMatch.append(pair)
 			elif (not verb.impIobj) and (ibool != verb.hasIobj):
 				removeMatch.append(pair)
+			elif (verb.dscope=="direction" and not directionRangeCheck(dobj)) or (verb.iscope=="direction" and not directionRangeCheck(iobj)):
+				removeMatch.append(pair)
 		for x in removeMatch:
 			nearMatch.remove(x)
 		if len(nearMatch)==1:
@@ -408,7 +410,7 @@ def matchPrepKeywords(verbs, input_tokens):
 						for item in vocab.nounDict[noun]:
 							if p in item.adjectives:
 								exempt = True
-				if p in ["up", "down"]:
+				if p in ["up", "down", "in", "out"]:
 					if verb.iscope=="direction" or verb.dscope=="direction":
 						exempt = True
 				if not verb.preposition and not exempt:
@@ -482,7 +484,7 @@ def getGrammarObj(me, app, cur_verb, input_tokens, verb_form):
 	# if verb_object.hasDobj, search verb.syntax for <dobj>, get index
 	# get Dobj
 	if adjacent and cur_verb.dscope in ["text", "direction"]:
-				objects = adjacentStrObj(app, verb_form, input_tokens, 0)
+		objects = adjacentStrObj(app, verb_form, input_tokens, 0)
 	elif adjacent and cur_verb.iscope in ["text", "direction"]:
 		objects = adjacentStrObj(app, verb_form, input_tokens, 1)
 	else:
@@ -775,9 +777,14 @@ def invRangeCheck(me, thing):
 			return True
 	return False
 
-def directionRangeCheck(me, thing):
+def directionRangeCheck(obj):
 	from .travel import directionDict
-	if thing in directionDict:
+	if isinstance(obj, list):
+		if len(obj) > 1:
+			return False
+		else:
+			obj = obj[0]
+	if obj in directionDict:
 		return True
 	else:
 		return False
@@ -1226,7 +1233,7 @@ def callVerb(me, app, cur_verb, obj_words):
 				cur_dobj = " ".join(cur_dobj)
 			elif cur_verb.dscope=="direction":
 				cur_dobj = " ".join(cur_dobj)
-				correct = directionRangeCheck(me, cur_dobj)
+				correct = directionRangeCheck(cur_dobj)
 				if not correct:
 					app.printToGUI(cur_dobj.capitalize() + " is not a direction I recognize. ")
 					return False
@@ -1236,13 +1243,13 @@ def callVerb(me, app, cur_verb, obj_words):
 		cur_dobj = " ".join(cur_dobj)
 	if cur_verb.iscope=="direction":
 		cur_iobj = " ".join(cur_iobj)
-		correct = directionRangeCheck(me, cur_iobj)
+		correct = directionRangeCheck(cur_iobj)
 		if not correct:
 			app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
 			return False
 	elif cur_verb.dscope=="direction":
 		cur_dobj = " ".join(cur_dobj)
-		correct = directionRangeCheck(me, cur_dobj)
+		correct = directionRangeCheck(cur_dobj)
 		if not correct:
 			app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
 			return False

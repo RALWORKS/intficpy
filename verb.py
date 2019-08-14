@@ -368,8 +368,9 @@ dropAllVerb.verbFunc = dropAllVerbFunc
 # transitive verb with indirect object
 setOnVerb = Verb("set", "set on")
 setOnVerb.addSynonym("put")
+setOnVerb.addSynonym("drop")
 setOnVerb.addSynonym("place")
-setOnVerb.syntax = [["put", "<dobj>", "on", "<iobj>"], ["set", "<dobj>", "on", "<iobj>"], ["place", "<dobj>", "on", "<iobj>"]]
+setOnVerb.syntax = [["put", "<dobj>", "on", "<iobj>"], ["set", "<dobj>", "on", "<iobj>"], ["place", "<dobj>", "on", "<iobj>"], ["drop", "<dobj>", "on", "<iobj>"]]
 setOnVerb.hasDobj = True
 setOnVerb.dscope = "inv"
 setOnVerb.itype = "Surface"
@@ -433,7 +434,8 @@ setInVerb = Verb("set", "set in")
 setInVerb.addSynonym("put")
 setInVerb.addSynonym("insert")
 setInVerb.addSynonym("place")
-setInVerb.syntax = [["put", "<dobj>", "in", "<iobj>"], ["set", "<dobj>", "in", "<iobj>"], ["insert", "<dobj>", "into", "<iobj>"], ["place", "<dobj>", "in", "<iobj>"]]
+setInVerb.addSynonym("drop")
+setInVerb.syntax = [["put", "<dobj>", "in", "<iobj>"], ["set", "<dobj>", "in", "<iobj>"], ["insert", "<dobj>", "into", "<iobj>"], ["place", "<dobj>", "in", "<iobj>"], ["drop", "<dobj>", "in", "<iobj>"]]
 setInVerb.hasDobj = True
 setInVerb.dscope = "inv"
 setInVerb.itype = "Container"
@@ -481,7 +483,7 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
 			iobj.addThing(dobj)
 		return True
 	elif isinstance(iobj, thing.Container):
-		app.printToGUI("The " + dobj.verbose_name + " is too big to fit inside the " + iobj.verbose_name + ".")
+		app.printToGUI(dobj.capNameArticle(True) + " is too big to fit inside the " + iobj.verbose_name + ".")
 		return False
 	else:
 		app.printToGUI("There is no way to put it inside the " + iobj.verbose_name + ".")
@@ -788,10 +790,10 @@ examineVerb.verbFunc = examineVerbFunc
 # LOOK THROUGH
 # transitive verb, no indirect object
 lookThroughVerb = Verb("look")
-lookThroughVerb.syntax = [["look", "through", "<dobj>"]]
+lookThroughVerb.syntax = [["look", "through", "<dobj>"], ["look", "out", "<dobj>"]]
 lookThroughVerb.hasDobj = True
 lookThroughVerb.dscope = "near"
-lookThroughVerb.preposition = ["through"]
+lookThroughVerb.preposition = ["through", "out"]
 lookThroughVerb.dtype = "Transparent"
 
 def lookThroughVerbFunc(me, app, dobj, skip=False):
@@ -851,7 +853,7 @@ def lookInVerbFunc(me, app, dobj, skip=False):
 					me.knows_about.append(key)
 			return True
 		else:
-			app.printToGUI("The " + dobj.verbose_name + " is empty.")
+			app.printToGUI(dobj.capNameArticle(True) + " is empty.")
 			return True
 	else:
 		app.printToGUI("You cannot look inside " + dobj.getArticle(True) + dobj.verbose_name + ".")
@@ -1897,6 +1899,25 @@ def climbDownFromVerbFunc(me, app, dobj, skip=False):
 # replace default verbFunc method
 climbDownFromVerb.verbFunc = climbDownFromVerbFunc
 
+# GO THROUGH (CONNECTOR INTERACTABLE not derived from AbstractClimbable)
+# transitive
+goThroughVerb = Verb("go", "go through")
+goThroughVerb.syntax = [["go", "through", "<dobj>"]]
+goThroughVerb.hasDobj = True
+goThroughVerb.dscope = "room"
+goThroughVerb.preposition = ["through"]
+
+def goThroughVerbFunc(me, app, dobj, skip=False):
+	if isinstance(dobj, thing.AbstractClimbable):
+		app.printToGUI("You cannot go through " + dobj.lowNameArticle(True) + ". ")
+		return False
+	elif dobj.connection:
+		return dobj.connection.travel(me, app)
+	else:
+		app.printToGUI("You cannot go through " + dobj.lowNameArticle(True) + ". ")
+		return False
+goThroughVerb.verbFunc = goThroughVerbFunc
+
 # CLIMB IN (CONTAINER)
 # transitive verb, no indirect object
 climbInVerb = Verb("climb", "climb in")
@@ -1919,7 +1940,6 @@ def climbInVerbFunc(me, app, dobj, skip=False):
 			pass
 		if not runfunc:
 			return True
-	
 	if dobj.connection:
 		dobj.connection.travel(me, app)
 		return True
@@ -2992,10 +3012,12 @@ def jumpOverVerbFunc(me, app, dobj, skip=False):
 			pass
 		if not runfunc:
 			return True
-	if dobj.size < 50:
+	if dobj==me:
+		app.printToGUI("You cannot jump over yourself. ")
+	elif dobj.size < 70:
 		app.printToGUI("There's no reason to jump over that. ")
 	else:
-		app.printToGUI(dobj.capNameArticle(True) + " is too big to easily jump over. ")
+		app.printToGUI(dobj.capNameArticle(True) + " is too big to jump over. ")
 	return False
 # replace default verbFunc method
 jumpOverVerb.verbFunc = jumpOverVerbFunc

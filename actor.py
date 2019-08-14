@@ -26,6 +26,7 @@ class Actor(Thing):
 	def __init__(self, name):
 		"""Intitializes the Actor instance and sets essential properties """
 		self.invItem = False # cannot be added to the contains
+		self.connection = None # this should almost always be None, but setting it probably won't break anything 
 		self.parent_obj = False
 		self.size = 50
 		self.far_away = False
@@ -311,7 +312,7 @@ class Player(Actor):
 	def __init__(self, name):
 		"""Set basic properties for the Player instance
 		Takes argument loc, a Room"""
-		#self.location = loc
+		self.connection = None # this should almost always be None, but setting it probably won't break anything 
 		self.name = name
 		self.verbose_name = "yourself"
 		self.is_composite = False
