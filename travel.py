@@ -164,10 +164,7 @@ class TravelConnector:
 					else:
 						x = "up "
 					app.printToGUI("You go " + x + self.entranceA.getArticle(True) + self.entranceA.name + ".")
-				try:
-					me.location.arriveFunc(me, app)
-				except AttributeError:
-					pass
+				me.location.arriveFunc(me, app)
 				me.location.describe(me, app)
 				return True
 		elif outer_loc == self.pointB:
@@ -189,10 +186,7 @@ class TravelConnector:
 					else:
 						x = "down "
 					app.printToGUI("You go " + x + self.entranceB.getArticle(True) + self.entranceB.name + ".")
-				try:
-					me.location.arriveFunc(me, app)
-				except AttributeError:
-					pass
+				me.location.arriveFunc(me, app)
 				me.location.describe(me, app)
 				return True
 		else:

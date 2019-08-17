@@ -23,6 +23,7 @@ class Room:
 		room_ix = room_ix + 1
 		rooms[self.ix] = self
 		self.location = None
+		self.discovered = False
 		# area or room type
 		self.room_group = None
 		# travel connections can be set to other Rooms after initialization
@@ -316,11 +317,27 @@ class Room:
 				self.getLocContents(me)
 		app.printToGUI("<b>" + self.name + "</b>")
 		app.printToGUI(self.fulldesc)
-		try: 
-			self.desc_func(me, app)
-		except AttributeError:
-			pass
+		self.descFunc(me, app)
+		self.updateDiscovered(me, app)
 		return True
+	
+	def updateDiscovered(self, me, app):
+		"""Call onDiscovery if not discovered yet. Set discovered to true. """
+		if not self.discovered:
+			self.onDiscovery(me, app)
+			self.discovered = True
+	
+	def onDiscovery(self, me, app):
+		"""Operations to perform the first time the room is described. Empty by default. Override for custom events. """
+		pass
+	
+	def arriveFunc(self, me, app):
+		"""Operations to perform each time the player arrives in the room, before the description is printed. Empty by default. Override for custom events. """
+		pass
+	
+	def descFunc(self, me, app):
+		"""Operations to perform immediately after printing the room description. Empty by default. Override for custom events. """
+		pass
 
 class OutdoorRoom(Room):
 	"""Room is the class for outdoor locations in an IntFicPy game
@@ -332,7 +349,8 @@ class OutdoorRoom(Room):
 		self.ix = "room" + str(room_ix)
 		room_ix = room_ix + 1
 		rooms[self.ix] = self
-		self.location = False
+		self.location = None
+		self.discovered = False
 		# area or room type
 		self.room_group = None
 		# travel connections can be set to other Rooms after initialization

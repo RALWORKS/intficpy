@@ -2057,7 +2057,7 @@ def openVerbFunc(me, app, dobj, skip=False):
 	
 	if not skip:
 		try:
-			runfunc = dobj.openVerbDobj(me, app, iobj)
+			runfunc = dobj.openVerbDobj(me, app)
 		except AttributeError:
 			pass
 		if not runfunc:
