@@ -285,6 +285,8 @@ class Room:
 			else:
 				app.printToGUI(self.dark_desc)
 				return False
+		self.updateDiscovered(me, app)
+		self.arriveFunc(me, app)
 		self.fulldesc = self.desc
 		desc_loc = False
 		child_items = []
@@ -318,16 +320,15 @@ class Room:
 		app.printToGUI("<b>" + self.name + "</b>")
 		app.printToGUI(self.fulldesc)
 		self.descFunc(me, app)
-		self.updateDiscovered(me, app)
 		return True
 	
 	def updateDiscovered(self, me, app):
 		"""Call onDiscovery if not discovered yet. Set discovered to true. """
 		if not self.discovered:
-			self.onDiscovery(me, app)
+			self.onDiscover(me, app)
 			self.discovered = True
 	
-	def onDiscovery(self, me, app):
+	def onDiscover(self, me, app):
 		"""Operations to perform the first time the room is described. Empty by default. Override for custom events. """
 		pass
 	

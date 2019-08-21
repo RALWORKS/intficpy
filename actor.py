@@ -243,6 +243,7 @@ class Actor(Thing):
 			self.show_topics[thing.ix] = topic
 	
 	def addSpecialTopic(self, topic):
+		topic.owner = self
 		self.special_topics[topic.suggestion] = topic
 		for x in topic.alternate_phrasings:
 			self.special_topics_alternate_keys[x] = topic
@@ -413,9 +414,13 @@ class SpecialTopic:
 		self.ix = "topic" + str(topic_ix)
 		topic_ix = topic_ix + 1
 		topics[self.ix] = self
+		self.owner = None
 	
-	def func(self, app):
+	def func(self, app, suggest=True):
 		app.printToGUI(self.text)
+		if suggest and self.owner:
+			if not self.owner.manual_suggest:
+				self.owner.printSuggestions(app)
 	
 	def addAlternatePhrasing(self, phrasing):
 		self.alternate_phrasings.append(phrasing)

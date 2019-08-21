@@ -286,7 +286,9 @@ class SaveState:
 		score.hints.stack = []
 		for item in loadDict["hints"]["stack"]:
 			score.hints.stack.append(self.dictLookup(item[5:]))
-		score.hints.cur_node = self.dictLookup(loadDict["hints"]["cur_node"][5:]) 
+		score.hints.cur_node = loadDict["hints"]["cur_node"]
+		if score.hints.cur_node:
+			score.hints.cur_node = self.dictLookup(score.hints.cur_node[5:])
 		for name in loadDict["vars"]:
 			setattr(main_module, name, loadDict["vars"][name])
 		parser.daemons.funcs = []

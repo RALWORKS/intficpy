@@ -164,7 +164,6 @@ class TravelConnector:
 					else:
 						x = "up "
 					app.printToGUI("You go " + x + self.entranceA.getArticle(True) + self.entranceA.name + ".")
-				me.location.arriveFunc(me, app)
 				me.location.describe(me, app)
 				return True
 		elif outer_loc == self.pointB:
@@ -186,7 +185,6 @@ class TravelConnector:
 					else:
 						x = "down "
 					app.printToGUI("You go " + x + self.entranceB.getArticle(True) + self.entranceB.name + ".")
-				me.location.arriveFunc(me, app)
 				me.location.describe(me, app)
 				return True
 		else:
@@ -330,10 +328,6 @@ class DoorConnector(TravelConnector):
 					app.printToGUI(self.entranceA_msg)
 			else:	
 				app.printToGUI("You go through " + self.entranceA.getArticle(True) + self.entranceA.verbose_name + ". ")
-			try:
-				me.location.arriveFunc(me, app)
-			except AttributeError:
-				pass
 			me.location.describe(me, app)
 			return True
 		elif outer_loc == self.pointB:
@@ -356,10 +350,7 @@ class DoorConnector(TravelConnector):
 					app.printToGUI(self.entranceB_msg)
 			else:	
 				app.printToGUI("You go through " + self.entranceB.getArticle(True) + self.entranceB.verbose_name + ". ")
-			try:
-				me.location.arriveFunc(me, app)
-			except AttributeError:
-				pass
+			
 			me.location.describe(me, app)
 			return True
 		else:
@@ -428,10 +419,7 @@ class LadderConnector(TravelConnector):
 					app.printToGUI(self.entranceA_msg)
 			else:	
 				app.printToGUI("You climb the ladder. ")
-			try:
-				me.location.arriveFunc(me, app)
-			except AttributeError:
-				pass
+			
 			me.location.describe(me, app)
 			return True
 		elif outer_loc == self.pointB:
@@ -447,10 +435,7 @@ class LadderConnector(TravelConnector):
 					app.printToGUI(self.entranceB_msg)
 			else:	
 				app.printToGUI("You climb the ladder. ")
-			try:
-				me.location.arriveFunc(me, app)
-			except AttributeError:
-				pass
+			
 			me.location.describe(me, app)
 			return True
 		else:
@@ -527,10 +512,7 @@ class StaircaseConnector(TravelConnector):
 					app.printToGUI(self.entranceA_msg)
 			else:	
 				app.printToGUI("You climb the staircase. ")
-			try:
-				me.location.arriveFunc(me, app)
-			except AttributeError:
-				pass
+			
 			me.location.describe(me, app)
 			return True
 		elif outer_loc == self.pointB:
@@ -546,10 +528,7 @@ class StaircaseConnector(TravelConnector):
 					app.printToGUI(self.entranceB_msg)
 			else:	
 				app.printToGUI("You climb the staircase. ")
-			try:
-				me.location.arriveFunc(me, app)
-			except AttributeError:
-				pass
+			
 			me.location.describe(me, app)
 			return True
 		else:
@@ -624,10 +603,7 @@ def travelN(me, app):
 		me.location = loc.north
 		me.location.addThing(me)
 		app.printToGUI(loc.n_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 def travelNE(me, app):
@@ -649,10 +625,7 @@ def travelNE(me, app):
 		me.location = loc.northeast
 		me.location.addThing(me)
 		app.printToGUI(loc.ne_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 def travelE(me, app):
@@ -674,10 +647,7 @@ def travelE(me, app):
 		me.location = loc.east
 		me.location.addThing(me)
 		app.printToGUI(loc.e_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 def travelSE(me, app):
@@ -699,10 +669,7 @@ def travelSE(me, app):
 		me.location = loc.southeast
 		me.location.addThing(me)
 		app.printToGUI(loc.se_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 def travelS(me, app):
@@ -724,10 +691,7 @@ def travelS(me, app):
 		me.location = loc.south
 		me.location.addThing(me)
 		app.printToGUI(loc.s_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 def travelSW(me, app):
@@ -749,10 +713,7 @@ def travelSW(me, app):
 		me.location = loc.southwest
 		me.location.addThing(me)
 		app.printToGUI(loc.sw_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 def travelW(me, app):
@@ -774,10 +735,7 @@ def travelW(me, app):
 		me.location = loc.west
 		me.location.addThing(me)
 		app.printToGUI(loc.w_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 # travel northwest
@@ -800,10 +758,7 @@ def travelNW(me, app):
 		me.location = loc.northwest
 		me.location.addThing(me)
 		app.printToGUI(loc.nw_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 # travel up
@@ -826,10 +781,7 @@ def travelU(me, app):
 		me.location = loc.up
 		me.location.addThing(me)
 		app.printToGUI(loc.u_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 # travel down
@@ -852,10 +804,7 @@ def travelD(me, app):
 		me.location = loc.down
 		me.location.addThing(me)
 		app.printToGUI(loc.d_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 # go out
@@ -879,10 +828,7 @@ def travelOut(me, app):
 		me.location = loc.exit
 		me.location.addThing(me)
 		app.printToGUI(loc.exit_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 # go in
@@ -906,10 +852,7 @@ def travelIn(me, app):
 		me.location = loc.entrance
 		me.location.addThing(me)
 		app.printToGUI(loc.entrance_msg)
-		try:
-			me.location.arriveFunc(me, app)
-		except AttributeError:
-			pass
+		
 		me.location.describe(me, app)
 
 # maps user input to travel functions

@@ -1181,6 +1181,8 @@ def callVerb(me, app, cur_verb, obj_words):
 		pass
 	elif not cur_iobj.location:
 		pass
+	elif cur_iobj.location.location==me and isinstance(cur_iobj, thing.Liquid):
+		cur_iobj = cur_iobj.getContainer()
 	elif cur_iobj.location.location==me:
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
 		cur_iobj.location.removeThing(cur_iobj)
@@ -1392,6 +1394,8 @@ def parseInput(me, app, input_string):
 		if lastTurn.convNode:
 			conv_command = getConvCommand(me, app, input_tokens)
 			if conv_command:
+				lastTurn.ambig_noun = None
+				lastTurn.ambig_verb = None
 				lastTurn.ambiguous = False
 				return 0
 			else:
@@ -1412,6 +1416,8 @@ def parseInput(me, app, input_string):
 		if not obj_words:
 			return 0
 		# turn OFF disambiguation mode for next turn
+		lastTurn.ambig_noun = None
+		lastTurn.ambig_verb = None
 		lastTurn.ambiguous = False
 		lastTurn.err = False
 		callVerb(me, app, cur_verb, obj_words)
