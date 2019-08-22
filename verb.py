@@ -300,6 +300,70 @@ def getAllVerbFunc(me, app):
 # replace the default verb function
 getAllVerb.verbFunc = getAllVerbFunc
 
+# REMOVE FROM
+# move to top inventory level
+# transitive verb, indirect object
+removeFromVerb = Verb("remove")
+removeFromVerb.syntax = [["remove", "<dobj>", "from", "<iobj>"]]
+removeFromVerb.hasDobj = True
+removeFromVerb.hasIobj = True
+removeFromVerb.dscope = "near"
+removeFromVerb.iscope = "near"
+removeFromVerb.preposition = ["from"]
+
+def removeFromVerbFunc(me, app, dobj, iobj, skip=True):
+	"""Remove a Thing from a Thing
+	Mostly intended for implicit use within the inventory """
+	prep = iobj.contains_preposition or "in"
+	if dobj==me:
+		app.printToGUI("You cannot take yourself. ")
+		return False
+	elif dobj.location != iobj:
+		app.printToGUI(dobj.capNameArticle(True) + " is not " + prep + " " + iobj.lowNameArticle(True))
+		return False
+	elif iobj==me:
+		app.printToGUI("You are currently holding " + dobj.lowNameArticle(True) + ". ")
+		return True
+	if not iobj.is_open:
+		app.printToGUI("(First trying to open " + iobj.lowNameArticle(True) + ")")
+		success = openVerb.verbFunc(me, app, iobj)
+		if not success:
+			return False
+	if not dobj.invItem:
+		print(dobj.cannotTakeMsg)
+		return False
+	if dobj.parent_obj:
+		app.printToGUI(dobj.capNameArticle(True) + " is attached to " + dobj.parent_obj.capNameArticle(True))
+		return False
+	if dobj.containsItem(me):
+		app.printToGUI("You are currently " + dobj.contains_preposition + " " + dobj.lowNameArticle + ", and therefore cannot take it. ")
+		return False
+	app.printToGUI("You remove " + dobj.lowNameArticle(True) + " from " + iobj.lowNameArticle(True) + ". ")
+	iobj.removeThing(dobj)
+	me.addThing(dobj)
+	if isinstance(dobj, thing.UnderSpace) and not dobj.contains=={}:
+		results = dobj.moveContentsOut()
+		msg = results[0]
+		plural = results[1]
+		if plural:
+			msg = msg.capitalize() + " are revealed. "
+		else:
+			msg = msg.capitalize() + " is revealed. "
+		app.printToGUI(msg)
+		if dobj.is_composite:
+			for item in dobj.child_UnderSpaces:
+				if not item.contains=={}:
+					results = item.moveContentsOut()
+					msg = results[0]
+					plural = results[1]
+					if plural:
+						msg = msg.capitalize() + " are revealed. "
+					else:
+						msg = msg.capitalize() + " is revealed. "
+					app.printToGUI(msg)
+	return True
+removeFromVerb.verbFunc = removeFromVerbFunc
+
 # DROP
 # transitive verb, no indirect object
 dropVerb = Verb("drop")
@@ -440,7 +504,7 @@ setInVerb.hasDobj = True
 setInVerb.dscope = "inv"
 setInVerb.itype = "Container"
 setInVerb.hasIobj = True
-setInVerb.iscope = "room"
+setInVerb.iscope = "near"
 setInVerb.preposition = ["in"]
 
 def setInVerbFunc(me, app, dobj, iobj, skip=False):
@@ -2187,8 +2251,13 @@ def unlockVerbFunc(me, app, dobj, skip=False):
 		if dobj.lock_obj:
 			if dobj.lock_obj.is_locked:
 				if dobj.lock_obj.key_obj:
-					if dobj.lock_obj.key_obj.ix in me.contains:
+					if me.containsItem(dobj.lock_obj.key_obj):
 						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
+						if dobj.lock_obj.key_obj.location != me:
+							app.printToGUI("(First removing " + dobj.lock_obj.key_obj.lowNameArticle(True) + " from " + dobj.lock_obj.key_obj.location.lowNameArticle(True) + ".)")
+							#dobj.lock_obj.key_obj.location.removeThing(dobj.lock_obj.key_obj)
+							#me.addThing(dobj.lock_obj.key_obj)
+							removeFromVerb.verbFunc(me, app, dobj.lock_obj.key_obj, dobj.lock_obj.key_obj.location)
 						app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 						dobj.lock_obj.makeUnlocked()
 						return True
@@ -2207,8 +2276,13 @@ def unlockVerbFunc(me, app, dobj, skip=False):
 	elif isinstance(dobj, thing.Lock):
 		if dobj.is_locked:
 			if dobj.key_obj:
-				if dobj.key_obj.ix in me.contains:
+				if me.containsItem(dobj.key_obj):
 					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
+					if dobj.key_obj.location != me:
+						app.printToGUI("(First removing " + dobj.key_obj.lowNameArticle(True) + " from " + dobj.key_obj.location.lowNameArticle(True) + ".)")
+						#dobj.key_obj.location.removeThing(dobj.key_obj)
+						#me.addThing(dobj.key_obj)
+						removeFromVerb.verbFunc(me, app, dobj.key_obj, dobj.key_obj.location)
 					app.printToGUI("You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 					dobj.makeUnlocked()
 					return True
@@ -2257,8 +2331,13 @@ def lockVerbFunc(me, app, dobj, skip=False):
 		if dobj.lock_obj:
 			if not dobj.lock_obj.is_locked:
 				if dobj.lock_obj.key_obj:
-					if dobj.lock_obj.key_obj.ix in me.contains:
+					if me.containsItem(dobj.lock_obj.key_obj):
 						app.printToGUI("(Using " + dobj.lock_obj.key_obj.getArticle(True) + dobj.lock_obj.key_obj.verbose_name + ")")
+						if dobj.lock_obj.key_obj.location != me:
+							app.printToGUI("(First removing " + dobj.lock_obj.key_obj.lowNameArticle(True) + " from " + dobj.lock_obj.key_obj.location.lowNameArticle(True) + ".)")
+							#dobj.lock_obj.key_obj.location.removeThing(dobj.lock_obj.key_obj)
+							#me.addThing(dobj.lock_obj.key_obj)
+							removeFromVerb.verbFunc(me, app, dobj.lock_obj.key_obj, dobj.lock_obj.key_obj.location)
 						app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 						dobj.lock_obj.makeLocked()
 						return True
@@ -2281,8 +2360,13 @@ def lockVerbFunc(me, app, dobj, skip=False):
 				return False
 		if not dobj.is_locked:
 			if dobj.key_obj:
-				if dobj.key_obj.ix in me.contains:
+				if me.containsItem(dobj.key_obj):
 					app.printToGUI("(Using " + dobj.key_obj.getArticle(True) + dobj.key_obj.verbose_name + ")")
+					if dobj.key_obj.location != me:
+						app.printToGUI("(First removing " + dobj.key_obj.lowNameArticle(True) + " from " + dobj.key_obj.location.lowNameArticle(True) + ".)")
+						#dobj.key_obj.location.removeThing(dobj.key_obj)
+						#me.addThing(dobj.key_obj)
+						removeFromVerb.verbFunc(me, app, dobj.key_obj, dobj.key_obj.location)
 					app.printToGUI("You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 					dobj.makeLocked()
 					return True
@@ -2976,7 +3060,10 @@ def killVerbFunc(me, app, dobj, skip=False):
 			pass
 		if not runfunc:
 			return True
-	app.printToGUI("Violence isn't the answer to this one. ")
+	if isinstance(dobj, actor.Actor):
+		app.printToGUI("Violence isn't the answer to this one. ")
+	else:
+		app.printToGUI(dobj.capNameArticle(True) + "cannot be killed, as it is not alive.")
 
 # replace default verbFunc method
 killVerb.verbFunc = killVerbFunc

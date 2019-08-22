@@ -31,8 +31,8 @@ class Thing:
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1126,8 +1126,8 @@ class AbstractClimbable(Thing):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1183,8 +1183,8 @@ class Door(Thing):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1298,8 +1298,8 @@ class Key(Thing):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 10
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1359,8 +1359,8 @@ class Lock(Thing):
 		# thing properties
 		self.far_away = False
 		self.size = 20
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1866,8 +1866,8 @@ class Transparent(Thing):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1927,8 +1927,8 @@ class Readable(Thing):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1986,8 +1986,8 @@ class Book(Readable):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -2052,8 +2052,8 @@ class Pressable(Thing):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -2123,8 +2123,8 @@ class Liquid(Thing):
 		self.is_composite = False
 		self.parent_obj = False
 		self.size = 50
-		self.contains_preposition = False
-		self.contains_preposition_inverse = False
+		self.contains_preposition = None
+		self.contains_preposition_inverse = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False

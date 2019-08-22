@@ -1175,8 +1175,9 @@ def callVerb(me, app, cur_verb, obj_words):
 		cur_dobj = cur_dobj.getContainer()
 	elif cur_dobj.location.location==me:
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
-		cur_dobj.location.removeThing(cur_dobj)
-		me.addThing(cur_dobj)
+		#cur_dobj.location.removeThing(cur_dobj)
+		#me.addThing(cur_dobj)
+		verb.removeFromVerb.verbFunc(me, app, cur_dobj, cur_dobj.location)
 	if cur_verb.iscope=="text" or not cur_iobj or cur_verb.iscope=="direction":
 		pass
 	elif not cur_iobj.location:
@@ -1185,8 +1186,9 @@ def callVerb(me, app, cur_verb, obj_words):
 		cur_iobj = cur_iobj.getContainer()
 	elif cur_iobj.location.location==me:
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
-		cur_iobj.location.removeThing(cur_iobj)
-		me.addThing(cur_iobj)
+		#cur_iobj.location.removeThing(cur_iobj)
+		#me.addThing(cur_iobj)
+		verb.removeFromVerb.verbFunc(me, app, cur_iobj, cur_iobj.location)
 
 	if cur_verb.hasIobj:
 		if not cur_iobj:
