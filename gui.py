@@ -98,6 +98,13 @@ class App(QMainWindow):
 		# used for game-interrupting cutscenes
 		# populated by enterForMore()
 	
+	def closeEvent(self, event):
+		"""Trigger program close. Close the recording file first, if open. """
+		from .serializer import curSave
+		if curSave.recfile:
+			curSave.recfile.close()
+		event.accept()
+	
 	def initUI(self):
 		"""Build the basic user interface
 		called by __init__ """

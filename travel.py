@@ -84,12 +84,12 @@ class TravelConnector:
 				interactables[x].xdescribeThing("You notice nothing remarkable about " + interactables[x].getArticle(True) + interactables[x].verbose_name + ".")
 			elif d[x]=="u":
 				r[x].up = self
-				interactables[x].setAdjectives(["up", "upward"])
+				interactables[x].setAdjectives(["upward"])
 				interactables[x].describeThing("There is a " + name + " leading up. ")
 				interactables[x].xdescribeThing("You notice nothing remarkable about the " + interactables[x].getArticle(True) + name + ".")
 			elif d[x]=="d":
 				r[x].down = self
-				interactables[x].setAdjectives(["down", "downward"])
+				interactables[x].setAdjectives(["downward"])
 				interactables[x].describeThing("There is a " + name + " leading down. ")
 				interactables[x].xdescribeThing("You notice nothing remarkable about  " + interactables[x].getArticle(True) + name + ".")
 			else:
@@ -387,12 +387,12 @@ class LadderConnector(TravelConnector):
 			r[x].addThing(interactables[x])
 			if d[x]=="u":
 				r[x].up = self
-				interactables[x].setAdjectives(["up", "upward"])
+				interactables[x].setAdjectives(["upward"])
 				interactables[x].describeThing("There is a ladder leading up. ")
 				interactables[x].xdescribeThing("You notice nothing remarkable about the ladder. ")
 			elif d[x]=="d":
 				r[x].down = self
-				interactables[x].setAdjectives(["down", "downward"])
+				interactables[x].setAdjectives(["downward"])
 				interactables[x].describeThing("There is a ladder leading down. ")
 				interactables[x].xdescribeThing("You notice nothing remarkable about the ladder. ")
 			else:
@@ -477,12 +477,12 @@ class StaircaseConnector(TravelConnector):
 			r[x].addThing(interactables[x])
 			if d[x]=="u":
 				r[x].up = self
-				interactables[x].setAdjectives(["up", "upward"])
+				interactables[x].setAdjectives(["upward"])
 				interactables[x].describeThing("There is a staircase leading up. ")
 				interactables[x].xdescribeThing("You notice nothing remarkable about the staircase ")
 			elif d[x]=="d":
 				r[x].down = self
-				interactables[x].setAdjectives(["down", "downward"])
+				interactables[x].setAdjectives(["downward"])
 				interactables[x].describeThing("There is a staircase leading down. ")
 				interactables[x].xdescribeThing("You notice nothing remarkable about the staircase. ")
 			else:

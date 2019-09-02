@@ -27,6 +27,7 @@ class Actor(Thing):
 		"""Intitializes the Actor instance and sets essential properties """
 		self.invItem = False # cannot be added to the contains
 		self.connection = None # this should almost always be None, but setting it probably won't break anything 
+		self.contains_preposition = None
 		self.parent_obj = False
 		self.size = 50
 		self.far_away = False
@@ -78,7 +79,7 @@ class Actor(Thing):
 		self.said_hi = False
 		self.hermit_topic = None
 		self.manual_suggest = False
-		# prints when player's question/statement does not match a topis
+		# prints when player's question/statement does not match a topic
 		self.default_topic = "No response."
 		# specifies the article to use in output
 		self.hasArticle = True
@@ -314,6 +315,7 @@ class Player(Actor):
 		"""Set basic properties for the Player instance
 		Takes argument loc, a Room"""
 		self.connection = None # this should almost always be None, but setting it probably won't break anything 
+		self.contains_preposition = None
 		self.name = name
 		self.verbose_name = "yourself"
 		self.is_composite = False

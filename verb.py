@@ -17,11 +17,11 @@ class Verb:
 		from .parser import aboutGame
 		if word in vocab.verbDict:
 			vocab.verbDict[word].append(self)
-		else:
+		elif word is not None:
 			vocab.verbDict[word] = [self]
 		if list_word and list_word not in aboutGame.verbs:
 			aboutGame.verbs.append(list_word)
-		elif word not in aboutGame.verbs and not exempt_from_list:
+		elif word and word not in aboutGame.verbs and not exempt_from_list:
 			aboutGame.verbs.append(word)
 		self.word = word
 		self.dscope = "room"
@@ -31,9 +31,9 @@ class Verb:
 		self.hasDobj = False
 		self.hasStrDobj = False
 		self.hasStrIobj = False
-		self.dtype = False
+		self.dtype = None
 		self.hasIobj = False
-		self.itype = False
+		self.itype = None
 		self.impDobj = False
 		self.impIobj = False
 		self.preposition = []
@@ -44,6 +44,9 @@ class Verb:
 		# range for direct and indierct objects
 		self.dscope = "room" # "knows", "near", "room" or "inv"
 		self.iscope = "room"
+		# not yet implemented in parser
+		self.dobj_contains_iobj = False
+		self.iobj_contains_dobj = False
 
 	def addSynonym(self, word):
 		from .parser import aboutGame
@@ -196,14 +199,12 @@ def getVerbFunc(me, app, dobj, skip=False):
 		if container:
 			dobj = container
 	if dobj.invItem:
-		if dobj.ix in me.contains:
-			if dobj in me.contains[dobj.ix]:
+		if me.containsItem(dobj):
+			if dobj.location==me:
 				app.printToGUI("You already have " + dobj.getArticle(True) + dobj.verbose_name + ".")
 				return False
-		if dobj.ix in me.sub_contains:
-			if dobj in me.sub_contains[dobj.ix]:
-				app.printToGUI("You already have " + dobj.getArticle(True) + dobj.verbose_name + ".")
-				return False
+			else:
+				return removeFromVerb.verbFunc(me, app, dobj, dobj.location)
 		# print the action message
 		app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
 		if isinstance(dobj, thing.UnderSpace) and not dobj.contains=={}:
@@ -301,15 +302,16 @@ def getAllVerbFunc(me, app):
 getAllVerb.verbFunc = getAllVerbFunc
 
 # REMOVE FROM
-# move to top inventory level
+# move to top inventory level - used by parser for implicit actions
 # transitive verb, indirect object
-removeFromVerb = Verb("remove")
-removeFromVerb.syntax = [["remove", "<dobj>", "from", "<iobj>"]]
+removeFromVerb = Verb(None, exempt_from_list=True)
+#removeFromVerb.syntax = [["remove", "<dobj>", "from", "<iobj>"]]
 removeFromVerb.hasDobj = True
 removeFromVerb.hasIobj = True
 removeFromVerb.dscope = "near"
 removeFromVerb.iscope = "near"
-removeFromVerb.preposition = ["from"]
+removeFromVerb.iobj_contains_dobj = True
+#removeFromVerb.preposition = ["from"]
 
 def removeFromVerbFunc(me, app, dobj, iobj, skip=True):
 	"""Remove a Thing from a Thing
@@ -324,11 +326,12 @@ def removeFromVerbFunc(me, app, dobj, iobj, skip=True):
 	elif iobj==me:
 		app.printToGUI("You are currently holding " + dobj.lowNameArticle(True) + ". ")
 		return True
-	if not iobj.is_open:
-		app.printToGUI("(First trying to open " + iobj.lowNameArticle(True) + ")")
-		success = openVerb.verbFunc(me, app, iobj)
-		if not success:
-			return False
+	if isinstance(iobj, thing.Container):
+		if not iobj.is_open:
+			app.printToGUI("(First trying to open " + iobj.lowNameArticle(True) + ")")
+			success = openVerb.verbFunc(me, app, iobj)
+			if not success:
+				return False
 	if not dobj.invItem:
 		print(dobj.cannotTakeMsg)
 		return False
@@ -741,8 +744,35 @@ def helpVerbFunc(me, app):
 # replace default verbFunc method
 helpVerb.verbFunc = helpVerbFunc
 
-# HELP VERB (Verb)
+# VIEW Instructions
 # intransitive verb
+instructionsVerb = Verb("instructions")
+instructionsVerb.syntax = [["instructions"]]
+instructionsVerb.hasDobj = False
+
+def instructionVerbFunc(me, app):
+	"""View the current score
+	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
+	from .parser import aboutGame
+	aboutGame.printInstructions(app)
+		
+# replace default verbFunc method
+instructionsVerb.verbFunc = instructionVerbFunc
+
+# VIEW VERB LIST
+# intransitive verb
+verbsVerb = Verb("verbs")
+verbsVerb.syntax = [["verbs"]]
+verbsVerb.hasDobj = False
+
+def verbsVerbFunc(me, app):
+	from .parser import aboutGame
+	aboutGame.printVerbs(app)
+
+verbsVerb.verbFunc = verbsVerbFunc
+
+# HELP VERB (Verb)
+# transitive verb
 helpVerbVerb = Verb("verb", "verb help")
 helpVerbVerb.syntax = [["verb", "help", "<dobj>"]]
 helpVerbVerb.hasDobj = True
@@ -1565,6 +1595,7 @@ standOnVerb = Verb("stand", "stand on")
 standOnVerb.syntax = [["stand", "on", "<dobj>"]]
 standOnVerb.hasDobj = True
 standOnVerb.dscope = "room"
+standOnVerb.dtype = "Surface"
 standOnVerb.preposition = ["on"]
 
 def standOnVerbFunc(me, app, dobj, skip=False):
@@ -1615,6 +1646,7 @@ sitOnVerb = Verb("sit", "sit on")
 sitOnVerb.syntax = [["sit", "on", "<dobj>"], ["sit", "down", "on", "<dobj>"]]
 sitOnVerb.hasDobj = True
 sitOnVerb.dscope = "room"
+sitOnVerb.dtype = "Surface"
 sitOnVerb.preposition = ["down", "on"]
 
 def sitOnVerbFunc(me, app, dobj, skip=False):
@@ -1665,6 +1697,7 @@ lieOnVerb.addSynonym("lay")
 lieOnVerb.syntax = [["lie", "on", "<dobj>"], ["lie", "down", "on", "<dobj>"], ["lay", "on", "<dobj>"], ["lay", "down", "on", "<dobj>"]]
 lieOnVerb.hasDobj = True
 lieOnVerb.dscope = "room"
+lieOnVerb.dtype = "Surface"
 lieOnVerb.preposition = ["down", "on"]
 
 def lieOnVerbFunc(me, app, dobj):
@@ -1714,6 +1747,7 @@ sitInVerb = Verb("sit", "sit in")
 sitInVerb.syntax = [["sit", "in", "<dobj>"], ["sit", "down", "in", "<dobj>"]]
 sitInVerb.hasDobj = True
 sitInVerb.dscope = "room"
+sitInVerb.dtype = "Container"
 sitInVerb.preposition = ["down", "in"]
 
 # when the Chair subclass of Surface is implemented, redirect to sit on if dobj is a Chair
@@ -1753,6 +1787,7 @@ standInVerb = Verb("stand", "stand in")
 standInVerb.syntax = [["stand", "in", "<dobj>"]]
 standInVerb.hasDobj = True
 standInVerb.dscope = "room"
+standInVerb.dtype = "Container"
 standInVerb.preposition = ["in"]
 
 def standInVerbFunc(me, app, dobj, skip=False):
@@ -1793,6 +1828,7 @@ lieInVerb.addSynonym("lay")
 lieInVerb.syntax = [["lie", "in", "<dobj>"], ["lie", "down", "in", "<dobj>"], ["lay", "in", "<dobj>"], ["lay", "down", "in", "<dobj>"]]
 lieInVerb.hasDobj = True
 lieInVerb.dscope = "room"
+lieInVerb.dtype = "Container"
 lieInVerb.preposition = ["down", "in"]
 
 def lieInVerbFunc(me, app, dobj, skip=False):
