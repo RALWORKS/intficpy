@@ -1,10 +1,7 @@
-import sys
-import os
+import sys, os, re, time
 import PyQt5.QtCore as QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QFrame, QScrollArea, QAbstractSlider, QSizePolicy, QFileDialog
-from PyQt5.QtGui import QIcon, QFont
-import re
-import time
+from PyQt5.QtGui import QIcon, QFont, QIcon
 
 from . import parser
 
@@ -73,11 +70,14 @@ class Prelim:
 class App(QMainWindow):
 	"""The App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods """
 
-	def __init__(self, me, style1="background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px", style2="background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px", scroll_style=scroll_style, app_style="QFrame { border:none;}"):
+	def __init__(self, me, style1="background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px", style2="background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px", scroll_style=scroll_style, app_style="QFrame { border:none;}", icon=None):
 		"""Initialize the GUI
 		Takes argument me, pointing to the Player """
 		from .thing import reflexive
+		import __main__
 		super().__init__()
+		if icon:
+			self.setWindowIcon(QIcon(icon))
 		reflexive.makeKnown(me)
 		self.setObjectName("MainWindow")
 		self.title = 'IntFicPy'
@@ -97,6 +97,13 @@ class App(QMainWindow):
 		self.new_obox = False
 		# used for game-interrupting cutscenes
 		# populated by enterForMore()
+	
+	def closeEvent(self, event):
+		"""Trigger program close. Close the recording file first, if open. """
+		from .serializer import curSave
+		if curSave.recfile:
+			curSave.recfile.close()
+		event.accept()
 	
 	def initUI(self):
 		"""Build the basic user interface

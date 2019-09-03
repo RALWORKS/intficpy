@@ -56,14 +56,16 @@ class gameInfo:
 	def __init__(self):
 		self.title = "IntFicPy Game"
 		self.author = "Unnamed"
+		self.basic_instructions = "This is a parser-based game, which means the user interacts by typing commands. <br><br>A command should be a simple sentence, starting with a verb, for instance, <br>> JUMP<br>> TAKE UMBRELLA<br>> TURN DIAL TO 7<br><br>The parser is case insensitive, and ignores punctuation and articles (a, an, the). <br><br>It can be difficult at times to figure out the correct verb to perform an action. Even once you have the correct verb, it can be hard to get the right phrasing. In these situations, you can view the full list of verbs in the game using the VERBS command. You can also view the accepted phrasings for a specific verb with the VERB HELP command (for instance, type VERB HELP WEAR).<br><br>This game does not have quit and restart commands. To quit, simply close the program. To restart, open it again.<br><br>Typing SAVE will open a dialogue to create a save file. Typing LOAD will allow you to select a save file to restore. "
+		self.game_instructions = None
 		self.intFicPyCredit = True
 		self.desc = False
 		self.showVerbs = True
 		self.betaTesterCredit = False
-		self.customMsg = False
+		self.customMsg = None
 		self.verbs = []
 		self.discovered_verbs = []
-		self.helpMsg = False
+		self.help_msg = None
 		self.main_file = None
 	
 	def setInfo(self, title, author):
@@ -82,10 +84,21 @@ class gameInfo:
 				app.printToGUI(self.desc)
 			if self.betaTesterCredit:
 				app.printToGUI(self.betaTesterCredit)
+	
+	def printInstructions(self, app):
+		app.printToGUI("<b>Basic Instructions</b>")
+		app.printToGUI(self.basic_instructions)
+		if self.game_instructions:
+			app.printToGUI("<b>Game Instructions</b>")
+			app.printToGUI(self.game_instructions)
 				
 	def printHelp(self, app):	
-		if self.helpMsg:
-			app.printToGUI(self.helpMsg)
+		if self.help_msg:
+			app.printToGUI(self.help_msg)
+		#self.printVerbs(app)
+		app.printToGUI("Type INSTRUCTIONS for game instructions, or VERBS for a full list of accepted verbs. ")
+	
+	def printVerbs(self, app):
 		app.printToGUI("<b>This game accepts the following basic verbs: </b>")
 		self.verbs = sorted(self.verbs)
 		verb_list = ""
@@ -94,10 +107,8 @@ class gameInfo:
 			if verb!=self.verbs[-1]:
 				verb_list = verb_list + ", "
 		app.printToGUI(verb_list)
-		app.printToGUI("<b>You have discovered the following additional verbs: ")
-		if len(self.discovered_verbs)==0:
-			app.printToGUI("You have not discovered any verbs so far.")
-		else:
+		if len(self.discovered_verbs) > 0:
+			app.printToGUI("<b>You have discovered the following additional verbs: ")
 			d_verb_list = ""
 			for verb in self.discovered_verbs:
 				verb_list = verb_list + verb
@@ -105,6 +116,7 @@ class gameInfo:
 					d_verb_list = d_verb_list + ", "
 			app.printToGUI(d_verb_list)
 		app.printToGUI("For help with phrasing, type \"verb help\" followed by a verb for a complete list of acceptable sentence structures for that verb. This will work for any verb, regardless of whether it has been discovered. ")
+	
 aboutGame = gameInfo()
 
 def cleanInput(input_string, record=True):
@@ -120,6 +132,7 @@ def cleanInput(input_string, record=True):
 		lastTurn.turn_list.append(input_string)
 		if curSave.recfile:
 			curSave.recfile.write(input_string + "\n")
+			curSave.recfile.flush()
 	return input_string
 
 def tokenize(input_string):
@@ -892,6 +905,7 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 			noun_adj_arr.append(noun)
 		things = lastTurn.things
 	elif lastTurn.ambiguous and t_ix <= len(lastTurn.things) and t_ix > 0:
+		lastTurn.ambiguous = False
 		return lastTurn.things[t_ix - 1]
 	else:
 		noun = noun_adj_arr[-1]
@@ -988,7 +1002,7 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 			for item in remove_wrong:
 				if item in things:
 					things.remove(item)
-	elif len(things) > 1:
+	if len(things) > 1:
 		remove_child = []
 		for item in things:
 			if item.is_composite:
@@ -1173,22 +1187,22 @@ def callVerb(me, app, cur_verb, obj_words):
 		pass
 	elif cur_dobj.location.location==me and isinstance(cur_dobj, thing.Liquid):
 		cur_dobj = cur_dobj.getContainer()
-	elif cur_dobj.location.location==me:
+	elif cur_dobj.location.location==me and cur_verb.dscope=="inv":
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
-		#cur_dobj.location.removeThing(cur_dobj)
-		#me.addThing(cur_dobj)
-		verb.removeFromVerb.verbFunc(me, app, cur_dobj, cur_dobj.location)
+		success = verb.removeFromVerb.verbFunc(me, app, cur_dobj, cur_dobj.location)
+		if not success:
+			return False
 	if cur_verb.iscope=="text" or not cur_iobj or cur_verb.iscope=="direction":
 		pass
 	elif not cur_iobj.location:
 		pass
 	elif cur_iobj.location.location==me and isinstance(cur_iobj, thing.Liquid):
 		cur_iobj = cur_iobj.getContainer()
-	elif cur_iobj.location.location==me:
+	elif cur_iobj.location.location==me and cur_verb.iscope=="inv":
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
-		#cur_iobj.location.removeThing(cur_iobj)
-		#me.addThing(cur_iobj)
-		verb.removeFromVerb.verbFunc(me, app, cur_iobj, cur_iobj.location)
+		success = verb.removeFromVerb.verbFunc(me, app, cur_iobj, cur_iobj.location)
+		if not success:
+			return False
 
 	if cur_verb.hasIobj:
 		if not cur_iobj:

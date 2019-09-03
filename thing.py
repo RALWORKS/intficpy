@@ -24,12 +24,12 @@ class Thing:
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -303,13 +303,14 @@ class Surface(Thing):
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		# properties
+		self.direction = None
 		self.desc_reveal = True
 		self.xdesc_reveal = True
 		self.known_ix = self.ix
 		self.me = me
 		self.contains_preposition = "on"
 		self.contains_preposition_inverse = "off"
-		self.connection = False
+		self.connection = None
 		self.isPlural = False
 		self.hasArticle = True
 		self.isDefinite = False
@@ -326,7 +327,7 @@ class Surface(Thing):
 		self.far_away = False
 		self.adjectives = []
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.name = name
 		self.manual_update = False
@@ -592,7 +593,8 @@ class Container(Thing):
 		self.xdesc_reveal = True
 		self.contains_preposition = "in"
 		self.contains_preposition_inverse = "out"
-		self.connection = False
+		self.connection = None
+		self.direction = None
 		self.holds_liquid = False
 		self.far_away = False
 		self.has_lid = False
@@ -600,7 +602,7 @@ class Container(Thing):
 		self.lock_desc = ""
 		self.state_desc = ""
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -986,11 +988,12 @@ class LightSource(Thing):
 		self.known_ix = self.ix
 		# Thing properties
 		self.size = 20
-		self.connection = False
+		self.connection = None
+		self.direction = None
 		self.far_away = False
 		self.state_desc = ""
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1118,13 +1121,13 @@ class AbstractClimbable(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# connector properties
-		self.twin = False
-		self.connection = False
-		self.direction = False
+		self.twin = None
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj =None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -1171,17 +1174,17 @@ class Door(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# door properties
-		self.direction = False
-		self.twin = False
+		self.direction = None
+		self.twin = None
 		self.is_open = False
 		self.lock_obj = False
 		self.state_desc = "It is currently closed. "
 		self.lock_desc = ""
-		self.connection = False
+		self.connection = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -1291,12 +1294,12 @@ class Key(Thing):
 		# key properties
 		self.lock = False
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 10
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -1347,15 +1350,15 @@ class Lock(Thing):
 		self.is_locked = is_locked
 		self.key_obj = key_obj
 		self.is_composite = False
-		self.parent_obj = False
-		self.twin = False
+		self.parent_obj = None
+		self.twin = None
 		if self.is_locked:
 			self.state_desc = " It is currently locked. "
 		else:
 			self.state_desc = "It is currently unlocked. "
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.size = 20
@@ -1450,10 +1453,11 @@ class Abstract(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# properties
-		self.connection = False
+		self.connection = None
+		self.direction = None
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.isPlural = False
 		self.special_plural = False
 		self.hasArticle = True
@@ -1499,7 +1503,8 @@ class UnderSpace(Thing):
 		# properties
 		self.desc_reveal = True
 		self.xdesc_reveal = True
-		self.connection = False
+		self.connection = None
+		self.direction = None
 		self.known_ix = self.ix
 		self.me = me
 		self.far_away = False
@@ -1509,7 +1514,7 @@ class UnderSpace(Thing):
 		self.contains_preposition = "under"
 		self.contains_preposition_inverse = "out"
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.canSit = False
 		self.canStand = False
 		self.canLie = False
@@ -1859,12 +1864,12 @@ class Transparent(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -1920,12 +1925,12 @@ class Readable(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -1979,12 +1984,12 @@ class Book(Readable):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -2045,12 +2050,12 @@ class Pressable(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
@@ -2107,8 +2112,8 @@ class Liquid(Thing):
 		things[self.ix] = self
 		self.known_ix = self.ix
 		# False except when Thing is the face of a TravelConnector
-		self.connection = False
-		self.direction = False
+		self.connection = None
+		self.direction = None
 		# thing properties
 		self.can_drink = True
 		self.can_pour_out = True
@@ -2121,7 +2126,7 @@ class Liquid(Thing):
 		self.cannot_drink_msg = "You shouldn't drink that. "
 		self.far_away = False
 		self.is_composite = False
-		self.parent_obj = False
+		self.parent_obj = None
 		self.size = 50
 		self.contains_preposition = None
 		self.contains_preposition_inverse = None
