@@ -6,6 +6,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + default save location should be home folder
 ### Serializer
 + check validity of save file before trying to load
++ support more depth in lists/dicts
 ### Terminal Mode
 + some non graphical features may not be available in terminal mode
 + replace html tags

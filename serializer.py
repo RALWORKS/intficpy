@@ -38,7 +38,17 @@ class SaveState:
 		saveDict["vars"] = {}
 		for var in creatorvars:
 			x = getattr(main_module, var)
-			if not isinstance(x, types.ModuleType) and not inspect.isclass(x) and not hasattr(x, "__dict__") and not var.startswith('__'):
+			if isinstance(x, list):
+				tmp = []
+				for item in x:
+					tmp.append(self.simplifyAttr(x, main_module))
+				saveDict["vars"][var] = tmp
+			elif 	isinstance(x, dict):
+				tmp = {}
+				for k, val in x.items():
+					tmp[k] = self.simplifyAttr(x, main_module)
+				saveDict["vars"][var] = tmp
+			elif not isinstance(x, types.ModuleType) and not inspect.isclass(x) and not hasattr(x, "__dict__") and not var.startswith('__'):
 				saveDict["vars"][var] = x
 		saveDict["score"] = {}
 		for attr, value in score.score.__dict__.items():
@@ -290,7 +300,36 @@ class SaveState:
 		if score.hints.cur_node:
 			score.hints.cur_node = self.dictLookup(score.hints.cur_node[5:])
 		for name in loadDict["vars"]:
-			setattr(main_module, name, loadDict["vars"][name])
+			if isinstance(loadDict["vars"][name], list):
+				tmp = []
+				#print(name)
+				#print(loadDict["vars"][name])
+				for v in loadDict["vars"][name]:
+					if isinstance(v, list):
+						tmp2 = []
+						for v2 in v:
+							if "<obj>" in v2:
+								tmp.append(self.dictLookup(v2[5:]))
+							else:
+								tmp.append(v2)
+						tmp.append(tmp2)
+					if "<obj>" in v:
+						tmp.append(self.dictLookup(v[5:]))
+					else:
+						#print(v)
+						tmp.append(v)
+					#print(tmp)
+					setattr(main_module, name, tmp)
+			elif isinstance(loadDict["vars"][name], dict):
+				tmp = {}
+				for k, v in loadDict["vars"][name]:
+					if "<obj>" in v:
+						tmp[k] = self.dictLookup(v[5:])
+					else:
+						tmp[k] = v
+					setattr(main_module, name, tmp)
+			else:
+				setattr(main_module, name, loadDict["vars"][name])
 		parser.daemons.funcs = []
 		for value in loadDict["daemons"]:
 			if value[0] == "<meth>":
@@ -360,6 +399,8 @@ class SaveState:
 									attr.append(getattr(main_module, x))
 								else:
 									attr.append(x)
+							else:
+								attr.append(x)
 						setattr(obj, key2, attr)
 					elif isinstance(loadDict[key][key2], str):
 						if "<obj>" in loadDict[key][key2]:
