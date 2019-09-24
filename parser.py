@@ -233,18 +233,21 @@ def getVerb(app, input_tokens):
 	"""Identify the verb
 	Takes arguments app, pointing to the PyQt application, and input_tokens, the tokenized player command (list of strings)
 	Called every turn by parseInput
-	Returns a two item list of a Verb object and an associated verb form (list of strings), or None """
+	Returns a two item list. The first is a Verb object and an associated verb form (list of strings), or None. 
+	The second is True if potential verb matches were found, False otherwise  """
 	# look up first word in verb dictionary
 	if input_tokens[0] in vocab.verbDict:
 		verbs = list(vocab.verbDict[input_tokens[0]])
 		verbs = matchPrepKeywords(verbs, input_tokens)
 	else:
+		verbs = None
 		if not lastTurn.ambiguous:
 			app.printToGUI("I don't understand the verb: " + input_tokens[0])
 			lastTurn.err = True
-		return None
+		return [None, False]
 	vbo = verbByObjects(app, input_tokens, verbs)
-	return vbo
+	found_verbs = bool(verbs)
+	return [vbo, True]
 
 def verbByObjects(app, input_tokens, verbs):
 	"""Disambiguates verbs based on syntax used
@@ -276,7 +279,7 @@ def verbByObjects(app, input_tokens, verbs):
 				elif input_tokens[0]==term.name:
 					ambiguous_verb = True
 		if not ambiguous_verb:
-			app.printToGUI("Please rephrase")
+			app.printToGUI("I understood as far as \""+ input_tokens[0] + "\".<br>(Type VERB HELP "+ input_tokens[0].upper() + " for help with phrasing.) ")
 		lastTurn.err = True
 		return None
 	else:
@@ -339,7 +342,7 @@ def verbByObjects(app, input_tokens, verbs):
 					elif input_tokens[0]==term.name:
 						ambiguous_verb = True
 			if not ambiguous_verb:
-				app.printToGUI("Please rephrase")
+				app.printToGUI("I understood as far as \""+ input_tokens[0] + "\".<br>(Type VERB HELP "+ input_tokens[0].upper() + " for help with phrasing.) ")
 			lastTurn.err = True
 			return None
 		else:
@@ -352,7 +355,7 @@ def verbByObjects(app, input_tokens, verbs):
 					elif input_tokens[0]==term.name:
 						ambiguous_verb = True
 			if not ambiguous_verb:
-				app.printToGUI("Please rephrase")
+				app.printToGUI("I understood as far as \""+ input_tokens[0] + "\".<br>(Type VERB HELP "+ input_tokens[0].upper() + " for help with phrasing.) ")
 			lastTurn.err = True
 			return None
 
@@ -736,7 +739,7 @@ def knowsRangeCheck(me, thing):
 	"""Check if the Player knows about a Thing
 	Takes arguments me, pointing to the Player, and thing, a Thing
 	Returns True if within range, False otherwise """
-	if not thing.ix in me.knows_about:
+	if not thing.known_ix in me.knows_about:
 		return False
 	else:
 		return True
@@ -802,6 +805,21 @@ def directionRangeCheck(obj):
 	else:
 		return False
 
+def getUniqueConcepts(things):
+	"""Eliminates all items with duplicate known_ix properties. """
+	unique = []
+	check_list = things
+	while check_list:
+		ref = check_list.pop()
+		unique.append(ref)
+		duplicates = []
+		for thing in check_list:
+			if thing.known_ix == ref.known_ix:
+				duplicates.append(thing)
+		for thing in duplicates:
+			check_list.remove(thing)
+	return unique
+
 def checkRange(me, app, things, scope):
 	"""Eliminates all grammatical object candidates that are not within the scope of the current verb
 	Takes arguments me, things, a list of Thing objects (thing.py) that are candidates for the target of a player's action, and scope, a string representing the range of the verb
@@ -821,6 +839,7 @@ def checkRange(me, app, things, scope):
 			elif not roomRangeCheck(me, thing):
 				out_range.append(thing)
 	elif scope=="knows":
+		things = getUniqueConcepts(things)
 		for thing in things:
 			if not knowsRangeCheck(me, thing):
 				out_range.append(thing)
@@ -847,6 +866,8 @@ def checkRange(me, app, things, scope):
 			if scope in ["room", "roomflex"] and not roomRangeCheck(me, thing):
 				out_range.append(thing)
 			elif scope=="inv" and not invRangeCheck(me, thing):
+				out_range.append(thing)
+			elif thing.ignore_if_ambiguous:
 				out_range.append(thing)
 		for thing in out_range:
 			things2.remove(thing)
@@ -1030,7 +1051,9 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 						for item in name_dict[name]:
 							things.append(item)
 							loc = item.location
-							if isinstance(loc, room.Room):
+							if not loc:
+								pass
+							elif isinstance(loc, room.Room):
 								msg += item.lowNameArticle(True) + " on " + loc.floor.lowNameArticle(True) + " (" + str(things.index(item) + 1) + ")"
 							elif loc == me:
 								msg += item.lowNameArticle(True) + " in your inventory (" + str(things.index(item) + 1) + ")"
@@ -1211,7 +1234,7 @@ def callVerb(me, app, cur_verb, obj_words):
 			pass
 		elif cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
 			verb.dropVerb.verbFunc(me, app, cur_iobj)
-		elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj):
+		elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj) and cur_iobj is not me:
 			app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
 			success = verb.getVerb.verbFunc(me, app, cur_iobj)
 			if not success:	
@@ -1225,7 +1248,7 @@ def callVerb(me, app, cur_verb, obj_words):
 				pass
 			elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
-			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
+			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj) and cur_dobj is not me:
 				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
 				success = verb.getVerb.verbFunc(me, app, cur_dobj)
 				if not success:	
@@ -1238,7 +1261,7 @@ def callVerb(me, app, cur_verb, obj_words):
 				pass
 			elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
-			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj):
+			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj) and cur_dobj is not me:
 				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
 				success = verb.getVerb.verbFunc(me, app, cur_dobj)
 				if not success:
@@ -1417,18 +1440,18 @@ def parseInput(me, app, input_string):
 			else:
 				pass
 		gv = getVerb(app, input_tokens)
-		if gv:
-			cur_verb = gv[0]
+		if gv[0]:
+			cur_verb = gv[0][0]
 		else:
-			cur_verb = False
+			cur_verb = None
 		if not cur_verb:
-			if lastTurn.ambiguous:
+			if lastTurn.ambiguous and (not gv[1] or lastTurn.convNode):
 				disambig(me, app, input_tokens)
 				return 0
 			return 0
 		else:
 			lastTurn.verb = cur_verb
-		obj_words = getGrammarObj(me, app, cur_verb, input_tokens, gv[1])
+		obj_words = getGrammarObj(me, app, cur_verb, input_tokens, gv[0][1])
 		if not obj_words:
 			return 0
 		# turn OFF disambiguation mode for next turn

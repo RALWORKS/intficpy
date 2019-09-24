@@ -25,6 +25,7 @@ class Actor(Thing):
 	
 	def __init__(self, name):
 		"""Intitializes the Actor instance and sets essential properties """
+		self.ignore_if_ambiguous = False
 		self.invItem = False # cannot be added to the contains
 		self.connection = None # this should almost always be None, but setting it probably won't break anything 
 		self.contains_preposition = None
@@ -366,6 +367,8 @@ class Player(Actor):
 	def setPlayer(self):
 		self.addSynonym("me")
 		self.addSynonym("myself")
+		self.addSynonym("yourself")
+		self.addSynonym("you")
 		
 	def makeStanding(self):
 		self.position = "standing"

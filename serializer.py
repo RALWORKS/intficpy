@@ -10,6 +10,7 @@ from . import score
 from . import travel
 from . import parser
 from . import tools
+from .vocab import nounDict as vocab_nounDict
 
 ##############################################################
 # SERIALIZER.PY - the save/load system for IntFicPy
@@ -236,6 +237,25 @@ class SaveState:
 		out = getattr(obj, method_arr[1])
 		return out
 	
+	def removeAll(self, obj):
+		contains = []
+		for key in obj.contains:
+			for item in obj.contains[key]:
+				contains.append(item)
+		for item in contains:
+			if obj.containsItem(item):
+				self.removeAll(item)
+				obj.removeThing(item)
+	
+	def emptyRooms(self, loadDict):
+		for key in self.rooms_loaded:
+			item = loadDict[key]
+			obj = self.dictLookup(key)
+			if not isinstance(obj, room.Room):
+				continue
+			#obj.contains = {}
+			#obj.sub_contains = {}
+			self.removeAll(obj)
 	
 	def populateRooms(self, loadDict):
 		"""Updates the location, contains and subcontains properties of every item in every saved room """
@@ -244,8 +264,9 @@ class SaveState:
 			obj = self.dictLookup(key)
 			if not isinstance(obj, room.Room):
 				continue
-			obj.contains = {}
-			obj.sub_contains = {}
+			#obj.contains = {}
+			#obj.sub_contains = {}
+			#self.removeAll(obj)
 			self.searchContains(obj, item["contains"])
 			
 	def addThingByIx(self, destination, ix):
@@ -257,6 +278,11 @@ class SaveState:
 		else:
 			self.placed_things.append(ix)
 			item = self.dictLookup(ix)
+		for word in item.synonyms:
+			if not word in vocab_nounDict:
+				vocab_nounDict[word] = [item]
+			elif not item in vocab_nounDict[word]:
+				vocab_nounDict[word].append(item)
 		destination.addThing(item)
 		return item
 	
@@ -267,8 +293,9 @@ class SaveState:
 			for item in dict_in[key]:
 				if not item[2]:
 					found_obj = self.addThingByIx(root_obj, key)
-					found_obj.contains = {}
-					found_obj.sub_contains = {}
+					#found_obj.contains = {}
+					#found_obj.sub_contains = {}
+					self.removeAll(found_obj)
 					item[2] = True
 					self.searchContains(found_obj, item[1])	
 	
@@ -322,7 +349,7 @@ class SaveState:
 					setattr(main_module, name, tmp)
 			elif isinstance(loadDict["vars"][name], dict):
 				tmp = {}
-				for k, v in loadDict["vars"][name]:
+				for k, v in loadDict["vars"][name].items():
 					if "<obj>" in v:
 						tmp[k] = self.dictLookup(v[5:])
 					else:
@@ -420,6 +447,7 @@ class SaveState:
 						pass
 					else:
 						setattr(obj, key2, loadDict[key][key2])
+		self.emptyRooms(loadDict)
 		self.populateRooms(loadDict)	
 		return True
 	

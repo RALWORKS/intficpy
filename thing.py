@@ -23,6 +23,7 @@ class Thing:
 		thing_ix = thing_ix + 1
 		things[self.ix] = self
 		self.known_ix = self.ix
+		self.ignore_if_ambiguous = False
 		# False except when Thing is the face of a TravelConnector
 		self.connection = None
 		self.direction = None
@@ -75,7 +76,7 @@ class Thing:
 		Takes argument app, pointing to the PyQt5 GUI"""
 		from .room import Room 
 		x = self.location
-		while not isinstance(x, Room):
+		while x and not isinstance(x, Room):
 			x = x.location
 		return x
 	
@@ -283,6 +284,7 @@ class Thing:
 			self.child_Containers.append(item)
 		self.location.addThing(item)
 		item.invItem = False
+		item.cannotTakeMsg = item.capNameArticle(True) + " is attached to " + self.lowNameArticle(True) + ". "
 		if isinstance(self, Container) or isinstance(self, Surface):
 			self.containsListUpdate()
 
@@ -297,6 +299,7 @@ class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
 	def __init__(self, name, me):
 		"""Sets the essential properties for a new Surface object """
+		self.ignore_if_ambiguous = False
 		# indexing and addThing to dictionary for save/load
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -581,6 +584,7 @@ class Container(Thing):
 	def __init__(self, name, me):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
+		self.ignore_if_ambiguous = False
 		# index and add to dictionary for save/load
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -979,6 +983,7 @@ class LightSource(Thing):
 	def __init__(self, name):
 		"""Set basic properties for the LightSource instance
 		Takes argument name, a single noun (string)"""
+		self.ignore_if_ambiguous = False
 		# index and add to dictionary for save/load
 		global thing_ix
 		# indexing
@@ -1114,6 +1119,7 @@ class AbstractClimbable(Thing):
 	Creators should generally use a LadderConnector or StaircaseConnector (travel.py) rather than directly creating AbstractClimbable instances. """
 	def __init__(self, name):
 		"""Sets essential properties for the AbstractClimbable instance """
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1167,6 +1173,7 @@ class Door(Thing):
 	Creators should generally use DoorConnectors (travel.py) rather than defining Doors  directly. """
 	def __init__(self, name):
 		"""Sets essential properties for the Door instance """
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1285,6 +1292,7 @@ class Key(Thing):
 	"""Class for keys """
 	def __init__(self, name="key"):
 		"""Sets essential properties for the Thing instance """
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1341,6 +1349,7 @@ class Lock(Thing):
 	def __init__(self, is_locked, key_obj, name="lock"):
 		"""Sets essential properties for the Lock instance """
 		# indexing for save
+		self.ignore_if_ambiguous = False
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
@@ -1446,6 +1455,7 @@ class Lock(Thing):
 class Abstract(Thing):
 	"""Class for abstract game items with no location, such as ideas"""
 	def __init__(self, name):
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1495,6 +1505,7 @@ class UnderSpace(Thing):
 	def __init__(self, name, me):
 		"""Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
+		self.ignore_if_ambiguous = False
 		# index and add to dictionary for save/load
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1529,6 +1540,7 @@ class UnderSpace(Thing):
 		self.name = name
 		self.verbose_name = name
 		self.adjectives = []
+		self.synonyms = []
 		self.manual_update = False
 		self.give = False
 		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
@@ -1857,6 +1869,7 @@ class Transparent(Thing):
 	Replace default lookThrough method for more complicated behaviour """
 	def __init__(self, name):
 		"""Sets essential properties for the Transparent instance """
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1918,6 +1931,7 @@ class Readable(Thing):
 	Replace default readText method for more complicated behaviour """
 	def __init__(self, name, text="There's nothing written here. "):
 		"""Sets essential properties for the Readable instance """
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1977,6 +1991,7 @@ class Book(Readable):
 	"""Readable that can be opened """
 	def __init__(self, name, text="There's nothing written here. "):
 		"""Sets essential properties for the Book instance """
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -2043,6 +2058,7 @@ class Pressable(Thing):
 	Game creators should redefine the pressThing method for the instance to trigger events when the press/push verb is used """
 	def __init__(self, name):
 		"""Sets essential properties for the Pressable instance """
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -2105,6 +2121,7 @@ class Liquid(Thing):
 		The liquid_type property should be a short description of what the liquid is, such as "water" or "motor oil"
 		This will be used to determine what liquids can be merged and mixed
 		Replace the mixWith property to allow mixing of Liquids"""
+		self.ignore_if_ambiguous = False
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)

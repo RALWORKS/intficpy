@@ -203,7 +203,7 @@ def getVerbFunc(me, app, dobj, skip=False):
 			if dobj.location==me:
 				app.printToGUI("You already have " + dobj.getArticle(True) + dobj.verbose_name + ".")
 				return False
-			else:
+			elif not isinstance(dobj.location, room.Room):
 				return removeFromVerb.verbFunc(me, app, dobj, dobj.location)
 		# print the action message
 		app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
@@ -242,7 +242,7 @@ def getVerbFunc(me, app, dobj, skip=False):
 		me.addThing(dobj)
 		return True
 	elif dobj.parent_obj:
-		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
+		app.printToGUI(dobj.cannotTakeMsg)
 		return False
 	else:
 		# if the dobj can't be taken, print the message
@@ -401,6 +401,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
 	elif not dobj.invItem:
 		app.printToGUI("Error: not an inventory item. ")
+		print(dobj)
 	else:
 		app.printToGUI("You are not holding " + dobj.getArticle(True) + dobj.verbose_name + ".")
 # replace the default verbFunc method
@@ -1053,14 +1054,22 @@ def getImpTalkTo(me, app):
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
-		app.printToGUI("There's no one here to talk to.")
+		app.printToGUI("There's no one obvious to talk to here.")
 	elif len(people)==1:
 		# ask the only actor in the room
-		return people[0]
-	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		if not people[0].ignore_if_ambiguous:
+			return people[0]
+		app.printToGUI("There's no one obvious to talk to here.")
+	elif isinstance(parser.lastTurn.dobj, actor.Actor) and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
+		people2 = list(people)
+		for p in people:
+			if p.ignore_if_ambiguous:
+				people2.remove(p)
+		if len(people2)==1:
+			return people2[0]
 		# turn disambiguation mode on
 		app.printToGUI("Please specify a person to talk to. ")
 		parser.lastTurn.ambiguous = True
@@ -1127,14 +1136,22 @@ def getImpAsk(me, app):
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
-		app.printToGUI("There's no one here to ask.")
+		app.printToGUI("There's no one obvious here to ask.")
 	elif len(people)==1:
 		# ask the only actor in the room
-		return people[0]
-	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		if not people[0].ignore_if_ambiguous:
+			return people[0]
+		app.printToGUI("There's no one obvious here to ask.")
+	elif isinstance(parser.lastTurn.dobj, actor.Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
+		people2 = list(people)
+		for p in people:
+			if p.ignore_if_ambiguous:
+				people2.remove(p)
+		if len(people2)==1:
+			return people2[0]
 		app.printToGUI("Please specify a person to ask.")
 		# turn disambiguation mode on
 		parser.lastTurn.ambiguous = True
@@ -1214,14 +1231,22 @@ def getImpTell(me, app):
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
-		app.printToGUI("There's no one here to tell.")
+		app.printToGUI("There's no one obvious here to tell.")
 	elif len(people)==1:
 		# ask the only actor in the room
-		return people[0]
-	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		if not people[0].ignore_if_ambiguous:
+			return people[0]
+		app.printToGUI("There's no one obvious here to tell.")
+	elif isinstance(parser.lastTurn.dobj, actor.Actor) and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
+		people2 = list(people)
+		for p in people:
+			if p.ignore_if_ambiguous:
+				people2.remove(p)
+		if len(people2)==1:
+			return people2[0]
 		# turn disambiguation mode on
 		app.printToGUI("Please specify a person to ask.")
 		parser.lastTurn.ambiguous = True
@@ -1298,14 +1323,22 @@ def getImpGive(me, app):
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
-		app.printToGUI("There's no one here to give it to.")
+		app.printToGUI("There's no one obvious here to give it to.")
 	elif len(people)==1:
 		# ask the only actor in the room
-		return people[0]
-	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		if not people[0].ignore_if_ambiguous:
+			return people[0]
+		app.printToGUI("There's no one obvious here to give it to.")
+	elif isinstance(parser.lastTurn.dobj, actor.Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
+		people2 = list(people)
+		for p in people:
+			if p.ignore_if_ambiguous:
+				people2.remove(p)
+		if len(people2)==1:
+			return people2[0]
 		# turn disambiguation mode on
 		app.printToGUI("Please specify a person to give it to.")
 		parser.lastTurn.ambiguous = True
@@ -1316,10 +1349,6 @@ giveVerb.getImpDobj = getImpGive
 def giveVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Give an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-	if isinstance(dobj, actor.Actor):
-		if dobj.hermit_topic:
-			dobj.hermit_topic.func(app, False)
-			return True
 	if not skip:
 		runfunc = True
 		try:
@@ -1332,7 +1361,13 @@ def giveVerbFunc(me, app, dobj, iobj, skip=False):
 			pass
 		if not runfunc:
 			return True
-	
+	if isinstance(dobj, actor.Actor):
+		if dobj.hermit_topic:
+			dobj.hermit_topic.func(app, False)
+			return True
+	if iobj is me:
+		app.printToGUI("You cannot give yourself away. ")
+		return False
 	if isinstance(dobj, actor.Actor):
 		if dobj.hi_topic and not dobj.said_hi:
 			dobj.hi_topic.func(app, False)
@@ -1384,14 +1419,22 @@ def getImpShow(me, app):
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
-		app.printToGUI("There's no one here to show.")
+		app.printToGUI("There's no one obvious here to show.")
 	elif len(people)==1:
 		# ask the only actor in the room
-		return people[0]
-	elif isinstance(parser.lastTurn.dobj, actor.Actor):
+		if not people[0].ignore_if_ambiguous:
+			return people[0]
+		app.printToGUI("There's no one obvious here to show.")
+	elif isinstance(parser.lastTurn.dobj, actor.Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
+		people2 = list(people)
+		for p in people:
+			if p.ignore_if_ambiguous:
+				people2.remove(p)
+		if len(people2)==1:
+			return people2[0]
 		# turn disambiguation mode on
 		app.printToGUI("Please specify a person to show.")
 		parser.lastTurn.ambiguous = True
@@ -2713,6 +2756,8 @@ def useVerbFunc(me, app, dobj, skip=False):
 			lastTurn.ambiguous = True
 		elif isinstance(dobj, thing.Transparent):
 			return lookThroughVerb.verbFunc(me, app, dobj)
+		elif dobj.connection:
+			dobj.connection.travel(me, app)
 		elif isinstance(dobj, actor.Actor):
 			app.printToGUI("You cannot use people. ")
 			return False
@@ -2740,7 +2785,7 @@ def buyFromVerbFunc(me, app, dobj, iobj, skip=False):
 	if not skip:
 		runfunc = True
 		try:
-			runfunc = dobj.buyFromVerbDobj(me, app)
+			runfunc = dobj.buyFromVerbDobj(me, app, iobj)
 		except AttributeError:
 			pass
 		try:
@@ -2759,30 +2804,30 @@ def buyFromVerbFunc(me, app, dobj, iobj, skip=False):
 		if not dobj.commodity:
 			app.printToGUI("You cannot buy or sell a person. ")
 			return False
-	if dobj.ix not in iobj.for_sale:
+	if dobj.known_ix not in iobj.for_sale:
 		app.printToGUI(iobj.capNameArticle(True) + " doesn't sell " + dobj.lowNameArticle(False) + ". ")
 		return False
-	elif not iobj.for_sale[dobj.ix].number:
-		app.printToGUI(iobj.for_sale[dobj.ix].out_stock_msg)
+	elif not iobj.for_sale[dobj.known_ix].number:
+		app.printToGUI(iobj.for_sale[dobj.known_ix].out_stock_msg)
 		return False
 	else:
-		currency = iobj.for_sale[dobj.ix].currency
+		currency = iobj.for_sale[dobj.known_ix].currency
 		currency_ix = currency.ix
 		mycurrency = 0
 		if currency_ix in me.contains:
 			mycurrency = mycurrency + len(me.contains[currency_ix])
 		if currency_ix in me.sub_contains:
 			mycurrency = mycurrency + len(me.sub_contains[currency_ix])
-		if mycurrency < iobj.for_sale[dobj.ix].price:
-			app.printToGUI("You don't have enough " + currency.getPlural() + " to purchase " + dobj.lowNameArticle(False) + ". <br> (requires " + str(iobj.for_sale[dobj.ix].price) + ") ")
+		if mycurrency < iobj.for_sale[dobj.known_ix].price:
+			app.printToGUI("You don't have enough " + currency.getPlural() + " to purchase " + dobj.lowNameArticle(False) + ". <br> (requires " + str(iobj.for_sale[dobj.known_ix].price) + ") ")
 			return False
 		else:
-			app.printToGUI(iobj.for_sale[dobj.ix].purchase_msg)
-			iobj.for_sale[dobj.ix].beforeBuy(me, app)
-			iobj.for_sale[dobj.ix].buyUnit(me, app)
-			iobj.for_sale[dobj.ix].afterBuy(me, app)
-			if not iobj.for_sale[dobj.ix].number:
-				iobj.for_sale[dobj.ix].soldOut(me, app)
+			app.printToGUI(iobj.for_sale[dobj.known_ix].purchase_msg)
+			iobj.for_sale[dobj.known_ix].beforeBuy(me, app)
+			iobj.for_sale[dobj.known_ix].buyUnit(me, app)
+			iobj.for_sale[dobj.known_ix].afterBuy(me, app)
+			if not iobj.for_sale[dobj.known_ix].number:
+				iobj.for_sale[dobj.known_ix].soldOut(me, app)
 			return True
 	
 # replace the default verbFunc method
@@ -2802,17 +2847,31 @@ def buyVerbFunc(me, app, dobj):
 	from .parser import lastTurn
 	people = []
 	# find every Actor in the current location
-	for key, items in me.location.contains.items():
+	for key, items in me.getOutermostLocation().contains.items():
 		for item in items:
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
-		app.printToGUI("There's no one here to buy from. ")
+		app.printToGUI("There's no one obvious here to buy from. ")
 	elif len(people)==1:
 		# ask the only actor in the room
 		iobj = people[0]
 		return buyFromVerb.verbFunc(me, app, dobj, iobj)
 	else:
+		remove_list = []
+		for p in people:
+			if p.ignore_if_ambiguous:
+				remove_list.append(p)
+		for p in remove_list:
+			people.remove(p)
+		if len(people)==0:
+			app.printToGUI("There's no one obvious here to buy from. ")	
+		elif len(people)==1:
+			return buyFromVerb.verbFunc(me, app, dobj, people[0])
+		elif lastTurn.dobj in people:
+			return buyFromVerb.verbFunc(me, app, dobj, lastTurn.dobj)
+		elif lastTurn.iobj in people:
+			return buyFromVerb.verbFunc(me, app, dobj, lastTurn.iobj)
 		listpeople = "Would you like to buy from "
 		for p in people:
 			listpeople = listpeople + p.lowNameArticle(True)
@@ -2867,16 +2926,16 @@ def sellToVerbFunc(me, app, dobj, iobj, skip=False):
 	if dobj.ix not in iobj.will_buy:
 		app.printToGUI(iobj.capNameArticle(True) + " doesn't want to buy " + dobj.lowNameArticle(True) + ". ")
 		return False
-	elif not iobj.will_buy[dobj.ix].number:
+	elif not iobj.will_buy[dobj.known_ix].number:
 		app.printToGUI(iobj.capNameArticle(True) + " will not buy any more " + dobj.getPlural() + ". ")
 		return False
 	else:
-		app.printToGUI(iobj.will_buy[dobj.ix].sell_msg)
-		iobj.will_buy[dobj.ix].beforeSell(me, app)
-		iobj.will_buy[dobj.ix].sellUnit(me, app)
-		iobj.will_buy[dobj.ix].afterSell(me, app)
-		if not iobj.will_buy[dobj.ix].number:
-			iobj.will_buy[dobj.ix].boughtAll(me, app)
+		app.printToGUI(iobj.will_buy[dobj.known_ix].sell_msg)
+		iobj.will_buy[dobj.known_ix].beforeSell(me, app)
+		iobj.will_buy[dobj.known_ix].sellUnit(me, app)
+		iobj.will_buy[dobj.known_ix].afterSell(me, app)
+		if not iobj.will_buy[dobj.known_ix].number:
+			iobj.will_buy[dobj.known_ix].boughtAll(me, app)
 		return True
 	
 # replace the default verbFunc method
@@ -2895,17 +2954,31 @@ def sellVerbFunc(me, app, dobj):
 	from .parser import lastTurn
 	people = []
 	# find every Actor in the current location
-	for key, items in me.location.contains.items():
+	for key, items in me.getOutermostLocation().contains.items():
 		for item in items:
 			if isinstance(item, actor.Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
-		app.printToGUI("There's no one here to sell to. ")
+		app.printToGUI("There's no one obvious here to sell to.")
 	elif len(people)==1:
 		# ask the only actor in the room
 		iobj = people[0]
 		return sellToVerb.verbFunc(me, app, dobj, iobj)
 	else:
+		remove_list = []
+		for p in people:
+			if p.ignore_if_ambiguous:
+				remove_list.append(p)
+		for p in remove_list:
+			people.remove(p) 
+		if len(people)==0:
+			app.printToGUI("There's no one obvious here to sell to.")
+		elif len(people)==1:
+			return sellToVerb.verbFunc(me, app, dobj, people[0])
+		elif lastTurn.dobj in people:
+			return sellToVerb.verbFunc(me, app, dobj, lastTurn.dobj)
+		elif lastTurn.iobj in people:
+			return sellToVerb.verbFunc(me, app, dobj, lastTurn.iobj)
 		listpeople = "Would you like to sell it to "
 		for p in people:
 			listpeople = listpeople + p.lowNameArticle(True)
