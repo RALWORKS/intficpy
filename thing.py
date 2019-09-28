@@ -24,6 +24,7 @@ class Thing:
 		things[self.ix] = self
 		self.known_ix = self.ix
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# False except when Thing is the face of a TravelConnector
 		self.connection = None
 		self.direction = None
@@ -300,6 +301,7 @@ class Surface(Thing):
 	def __init__(self, name, me):
 		"""Sets the essential properties for a new Surface object """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing and addThing to dictionary for save/load
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -585,6 +587,7 @@ class Container(Thing):
 		"""Set basic properties for the Container instance
 		Takes argument name, a single noun (string)"""
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# index and add to dictionary for save/load
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -984,6 +987,7 @@ class LightSource(Thing):
 		"""Set basic properties for the LightSource instance
 		Takes argument name, a single noun (string)"""
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# index and add to dictionary for save/load
 		global thing_ix
 		# indexing
@@ -1120,6 +1124,7 @@ class AbstractClimbable(Thing):
 	def __init__(self, name):
 		"""Sets essential properties for the AbstractClimbable instance """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1174,6 +1179,7 @@ class Door(Thing):
 	def __init__(self, name):
 		"""Sets essential properties for the Door instance """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1293,6 +1299,7 @@ class Key(Thing):
 	def __init__(self, name="key"):
 		"""Sets essential properties for the Thing instance """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1350,6 +1357,7 @@ class Lock(Thing):
 		"""Sets essential properties for the Lock instance """
 		# indexing for save
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
 		thing_ix = thing_ix + 1
@@ -1456,6 +1464,7 @@ class Abstract(Thing):
 	"""Class for abstract game items with no location, such as ideas"""
 	def __init__(self, name):
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1506,6 +1515,7 @@ class UnderSpace(Thing):
 		"""Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# index and add to dictionary for save/load
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1870,6 +1880,7 @@ class Transparent(Thing):
 	def __init__(self, name):
 		"""Sets essential properties for the Transparent instance """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1932,6 +1943,7 @@ class Readable(Thing):
 	def __init__(self, name, text="There's nothing written here. "):
 		"""Sets essential properties for the Readable instance """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -1992,6 +2004,7 @@ class Book(Readable):
 	def __init__(self, name, text="There's nothing written here. "):
 		"""Sets essential properties for the Book instance """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -2059,6 +2072,7 @@ class Pressable(Thing):
 	def __init__(self, name):
 		"""Sets essential properties for the Pressable instance """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)
@@ -2122,6 +2136,7 @@ class Liquid(Thing):
 		This will be used to determine what liquids can be merged and mixed
 		Replace the mixWith property to allow mixing of Liquids"""
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		# indexing for save
 		global thing_ix
 		self.ix = "thing" + str(thing_ix)

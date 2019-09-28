@@ -6,10 +6,6 @@ from . import vocab
 # Contains the Actor class, the Topic class the actors dictionary
 ##############################################################
 
-# TODO: save ask_topics and tell_topics
-# TODO: accomodate spaces in the proper_name argument of makeProper
-# TODO: implement give/show topics
-
 # a dictionary of the indeces of all Actor objects, mapped to their object
 # populated at runtime
 actors = {}
@@ -22,10 +18,10 @@ topic_ix = 0
 
 class Actor(Thing):
 	"""Actor class, used for characters in the creator's game """
-	
 	def __init__(self, name):
 		"""Intitializes the Actor instance and sets essential properties """
 		self.ignore_if_ambiguous = False
+		self.cannot_interact_msg = None
 		self.invItem = False # cannot be added to the contains
 		self.connection = None # this should almost always be None, but setting it probably won't break anything 
 		self.contains_preposition = None
@@ -315,6 +311,8 @@ class Player(Actor):
 	def __init__(self, name):
 		"""Set basic properties for the Player instance
 		Takes argument loc, a Room"""
+		self.cannot_interact_msg = None
+		self.ignore_if_ambiguous = False
 		self.connection = None # this should almost always be None, but setting it probably won't break anything 
 		self.contains_preposition = None
 		self.name = name

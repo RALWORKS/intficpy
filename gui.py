@@ -253,8 +253,13 @@ class App(QMainWindow):
 		self.cutscene = output_string.split("<<m>> ")
 		self.waiting = False
 		self.cutscene[0] = self.cutscene[0] + " [MORE]"
-		
-		self.newBox(self.box_style1)
+		try:
+			children = self.obox.findChildren(QLabel)
+		except:
+			self.newBox(self.box_style1)
+			children = None
+		if children:
+			self.newBox(self.box_style1)
 		
 		if self.new_obox:
 			self.scroll_widget_layout.addWidget(self.obox)

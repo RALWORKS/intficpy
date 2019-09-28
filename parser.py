@@ -59,9 +59,9 @@ class gameInfo:
 		self.basic_instructions = "This is a parser-based game, which means the user interacts by typing commands. <br><br>A command should be a simple sentence, starting with a verb, for instance, <br>> JUMP<br>> TAKE UMBRELLA<br>> TURN DIAL TO 7<br><br>The parser is case insensitive, and ignores punctuation and articles (a, an, the). <br><br>It can be difficult at times to figure out the correct verb to perform an action. Even once you have the correct verb, it can be hard to get the right phrasing. In these situations, you can view the full list of verbs in the game using the VERBS command. You can also view the accepted phrasings for a specific verb with the VERB HELP command (for instance, type VERB HELP WEAR).<br><br>This game does not have quit and restart commands. To quit, simply close the program. To restart, open it again.<br><br>Typing SAVE will open a dialogue to create a save file. Typing LOAD will allow you to select a save file to restore. "
 		self.game_instructions = None
 		self.intFicPyCredit = True
-		self.desc = False
+		self.desc = None
 		self.showVerbs = True
-		self.betaTesterCredit = False
+		self.betaTesterCredit = None
 		self.customMsg = None
 		self.verbs = []
 		self.discovered_verbs = []
@@ -83,6 +83,7 @@ class gameInfo:
 			if self.desc:
 				app.printToGUI(self.desc)
 			if self.betaTesterCredit:
+				app.printToGUI("<b>Beta Testing Credits</b>")
 				app.printToGUI(self.betaTesterCredit)
 	
 	def printInstructions(self, app):
@@ -241,7 +242,10 @@ def getVerb(app, input_tokens):
 		verbs = matchPrepKeywords(verbs, input_tokens)
 	else:
 		verbs = None
-		if not lastTurn.ambiguous:
+		if lastTurn.convNode:
+			app.printToGUI("\"" + " ".join(input_tokens).capitalize() + "\" is not enough information to match a suggestion. ")
+			lastTurn.err = True
+		elif not lastTurn.ambiguous:
 			app.printToGUI("I don't understand the verb: " + input_tokens[0])
 			lastTurn.err = True
 		return [None, False]
@@ -847,7 +851,7 @@ def checkRange(me, app, things, scope):
 		for thing in things:
 			if not nearRangeCheck(me, thing):
 				out_range.append(thing)
-	elif scope=="inv":
+	elif scope=="inv" or scope=="invflex":
 		for thing in things:
 			if roomRangeCheck(me, thing):
 				pass
@@ -865,7 +869,7 @@ def checkRange(me, app, things, scope):
 		for thing in things:
 			if scope in ["room", "roomflex"] and not roomRangeCheck(me, thing):
 				out_range.append(thing)
-			elif scope=="inv" and not invRangeCheck(me, thing):
+			elif scope in ["inv", "invflex"]  and not invRangeCheck(me, thing):
 				out_range.append(thing)
 			elif thing.ignore_if_ambiguous:
 				out_range.append(thing)
@@ -900,7 +904,7 @@ def verbScopeError(app, scope, noun_adj_arr, me):
 	elif scope=="direction":
 		app.printToGUI(noun.capitalize() + " is not a direction I recognize. ")
 	else:
-		# assuming scope = "inv"
+		# assuming scope = "inv"/"invflex"
 		app.printToGUI("You don't have any " + noun + ".")
 		lastTurn.err = True
 		return None
@@ -1234,7 +1238,7 @@ def callVerb(me, app, cur_verb, obj_words):
 			pass
 		elif cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
 			verb.dropVerb.verbFunc(me, app, cur_iobj)
-		elif cur_verb.iscope == "inv" and roomRangeCheck(me, cur_iobj) and cur_iobj is not me:
+		elif (cur_verb.iscope == "inv" or (cur_verb.iscope=="invflex" and cur_iobj is not me)) and roomRangeCheck(me, cur_iobj):
 			app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
 			success = verb.getVerb.verbFunc(me, app, cur_iobj)
 			if not success:	
@@ -1248,7 +1252,7 @@ def callVerb(me, app, cur_verb, obj_words):
 				pass
 			elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
-			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj) and cur_dobj is not me:
+			elif (cur_verb.dscope == "inv" or (cur_verb.dscope=="invflex"  and cur_dobj is not me)) and roomRangeCheck(me, cur_dobj):
 				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
 				success = verb.getVerb.verbFunc(me, app, cur_dobj)
 				if not success:	
@@ -1261,7 +1265,7 @@ def callVerb(me, app, cur_verb, obj_words):
 				pass
 			elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
-			elif cur_verb.dscope == "inv" and roomRangeCheck(me, cur_dobj) and cur_dobj is not me:
+			elif (cur_verb.dscope == "inv" or (cur_verb.dscope=="invflex"  and cur_dobj is not me)) and roomRangeCheck(me, cur_dobj):
 				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
 				success = verb.getVerb.verbFunc(me, app, cur_dobj)
 				if not success:
@@ -1303,11 +1307,11 @@ def callVerb(me, app, cur_verb, obj_words):
 			verb.standUpVerb.verbFunc(me, app)
 		cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
 	elif cur_verb.hasDobj:
-		if cur_verb.dscope!="inv" and me.position!="standing":
+		if cur_verb.dscope!="inv" and cur_verb.dscope!="invflex" and me.position!="standing":
 			verb.standUpVerb.verbFunc(me, app)
 		cur_verb.verbFunc(me, app, cur_dobj)
 	elif cur_verb.hasIobj:
-		if cur_verb.iscope!="inv" and me.position!="standing":
+		if cur_verb.iscope!="inv" and cur_verb.iscope!="invflex"  and me.position!="standing":
 			verb.standUpVerb.verbFunc(me, app)
 		cur_verb.verbFunc(me, app, cur_iobj)
 	else:
@@ -1343,11 +1347,7 @@ def saveLoadCheck(input_tokens, me, app):
 	Takes arguments input_tokens, the tokenized player command (list of strings), me, the player (Player object, player.py), and app, the PyQt application
 	Called by parseInput
 	Returns a Boolean """
-	if len(input_tokens)==2 and input_tokens[0]=="save":
-		serializer.curSave.saveState(me, input_tokens[1])
-		app.printToGUI("Game saved to " + input_tokens[1] + ".sav")
-		return True
-	elif input_tokens[0]=="save":
+	if input_tokens[0]=="save":
 		# app.getSaveFileGUI is not defined for terminal version
 		fname = app.getSaveFileGUI()
 		if not fname:
@@ -1356,12 +1356,6 @@ def saveLoadCheck(input_tokens, me, app):
 		else:
 			serializer.curSave.saveState(me, fname, aboutGame.main_file)
 			app.printToGUI("Game saved to " + fname)
-		return True
-	elif len(input_tokens)==2 and input_tokens[0]=="load":
-		if serializer.curSave.loadState(me, input_tokens[1], app, aboutGame.main_file):
-			app.printToGUI("Game loaded from " + input_tokens[1] + ".sav")
-		else:
-			app.printToGUI("Error loading game.")
 		return True
 	elif input_tokens[0]=="load":
 		fname = app.getLoadFileGUI()
@@ -1463,24 +1457,18 @@ def parseInput(me, app, input_string):
 		return 0
 	else:
 		from .verb import scoreVerb, fullScoreVerb
-		if saveLoadCheck(input_tokens, me, app):
-			return 0
-		elif len(input_tokens)==2:
-			if input_tokens==["full", "score"]:
-				fullScoreVerb.verbFunc(me, app)
-			else:
-				app.printToGUI("The game has ended. Commands are SAVE, LOAD, SCORE, FULLSCORE, and ABOUT.")
-		elif len(input_tokens)==1:
-			if input_tokens==["score"]:
-				scoreVerb.verbFunc(me, app)
-			elif input_tokens==["fullscore"]:
-				fullScoreVerb.verbFunc(me, app)
-			elif input_tokens==["about"]:
-				aboutGame.printAbout(app)
-			else:
-				app.printToGUI("The game has ended. Commands are SAVE, LOAD, SCORE, FULLSCORE, and ABOUT.")
+		if input_tokens in [["save"], ["load"]]:
+			app.newBox(app.box_style1)
+		if input_tokens==["full", "score"]:
+			fullScoreVerb.verbFunc(me, app)
+		elif input_tokens==["score"]:
+			scoreVerb.verbFunc(me, app)
+		elif input_tokens==["fullscore"]:
+			fullScoreVerb.verbFunc(me, app)
+		elif input_tokens==["about"]:
+			aboutGame.printAbout(app)
 		else:
-			app.printToGUI("The game has ended. Commands are SAVE, LOAD, SCORE, FULLSCORE, and ABOUT.")
+			app.printToGUI("The game has ended. Commands are SCORE, FULLSCORE, and ABOUT.")
 
 def initGame(me, app, main_file):
 	"""Called when the game is opened to show opening and describe the first room
