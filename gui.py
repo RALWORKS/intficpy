@@ -70,7 +70,7 @@ class Prelim:
 class App(QMainWindow):
 	"""The App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods """
 
-	def __init__(self, me, style1="background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px", style2="background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px", scroll_style=scroll_style, app_style="QFrame { border:none;}", icon=None):
+	def __init__(self, me, style1="color: black; background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px", style2="color: black; background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px", scroll_style=scroll_style, app_style="QFrame { border:none;}", icon=None):
 		"""Initialize the GUI
 		Takes argument me, pointing to the Player """
 		from .thing import reflexive
