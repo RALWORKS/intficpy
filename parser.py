@@ -92,8 +92,6 @@ class gameInfo:
 		if self.game_instructions:
 			app.printToGUI("<b>Game Instructions</b>")
 			app.printToGUI(self.game_instructions)
-		print(thing.things["thing140"].verbose_name)
-		print(thing.things["thing141"].verbose_name)
 				
 	def printHelp(self, app):	
 		if self.help_msg:
