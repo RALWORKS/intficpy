@@ -42,7 +42,7 @@ class SaveState:
 			if isinstance(x, list):
 				tmp = []
 				for item in x:
-					tmp.append(self.simplifyAttr(x, main_module))
+					tmp.append(self.simplifyAttr(item, main_module))
 				saveDict["vars"][var] = tmp
 			elif 	isinstance(x, dict):
 				tmp = {}
