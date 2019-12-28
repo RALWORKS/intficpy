@@ -2,8 +2,9 @@ import sys, os, re, time
 import PyQt5.QtCore as QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QFrame, QScrollArea, QAbstractSlider, QSizePolicy, QFileDialog
 from PyQt5.QtGui import QIcon, QFont, QIcon
-
-from intficpy.parser import parser
+from intficpy.things.things import reflexive
+from intficpy.serializers.serializer import curSave
+from intficpy.parser.parser import parseInput, initGame, daemons, lastTurn, extractInline
 
 ##############################################################
 # GUI.PY - the GUI for IntFicPy
@@ -73,7 +74,6 @@ class App(QMainWindow):
 	def __init__(self, me, style1="color: black; background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px", style2="color: black; background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px", scroll_style=scroll_style, app_style="QFrame { border:none;}", icon=None):
 		"""Initialize the GUI
 		Takes argument me, pointing to the Player """
-		from intficpy.things.thing import reflexive
 		import __main__
 		super().__init__()
 		if icon:
@@ -92,7 +92,7 @@ class App(QMainWindow):
 		self.showMaximized()
 		self.me = me
 		#self.newBox(self.box_style1)
-		parser.initGame(me, self, main_file)
+		initGame(me, self, main_file)
 		self.setStyleSheet(app_style)
 		self.new_obox = False
 		# used for game-interrupting cutscenes
@@ -100,7 +100,6 @@ class App(QMainWindow):
 	
 	def closeEvent(self, event):
 		"""Trigger program close. Close the recording file first, if open. """
-		from intficpy.serializers.serializer import curSave
 		if curSave.recfile:
 			curSave.recfile.close()
 		event.accept()
@@ -155,14 +154,13 @@ class App(QMainWindow):
 	def turnMain(self, input_string):
 		"""Sends user input to the parser each turn
 		Takes argument input_string, the cleaned user input string """
-		from intficpy.parser.parser import parseInput
 		quit = False
 		if len(input_string)==0:
 			return 0
 		else:
 			# parse string
 			parseInput(self.me, self, input_string)
-			parser.daemons.runAll(self.me, self)
+			daemons.runAll(self.me, self)
 	
 	def newBox(self, box_style):
 		"""Creates a new QFrame to wrap text in the game output area
@@ -194,16 +192,16 @@ class App(QMainWindow):
 		"""Maps on_click to the enter key """
 		if self.anykeyformore and self.cutscene != []:
 			self.cutsceneNext()
-		elif event.key() == QtCore.Qt.Key_Up and len(parser.lastTurn.turn_list) > 0:
-			parser.lastTurn.back = parser.lastTurn.back - 1
-			if -parser.lastTurn.back >= len(parser.lastTurn.turn_list):
-				parser.lastTurn.back = 0
-			self.textbox.setText(parser.lastTurn.turn_list[parser.lastTurn.back])
-		elif event.key() == QtCore.Qt.Key_Down and len(parser.lastTurn.turn_list) > 0 and parser.lastTurn.back < 0:
-			parser.lastTurn.back = parser.lastTurn.back + 1
-			self.textbox.setText(parser.lastTurn.turn_list[parser.lastTurn.back])
+		elif event.key() == QtCore.Qt.Key_Up and len(lastTurn.turn_list) > 0:
+			lastTurn.back = lastTurn.back - 1
+			if -lastTurn.back >= len(lastTurn.turn_list):
+				lastTurn.back = 0
+			self.textbox.setText(lastTurn.turn_list[lastTurn.back])
+		elif event.key() == QtCore.Qt.Key_Down and len(lastTurn.turn_list) > 0 and lastTurn.back < 0:
+			lastTurn.back = lastTurn.back + 1
+			self.textbox.setText(lastTurn.turn_list[lastTurn.back])
 		elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text())>0:
-			parser.lastTurn.back = 0
+			lastTurn.back = 0
 			self.on_click()
 
 	def printToGUI(self, out_string, bold=False):
@@ -232,7 +230,7 @@ class App(QMainWindow):
 		if bold:
 			out.setFont(tBold)
 		# remove function calls from output
-		out_string = parser.extractInline(self, out_string, main_file)
+		out_string = extractInline(self, out_string, main_file)
 		out.setText(out_string)
 		if "<<m>>" in out_string:
 			self.enterForMore(out_string)
@@ -268,7 +266,7 @@ class App(QMainWindow):
 			self.new_obox = False
 		
 		out = QLabel()
-		self.cutscene[0] = parser.extractInline(self, self.cutscene[0], main_file)
+		self.cutscene[0] = extractInline(self, self.cutscene[0], main_file)
 		out.setText(self.cutscene[0])
 		self.olayout.addWidget(out)
 		out.setWordWrap(True)
@@ -298,7 +296,7 @@ class App(QMainWindow):
 		self.olayout.addWidget(out)
 		out.setWordWrap(True)
 		out.setStyleSheet("margin-bottom: 5px")
-		self.cutscene[0] = parser.extractInline(self, self.cutscene[0], main_file)
+		self.cutscene[0] = extractInline(self, self.cutscene[0], main_file)
 		out.setText(self.cutscene[0])
 		out.setMaximumSize(out.sizeHint())
 		out.setMinimumSize(out.sizeHint())

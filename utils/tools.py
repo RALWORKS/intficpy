@@ -1,15 +1,16 @@
 # TOOLS.PY
 # A collection of miscellaneous functions to simplify common tasks in IntFicPy
 
-from intficpy.things import thing, actor
+from intficpy.things.thing_base import Thing
+from intficpy.things.actor import Actor
 from intficpy.score import score
 from intficpy.travel import travel, room
 
 def isSerializableClassInstance(obj):
-	return isinstance(obj, thing.Thing) or isinstance(obj, actor.Actor) or isinstance(obj, score.Achievement) or isinstance(obj, score.Ending) or isinstance(obj, thing.Abstract) or isinstance(obj, actor.Topic) or isinstance(obj, travel.TravelConnector) or isinstance(obj, room.Room) or isinstance(obj, actor.SpecialTopic)  or isinstance(obj, actor.SaleItem) or isinstance(obj, score.HintNode) or isinstance(obj, room.RoomGroup) or isinstance(obj, score.Hint)
+	return isinstance(obj, Thing) or isinstance(obj, Actor) or isinstance(obj, score.Achievement) or isinstance(obj, score.Ending) or isinstance(obj, thing.Abstract) or isinstance(obj, actor.Topic) or isinstance(obj, travel.TravelConnector) or isinstance(obj, room.Room) or isinstance(obj, actor.SpecialTopic)  or isinstance(obj, actor.SaleItem) or isinstance(obj, score.HintNode) or isinstance(obj, room.RoomGroup) or isinstance(obj, score.Hint)
 	
 def isIFPClassInstance(obj):
-	return isinstance(obj, thing.Thing) or isinstance(obj, actor.Actor) or isinstance(obj, score.Achievement) or isinstance(obj, score.Ending) or isinstance(obj, thing.Abstract) or isinstance(obj, actor.Topic) or isinstance(obj, travel.TravelConnector) or isinstance(obj, room.Room) or isinstance(obj, actor.SpecialTopic)  or isinstance(obj, actor.SaleItem) or isinstance(obj, score.HintNode) or isinstance(obj, room.RoomGroup) or isinstance(obj, score.Hint)
+	return isinstance(obj, Thing) or isinstance(obj, Actor) or isinstance(obj, score.Achievement) or isinstance(obj, score.Ending) or isinstance(obj, thing.Abstract) or isinstance(obj, actor.Topic) or isinstance(obj, travel.TravelConnector) or isinstance(obj, room.Room) or isinstance(obj, actor.SpecialTopic)  or isinstance(obj, actor.SaleItem) or isinstance(obj, score.HintNode) or isinstance(obj, room.RoomGroup) or isinstance(obj, score.Hint)
 	
 def lineDefinesNewIx(line):
 	"""Checks if a line of code in the game file defines an IFP object with a new index """

@@ -1,4 +1,5 @@
-from intficpy.things import thing
+from intficpy.things.thing_base import Thing
+from intficpy.things.things import Container, LightSource
 
 ##############################################################
 # ROOM.PY - verbs for IntFicPy 
@@ -77,7 +78,7 @@ class Room:
 		self.dark_visible_exits = []
 		self.walls = []
 		
-		self.floor = thing.Thing("floor")
+		self.floor = Thing("floor")
 		self.floor.known_ix = None
 		self.floor.addSynonym("ground")
 		self.floor.invItem = False
@@ -85,7 +86,7 @@ class Room:
 		self.floor.xdescribeThing("You notice nothing remarkable about the floor. ")
 		self.addThing(self.floor)
 		
-		self.ceiling = thing.Thing("ceiling")
+		self.ceiling = Thing("ceiling")
 		self.ceiling.known_ix = None
 		self.ceiling.invItem = False
 		self.ceiling.far_away = True
@@ -93,7 +94,7 @@ class Room:
 		self.ceiling.xdescribeThing("You notice nothing remarkable about the ceiling. ")
 		self.addThing(self.ceiling)
 		
-		self.north_wall = thing.Thing("wall")
+		self.north_wall = Thing("wall")
 		self.north_wall.addSynonym("walls")
 		self.north_wall.setAdjectives(["north"])
 		self.north_wall.invItem = False
@@ -102,7 +103,7 @@ class Room:
 		self.addThing(self.north_wall)
 		self.walls.append(self.north_wall)
 		
-		self.south_wall = thing.Thing("wall")
+		self.south_wall = Thing("wall")
 		self.south_wall.addSynonym("walls")
 		self.south_wall.setAdjectives(["south"])
 		self.south_wall.invItem = False
@@ -111,7 +112,7 @@ class Room:
 		self.addThing(self.south_wall)
 		self.walls.append(self.south_wall)
 		
-		self.east_wall = thing.Thing("wall")
+		self.east_wall = Thing("wall")
 		self.east_wall.addSynonym("walls")
 		self.east_wall.setAdjectives(["east"])
 		self.east_wall.invItem = False
@@ -120,7 +121,7 @@ class Room:
 		self.addThing(self.east_wall)
 		self.walls.append(self.east_wall)
 		
-		self.west_wall = thing.Thing("wall")
+		self.west_wall = Thing("wall")
 		self.west_wall.addSynonym("walls")
 		self.west_wall.setAdjectives(["west"])
 		self.west_wall.invItem = False
@@ -135,7 +136,7 @@ class Room:
 		"""Places a Thing in a Room
 		Should generally be used by game creators instead of using room.contains.append() directly """
 		from intficpy.things import actor
-		if isinstance(item, thing.Container):
+		if isinstance(item, Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
 					if not item.lock_obj in self.contains[item.lock_obj.ix]:
@@ -167,7 +168,7 @@ class Room:
 	def removeThing(self, item):
 		"""Removes a Thing from a Room
 		Should generally be used by game creators instead of using room.contains.remove() directly """
-		if isinstance(item, thing.Container):
+		if isinstance(item, Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
 					if item.lock_obj in self.contains[item.lock_obj.ix]:
@@ -270,13 +271,13 @@ class Room:
 			lightsource = None
 			for key in self.contains:
 				for item in self.contains[key]:
-					if isinstance(item, thing.LightSource):
+					if isinstance(item, LightSource):
 						if item.is_lit:
 							lightsource = item
 							break
 			for key in me.contains:
 				for item in me.contains[key]:
-					if isinstance(item, thing.LightSource):
+					if isinstance(item, LightSource):
 						if item.is_lit:
 							lightsource = item
 							break
@@ -405,14 +406,14 @@ class OutdoorRoom(Room):
 		self.dark_visible_exits = []
 		self.walls = []
 		
-		self.floor = thing.Thing("ground")
+		self.floor = Thing("ground")
 		self.floor.invItem = False
 		self.floor.describeThing("")
 		self.floor.xdescribeThing("You notice nothing remarkable about the ground. ")
 		self.addThing(self.floor)
 		self.floor.known_ix = None
 		
-		self.ceiling = thing.Thing("sky")
+		self.ceiling = Thing("sky")
 		self.ceiling.known_ix = None
 		self.ceiling.invItem = False
 		self.ceiling.far_away = True

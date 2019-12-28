@@ -1,5 +1,7 @@
-from intficpy.things.thing import Thing
+from intficpy.things.thing_base import Thing
+from intficpy.things.things import Container
 from intficpy.vocab import vocab
+from intficpy.parser.parser import cleanInput, tokenize, removeArticles
 
 ##############################################################
 # ACTOR.PY - the Actor class for IntFicPy 
@@ -93,7 +95,6 @@ class Actor(Thing):
 		Takes a string argument proper_name
 		Called by the game creator """
 	# NOTE: currently enters vocab words incorrectly if proper_name contains multiple words
-		from intficpy.parser.parser import cleanInput, tokenize, removeArticles
 		token_name = proper_name
 		token_name = cleanInput(token_name, False)
 		token_name = tokenize(token_name)
@@ -121,8 +122,7 @@ class Actor(Thing):
 	def addThing(self, item):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
-		from intficpy.things import thing
-		if isinstance(item, thing.Container):
+		if isinstance(item, Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
 					if not item.lock_obj in self.contains[item.lock_obj.ix]:
@@ -167,8 +167,7 @@ class Actor(Thing):
 
 	def removeThing(self, item):
 		"""Remove an item from contents, update decription """
-		from intficpy.things import thing
-		if isinstance(item, thing.Container):
+		if isinstance(item, Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
 					if item.lock_obj in self.contains[item.lock_obj.ix]:

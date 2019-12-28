@@ -1,6 +1,11 @@
 from intficpy.vocab import vocab
-from intficpy.things import actor, thing
-from intficpy.travel import room
+from intficpy.things.actor import Actor
+from intficpy.things.thing_base import Thing
+from intficpy.things.things import ( reflexive, Container, Surface, Liquid,
+	UnderSpace, Transparent, Book, Readable, AbstractClimbable, Clothing, Door,
+	Lock, Key, LightSource, Pressable )
+from intficpy.travel.room import Room
+from intficpy.score.game_info import aboutGame
 
 ##############################################################
 # VERB.PY - verbs for IntFicPy 
@@ -13,7 +18,6 @@ class Verb:
 		"""Set default properties for the Verb instance
 		Takes argument word, a one word verb (string)
 		The creator can build constructions like "take off" by specifying prepositions and syntax """
-		from intficpy.parser.parser import aboutGame
 		if word in vocab.verbDict:
 			vocab.verbDict[word].append(self)
 		elif word is not None:
@@ -48,7 +52,6 @@ class Verb:
 		self.iobj_contains_dobj = False
 
 	def addSynonym(self, word):
-		from intficpy.parser.parser import aboutGame
 		"""Add a synonym verb
 			Takes argument word, a single verb (string)
 			The creator can build constructions like "take off" by specifying prepositions and syntax """
@@ -58,7 +61,6 @@ class Verb:
 			vocab.verbDict[word] = [self]
 	
 	def discover(self, app, show_msg, list_word=False):
-		from intficpy.parser.parser import aboutGame
 		if list_word and list_word not in aboutGame.discovered_verbs and list_word not in aboutGame.verbs:
 			aboutGame.discovered_verbs.append(list_word)
 			if show_msg:
@@ -177,17 +179,17 @@ def getVerbFunc(me, app, dobj, skip=False):
 		return False
 	# first check if dobj can be taken
 	while me.ix in dobj.sub_contains:
-		if isinstance(me.location, thing.Container):
+		if isinstance(me.location, Container):
 			climbOutOfVerb.verbFunc(me, app, dobj)
-		elif isinstance(me.location, thing.Surface):
+		elif isinstance(me.location, Surface):
 			climbDownFromVerb.verbFunc(me, app, dobj)
 		else:
 			app.printToGUI("Could not move player out of " + dobj.verbose_name)
 			return False
 	if me.ix in dobj.contains:
-		if isinstance(dobj, thing.Container):
+		if isinstance(dobj, Container):
 			climbOutOfVerb.verbFunc(me, app, dobj)
-		elif isinstance(dobj, thing.Surface):
+		elif isinstance(dobj, Surface):
 			climbDownFromVerb.verbFunc(me, app, dobj)
 		else:
 			app.printToGUI("Could not move player out of " + dobj.verbose_name)
@@ -195,7 +197,7 @@ def getVerbFunc(me, app, dobj, skip=False):
 	if not me.position=="standing":
 		app.printToGUI("(First standing up)")
 		standUpVerb.verbFunc(me, app)
-	if isinstance(dobj, thing.Liquid):
+	if isinstance(dobj, Liquid):
 		container = dobj.getContainer()
 		if container:
 			dobj = container
@@ -204,11 +206,11 @@ def getVerbFunc(me, app, dobj, skip=False):
 			if dobj.location==me:
 				app.printToGUI("You already have " + dobj.getArticle(True) + dobj.verbose_name + ".")
 				return False
-			elif not isinstance(dobj.location, room.Room):
+			elif not isinstance(dobj.location, Room):
 				return removeFromVerb.verbFunc(me, app, dobj, dobj.location)
 		# print the action message
 		app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
-		if isinstance(dobj, thing.UnderSpace) and not dobj.contains=={}:
+		if isinstance(dobj, UnderSpace) and not dobj.contains=={}:
 			results = dobj.moveContentsOut()
 			msg = results[0]
 			plural = results[1]
@@ -228,16 +230,16 @@ def getVerbFunc(me, app, dobj, skip=False):
 					else:
 						msg = msg.capitalize() + " is revealed. "
 					app.printToGUI(msg)
-		while isinstance(dobj.location, thing.Thing):
+		while isinstance(dobj.location, Thing):
 			old_loc = dobj.location
-			if not isinstance(dobj.location, room.Room):
+			if not isinstance(dobj.location, Room):
 				dobj.location.removeThing(dobj)
 			elif dobj.location.manual_update:
 				dobj.location.removeThing(dobj, False, False)
 			else:
 				dobj.location.removeThing(dobj)
 			dobj.location = old_loc.location
-			if not isinstance(old_loc, actor.Actor): 
+			if not isinstance(old_loc, Actor): 
 				old_loc.containsListUpdate()
 		dobj.location.removeThing(dobj)
 		me.addThing(dobj)
@@ -327,7 +329,7 @@ def removeFromVerbFunc(me, app, dobj, iobj, skip=True):
 	elif iobj==me:
 		app.printToGUI("You are currently holding " + dobj.lowNameArticle(True) + ". ")
 		return True
-	if isinstance(iobj, thing.Container):
+	if isinstance(iobj, Container):
 		if not iobj.is_open:
 			app.printToGUI("(First trying to open " + iobj.lowNameArticle(True) + ")")
 			success = openVerb.verbFunc(me, app, iobj)
@@ -345,7 +347,7 @@ def removeFromVerbFunc(me, app, dobj, iobj, skip=True):
 	app.printToGUI("You remove " + dobj.lowNameArticle(True) + " from " + iobj.lowNameArticle(True) + ". ")
 	iobj.removeThing(dobj)
 	me.addThing(dobj)
-	if isinstance(dobj, thing.UnderSpace) and not dobj.contains=={}:
+	if isinstance(dobj, UnderSpace) and not dobj.contains=={}:
 		results = dobj.moveContentsOut()
 		msg = results[0]
 		plural = results[1]
@@ -391,7 +393,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Liquid):
+	if isinstance(dobj, Liquid):
 		container = dobj.getContainer()
 		if container:
 			dobj = container
@@ -487,7 +489,7 @@ def setOnVerbFunc(me, app, dobj, iobj, skip=False):
 		else:
 			app.printToGUI("ERROR: cannot remove object from inventory ")
 			return False
-	if isinstance(iobj, thing.Surface):
+	if isinstance(iobj, Surface):
 		if me.removeThing(dobj):	
 			app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " on " + iobj.getArticle(True) + iobj.verbose_name + ".")
 			iobj.addThing(dobj)
@@ -548,11 +550,11 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
 	if dobj.parent_obj:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
 		return False
-	if isinstance(iobj, thing.Container) and iobj.has_lid:
+	if isinstance(iobj, Container) and iobj.has_lid:
 		if not iobj.is_open:
 			app.printToGUI("You cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " is closed.")
 			return False
-	if isinstance(iobj, thing.Container) and iobj.size >= dobj.size:
+	if isinstance(iobj, Container) and iobj.size >= dobj.size:
 		liquid = iobj.containsLiquid()
 		if liquid:
 			app.printToGUI("You cannot put " + dobj.getArticle(True) + dobj.verbose_name + " inside, as " + iobj.getArticle(True) + iobj.verbose_name + " has " + liquid.lowNameArticle() + " in it. ")
@@ -565,7 +567,7 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
 		else:
 			iobj.addThing(dobj)
 		return True
-	elif isinstance(iobj, thing.Container):
+	elif isinstance(iobj, Container):
 		app.printToGUI(dobj.capNameArticle(True) + " is too big to fit inside the " + iobj.verbose_name + ".")
 		return False
 	else:
@@ -617,7 +619,7 @@ def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
 	if dobj.parent_obj:
 		app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " is attached to " + dobj.parent_obj.getArticle(True) + dobj.parent_obj.verbose_name + ". ")
 		return False
-	if isinstance(iobj, thing.UnderSpace) and dobj.size <= iobj.size:
+	if isinstance(iobj, UnderSpace) and dobj.size <= iobj.size:
 		app.printToGUI("You set " + dobj.getArticle(True) + dobj.verbose_name + " " + iobj.contains_preposition + " " + iobj.getArticle(True) + iobj.verbose_name + ".")
 		me.removeThing(dobj)
 		iobj.addThing(dobj)
@@ -744,7 +746,6 @@ aboutVerb.hasDobj = False
 def aboutVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from intficpy.parser.parser import aboutGame
 	aboutGame.printAbout(app)
 		
 # replace default verbFunc method
@@ -759,7 +760,6 @@ helpVerb.hasDobj = False
 def helpVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from intficpy.parser.parser import aboutGame
 	aboutGame.printHelp(app)
 		
 # replace default verbFunc method
@@ -774,7 +774,6 @@ instructionsVerb.hasDobj = False
 def instructionVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from intficpy.parser.parser import aboutGame
 	aboutGame.printInstructions(app)
 		
 # replace default verbFunc method
@@ -787,7 +786,6 @@ verbsVerb.syntax = [["verbs"]]
 verbsVerb.hasDobj = False
 
 def verbsVerbFunc(me, app):
-	from intficpy.parser.parser import aboutGame
 	aboutGame.printVerbs(app)
 
 verbsVerb.verbFunc = verbsVerbFunc
@@ -927,10 +925,10 @@ def lookThroughVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Transparent):
+	if isinstance(dobj, Transparent):
 		dobj.lookThrough(me, app)
 		return True
-	elif isinstance(dobj, actor.Actor):
+	elif isinstance(dobj, Actor):
 		app.printToGUI("You cannot look through a person. ")
 		return False
 	else:
@@ -963,7 +961,7 @@ def lookInVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container):
+	if isinstance(dobj, Container):
 		list_version = list(dobj.contains.keys())
 		if dobj.has_lid:
 			if not dobj.is_open:
@@ -1006,7 +1004,7 @@ def lookUnderVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.UnderSpace):
+	if isinstance(dobj, UnderSpace):
 		dobj.revealUnder()
 		list_version = list(dobj.contains.keys())
 		if len(list_version) > 0:
@@ -1046,11 +1044,11 @@ def readVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Book):
+	if isinstance(dobj, Book):
 		if not dobj.is_open:
 			openVerb.verbFunc(me, app, dobj)
 		dobj.readText(me, app)
-	elif isinstance(dobj, thing.Readable):
+	elif isinstance(dobj, Readable):
 		dobj.readText(me, app)
 		return True
 	else:
@@ -1084,7 +1082,7 @@ def getImpTalkTo(me, app):
 	loc = me.getOutermostLocation()
 	for key, items in loc.contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor)  and not item==me:
+			if isinstance(item, Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one obvious to talk to here.")
@@ -1093,7 +1091,7 @@ def getImpTalkTo(me, app):
 		if not people[0].ignore_if_ambiguous:
 			return people[0]
 		app.printToGUI("There's no one obvious to talk to here.")
-	elif isinstance(parser.lastTurn.dobj, actor.Actor) and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
+	elif isinstance(parser.lastTurn.dobj, Actor) and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
@@ -1129,7 +1127,7 @@ def talkToVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		if dobj.hermit_topic:
 			dobj.hermit_topic.func(app, False)
 		elif dobj.sticky_topic:
@@ -1169,7 +1167,7 @@ def getImpAsk(me, app):
 	# find every Actor in the current location
 	for key, items in loc.contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor)  and not item==me:
+			if isinstance(item, Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one obvious here to ask.")
@@ -1178,7 +1176,7 @@ def getImpAsk(me, app):
 		if not people[0].ignore_if_ambiguous:
 			return people[0]
 		app.printToGUI("There's no one obvious here to ask.")
-	elif isinstance(parser.lastTurn.dobj, actor.Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
+	elif isinstance(parser.lastTurn.dobj, Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
@@ -1199,7 +1197,7 @@ def askVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Ask an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	from intficpy.things.thing import reflexive
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj,Actor):
 		if dobj.hermit_topic:
 			dobj.hermit_topic.func(app, False)
 			return True
@@ -1219,7 +1217,7 @@ def askVerbFunc(me, app, dobj, iobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		# try to find the ask topic for iobj
 		if dobj.hi_topic and not dobj.said_hi:
 			dobj.hi_topic.func(app, False)
@@ -1266,7 +1264,7 @@ def getImpTell(me, app):
 	# find every Actor in the current location
 	for key, items in loc.contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor)  and not item==me:
+			if isinstance(item, Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one obvious here to tell.")
@@ -1275,7 +1273,7 @@ def getImpTell(me, app):
 		if not people[0].ignore_if_ambiguous:
 			return people[0]
 		app.printToGUI("There's no one obvious here to tell.")
-	elif isinstance(parser.lastTurn.dobj, actor.Actor) and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
+	elif isinstance(parser.lastTurn.dobj, Actor) and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
@@ -1296,7 +1294,7 @@ def tellVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Tell an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
 	from intficpy.things.thing import reflexive
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		if dobj.hermit_topic:
 			dobj.hermit_topic.func(app, False)
 			return True
@@ -1315,7 +1313,7 @@ def tellVerbFunc(me, app, dobj, iobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		if dobj.hi_topic and not dobj.said_hi:
 			dobj.hi_topic.func(app, False)
 			dobj.said_hi = True
@@ -1360,7 +1358,7 @@ def getImpGive(me, app):
 	# find every Actor in the current location
 	for key, items in loc.contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor)  and not item==me:
+			if isinstance(item, Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one obvious here to give it to.")
@@ -1369,7 +1367,7 @@ def getImpGive(me, app):
 		if not people[0].ignore_if_ambiguous:
 			return people[0]
 		app.printToGUI("There's no one obvious here to give it to.")
-	elif isinstance(parser.lastTurn.dobj, actor.Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
+	elif isinstance(parser.lastTurn.dobj, Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous  and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
@@ -1407,17 +1405,17 @@ def giveVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		if dobj.hermit_topic:
 			dobj.hermit_topic.func(app, False)
 			return True
 	if iobj is me:
 		app.printToGUI("You cannot give yourself away. ")
 		return False
-	elif isinstance(iobj, actor.Actor):
+	elif isinstance(iobj, Actor):
 		app.printToGUI("You cannot give a person away. ")
 		return False
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		if dobj.hi_topic and not dobj.said_hi:
 			dobj.hi_topic.func(app, False)
 			dobj.said_hi = True
@@ -1465,7 +1463,7 @@ def getImpShow(me, app):
 	# find every Actor in the current location
 	for key, items in loc.contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor)  and not item==me:
+			if isinstance(item, Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one obvious here to show.")
@@ -1474,7 +1472,7 @@ def getImpShow(me, app):
 		if not people[0].ignore_if_ambiguous:
 			return people[0]
 		app.printToGUI("There's no one obvious here to show.")
-	elif isinstance(parser.lastTurn.dobj, actor.Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous and loc.containsItem(parser.lastTurn.dobj):
+	elif isinstance(parser.lastTurn.dobj, Actor)  and not parser.lastTurn.dobj.ignore_if_ambiguous and loc.containsItem(parser.lastTurn.dobj):
 		# ask whomever the player last interracted with
 		return parser.lastTurn.dobj
 	else:
@@ -1494,7 +1492,7 @@ showVerb.getImpDobj = getImpShow
 def showVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Show an Actor a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		if dobj.hermit_topic:
 			dobj.hermit_topic.func(app, False)
 			return True
@@ -1516,7 +1514,7 @@ def showVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		if dobj.hi_topic and not dobj.said_hi:
 			dobj.hi_topic.func(app, False)
 			dobj.said_hi = True
@@ -1563,7 +1561,7 @@ def wearVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Clothing):
+	if isinstance(dobj, Clothing):
 		app.printToGUI("You wear " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		#me.contains.remove(dobj)
 		me.contains[dobj.ix].remove(dobj)
@@ -1627,7 +1625,7 @@ def lieDownVerbFunc(me, app):
 	"""Take off a piece of clothing
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
 	if me.position != "lying":
-		if isinstance(me.location, thing.Thing):
+		if isinstance(me.location, Thing):
 			if not me.location.canLie:
 				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ")")
 				outer_loc = me.getOutermostLocation()
@@ -1651,7 +1649,7 @@ def standUpVerbFunc(me, app):
 	"""Take off a piece of clothing
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
 	if me.position != "standing":
-		if isinstance(me.location, thing.Thing):
+		if isinstance(me.location, Thing):
 			if not me.location.canStand:
 				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ")")
 				outer_loc = me.getOutermostLocation()
@@ -1675,7 +1673,7 @@ def sitDownVerbFunc(me, app):
 	"""Take off a piece of clothing
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app"""
 	if me.position != "sitting":
-		if isinstance(me.location, thing.Thing):
+		if isinstance(me.location, Thing):
 			if not me.location.canSit:
 				app.printToGUI("(First getting " + me.location.contains_preposition_inverse + " of " + me.location.getArticle(True) + me.location.verbose_name + ")")
 				outer_loc = me.getOutermostLocation()
@@ -1725,9 +1723,9 @@ def standOnVerbFunc(me, app, dobj, skip=False):
 			app.printToGUI("You stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeStanding()
 		return True
-	if me.location==dobj and me.position=="standing" and isinstance(dobj, thing.Surface):
+	if me.location==dobj and me.position=="standing" and isinstance(dobj, Surface):
 		app.printToGUI("You are already standing on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
-	elif isinstance(dobj, thing.Surface) and dobj.canStand:
+	elif isinstance(dobj, Surface) and dobj.canStand:
 		app.printToGUI("You stand on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
 			me.location.contains[me.ix].remove(me)
@@ -1778,9 +1776,9 @@ def sitOnVerbFunc(me, app, dobj, skip=False):
 			app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeSitting()
 		return True
-	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Surface):
+	if me.location==dobj and me.position=="sitting" and isinstance(dobj, Surface):
 		app.printToGUI("You are already sitting on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
-	elif isinstance(dobj, thing.Surface) and dobj.canSit:
+	elif isinstance(dobj, Surface) and dobj.canSit:
 		app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
 			me.location.contains[me.ix].remove(me)
@@ -1830,9 +1828,9 @@ def lieOnVerbFunc(me, app, dobj):
 			app.printToGUI("You lie on the " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 			me.makeLying()
 		return True
-	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Surface):
+	if me.location==dobj and me.position=="lying" and isinstance(dobj, Surface):
 		app.printToGUI("You are already lying on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
-	elif isinstance(dobj, thing.Surface) and dobj.canLie:
+	elif isinstance(dobj, Surface) and dobj.canLie:
 		app.printToGUI("You lie on " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
 			me.location.contains[me.ix].remove(me)
@@ -1871,10 +1869,10 @@ def sitInVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if me.location==dobj and me.position=="sitting" and isinstance(dobj, thing.Container):
+	if me.location==dobj and me.position=="sitting" and isinstance(dobj, Container):
 		app.printToGUI("You are already sitting in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return True
-	elif isinstance(dobj, thing.Container) and dobj.canSit:
+	elif isinstance(dobj, Container) and dobj.canSit:
 		app.printToGUI("You sit in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
 			me.location.contains[me.ix].remove(me)
@@ -1912,10 +1910,10 @@ def standInVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if me.location==dobj and me.position=="standing" and isinstance(dobj, thing.Container):
+	if me.location==dobj and me.position=="standing" and isinstance(dobj, Container):
 		app.printToGUI("You are already standing in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return True
-	elif isinstance(dobj, thing.Container) and dobj.canStand:
+	elif isinstance(dobj, Container) and dobj.canStand:
 		app.printToGUI("You stand in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
 			me.location.contains[me.ix].remove(me)
@@ -1955,10 +1953,10 @@ def lieInVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if me.location==dobj and me.position=="lying" and isinstance(dobj, thing.Container):
+	if me.location==dobj and me.position=="lying" and isinstance(dobj, Container):
 		app.printToGUI("You are already lying in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		return True
-	elif isinstance(dobj, thing.Container) and dobj.canLie:
+	elif isinstance(dobj, Container) and dobj.canLie:
 		app.printToGUI("You lie in " + dobj.getArticle(True) + dobj.verbose_name  + ".")
 		if me in me.location.contains[me.ix]:
 			me.location.contains[me.ix].remove(me)
@@ -2006,13 +2004,13 @@ def climbOnVerbFunc(me, app, dobj, skip=False):
 		else:
 			app.printToGUI("You can't climb up that.")
 			return False
-	elif isinstance(dobj, thing.Surface) and dobj.canStand:
+	elif isinstance(dobj, Surface) and dobj.canStand:
 		standOnVerb.verbFunc(me, app, dobj)
 		return True
-	elif isinstance(dobj, thing.Surface) and dobj.canSit:
+	elif isinstance(dobj, Surface) and dobj.canSit:
 		sitOnVerb.verbFunc(me, app, dobj)
 		return True
-	elif isinstance(dobj, thing.Surface) and dobj.canLie:
+	elif isinstance(dobj, Surface) and dobj.canLie:
 		lieOnVerb.verbFunc(me, app, dobj)
 		return True
 	else:
@@ -2056,7 +2054,7 @@ def climbDownVerbFunc(me, app):
 	cur_loc = me.getOutermostLocation()
 	if cur_loc.down:
 		travel.travelD(me, app)
-	elif isinstance(me.location, thing.Surface):
+	elif isinstance(me.location, Surface):
 		app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 		outer_loc = me.location.location
 		me.location.removeThing(me)
@@ -2100,7 +2098,7 @@ def climbDownFromVerbFunc(me, app, dobj, skip=False):
 			app.printToGUI("You can't climb down from that.")
 			return False
 	elif me.location==dobj:
-		if isinstance(me.location, thing.Surface):
+		if isinstance(me.location, Surface):
 			app.printToGUI("You climb down from " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 			outer_loc = me.location.location
 			me.location.removeThing(me)
@@ -2127,7 +2125,7 @@ def goThroughVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.AbstractClimbable):
+	if isinstance(dobj, AbstractClimbable):
 		app.printToGUI("You cannot go through " + dobj.lowNameArticle(True) + ". ")
 		return False
 	elif dobj.connection:
@@ -2165,21 +2163,21 @@ def climbInVerbFunc(me, app, dobj, skip=False):
 	if dobj.connection:
 		dobj.connection.travel(me, app)
 		return True
-	if isinstance(dobj, thing.Container) and dobj.canStand:
+	if isinstance(dobj, Container) and dobj.canStand:
 		if dobj.has_lid:
 			if not dobj.is_open:
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		standInVerb.verbFunc(me, app, dobj)
 		return True
-	elif isinstance(dobj, thing.Container) and dobj.canSit:
+	elif isinstance(dobj, Container) and dobj.canSit:
 		if dobj.has_lid:
 			if not dobj.is_open:
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
 				return False
 		sitInVerb.verbFunc(me, app, dobj)
 		return True
-	elif isinstance(dobj, thing.Container) and dobj.canLie:
+	elif isinstance(dobj, Container) and dobj.canLie:
 		if dobj.has_lid:
 			if not dobj.is_open:
 				app.printToGUI("You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name  + ", since it is closed.")
@@ -2203,7 +2201,7 @@ climbOutVerb.preposition = ["out"]
 def climbOutVerbFunc(me, app):
 	"""Climb out of a Container you currently occupy
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	if isinstance(me.location, thing.Container):
+	if isinstance(me.location, Container):
 		app.printToGUI("You climb out of " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 		outer_loc = me.location.location
 		me.location.removeThing(me)
@@ -2238,7 +2236,7 @@ def climbOutOfVerbFunc(me, app, dobj, skip=False):
 			return True
 	
 	if me.location==dobj:
-		if isinstance(me.location, thing.Container):
+		if isinstance(me.location, Container):
 			app.printToGUI("You climb out of " + me.location.getArticle(True) + me.location.verbose_name  + ".")
 			outer_loc = me.location.location
 			me.location.removeThing(me)
@@ -2295,7 +2293,7 @@ def openVerbFunc(me, app, dobj, skip=False):
 	if state==False:
 		app.printToGUI("You open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
 		dobj.makeOpen()
-		if isinstance(dobj, thing.Container):
+		if isinstance(dobj, Container):
 			lookInVerb.verbFunc(me, app, dobj)
 		return True
 	else:
@@ -2317,7 +2315,7 @@ def closeVerbFunc(me, app, dobj, skip=False):
 	"""Open a Thing with an open property
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, and dobj, a Thing """
 	
-	if isinstance(dobj, thing.Container):
+	if isinstance(dobj, Container):
 		if dobj.has_lid:
 			if me.ix in dobj.contains or me.ix in dobj.sub_contains:
 				app.printToGUI("You cannot close " + dobj.getArticle(True) + dobj.verbose_name + " while you are inside it. ")
@@ -2360,7 +2358,7 @@ def exitVerbFunc(me, app):
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	from intficpy.travel import travel
 	out_loc = me.getOutermostLocation()
-	if isinstance(me.location, thing.Thing):
+	if isinstance(me.location, Thing):
 		climbOutOfVerb.verbFunc(me, app, me.location)
 	elif out_loc.exit:
 		travel.travelOut(me, app)
@@ -2411,7 +2409,7 @@ def unlockVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+	if isinstance(dobj, Container) or isinstance(dobj, Door):
 		if dobj.lock_obj:
 			if dobj.lock_obj.is_locked:
 				if dobj.lock_obj.key_obj:
@@ -2437,7 +2435,7 @@ def unlockVerbFunc(me, app, dobj, skip=False):
 		else:
 			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
 			return True
-	elif isinstance(dobj, thing.Lock):
+	elif isinstance(dobj, Lock):
 		if dobj.is_locked:
 			if dobj.key_obj:
 				if me.containsItem(dobj.key_obj):
@@ -2489,7 +2487,7 @@ def lockVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+	if isinstance(dobj, Container) or isinstance(dobj, Door):
 		if dobj.is_open:
 			if not closeVerb.verbFunc(me, app, dobj):
 				app.printToGUI("Could not close " + dobj.verbose_name + ". ")
@@ -2519,7 +2517,7 @@ def lockVerbFunc(me, app, dobj, skip=False):
 		else:
 			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
 			return False
-	elif isinstance(dobj, thing.Lock):
+	elif isinstance(dobj, Lock):
 		if dobj.parent_obj.is_open:
 			if not closeVerb.verbFunc(me, app, dobj.parent_obj):
 				app.printToGUI("Could not close " + dobj.parent_obj.verbose_name + ". ")
@@ -2587,13 +2585,13 @@ def unlockWithVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(iobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+	if isinstance(dobj, Container) or isinstance(dobj, Door):
 		if dobj.lock_obj:
 			if dobj.lock_obj.is_locked:
 				if iobj is me:
 					app.printToGUI("You are not a key. ")
 					return False
-				elif not isinstance(iobj, thing.Key):
+				elif not isinstance(iobj, Key):
 					app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
 					return False
 				elif dobj.lock_obj.key_obj:
@@ -2615,9 +2613,9 @@ def unlockWithVerbFunc(me, app, dobj, iobj, skip=False):
 			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
 			return True
 	
-	elif isinstance(dobj, thing.Lock):
+	elif isinstance(dobj, Lock):
 		if dobj.is_locked:
-			if not isinstance(iobj, thing.Key):
+			if not isinstance(iobj, Key):
 				app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
 			elif dobj.key_obj:
 				if iobj == dobj.key_obj.ix:
@@ -2676,7 +2674,7 @@ def lockWithVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container) or isinstance(dobj, thing.Door):
+	if isinstance(dobj, Container) or isinstance(dobj, Door):
 		if dobj.is_open:
 			if not closeVerb.verbFunc(me, app, dobj):
 				app.printToGUI("Could not close " + dobj.verbose_name + ". ")
@@ -2686,7 +2684,7 @@ def lockWithVerbFunc(me, app, dobj, iobj, skip=False):
 				if iobj is me:
 					app.printToGUI("You are not a key. ")
 					return False
-				elif not isinstance(iobj, thing.Key):
+				elif not isinstance(iobj, Key):
 					app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
 					return False
 				elif dobj.lock_obj.key_obj:
@@ -2708,13 +2706,13 @@ def lockWithVerbFunc(me, app, dobj, iobj, skip=False):
 			app.printToGUI((dobj.getArticle(True) + dobj.verbose_name).capitalize() + " does not have a lock. ")
 			return False
 	
-	elif isinstance(dobj, thing.Lock):
+	elif isinstance(dobj, Lock):
 		if dobj.parent_obj.is_open:
 			if not closeVerb.verbFunc(me, app, dobj.parent_obj):
 				app.printToGUI("Could not close " + dobj.parent_obj.verbose_name + ". ")
 				return False
 		if not dobj.is_locked:
-			if not isinstance(iobj, thing.Key):
+			if not isinstance(iobj, Key):
 				app.printToGUI((iobj.getArticle(True) + iobj.verbose_name).capitalize() + " is not a key. ")
 			elif dobj.key_obj:
 				if iobj == dobj.key_obj.ix:
@@ -2774,7 +2772,7 @@ def lightVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.LightSource):
+	if isinstance(dobj, LightSource):
 		if dobj.player_can_light:
 			light = dobj.light(app)
 			if light:
@@ -2814,7 +2812,7 @@ def extinguishVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.LightSource):
+	if isinstance(dobj, LightSource):
 		if dobj.player_can_extinguish:
 			extinguish = dobj.extinguish(app)
 			if extinguish:
@@ -2867,20 +2865,20 @@ def useVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-		if isinstance(dobj, thing.LightSource):
+		if isinstance(dobj, LightSource):
 			return lightVerb.verbFunc(me, app, dobj)
-		elif isinstance(dobj, thing.Key):
+		elif isinstance(dobj, Key):
 			from intficpy.parser.parser import lastTurn
 			app.printToGUI("What would you like to unlock with " + dobj.lowNameArticle(True) + "?")
 			lastTurn.verb = unlockWithVerb
 			lastTurn.iobj = dobj
 			lastTurn.dobj = False
 			lastTurn.ambiguous = True
-		elif isinstance(dobj, thing.Transparent):
+		elif isinstance(dobj, Transparent):
 			return lookThroughVerb.verbFunc(me, app, dobj)
 		elif dobj.connection:
 			dobj.connection.travel(me, app)
-		elif isinstance(dobj, actor.Actor):
+		elif isinstance(dobj, Actor):
 			app.printToGUI("You cannot use people. ")
 			return False
 		else:
@@ -2922,13 +2920,13 @@ def buyFromVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if not isinstance(iobj, actor.Actor):
+	if not isinstance(iobj, Actor):
 		app.printToGUI("You cannot buy anything from " + iobj.lowNameArticle(False) + ". ")
 		return False
 	elif iobj == me:
 		app.printToGUI("You cannot buy anything from yourself. ")
 		return False
-	elif isinstance(dobj, actor.Actor):
+	elif isinstance(dobj, Actor):
 		if not dobj.commodity:
 			app.printToGUI("You cannot buy or sell a person. ")
 			return False
@@ -2977,7 +2975,7 @@ def buyVerbFunc(me, app, dobj):
 	# find every Actor in the current location
 	for key, items in me.getOutermostLocation().contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor)  and not item==me:
+			if isinstance(item, Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one obvious here to buy from. ")
@@ -3051,7 +3049,7 @@ def sellToVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if not isinstance(iobj, actor.Actor):
+	if not isinstance(iobj, Actor):
 		app.printToGUI("You cannot sell anything to " + iobj.lowNameArticle(False) + ". ")
 		return False
 	elif iobj == me:
@@ -3093,7 +3091,7 @@ def sellVerbFunc(me, app, dobj):
 	# find every Actor in the current location
 	for key, items in me.getOutermostLocation().contains.items():
 		for item in items:
-			if isinstance(item, actor.Actor)  and not item==me:
+			if isinstance(item, Actor)  and not item==me:
 				people.append(item)
 	if len(people)==0:
 		app.printToGUI("There's no one obvious here to sell to.")
@@ -3222,7 +3220,7 @@ def leadDirVerbFunc(me, app, dobj, iobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if not isinstance(dobj, actor.Actor):
+	if not isinstance(dobj, Actor):
 		app.printToGUI("You cannot lead that. ")
 		return False
 	elif dobj.can_lead:
@@ -3318,7 +3316,7 @@ def killVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, actor.Actor):
+	if isinstance(dobj, Actor):
 		app.printToGUI("Violence isn't the answer to this one. ")
 	else:
 		app.printToGUI(dobj.capNameArticle(True) + " cannot be killed, as it is not alive.")
@@ -3447,7 +3445,7 @@ def pressVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Pressable):
+	if isinstance(dobj, Pressable):
 		app.printToGUI("You press " + dobj.lowNameArticle(True) + ". ")
 		dobj.pressThing(me, app)
 	else:
@@ -3478,7 +3476,7 @@ def pushVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Pressable):
+	if isinstance(dobj, Pressable):
 		pressVerb.verbFunc(me, app, dobj)
 	else:
 		app.printToGUI("You push on " + dobj.lowNameArticle(True) + ", to no productive end. ")
@@ -3509,7 +3507,7 @@ def pourOutVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container):
+	if isinstance(dobj, Container):
 		loc = me.getOutermostLocation()
 		if dobj.has_lid:
 			if not dobj.is_open:
@@ -3531,7 +3529,7 @@ def pourOutVerbFunc(me, app, dobj, skip=False):
 			return True
 		else:
 			dobj = liquid
-	if isinstance(dobj, thing.Liquid):
+	if isinstance(dobj, Liquid):
 		if not dobj.getContainer:
 			app.printToGUI("It isn't in a container you can dump it from. ")
 			return False
@@ -3569,7 +3567,7 @@ def drinkVerbFunc(me, app, dobj, skip=False):
 	if dobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container):
+	if isinstance(dobj, Container):
 		loc = me.getOutermostLocation()
 		if dobj.has_lid:
 			if not dobj.is_open:
@@ -3584,7 +3582,7 @@ def drinkVerbFunc(me, app, dobj, skip=False):
 			return False
 		else:
 			dobj = liquid
-	if isinstance(dobj, thing.Liquid):
+	if isinstance(dobj, Liquid):
 		container = dobj.getContainer()
 		if not dobj.can_drink:
 			app.printToGUI(dobj.cannot_drink_msg)
@@ -3629,7 +3627,7 @@ def pourIntoVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(dobj, thing.Container):
+	if isinstance(dobj, Container):
 		loc = me.getOutermostLocation()
 		if dobj.has_lid:
 			if not dobj.is_open:
@@ -3640,7 +3638,7 @@ def pourIntoVerbFunc(me, app, dobj, iobj, skip=False):
 			return True
 		liquid = dobj.containsLiquid()
 		if not liquid:
-			if not isinstance(iobj, thing.Container):
+			if not isinstance(iobj, Container):
 				app.printToGUI(iobj.capNameArticle(True) + " is not a container. ")
 				return False
 			app.printToGUI("You dump the contents of " + dobj.lowNameArticle(True) + " into " + iobj.lowNameArticle(True) + ". ")
@@ -3658,7 +3656,7 @@ def pourIntoVerbFunc(me, app, dobj, iobj, skip=False):
 			return True
 		else:
 			dobj = liquid
-	if isinstance(dobj, thing.Liquid):
+	if isinstance(dobj, Liquid):
 		if not dobj.getContainer:
 			app.printToGUI("It isn't in a container you can dump it from. ")
 			return False
@@ -3729,7 +3727,7 @@ def fillFromVerbFunc(me, app, dobj, iobj, skip=False):
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(dobj.cannot_interact_msg)
 		return False
-	if isinstance(iobj, thing.Container):
+	if isinstance(iobj, Container):
 		loc = me.getOutermostLocation()
 		if iobj.has_lid:
 			if not iobj.is_open:
@@ -3811,10 +3809,10 @@ def fillWithVerbFunc(me, app, dobj, iobj, skip=False):
 		return False
 	elif iobj.cannot_interact_msg:
 		app.printToGUI(iobj.cannot_interact_msg)
-	if not isinstance(dobj, thing.Container):
+	if not isinstance(dobj, Container):
 		app.printToGUI("You cannot fill " + dobj.lowNameArticle(True) + ". ")
 		return False
-	if isinstance(iobj, thing.Liquid):
+	if isinstance(iobj, Liquid):
 		if not dobj.holds_liquid:
 			app.printToGUI(dobj.capNameArticle(True) + " cannot hold a liquid. ")
 			return False

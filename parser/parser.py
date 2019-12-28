@@ -1,13 +1,15 @@
 import string
-#import re
 import importlib
 
 # intficpy framework files
-from intficpy.vocab import vocab
-from intficpy.verbs import verb
-from intficpy.things import thing
-from intficpy.serializers import serializer
-from intficpy.travel import room
+from intficpy.vocab.vocab import english, verbDict, nounDict
+from intficpy.verbs.verb import scoreVerb, fullScoreVerb, helpVerbVerb, getVerb
+from intficpy.things.thing_base import Thing
+from intficpy.things.things import Container, Surface, UnderSpace, Liquid
+from intficpy.serializers.serializer import curSave
+from intficpy.travel.room import Room
+from intficpy.travel.travel import directionDict
+from intficpy.score.game_info import aboutGame
 
 ##############################################################
 # PARSER.PY - the parser for IntFicPy 
@@ -52,74 +54,6 @@ class RunEvery:
 
 daemons = RunEvery()
 
-class gameInfo:
-	def __init__(self):
-		self.title = "IntFicPy Game"
-		self.author = "Unnamed"
-		self.basic_instructions = "This is a parser-based game, which means the user interacts by typing commands. <br><br>A command should be a simple sentence, starting with a verb, for instance, <br>> JUMP<br>> TAKE UMBRELLA<br>> TURN DIAL TO 7<br><br>The parser is case insensitive, and ignores punctuation and articles (a, an, the). <br><br>It can be difficult at times to figure out the correct verb to perform an action. Even once you have the correct verb, it can be hard to get the right phrasing. In these situations, you can view the full list of verbs in the game using the VERBS command. You can also view the accepted phrasings for a specific verb with the VERB HELP command (for instance, type VERB HELP WEAR).<br><br>This game does not have quit and restart commands. To quit, simply close the program. To restart, open it again.<br><br>Typing SAVE will open a dialogue to create a save file. Typing LOAD will allow you to select a save file to restore. "
-		self.game_instructions = None
-		self.intFicPyCredit = True
-		self.desc = None
-		self.showVerbs = True
-		self.betaTesterCredit = None
-		self.customMsg = None
-		self.verbs = []
-		self.discovered_verbs = []
-		self.help_msg = None
-		self.main_file = None
-	
-	def setInfo(self, title, author):
-		self.title = title
-		self.author = author
-	
-	def printAbout(self, app):
-		if self.customMsg:
-			app.printToGUI(self.customMsg)
-		else:
-			app.printToGUI("<b>" + self.title + "</b>")
-			app.printToGUI("<b>Created by " + self.author + "</b>")
-			if self.intFicPyCredit:
-				app.printToGUI("Built with JSMaika's IntFicPy parser")
-			if self.desc:
-				app.printToGUI(self.desc)
-			if self.betaTesterCredit:
-				app.printToGUI("<b>Beta Testing Credits</b>")
-				app.printToGUI(self.betaTesterCredit)
-	
-	def printInstructions(self, app):
-		app.printToGUI("<b>Basic Instructions</b>")
-		app.printToGUI(self.basic_instructions)
-		if self.game_instructions:
-			app.printToGUI("<b>Game Instructions</b>")
-			app.printToGUI(self.game_instructions)
-				
-	def printHelp(self, app):	
-		if self.help_msg:
-			app.printToGUI(self.help_msg)
-		#self.printVerbs(app)
-		app.printToGUI("Type INSTRUCTIONS for game instructions, or VERBS for a full list of accepted verbs. ")
-	
-	def printVerbs(self, app):
-		app.printToGUI("<b>This game accepts the following basic verbs: </b>")
-		self.verbs = sorted(self.verbs)
-		verb_list = ""
-		for verb in self.verbs:
-			verb_list = verb_list + verb
-			if verb!=self.verbs[-1]:
-				verb_list = verb_list + ", "
-		app.printToGUI(verb_list)
-		if len(self.discovered_verbs) > 0:
-			app.printToGUI("<b>You have discovered the following additional verbs: ")
-			d_verb_list = ""
-			for verb in self.discovered_verbs:
-				verb_list = verb_list + verb
-				if verb!=self.verbs[-1]:
-					d_verb_list = d_verb_list + ", "
-			app.printToGUI(d_verb_list)
-		app.printToGUI("For help with phrasing, type \"verb help\" followed by a verb for a complete list of acceptable sentence structures for that verb. This will work for any verb, regardless of whether it has been discovered. ")
-	
-aboutGame = gameInfo()
-
 def cleanInput(input_string, record=True):
 	"""Used on player commands to remove punctuation and convert to lowercase
 	Takes the raw user input (string)
@@ -129,7 +63,6 @@ def cleanInput(input_string, record=True):
 	exclude = set(string.punctuation)
 	input_string = ''.join(ch for ch in input_string if ch not in exclude)
 	if record:
-		from intficpy.serializers.serializer import curSave
 		lastTurn.turn_list.append(input_string)
 		if curSave.recfile:
 			curSave.recfile.write(input_string + "\n")
@@ -144,7 +77,7 @@ def tokenize(input_string):
 	return tokens
 
 def removeArticles(tokens):
-	for article in vocab.english.articles:
+	for article in english.articles:
 		while article in tokens:
 			tokens.remove(article)
 	return tokens
@@ -198,7 +131,7 @@ def extractInline(app, output_string, main_file):
 				if isinstance(out, str):
 					output_tokens[word_ix] = out
 					if (word_ix + 1) < len(output_tokens):
-						if output_tokens[word_ix + 1] in vocab.english.no_space_before:
+						if output_tokens[word_ix + 1] in english.no_space_before:
 							output_tokens[word_ix] = out + output_tokens[word_ix + 1]
 							remove_func.append(output_tokens[word_ix + 1])
 				else:
@@ -212,33 +145,32 @@ def getDirection(me, app, input_tokens):
 	Takes arguments app, pointing to the PyQt application, me, pointing to the player object, and input_tokens, a list of strings
 	Called every turn by parseInput
 	Returns a Boolean specifying whether the input is a travel command """
-	from intficpy.travel import travel
 	d = input_tokens[0]
 	# if first word is "go", skip first word, assume next word is a direction
 	if input_tokens[0]=="go" and len(input_tokens) == 2:
 		d = input_tokens[1]
-		if d in travel.directionDict:
-			travel.directionDict[d](me, app)
+		if d in directionDict:
+			directionDict[d](me, app)
 			return True
-	elif d in travel.directionDict and len(input_tokens)==1:
+	elif d in directionDict and len(input_tokens)==1:
 		if lastTurn.ambiguous:
 			for item in lastTurn.things:
 				if d in item.adjectives:
 					return False
-		travel.directionDict[d](me, app)
+		directionDict[d](me, app)
 		return True
 	else:
 		return False
 
-def getVerb(app, input_tokens):
+def getCurVerb(app, input_tokens):
 	"""Identify the verb
 	Takes arguments app, pointing to the PyQt application, and input_tokens, the tokenized player command (list of strings)
 	Called every turn by parseInput
 	Returns a two item list. The first is a Verb object and an associated verb form (list of strings), or None. 
 	The second is True if potential verb matches were found, False otherwise  """
 	# look up first word in verb dictionary
-	if input_tokens[0] in vocab.verbDict:
-		verbs = list(vocab.verbDict[input_tokens[0]])
+	if input_tokens[0] in verbDict:
+		verbs = list(verbDict[input_tokens[0]])
 		verbs = matchPrepKeywords(verbs, input_tokens)
 	else:
 		verbs = None
@@ -256,7 +188,7 @@ def getVerb(app, input_tokens):
 def verbByObjects(app, input_tokens, verbs):
 	"""Disambiguates verbs based on syntax used
 	Takes arguments app, pointing to the PyQt application, input_tokens, the tokenized player command (list of strings), and verbs, a list of Verb objects (verb.py)
-	Called by getVerb
+	Called by getCurVerb
 	Iterates through verb list, comparing syntax in input to the entries in the .syntax property of the verb
 	Returns a two item list of a Verb object and an associated verb form (list of strings), or None """
 	nearMatch = []
@@ -276,7 +208,7 @@ def verbByObjects(app, input_tokens, verbs):
 	if len(nearMatch) == 0:
 		ambiguous_verb = False
 		if lastTurn.ambig_noun:
-			terms = vocab.nounDict[lastTurn.ambig_noun]
+			terms = nounDict[lastTurn.ambig_noun]
 			for term in terms:
 				if input_tokens[0] in term.adjectives or input_tokens[0] in term.synonyms:
 					ambiguous_verb = True
@@ -339,7 +271,7 @@ def verbByObjects(app, input_tokens, verbs):
 		elif len(nearMatch) > 1:
 			ambiguous_verb = False
 			if lastTurn.ambig_noun:
-				terms = vocab.nounDict[lastTurn.ambig_noun]
+				terms = nounDict[lastTurn.ambig_noun]
 				for term in terms:
 					if input_tokens[0] in term.adjectives or input_tokens[0] in term.synonyms:
 						ambiguous_verb = True
@@ -352,7 +284,7 @@ def verbByObjects(app, input_tokens, verbs):
 		else:
 			ambiguous_verb = False
 			if lastTurn.ambig_noun:
-				terms = vocab.nounDict[lastTurn.ambig_noun]
+				terms = nounDict[lastTurn.ambig_noun]
 				for term in terms:
 					if input_tokens[0] in term.adjectives or input_tokens[0] in term.synonyms:
 						ambiguous_verb = True
@@ -377,11 +309,11 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 			accounted.append(word)
 		if dobj:
 			if word in dobj:
-				if word in vocab.english.prepositions or word in vocab.english.keywords:
+				if word in english.prepositions or word in english.keywords:
 					noun = dobj[-1]
 					exempt = False
-					if noun in vocab.nounDict:
-						for item in vocab.nounDict[noun]:
+					if noun in nounDict:
+						for item in nounDict[noun]:
 							if word in item.adjectives:
 								exempt = True
 								break
@@ -391,11 +323,11 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 					accounted.append(word)
 		if iobj:
 			if word in iobj:
-				if word in vocab.english.prepositions or word in vocab.english.keywords:
+				if word in english.prepositions or word in english.keywords:
 					noun = iobj[-1]
 					exempt = False
-					if noun in vocab.nounDict:
-						for item in vocab.nounDict[noun]:
+					if noun in nounDict:
+						for item in nounDict[noun]:
 							if word in item.adjectives:
 								exempt = True
 								break
@@ -414,20 +346,20 @@ def matchPrepKeywords(verbs, input_tokens):
 	Not currently used by parser
 	Returns a list of Verb objects or an empty list """
 	remove_verb = []
-	for p in vocab.english.prepositions:
+	for p in english.prepositions:
 		if p in input_tokens and len(input_tokens) > 1:
 			exempt = False
 			for verb in verbs:
 				ix = input_tokens.index(p) + 1
 				if ix<len(input_tokens):
 					noun = input_tokens[ix]
-					while not noun in vocab.nounDict:
+					while not noun in nounDict:
 						ix = ix + 1
 						if ix >= len(input_tokens):
 							break
 						noun = input_tokens[ix]
-					if noun in vocab.nounDict:
-						for item in vocab.nounDict[noun]:
+					if noun in nounDict:
+						for item in nounDict[noun]:
 							if p in item.adjectives:
 								exempt = True
 				if p in ["up", "down", "in", "out"]:
@@ -437,20 +369,20 @@ def matchPrepKeywords(verbs, input_tokens):
 					remove_verb.append(verb)
 				elif not p in verb.preposition and not exempt:
 					remove_verb.append(verb)
-	for p in vocab.english.keywords:
+	for p in english.keywords:
 		if p in input_tokens and len(input_tokens) > 1:
 			exempt = False
 			for verb in verbs:
 				ix = input_tokens.index(p) + 1
 				if ix<len(input_tokens):
 					noun = input_tokens[ix]
-					while not noun in vocab.nounDict:
+					while not noun in nounDict:
 						ix = ix + 1
 						if ix >= len(input_tokens):
 							break
 						noun = input_tokens[ix]
-					if noun in vocab.nounDict:
-						for item in vocab.nounDict[noun]:
+					if noun in nounDict:
+						for item in nounDict[noun]:
 							if p in item.adjectives:
 								exempt = True
 				if not verb.keywords and not exempt:
@@ -552,10 +484,10 @@ def adjacentStrObj(app, verb_form, input_tokens, strobj):
 			x = 1
 	
 	if x==0: # thing follows string
-		if not objs[-1] in vocab.nounDict:
+		if not objs[-1] in nounDict:
 			#app.printToGUI("Please rephrase ")
 			return [None, None]
-		things = vocab.nounDict[objs[-1]]
+		things = nounDict[objs[-1]]
 		i = len(objs) - 2
 		while i > 0:
 			accounted = False
@@ -573,7 +505,7 @@ def adjacentStrObj(app, verb_form, input_tokens, strobj):
 	else: # string follows thing 
 		noun = None
 		for word in objs:
-			if word in vocab.nounDict:
+			if word in nounDict:
 				noun = word
 				break
 		if not noun:
@@ -658,13 +590,13 @@ def getObjWords(app, before, after, input_tokens):
 		# find the index of the first noun in the noun dict. if there is more than one, reject any that double as adjectives
 		nounlist = []
 		for word in input_tokens:
-			if word in vocab.nounDict:
+			if word in nounDict:
 				nounlist.append(word)
 		if len(nounlist)>2:
 			i = 0
 			delnoun = []
 			while i < (len(nounlist) - 1):
-				for item in vocab.nounDict[nounlist[i]]:
+				for item in nounDict[nounlist[i]]:
 					if nounlist[i] in item.adjectives and  not nounlist[i] in delnoun:
 						delnoun.append(nounlist[i])
 			for noun in delnoun:
@@ -678,13 +610,13 @@ def getObjWords(app, before, after, input_tokens):
 			# find the index of the first noun in the noun dict. if there is more than one, reject any that double as adjectives
 			nounlist = []
 			for word in input_tokens:
-				if word in vocab.nounDict:
+				if word in nounDict:
 					nounlist.append(word)
 			if len(nounlist)>2:
 				i = 0
 				delnoun = []
 				while i < (len(nounlist) - 1):
-					for item in vocab.nounDict[nounlist[i]]:
+					for item in nounDict[nounlist[i]]:
 						if nounlist[i] in item.adjectives and  not nounlist[i] in delnoun:
 							delnoun.append(nounlist[i])
 				for noun in delnoun:
@@ -798,7 +730,6 @@ def invRangeCheck(me, thing):
 	return False
 
 def directionRangeCheck(obj):
-	from intficpy.travel.travel import directionDict
 	if isinstance(obj, list):
 		if len(obj) > 1:
 			return False
@@ -924,7 +855,7 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 		t_ix = int(noun_adj_arr[-1])
 	except:
 		t_ix = -1
-	if lastTurn.things != [] and (noun_adj_arr[-1] not in vocab.nounDict or not endnoun):
+	if lastTurn.things != [] and (noun_adj_arr[-1] not in nounDict or not endnoun):
 		noun = lastTurn.ambig_noun
 		if noun:
 			noun_adj_arr.append(noun)
@@ -935,10 +866,10 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 	else:
 		noun = noun_adj_arr[-1]
 		# get list of associated Things
-		if noun in vocab.nounDict:
+		if noun in nounDict:
 			# COPY the of list Things associated with a noun to allow for element deletion during disambiguation (in checkAdjectives)
 			# the list will usually be fairly small
-			things = list(vocab.nounDict[noun])
+			things = list(nounDict[noun])
 		else:
 			things = []
 	if len(things) == 0:
@@ -1057,7 +988,7 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 							loc = item.location
 							if not loc:
 								pass
-							elif isinstance(loc, room.Room):
+							elif isinstance(loc, Room):
 								msg += item.lowNameArticle(True) + " on " + loc.floor.lowNameArticle(True) + " (" + str(things.index(item) + 1) + ")"
 							elif loc == me:
 								msg += item.lowNameArticle(True) + " in your inventory (" + str(things.index(item) + 1) + ")"
@@ -1132,7 +1063,7 @@ def callVerb(me, app, cur_verb, obj_words):
 	if cur_verb.hasDobj and not isinstance(obj_words[0], list):
 		cur_dobj = obj_words[0]
 	elif cur_verb.hasDobj and obj_words[0]:
-		if isinstance(obj_words[0], thing.Thing):
+		if isinstance(obj_words[0], Thing):
 			cur_dobj = obj_words[0]
 		elif cur_verb.dscope=="text"  or cur_verb.dscope=="direction":
 			cur_dobj = obj_words[0]
@@ -1146,7 +1077,7 @@ def callVerb(me, app, cur_verb, obj_words):
 	if cur_verb.hasIobj and not isinstance(obj_words[1], list):
 		cur_iobj = obj_words[1]
 	elif cur_verb.hasIobj and obj_words[1]:
-		if isinstance(obj_words[1], thing.Thing):
+		if isinstance(obj_words[1], Thing):
 			cur_iobj = obj_words[1]
 		elif cur_verb.iscope=="text" or cur_verb.iscope=="direction":
 			cur_iobj = obj_words[1]
@@ -1161,21 +1092,21 @@ def callVerb(me, app, cur_verb, obj_words):
 		pass
 	if not cur_iobj:
 		pass
-	elif not isinstance(cur_iobj, thing.Container) and cur_verb.itype=="Container" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
+	elif not isinstance(cur_iobj, Container) and cur_verb.itype=="Container" and cur_iobj.is_composite and not isinstance(obj_words[1], Thing):
 		if cur_iobj.child_Containers != []:
 			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Containers, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 			lastTurn.iobj = None
 			if cur_iobj:
 				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
 				lastTurn.iobj = cur_iobj
-	elif not isinstance(cur_iobj, thing.Surface) and cur_verb.itype=="Surface" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
+	elif not isinstance(cur_iobj, Surface) and cur_verb.itype=="Surface" and cur_iobj.is_composite and not isinstance(obj_words[1], Thing):
 		if cur_iobj.child_Surfaces != []:
 			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_Surfaces, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 			lastTurn.iobj = None
 			if cur_iobj:
 				app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
 				lastTurn.iobj = cur_iobj
-	elif not isinstance(cur_iobj, thing.UnderSpace) and cur_verb.itype=="UnderSpace" and cur_iobj.is_composite and not isinstance(obj_words[1], thing.Thing):
+	elif not isinstance(cur_iobj, UnderSpace) and cur_verb.itype=="UnderSpace" and cur_iobj.is_composite and not isinstance(obj_words[1], Thing):
 		if cur_iobj.child_UnderSpaces != []:
 			cur_iobj = checkAdjectives(app, me, obj_words[1], False, cur_iobj.child_UnderSpaces, cur_verb.iscope, cur_verb.far_iobj, cur_verb.iobj_direction)
 			lastTurn.iobj = None
@@ -1186,21 +1117,21 @@ def callVerb(me, app, cur_verb, obj_words):
 		pass
 	if not cur_dobj:
 		pass
-	elif not isinstance(cur_dobj, thing.Container) and cur_verb.dtype=="Container" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
+	elif not isinstance(cur_dobj, Container) and cur_verb.dtype=="Container" and cur_dobj.is_composite and not isinstance(obj_words[0], Thing):
 		if cur_dobj.child_Containers != []:
 			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Containers, cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 			lastTurn.dobj = None
 			if cur_dobj:
 				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
 				lastTurn.iobj = cur_dobj
-	elif not isinstance(cur_dobj, thing.Surface) and cur_verb.dtype=="Surface" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
+	elif not isinstance(cur_dobj, Surface) and cur_verb.dtype=="Surface" and cur_dobj.is_composite and not isinstance(obj_words[0], Thing):
 		if cur_dobj.child_Surfaces != []:
 			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_Surfaces, cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 			lastTurn.dobj = False
 			if cur_dobj:
 				app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
 				lastTurn.iobj = cur_dobj
-	elif not isinstance(cur_dobj, thing.UnderSpace) and cur_verb.dtype=="UnderSpace" and cur_dobj.is_composite and not isinstance(obj_words[0], thing.Thing):
+	elif not isinstance(cur_dobj, UnderSpace) and cur_verb.dtype=="UnderSpace" and cur_dobj.is_composite and not isinstance(obj_words[0], Thing):
 		if cur_dobj.child_UnderSpaces != []:
 			cur_dobj = checkAdjectives(app, me, obj_words[0], False, cur_dobj.child_UnderSpaces, cur_verb.dscope, cur_verb.far_dobj, cur_verb.dobj_direction)
 			lastTurn.dobj = False
@@ -1212,7 +1143,7 @@ def callVerb(me, app, cur_verb, obj_words):
 		pass
 	elif not cur_dobj.location:
 		pass
-	elif cur_dobj.location.location==me and isinstance(cur_dobj, thing.Liquid):
+	elif cur_dobj.location.location==me and isinstance(cur_dobj, Liquid):
 		cur_dobj = cur_dobj.getContainer()
 	elif cur_dobj.location.location==me and cur_verb.dscope=="inv":
 		app.printToGUI("(First removing " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + " from " + cur_dobj.location.getArticle(True) + cur_dobj.location.verbose_name + ")")
@@ -1223,7 +1154,7 @@ def callVerb(me, app, cur_verb, obj_words):
 		pass
 	elif not cur_iobj.location:
 		pass
-	elif cur_iobj.location.location==me and isinstance(cur_iobj, thing.Liquid):
+	elif cur_iobj.location.location==me and isinstance(cur_iobj, Liquid):
 		cur_iobj = cur_iobj.getContainer()
 	elif cur_iobj.location.location==me and cur_verb.iscope=="inv":
 		app.printToGUI("(First removing " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + " from " + cur_iobj.location.getArticle(True) + cur_iobj.location.verbose_name + ")")
@@ -1240,7 +1171,7 @@ def callVerb(me, app, cur_verb, obj_words):
 			verb.dropVerb.verbFunc(me, app, cur_iobj)
 		elif (cur_verb.iscope == "inv" or (cur_verb.iscope=="invflex" and cur_iobj is not me)) and roomRangeCheck(me, cur_iobj):
 			app.printToGUI("(First attempting to take " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ") ")
-			success = verb.getVerb.verbFunc(me, app, cur_iobj)
+			success = getVerb.verbFunc(me, app, cur_iobj)
 			if not success:	
 				return False
 			if not cur_iobj.invItem:
@@ -1254,7 +1185,7 @@ def callVerb(me, app, cur_verb, obj_words):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
 			elif (cur_verb.dscope == "inv" or (cur_verb.dscope=="invflex"  and cur_dobj is not me)) and roomRangeCheck(me, cur_dobj):
 				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
-				success = verb.getVerb.verbFunc(me, app, cur_dobj)
+				success = getVerb.verbFunc(me, app, cur_dobj)
 				if not success:	
 					return False
 	if cur_verb.hasDobj:
@@ -1267,7 +1198,7 @@ def callVerb(me, app, cur_verb, obj_words):
 				verb.dropVerb.verbFunc(me, app, cur_dobj)
 			elif (cur_verb.dscope == "inv" or (cur_verb.dscope=="invflex"  and cur_dobj is not me)) and roomRangeCheck(me, cur_dobj):
 				app.printToGUI("(First attempting to take " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ") ")
-				success = verb.getVerb.verbFunc(me, app, cur_dobj)
+				success = getVerb.verbFunc(me, app, cur_dobj)
 				if not success:
 					return False
 			elif cur_verb.dscope == "inv" and wearRangeCheck(me, cur_dobj):
@@ -1354,12 +1285,12 @@ def saveLoadCheck(input_tokens, me, app):
 			app.newBox(app.box_style1)
 			app.printToGUI("Could not save game")
 		else:
-			serializer.curSave.saveState(me, fname, aboutGame.main_file)
+			curSave.saveState(me, fname, aboutGame.main_file)
 			app.printToGUI("Game saved to " + fname)
 		return True
 	elif input_tokens[0]=="load":
 		fname = app.getLoadFileGUI()
-		if serializer.curSave.loadState(me, fname, app, aboutGame.main_file):
+		if curSave.loadState(me, fname, app, aboutGame.main_file):
 			app.printToGUI("Game loaded from " + fname)
 		else:
 			app.printToGUI("Error loading game. Please select a valid .sav file")
@@ -1412,7 +1343,7 @@ def parseInput(me, app, input_string):
 		if saveLoadCheck(input_tokens, me, app):
 			return 0
 		if (input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2]==["verb", "help"]) and len(input_tokens) > 2:
-			verb.helpVerbVerb.verbFunc(me, app, input_tokens[2:])
+			helpVerbVerb.verbFunc(me, app, input_tokens[2:])
 			return 0
 		elif input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2]==["verb", "help"]:
 			app.printToGUI("Please specify a verb for help. ")
@@ -1432,7 +1363,7 @@ def parseInput(me, app, input_string):
 				return 0
 			else:
 				pass
-		gv = getVerb(app, input_tokens)
+		gv = getCurVerb(app, input_tokens)
 		if gv[0]:
 			cur_verb = gv[0][0]
 		else:
@@ -1455,7 +1386,6 @@ def parseInput(me, app, input_string):
 		callVerb(me, app, cur_verb, obj_words)
 		return 0
 	else:
-		from verbs.verb import scoreVerb, fullScoreVerb
 		if input_tokens in [["save"], ["load"]]:
 			app.newBox(app.box_style1)
 		if input_tokens==["full", "score"]:

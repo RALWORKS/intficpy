@@ -3,7 +3,9 @@ import importlib
 import types
 import inspect
 
-from intficpy.things import actor, thing
+from intficpy.things.actor import Actor, Topic, SpecialTopic, SaleItem
+from intficpy.things.thing_base import Thing, things
+from intficpy.things.things import Abstract
 from intficpy.travel import room
 from intficpy.score import score
 from intficpy.travel import travel
@@ -68,10 +70,10 @@ class SaveState:
 				saveDict["hints"][attr] = out
 			else:
 				saveDict["hints"][attr] = self.simplifyAttr(value, main_module)
-		for key in thing.things:
+		for key in Things:
 			if key not in saveDict:	
 				saveDict[key] = {}
-				for attr, value in thing.things[key].__dict__.items():
+				for attr, value in Things[key].__dict__.items():
 					saveDict[key][attr] = self.simplifyAttr(value, main_module)
 		for key in score.hintnodes:
 			if key not in saveDict:	
@@ -159,7 +161,7 @@ class SaveState:
 			x = 0
 			for x in range (0, len(value)):
 				val = value[x]
-				if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room) or isinstance(val, actor.SpecialTopic)  or isinstance(val, actor.SaleItem):
+				if isinstance(val, Thing) or isinstance(val, Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, Abstract) or isinstance(val, Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room) or isinstance(val, SpecialTopic)  or isinstance(val, SaleItem):
 					out.append("<obj>" + val.ix)
 				elif isinstance(val, types.FunctionType):
 					#func = getattr(main_module, value[x])
@@ -177,7 +179,7 @@ class SaveState:
 					x = 0
 					for x in range (0, len(value[key])):
 						val = value[key][x]
-						if isinstance(val, thing.Thing) or isinstance(val, actor.Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, thing.Abstract) or isinstance(val, actor.Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room) or isinstance(val, actor.SpecialTopic) or isinstance(val, actor.SaleItem):
+						if isinstance(val, Thing) or isinstance(val, Actor) or isinstance(val, score.Achievement) or isinstance(val, score.AbstractScore) or isinstance(val, score.Ending) or isinstance(val, Abstract) or isinstance(val, Topic) or isinstance(val, travel.TravelConnector) or isinstance(val, room.Room) or isinstance(val, SpecialTopic) or isinstance(val, SaleItem):
 							out[key].append("<obj>" + val.ix)
 						elif isinstance(val, types.FunctionType):
 							#func = getattr(main_module, value[key][x])
@@ -185,7 +187,7 @@ class SaveState:
 						else:
 							out[key].append(val)
 						x = x + 1
-				elif isinstance(value[key], thing.Thing) or isinstance(value[key], actor.Actor) or isinstance(value[key], score.Achievement) or isinstance(value[key], score.AbstractScore) or isinstance(value[key], score.Ending) or isinstance(value[key], thing.Abstract) or isinstance(value[key], actor.Topic) or isinstance(value[key], travel.TravelConnector) or isinstance(value[key], room.Room) or isinstance(value[key], actor.SpecialTopic) or isinstance(value[key], actor.SaleItem):
+				elif isinstance(value[key], Thing) or isinstance(value[key], Actor) or isinstance(value[key], score.Achievement) or isinstance(value[key], score.AbstractScore) or isinstance(value[key], score.Ending) or isinstance(value[key], Abstract) or isinstance(value[key], Topic) or isinstance(value[key], travel.TravelConnector) or isinstance(value[key], room.Room) or isinstance(value[key], SpecialTopic) or isinstance(value[key], SaleItem):
 					out[key] = "<obj>" + value[key].ix
 				elif isinstance(value[key], types.FunctionType):
 					#func = getattr(main_module, value[key])
@@ -202,7 +204,7 @@ class SaveState:
 		if not ix:
 			return None
 		if "thing" in ix:
-			return thing.things[ix]
+			return Things[ix]
 		elif "actor" in ix:
 			return actor.actors[ix]
 		elif "hintnode" in ix:

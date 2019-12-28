@@ -1,301 +1,8 @@
 import copy
 
-from intficpy.vocab import vocab
-
-##############################################################
-# THING.PY - the Thing class for IntFicPy 
-# Defines the Thing class,  its subclasses Surface, Container, and Clothing, and the thing dictionary
-##############################################################
-
-# a dictionary of the indeces of all Thing objects, including subclass instances, mapped to their object
-# populated at runtime
-things = {}
-# index is an integer appended to the string "thing"- increases by 1 for each Thing defined
-# index of a Thing will always be the same provided the game file is written according to the rules
-thing_ix = 0
-
-class Thing:
-	"""Thing is the overarching class for all items that exist in the game """
-	def __init__(self, name):
-		"""Sets essential properties for the Thing instance """
-		# indexing for save
-		global thing_ix
-		self.ix = "thing" + str(thing_ix)
-		thing_ix = thing_ix + 1
-		things[self.ix] = self
-		self.known_ix = self.ix
-		self.ignore_if_ambiguous = False
-		self.cannot_interact_msg = None
-		# False except when Thing is the face of a TravelConnector
-		self.connection = None
-		self.direction = None
-		# thing properties
-		self.far_away = False
-		self.is_composite = False
-		self.parent_obj = None
-		self.size = 50
-		self.contains_preposition = None
-		self.contains_preposition_inverse = None
-		self.canSit = False
-		self.canStand = False
-		self.canLie = False
-		self.isPlural = False
-		self.special_plural = False
-		self.hasArticle = True
-		self.isDefinite = False
-		self.invItem = True
-		self.adjectives = []
-		self.cannotTakeMsg = "You cannot take that."
-		self.contains = {}
-		self.sub_contains = {}
-		self.wearable = False
-		self.location = False
-		self.name = name
-		self.synonyms = []
-		self.manual_update = False
-		# verbose name will be updated when adjectives are added
-		self.verbose_name = name
-		# Thing instances that are not Actors cannot be spoken to
-		self.give = False
-		# the default description to print from the room
-		self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-		self.base_xdesc = self.base_desc
-		self.desc = self.base_desc
-		self.xdesc = self.base_xdesc
-		# the default description for the examine command
-		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
-		else:
-			vocab.nounDict[name] = [self]
-	
-	def makeKnown(self, me):
-		if self.known_ix and (not self.known_ix in me.knows_about):
-			me.knows_about.append(self.known_ix)
-	
-	def getOutermostLocation(self):
-		"""Gets the Thing's current room 
-		Takes argument app, pointing to the PyQt5 GUI"""
-		from intficpy.travel.room import Room 
-		x = self.location
-		while x and not isinstance(x, Room):
-			x = x.location
-		return x
-	
-	def containsItem(self, item):
-		"""Returns True if item is in the Thing's contains or sub_contains dictionary """
-		if item.ix in self.contains:
-			if item in self.contains[item.ix]:
-				return True
-		if item.ix in self.sub_contains:
-			if item in self.sub_contains[item.ix]:
-				return True
-		return False
-	
-	def strictContainsItem(self, item):
-		"""Returns True only if item is in the Thing's contains dictionary (top level)"""
-		if item.ix in self.contains:
-			if item in self.contains[item.ix]:
-				return True
-		return False
-	
-	def addSynonym(self, word):
-		"""Adds a synonym (noun) that can be used to refer to a Thing
-		Takes argument word, a string, which should be a single noun """
-		self.synonyms.append(word)
-		if word in vocab.nounDict:
-			if self not in vocab.nounDict[word]:
-				vocab.nounDict[word].append(self)
-		else:
-			vocab.nounDict[word] = [self]
-			
-	def removeSynonym(self, word):
-		"""Adds a synonym (noun) that can be used to refer to a Thing
-		Takes argument word, a string, which should be a single noun """
-		if word in self.synonyms:
-			self.synonyms.remove(word)
-		if word in vocab.nounDict:
-			if self in vocab.nounDict[word]:
-				vocab.nounDict[word].remove(self)
-			if vocab.nounDict[word] == []:
-				del vocab.nounDict[word]
-	
-	def setAdjectives(self, adj_list, update_desc=False):
-		"""Sets adjectives for a Thing
-		Takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
-		Game creators should set update_desc to False if using a custom desc or xdesc for a Thing """
-		self.adjectives = adj_list
-		self.verbose_name = " ".join(adj_list) + " " + self.name
-		if update_desc:
-			self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-			self.desc = self.base_desc
-	
-	def capNameArticle(self, definite=False):
-		out  = self.getArticle(definite) + self.verbose_name
-		first = out[0].upper()
-		out = first + out[1:]
-		return out
-	
-	def lowNameArticle(self, definite=False):
-		return self.getArticle(definite) + self.verbose_name
-	
-	def getArticle(self, definite=False):
-		"""Gets the correct article for a Thing
-		Takes argument definite (defaults to False), which specifies whether the article is definite
-		Returns a string """
-		if not self.hasArticle:
-			return ""
-		elif definite or self.isDefinite:
-			return "the "
-		else:
-			if self.verbose_name[0] in ["a", "e", "i", "o", "u"]:
-				return "an "
-			else:
-				return "a "
-	
-	def getPlural(self):
-		if self.special_plural:
-			return self.special_plural
-		elif self.verbose_name[-1]=="s" or self.verbose_name[-1]=="x" or self.verbose_name[-1]=="z" or self.verbose_name[-2:]=="sh" or self.verbose_name[-2:]=="ch":
-			return self.verbose_name + "es"
-		else:
-			return self.verbose_name + "s"
-	
-	def makeUnique(self):
-		"""Make a Thing unique (use definite article)
-		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
-		self.isDefinite = True
-		self.base_desc = self.getArticle().capitalize() + self.verbose_name + " is here."
-		self.desc = self.base_desc
-
-	def copyThing(self):
-		"""Copy a Thing, keeping the index of the original. Safe to use for dynamic item duplication. """
-		out = copy.copy(self)
-		vocab.nounDict[out.name].append(out)
-		out.setAdjectives(out.adjectives)
-		for synonym in out.synonyms:
-			vocab.nounDict[synonym].append(out)
-		out.verbose_name = self.verbose_name
-		out.desc = self.desc
-		out.xdesc = self.xdesc
-		out.contains = {}
-		out.sub_contains = {}
-		return out
-	
-	def copyThingUniqueIx(self):
-		"""Copy a Thing, creating a new index. NOT safe to use for dynamic item duplication. 
-		The copy object is by default treated as not distinct from the original in Player knowledge (me.knows_about dictionary). 
-		To override this behaviour, manually set the copy's known_ix to its own ix property. """
-		out = copy.copy(self)
-		global thing_ix
-		out.ix = "thing" + str(thing_ix)
-		thing_ix = thing_ix + 1
-		things[out.ix] = out
-		vocab.nounDict[out.name].append(out)
-		out.setAdjectives(out.adjectives)
-		for synonym in out.synonyms:
-			vocab.nounDict[synonym].append(out)
-		out.verbose_name = self.verbose_name
-		out.desc = self.desc
-		out.xdesc = self.xdesc
-		out.contains = {}
-		out.sub_contains = {}
-		return out
-	
-	def setFromPrototype(self, item):
-		if not isinstance(item, Thing):
-			print("Error: " + self.verbose_name + " cannot set attributes from non Thing prototype")
-			return False
-		else:
-			if self.name in vocab.nounDict:
-				if self in vocab.nounDict[self.name]:
-					vocab.nounDict[self.name].remove(self)
-					if vocab.nounDict[self.name] == []:
-						del vocab.nounDict[self.name]
-			for synonym in self.synonyms:
-				if self in vocab.nounDict[synonym]:
-					if self in vocab.nounDict[synonym]:
-						vocab.nounDict[synonym].remove(self)
-						if vocab.nounDict[synonym] == []:
-							del vocab.nounDict[synonym]
-			for attr, value in item.__dict__.items():
-				if attr != "ix":
-					setattr(self, attr, value)
-			if self.name in vocab.nounDict:
-				vocab.nounDict[self.name].append(self)
-			else:
-				vocab.nounDict[self.name] = [self]
-			for synonym in self.synonyms:
-				if synonym in vocab.nounDict:
-					vocab.nounDict[synonym].append(self)
-				else:
-					vocab.nounDict[synonym] = [self]
-			return True
-				
-	def describeThing(self, description):
-		self.base_desc = description
-		self.desc = description
-		if self.parent_obj:
-			if not self.parent_obj.children_desc:
-				self.parent_obj.desc = self.parent_obj.base_desc
-				self.parent_obj.xdesc = self.parent_obj.base_xdesc
-				for item in self.parent_obj.children:
-					self.parent_obj.desc = self.parent_obj.desc + item.base_desc
-					self.parent_obj.xdesc = self.parent_obj.xdesc + item.base_desc
-		if self.is_composite:
-			if self.children_desc:
-				self.desc = self.desc + self.children_desc
-			else:
-				for item in self.children:
-					if item in self.child_UnderSpaces:
-						continue
-					self.desc = self.desc + item.desc
-		
-	def xdescribeThing(self, description):
-		self.base_xdesc = description
-		self.xdesc = description
-		if self.is_composite:
-			if self.children_desc:
-				self.xdesc = self.xdesc + self.children_desc
-			else:
-				for item in self.children:
-					if item in self.child_UnderSpaces:
-						continue
-					self.xdesc = self.xdesc + item.desc
-		
-	def addComposite(self, item):
-		self.is_composite = True
-		try:
-			defined = self.child_Things
-		except:
-			self.children_desc = False
-			self.child_Things = []
-			self.child_Surfaces = []
-			self.child_Containers = []
-			self.child_UnderSpaces = []
-			self.children = []
-		item.parent_obj = self
-		self.children.append(item)
-		if isinstance(item, Surface):
-			self.child_Surfaces.append(item)
-		elif isinstance(item, Container):
-			self.child_Containers.append(item)
-		elif isinstance(item, UnderSpace):
-			self.child_UnderSpaces.append(item)
-		elif isinstance(item, Thing):
-			self.child_Containers.append(item)
-		self.location.addThing(item)
-		item.invItem = False
-		item.cannotTakeMsg = item.capNameArticle(True) + " is attached to " + self.lowNameArticle(True) + ". "
-		if isinstance(self, Container) or isinstance(self, Surface):
-			self.containsListUpdate()
-
-	def describeChildren(self, description):
-		self.children_desc = description
-		self.desc = self.desc + self.children_desc
-		self.xdesc = self.xdesc + self.children_desc
-		if isinstance(self, Container) or isinstance(self, Surface):
-			self.containsListUpdate()
+from intficpy.vocab.vocab import nounDict
+from intficpy.things.actor import Actor, Player
+from intficpy.things.thing_base import Thing, thing_ix, things
 
 class Surface(Thing):
 	"""Class for Things that can have other Things placed on them """
@@ -315,6 +22,7 @@ class Surface(Thing):
 		self.known_ix = self.ix
 		self.me = me
 		self.contains_preposition = "on"
+		self.contains_on = True
 		self.contains_preposition_inverse = "off"
 		self.connection = None
 		self.isPlural = False
@@ -352,15 +60,14 @@ class Surface(Thing):
 		self.invItem = False
 		self.cannotTakeMsg = "You cannot take that."
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description of contents
 		Called when a Thing is added or removed """
-		from intficpy.things.actor import Player
 		onlist = " On the " + self.name + " is "
 		if update_desc:
 			self.compositeBaseDesc()
@@ -422,7 +129,6 @@ class Surface(Thing):
 	def addThing(self, item):
 		"""Add a Thing to a Surface
 		Takes argument item, pointing to a Thing"""
-		from intficpy.things import actor
 		if isinstance(item, Container):
 			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
 				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
@@ -441,7 +147,7 @@ class Surface(Thing):
 		nested = getNested(item)
 		next_loc = self.location
 		while next_loc:
-			if not isinstance(item, actor.Actor):
+			if not isinstance(item, Actor):
 				for t in nested:
 					if t.ix in next_loc.sub_contains:
 						if not t in next_loc.sub_contains[t.ix]:
@@ -455,7 +161,7 @@ class Surface(Thing):
 				next_loc.sub_contains[item.ix] = [item]
 			next_loc = next_loc.location
 		for t in nested:
-			if not isinstance(item, actor.Actor):
+			if not isinstance(item, Actor):
 				if t.ix in self.sub_contains:
 					self.sub_contains[t.ix].append(t)
 				else:
@@ -600,6 +306,7 @@ class Container(Thing):
 		self.desc_reveal = True
 		self.xdesc_reveal = True
 		self.contains_preposition = "in"
+		self.contains_in = True
 		self.contains_preposition_inverse = "out"
 		self.connection = None
 		self.direction = None
@@ -636,10 +343,10 @@ class Container(Thing):
 		self.contains_desc = ""
 		self.location = False
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def updateDesc(self):
 		self.containsListUpdate(True, True)
@@ -768,7 +475,7 @@ class Container(Thing):
 		nested = getNested(item)
 		next_loc = self.location
 		while next_loc:
-			if not isinstance(item, actor.Actor):
+			if not isinstance(item, Actor):
 				for t in nested:
 					if t.ix in next_loc.sub_contains:
 						if not t in next_loc.sub_contains[t.ix]:
@@ -781,7 +488,7 @@ class Container(Thing):
 			else:
 				next_loc.sub_contains[item.ix] = [item]
 			next_loc = next_loc.location
-		if not isinstance(item, actor.Actor):
+		if not isinstance(item, Actor):
 			for t in nested:
 				if t.ix in self.sub_contains:
 					self.sub_contains[t.ix].append(t)
@@ -1046,10 +753,10 @@ class LightSource(Thing):
 		self.expired_desc = "It is burnt out. "
 		self.location = False
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def describeThing(self, description):
 		self.base_desc = description
@@ -1169,10 +876,10 @@ class AbstractClimbable(Thing):
 		self.xdesc = self.base_xdesc
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 
 class Door(Thing):
 	"""Represents one side of a door. Always define with a twin, and set a direction. Can be open or closed.
@@ -1228,10 +935,10 @@ class Door(Thing):
 		self.xdesc = self.base_xdesc + self.state_desc
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def makeOpen(self):
 		self.is_open = True
@@ -1347,10 +1054,10 @@ class Key(Thing):
 		self.xdesc = self.base_xdesc
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 
 class Lock(Thing):
 	"""Lock is the class for lock items in the game  """
@@ -1410,10 +1117,10 @@ class Lock(Thing):
 		self.xdesc = self.base_xdesc + self.state_desc
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 
 	def makeUnlocked(self):
 		self.is_locked = False
@@ -1501,10 +1208,10 @@ class Abstract(Thing):
 		#self.xdesc = self.base_xdesc
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def makeKnown(self, me):
 		if not self.ix in me.knows_about:
@@ -1534,6 +1241,7 @@ class UnderSpace(Thing):
 		self.state_desc = ""
 		self.size = 50
 		self.contains_preposition = "under"
+		self.contains_under = True
 		self.contains_preposition_inverse = "out"
 		self.is_composite = False
 		self.parent_obj = None
@@ -1561,10 +1269,10 @@ class UnderSpace(Thing):
 		# description of contents
 		self.contains_desc = ""
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def compositeBaseDesc(self):
 		if self.is_composite:
@@ -1740,7 +1448,7 @@ class UnderSpace(Thing):
 		next_loc = self.location
 		if revealed:
 			while next_loc:
-				if not isinstance(item, actor.Actor):
+				if not isinstance(item, Actor):
 					for t in nested:
 						if t.ix in next_loc.sub_contains:
 							if not t in next_loc.sub_contains[t.ix]:
@@ -1753,7 +1461,7 @@ class UnderSpace(Thing):
 				else:
 					next_loc.sub_contains[item.ix] = [item]
 				next_loc = next_loc.location
-		if not isinstance(item, actor.Actor):
+		if not isinstance(item, Actor):
 			for t in nested:
 				if t.ix in self.sub_contains:
 					if not t in self.sub_contains[t.ix]:
@@ -1927,10 +1635,10 @@ class Transparent(Thing):
 		self.look_through_desc = "Looking through reveals nothing of interest. "
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def lookThrough(self, me, app):
 		"""Called when the Transparent instance is dobj for verb look through
@@ -1990,10 +1698,10 @@ class Readable(Thing):
 		self.read_desc = text
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def readText(self, me, app):
 		"""Called when the Transparent instance is dobj for verb look through
@@ -2052,10 +1760,10 @@ class Book(Readable):
 		self.is_open = False
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def makeOpen(self):
 		self.is_open = True
@@ -2118,10 +1826,10 @@ class Pressable(Thing):
 		self.xdesc = self.base_xdesc
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def pressThing(self, me, app):
 		"""Game creators should redefine this method for their Pressable instances """
@@ -2192,10 +1900,10 @@ class Liquid(Thing):
 		self.xdesc = self.base_xdesc
 		# the default description for the examine command
 		# add name to list of nouns
-		if name in vocab.nounDict:
-			vocab.nounDict[name].append(self)
+		if name in nounDict:
+			nounDict[name].append(self)
 		else:
-			vocab.nounDict[name] = [self]
+			nounDict[name] = [self]
 	
 	def getContainer(self):
 		"""Redirect to the Container rather than the Liquid for certain verbs (i.e. take) """
