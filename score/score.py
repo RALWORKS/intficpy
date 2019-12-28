@@ -63,7 +63,7 @@ class Ending:
 		self.desc = desc
 	
 	def endGame(self, me, app):
-		from . import parser
+		from intficpy.parser import parser
 		app.printToGUI("<b>" + self.title + "</b>")
 		app.printToGUI(self.desc)
 		parser.lastTurn.gameEnding = True
@@ -79,7 +79,7 @@ class HintSystem:
 		if node not in self.pending:
 			self.pending.append(node)
 		if self.pending and not self.pending_daemon:	
-			from .parser import daemons
+			from intficpy.parser.parser import daemons
 			self.pending_daemon = True
 			if not self.checkPending in daemons.funcs:
 				daemons.add(self.checkPending)
@@ -205,7 +205,7 @@ class HintNode:
 	def nextHint(self, app):
 		"""Gives the next hint associated with the HintNode
 		Returns True if a hint can be given, False on failure """
-		from .parser import lastTurn, cleanInput
+		from intficpy.parser.parser import lastTurn, cleanInput
 		if len(self.hints) == 0:
 			print("ERROR: cannot use nextHint on empty HintNode ")
 			return False
@@ -229,7 +229,7 @@ class HintNode:
 		return True
 
 def previousTurnHint():
-	from .parser import lastTurn, cleanInput
+	from intficpy.intficpy.parser.parser import lastTurn, cleanInput
 	if len(lastTurn.turn_list) < 2:
 		return False
 	return cleanInput(lastTurn.turn_list[-2], False) =="hint"

@@ -3,7 +3,7 @@ import PyQt5.QtCore as QtCore
 from PyQt5.QtWidgets import QMainWindow, QApplication, QWidget, QPushButton, QAction, QLineEdit, QMessageBox, QVBoxLayout, QLabel, QFrame, QScrollArea, QAbstractSlider, QSizePolicy, QFileDialog
 from PyQt5.QtGui import QIcon, QFont, QIcon
 
-from . import parser
+from intficpy.parser import parser
 
 ##############################################################
 # GUI.PY - the GUI for IntFicPy
@@ -73,7 +73,7 @@ class App(QMainWindow):
 	def __init__(self, me, style1="color: black; background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px", style2="color: black; background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px", scroll_style=scroll_style, app_style="QFrame { border:none;}", icon=None):
 		"""Initialize the GUI
 		Takes argument me, pointing to the Player """
-		from .thing import reflexive
+		from intficpy.things.thing import reflexive
 		import __main__
 		super().__init__()
 		if icon:
@@ -100,7 +100,7 @@ class App(QMainWindow):
 	
 	def closeEvent(self, event):
 		"""Trigger program close. Close the recording file first, if open. """
-		from .serializer import curSave
+		from intficpy.serializers.serializer import curSave
 		if curSave.recfile:
 			curSave.recfile.close()
 		event.accept()
@@ -155,7 +155,7 @@ class App(QMainWindow):
 	def turnMain(self, input_string):
 		"""Sends user input to the parser each turn
 		Takes argument input_string, the cleaned user input string """
-		from intficpy.parser import parseInput
+		from intficpy.parser.parser import parseInput
 		quit = False
 		if len(input_string)==0:
 			return 0

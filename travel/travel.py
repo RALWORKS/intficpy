@@ -1,6 +1,6 @@
-from . import thing
-from . import verb
-from . import room
+from intficpy.things import thing
+from intficpy.verbs import verb
+from intficpy.travel import room
 ##############################################################
 # ROOM.PY - travel functions for IntFicPy
 # Defines travel functions and the direction vocab dictionary
@@ -96,7 +96,7 @@ class TravelConnector:
 				print("error: invalid direction input for TravelConnector: " + d[x])
 	
 	def setFromPrototype(self, connector):
-		from . import vocab
+		from intficpy.vocab import vocab
 		x = 0
 		self.entranceA_msg = connector.entranceA_msg
 		self.entranceB_msg = connector.entranceB_msg
@@ -293,7 +293,7 @@ class DoorConnector(TravelConnector):
 			print("Cannot set lock_obj for " + self.entranceA.verbose_name + ": not a Lock ")
 	
 	def travel(self, me, app):
-		from . import verb
+		from intficpy.verbs import verb
 		outer_loc = me.getOutermostLocation()
 		preRemovePlayer(me, app)
 		if outer_loc == self.pointA:

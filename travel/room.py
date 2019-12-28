@@ -1,4 +1,4 @@
-from . import thing
+from intficpy.things import thing
 
 ##############################################################
 # ROOM.PY - verbs for IntFicPy 
@@ -134,7 +134,7 @@ class Room:
 	def addThing(self, item):
 		"""Places a Thing in a Room
 		Should generally be used by game creators instead of using room.contains.append() directly """
-		from . import actor
+		from intficpy.things import actor
 		if isinstance(item, thing.Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
@@ -246,7 +246,7 @@ class Room:
 	def resolveDarkness(self, me):
 		can_see = True
 		if self.dark:
-			from .thing import LightSource
+			from intficpy.things.thing import LightSource
 			lightsource = None
 			for key in self.contains:
 					for item in self.contains[key]:

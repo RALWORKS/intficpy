@@ -1,7 +1,6 @@
-from . import vocab
-from . import actor
-from . import thing
-from . import room
+from intficpy.vocab import vocab
+from intficpy.things import actor, thing
+from intficpy.travel import room
 
 ##############################################################
 # VERB.PY - verbs for IntFicPy 
@@ -14,7 +13,7 @@ class Verb:
 		"""Set default properties for the Verb instance
 		Takes argument word, a one word verb (string)
 		The creator can build constructions like "take off" by specifying prepositions and syntax """
-		from .parser import aboutGame
+		from intficpy.parser.parser import aboutGame
 		if word in vocab.verbDict:
 			vocab.verbDict[word].append(self)
 		elif word is not None:
@@ -49,7 +48,7 @@ class Verb:
 		self.iobj_contains_dobj = False
 
 	def addSynonym(self, word):
-		from .parser import aboutGame
+		from intficpy.parser.parser import aboutGame
 		"""Add a synonym verb
 			Takes argument word, a single verb (string)
 			The creator can build constructions like "take off" by specifying prepositions and syntax """
@@ -59,7 +58,7 @@ class Verb:
 			vocab.verbDict[word] = [self]
 	
 	def discover(self, app, show_msg, list_word=False):
-		from .parser import aboutGame
+		from intficpy.parser.parser import aboutGame
 		if list_word and list_word not in aboutGame.discovered_verbs and list_word not in aboutGame.verbs:
 			aboutGame.discovered_verbs.append(list_word)
 			if show_msg:
@@ -714,7 +713,7 @@ scoreVerb.hasDobj = False
 def scoreVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from . import score
+	from intficpy.score import score
 	score.score.score(app)
 		
 # replace default verbFunc method
@@ -730,7 +729,7 @@ fullScoreVerb.hasDobj = False
 def fullScoreVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from . import score
+	from intficpy.score import score
 	score.score.fullscore(app)
 		
 # replace default verbFunc method
@@ -745,7 +744,7 @@ aboutVerb.hasDobj = False
 def aboutVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from .parser import aboutGame
+	from intficpy.parser.parser import aboutGame
 	aboutGame.printAbout(app)
 		
 # replace default verbFunc method
@@ -760,7 +759,7 @@ helpVerb.hasDobj = False
 def helpVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from .parser import aboutGame
+	from intficpy.parser.parser import aboutGame
 	aboutGame.printHelp(app)
 		
 # replace default verbFunc method
@@ -775,7 +774,7 @@ instructionsVerb.hasDobj = False
 def instructionVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from .parser import aboutGame
+	from intficpy.parser.parser import aboutGame
 	aboutGame.printInstructions(app)
 		
 # replace default verbFunc method
@@ -788,7 +787,7 @@ verbsVerb.syntax = [["verbs"]]
 verbsVerb.hasDobj = False
 
 def verbsVerbFunc(me, app):
-	from .parser import aboutGame
+	from intficpy.parser.parser import aboutGame
 	aboutGame.printVerbs(app)
 
 verbsVerb.verbFunc = verbsVerbFunc
@@ -804,7 +803,7 @@ helpVerbVerb.dtype = "String"
 def helpVerbVerbFunc(me, app, dobj):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from .vocab import verbDict
+	from intficpy.vocab.vocab import verbDict
 	app.printToGUI("<b>Verb Help: " + " ".join(dobj) + "</b>")
 	if dobj[0] in verbDict:
 		app.printToGUI("I found the following sentence structures for the verb \"" + dobj[0] + "\":")
@@ -848,7 +847,7 @@ hintVerb.hasDobj = False
 def hintVerbFunc(me, app):
 	"""View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from .score import hints
+	from intficpy.score.score import hints
 	if hints.cur_node:
 		if len(hints.cur_node.hints) > 0:
 			hints.cur_node.nextHint(app)
@@ -1079,7 +1078,7 @@ def getImpTalkTo(me, app):
 	"""If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# import parser to gain access to the record of the last turn
-	from . import parser
+	from intficpy.parser import parser
 	people = []
 	# find every Actor in the current location
 	loc = me.getOutermostLocation()
@@ -1114,7 +1113,7 @@ talkToVerb.getImpDobj = getImpTalkTo
 def talkToVerbFunc(me, app, dobj, skip=False):
 	"""Talk to an Actor
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-	from .thing import reflexive
+	from intficpy.things.thing import reflexive
 	if not skip:
 		runfunc = True
 		try:
@@ -1164,7 +1163,7 @@ def getImpAsk(me, app):
 	"""If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# import parser to gain access to the record of the last turn
-	from . import parser
+	from intficpy.parser import parser
 	people = []
 	loc = me.getOutermostLocation()
 	# find every Actor in the current location
@@ -1199,7 +1198,7 @@ askVerb.getImpDobj = getImpAsk
 def askVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Ask an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-	from .thing import reflexive
+	from intficpy.things.thing import reflexive
 	if isinstance(dobj, actor.Actor):
 		if dobj.hermit_topic:
 			dobj.hermit_topic.func(app, False)
@@ -1261,7 +1260,7 @@ def getImpTell(me, app):
 	"""If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# import parser to gain access to the record of the last turn
-	from . import parser
+	from intficpy.parser import parser
 	people = []
 	loc = me.getOutermostLocation()
 	# find every Actor in the current location
@@ -1296,7 +1295,7 @@ tellVerb.getImpDobj = getImpTell
 def tellVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Tell an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-	from .thing import reflexive
+	from intficpy.things.thing import reflexive
 	if isinstance(dobj, actor.Actor):
 		if dobj.hermit_topic:
 			dobj.hermit_topic.func(app, False)
@@ -1355,7 +1354,7 @@ def getImpGive(me, app):
 	"""If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# import parser to gain access to the record of the last turn
-	from . import parser
+	from intficpy.parser import parser
 	people = []
 	loc = me.getOutermostLocation()
 	# find every Actor in the current location
@@ -1460,7 +1459,7 @@ def getImpShow(me, app):
 	"""If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 	# import parser to gain access to the record of the last turn
-	from . import parser
+	from intficpy.parser import parser
 	people = []
 	loc = me.getOutermostLocation()
 	# find every Actor in the current location
@@ -2032,7 +2031,7 @@ climbUpVerb.preposition = ["up"]
 def climbUpVerbFunc(me, app):
 	"""Climb up to the room above
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from . import travel
+	from intficpy.travel import travel
 	cur_loc = me.getOutermostLocation()
 	if cur_loc.up:
 		travel.travelU(me, app)
@@ -2359,7 +2358,7 @@ exitVerb.syntax = [["exit"]]
 def exitVerbFunc(me, app):
 	"""Climb out of a Container you currently occupy
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from . import travel
+	from intficpy.travel import travel
 	out_loc = me.getOutermostLocation()
 	if isinstance(me.location, thing.Thing):
 		climbOutOfVerb.verbFunc(me, app, me.location)
@@ -2379,7 +2378,7 @@ enterVerb.syntax = [["enter"]]
 def enterVerbFunc(me, app):
 	"""Climb out of a Container you currently occupy
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-	from . import travel
+	from intficpy.travel import travel
 	out_loc = me.getOutermostLocation()
 	if out_loc.entrance:
 		travel.travelIn(me, app)
@@ -2871,7 +2870,7 @@ def useVerbFunc(me, app, dobj, skip=False):
 		if isinstance(dobj, thing.LightSource):
 			return lightVerb.verbFunc(me, app, dobj)
 		elif isinstance(dobj, thing.Key):
-			from .parser import lastTurn
+			from intficpy.parser.parser import lastTurn
 			app.printToGUI("What would you like to unlock with " + dobj.lowNameArticle(True) + "?")
 			lastTurn.verb = unlockWithVerb
 			lastTurn.iobj = dobj
@@ -2973,7 +2972,7 @@ buyVerb.dscope = "knows"
 def buyVerbFunc(me, app, dobj):
 	"""Redriect to buy from
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
-	from .parser import lastTurn
+	from intficpy.parser.parser import lastTurn
 	people = []
 	# find every Actor in the current location
 	for key, items in me.getOutermostLocation().contains.items():
@@ -3089,7 +3088,7 @@ sellVerb.dscope = "invflex"
 def sellVerbFunc(me, app, dobj):
 	"""Redriect to sell to
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
-	from .parser import lastTurn
+	from intficpy.parser.parser import lastTurn
 	people = []
 	# find every Actor in the current location
 	for key, items in me.getOutermostLocation().contains.items():
@@ -3146,7 +3145,7 @@ recordOnVerb.preposition = ["on"]
 def recordOnVerbFunc(me, app):
 	"""Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-	from .serializer import curSave
+	from intficpy.serializers.serializer import curSave
 	f = app.getRecordFileGUI()
 	curSave.recordOn(app, f)
 	
@@ -3163,7 +3162,7 @@ recordOffVerb.preposition = ["off"]
 def recordOffVerbFunc(me, app):
 	"""Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-	from .serializer import curSave
+	from intficpy.serializer.serializer import curSave
 	curSave.recordOff(app)
 	
 # replace the default verb function
@@ -3177,7 +3176,7 @@ playBackVerb.syntax = [["playback"]]
 def playBackVerbFunc(me, app):
 	"""Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-	from .parser import parseInput, lastTurn, daemons
+	from intficpy.parser.parser import parseInput, lastTurn, daemons
 	f = app.getPlayBackFileGUI()
 	if not f:
 		app.printToGUI("No file selected. ")
@@ -3211,7 +3210,7 @@ leadDirVerb.dtype = "Actor"
 def leadDirVerbFunc(me, app, dobj, iobj, skip=False):
 	"""Lead an Actor in a direction
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-	from .travel import TravelConnector
+	from intficpy.travel.travel import TravelConnector
 	if not skip:
 		runfunc = True
 		try:
@@ -3227,7 +3226,7 @@ def leadDirVerbFunc(me, app, dobj, iobj, skip=False):
 		app.printToGUI("You cannot lead that. ")
 		return False
 	elif dobj.can_lead:
-		from intficpy.travel import getDirectionFromString, directionDict
+		from intficpy.travel.travel import getDirectionFromString, directionDict
 		destination = getDirectionFromString(dobj.getOutermostLocation(), iobj)
 		if not destination:
 			app.printToGUI("You cannot lead " + dobj.lowNameArticle(True) + " that way. ")

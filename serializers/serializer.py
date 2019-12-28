@@ -3,14 +3,13 @@ import importlib
 import types
 import inspect
 
-from . import thing
-from . import room
-from . import actor
-from . import score
-from . import travel
-from . import parser
-from . import tools
-from .vocab import nounDict as vocab_nounDict
+from intficpy.things import actor, thing
+from intficpy.travel import room
+from intficpy.score import score
+from intficpy.travel import travel
+from intficpy.parser import parser
+from intficpy.utils import tools
+from intficpy.vocab.vocab import nounDict as vocab_nounDict
 
 ##############################################################
 # SERIALIZER.PY - the save/load system for IntFicPy

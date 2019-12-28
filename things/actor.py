@@ -1,5 +1,5 @@
-from .thing import Thing
-from . import vocab
+from intficpy.things.thing import Thing
+from intficpy.vocab import vocab
 
 ##############################################################
 # ACTOR.PY - the Actor class for IntFicPy 
@@ -93,7 +93,7 @@ class Actor(Thing):
 		Takes a string argument proper_name
 		Called by the game creator """
 	# NOTE: currently enters vocab words incorrectly if proper_name contains multiple words
-		from.parser import cleanInput, tokenize, removeArticles
+		from intficpy.parser.parser import cleanInput, tokenize, removeArticles
 		token_name = proper_name
 		token_name = cleanInput(token_name, False)
 		token_name = tokenize(token_name)
@@ -121,7 +121,7 @@ class Actor(Thing):
 	def addThing(self, item):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
-		from . import thing
+		from intficpy.things import thing
 		if isinstance(item, thing.Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
@@ -167,7 +167,7 @@ class Actor(Thing):
 
 	def removeThing(self, item):
 		"""Remove an item from contents, update decription """
-		from . import thing
+		from intficpy.things import thing
 		if isinstance(item, thing.Container):
 			if item.lock_obj:
 				if item.lock_obj.ix in self.contains:
@@ -267,7 +267,7 @@ class Actor(Thing):
 		self.show_topics = {}
 	
 	def printSuggestions(self, app):
-		from .parser import lastTurn
+		from intficpy.parser.parser import lastTurn
 		if self.special_topics != {}:
 			lastTurn.convNode = True
 			for suggestion in self.special_topics:
@@ -300,7 +300,7 @@ class Actor(Thing):
 	def getOutermostLocation(self):
 		"""Gets the Actor's current room 
 		Takes argument app, pointing to the PyQt5 GUI"""
-		from .room import Room 
+		from intficpy.travel.room import Room 
 		x = self.location
 		while not isinstance(x, Room):
 			x = x.location
@@ -500,7 +500,7 @@ def getNested(target):
 	Takes argument target, pointing to a Thing
 	Returns a list of Things
 	Used by multiple verbs """
-	from .thing import Container
+	from intficpy.things.thing import Container
 	# list to populate with found Things
 	nested = []
 	# iterate through top level contents

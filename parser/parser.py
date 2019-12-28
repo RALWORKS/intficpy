@@ -3,11 +3,11 @@ import string
 import importlib
 
 # intficpy framework files
-from . import vocab
-from . import verb
-from . import thing
-from . import serializer
-from . import room
+from intficpy.vocab import vocab
+from intficpy.verbs import verb
+from intficpy.things import thing
+from intficpy.serializers import serializer
+from intficpy.travel import room
 
 ##############################################################
 # PARSER.PY - the parser for IntFicPy 
@@ -129,7 +129,7 @@ def cleanInput(input_string, record=True):
 	exclude = set(string.punctuation)
 	input_string = ''.join(ch for ch in input_string if ch not in exclude)
 	if record:
-		from .serializer import curSave
+		from intficpy.serializers.serializer import curSave
 		lastTurn.turn_list.append(input_string)
 		if curSave.recfile:
 			curSave.recfile.write(input_string + "\n")
@@ -212,7 +212,7 @@ def getDirection(me, app, input_tokens):
 	Takes arguments app, pointing to the PyQt application, me, pointing to the player object, and input_tokens, a list of strings
 	Called every turn by parseInput
 	Returns a Boolean specifying whether the input is a travel command """
-	from . import travel
+	from intficpy.travel import travel
 	d = input_tokens[0]
 	# if first word is "go", skip first word, assume next word is a direction
 	if input_tokens[0]=="go" and len(input_tokens) == 2:
@@ -369,7 +369,7 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 	the command (lists of strings), and input tokens, the 	tokenized player command (list of strings)
 	Called by verbByObjects
 	Returns a list, empty or containing one word strings (extra words)"""
-	from . import vocab
+
 	accounted = []
 	extra = list(input_tokens)
 	for word in extra:
@@ -798,7 +798,7 @@ def invRangeCheck(me, thing):
 	return False
 
 def directionRangeCheck(obj):
-	from .travel import directionDict
+	from intficpy.travel.travel import directionDict
 	if isinstance(obj, list):
 		if len(obj) > 1:
 			return False
@@ -1412,8 +1412,7 @@ def parseInput(me, app, input_string):
 		if saveLoadCheck(input_tokens, me, app):
 			return 0
 		if (input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2]==["verb", "help"]) and len(input_tokens) > 2:
-			from .verb import helpVerbVerb
-			helpVerbVerb.verbFunc(me, app, input_tokens[2:])
+			verb.helpVerbVerb.verbFunc(me, app, input_tokens[2:])
 			return 0
 		elif input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2]==["verb", "help"]:
 			app.printToGUI("Please specify a verb for help. ")
@@ -1456,7 +1455,7 @@ def parseInput(me, app, input_string):
 		callVerb(me, app, cur_verb, obj_words)
 		return 0
 	else:
-		from .verb import scoreVerb, fullScoreVerb
+		from verbs.verb import scoreVerb, fullScoreVerb
 		if input_tokens in [["save"], ["load"]]:
 			app.newBox(app.box_style1)
 		if input_tokens==["full", "score"]:

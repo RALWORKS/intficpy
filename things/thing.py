@@ -1,5 +1,6 @@
-from . import vocab
 import copy
+
+from intficpy.vocab import vocab
 
 ##############################################################
 # THING.PY - the Thing class for IntFicPy 
@@ -75,7 +76,7 @@ class Thing:
 	def getOutermostLocation(self):
 		"""Gets the Thing's current room 
 		Takes argument app, pointing to the PyQt5 GUI"""
-		from .room import Room 
+		from intficpy.travel.room import Room 
 		x = self.location
 		while x and not isinstance(x, Room):
 			x = x.location
@@ -359,7 +360,7 @@ class Surface(Thing):
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description of contents
 		Called when a Thing is added or removed """
-		from .actor import Player
+		from intficpy.things.actor import Player
 		onlist = " On the " + self.name + " is "
 		if update_desc:
 			self.compositeBaseDesc()
@@ -421,7 +422,7 @@ class Surface(Thing):
 	def addThing(self, item):
 		"""Add a Thing to a Surface
 		Takes argument item, pointing to a Thing"""
-		from . import actor
+		from intficpy.things import actor
 		if isinstance(item, Container):
 			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
 				if not (item.lock_obj in self.contains[item.lock_obj.ix] or item.lock_obj in self.sub_contains[item.lock_obj.ix]):
@@ -645,7 +646,7 @@ class Container(Thing):
 	
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description for addition/removal of items from the Container instance """
-		from .actor import Player
+		from intficpy.things.actor import Player
 		#desc = self.base_desc
 		#xdesc = self.base_xdesc
 		if update_desc:
@@ -748,7 +749,7 @@ class Container(Thing):
 	def addThing(self, item, update_desc=True, update_xdesc=True):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
-		from . import actor
+		from intficpy.things import actor
 		item.location = self
 		if isinstance(item, Container):
 			if item.lock_obj and (item.lock_obj.ix in self.contains or item.lock_obj.ix in self.sub_contains):
@@ -1078,7 +1079,7 @@ class LightSource(Thing):
 		else:
 			if self.consumable:
 				# add the consumeLightSource daemon
-				from .parser import daemons
+				from intficpy.parser.parser import daemons
 				daemons.add(self.consumeLightSourceDaemon)
 			self.is_lit = True
 			self.desc = self.base_desc + self.lit_desc
@@ -1091,7 +1092,7 @@ class LightSource(Thing):
 		else:
 			if self.consumable:
 				# remove the consumeLightSource daemon
-				from .parser import daemons
+				from intficpy.parser.parser import daemons
 				if self.consumeLightSourceDaemon in daemons.funcs:
 					daemons.remove(self.consumeLightSourceDaemon)
 			self.is_lit = False
@@ -1100,8 +1101,8 @@ class LightSource(Thing):
 			
 	def consumeLightSourceDaemon(self, me, app):
 		"""Runs every turn while a consumable light source is active, to keep track of time left. """
-		from .parser import lastTurn, daemons
-		from .verb import helpVerb, helpVerbVerb, aboutVerb
+		from intficpy.parser.parser import lastTurn, daemons
+		from intficpy.verbs.verb import helpVerb, helpVerbVerb, aboutVerb
 		if not (lastTurn.verb==helpVerb or lastTurn.verb==helpVerbVerb or lastTurn.verb==aboutVerb or lastTurn.ambiguous or lastTurn.err):
 			self.turns_left = self.turns_left - 1
 			if self.turns_left == 0:
@@ -1593,7 +1594,7 @@ class UnderSpace(Thing):
 	
 	def containsListUpdate(self, update_desc=True, update_xdesc=True):
 		"""Update description for addition/removal of items from the UnderSpace instance """
-		from .actor import Player
+		from intficpy.things.actor import Player
 		#desc = self.base_desc
 		#xdesc = self.base_xdesc
 		self.compositeBaseDesc()
@@ -1654,7 +1655,7 @@ class UnderSpace(Thing):
 		return True
 	
 	def revealUnder(self):
-		from . import actor
+		from intficpy.things import actor
 		self.revealed = True
 		self.containsListUpdate()
 		for key in self.contains:
@@ -1713,7 +1714,7 @@ class UnderSpace(Thing):
 	def addThing(self, item):
 		"""Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
-		from . import actor
+		from intficpy.things import actor
 		item.location = self
 		revealed = self.revealed
 		if isinstance(item, Container):
