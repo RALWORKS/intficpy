@@ -41,6 +41,9 @@ class Thing:
         # TODO: these should default to in/out (out of?) to eliminate the null check
         self.contains_preposition = None
         self.contains_preposition_inverse = None
+        self.revealed = False
+        self.desc_reveal = True
+        self.xdesc_reveal = True
 
         # COMPOSITE OBJECTS
         self.is_composite = False
@@ -67,6 +70,7 @@ class Thing:
         self.special_plural = False
         self.hasArticle = True
         self.isDefinite = False
+        self.is_numberless = False
 
         # STATE DESCRIPTIONS
         self.lock_desc = ""
@@ -339,7 +343,7 @@ class Thing:
         )
         self.containsListUpdate()
 
-    def containsListUpdate():
+    def containsListUpdate(self):
         pass
 
     def describeChildren(self, description):

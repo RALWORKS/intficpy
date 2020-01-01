@@ -21,6 +21,7 @@ from intficpy.things.things import (
 from intficpy.travel.room import Room
 from intficpy.gameplay.game_info import aboutGame, lastTurn
 from intficpy.gameplay.score import score, hints
+from intficpy.gameplay.daemons import daemons
 from intficpy.vocab.vocab import verbDict
 from intficpy.serializers.serializer import curSave
 
@@ -28,7 +29,7 @@ from intficpy.serializers.serializer import curSave
 # VERB.PY - verbs for IntFicPy
 # Defines the Verb class,  and the default verbs
 ##############################################################
-# TODO: sort out circular imports for travel.travel
+# TODO: sort out circular imports for travel.travel, parser.parser
 # currently importing from travel inside functions as a workaround
 # move the most common implicit verbs into their own module?
 
@@ -4006,6 +4007,7 @@ playBackVerb.syntax = [["playback"]]
 def playBackVerbFunc(me, app):
     """Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
+    from intficpy.parser.parser import parseInput
 
     f = app.getPlayBackFileGUI()
     if not f:

@@ -780,6 +780,7 @@ class AbstractClimbable(Thing):
     def __init__(self, name):
         """Sets essential properties for the AbstractClimbable instance """
         super().__init__(name)
+        self.invItem = False
 
 
 class Door(Thing):
@@ -789,6 +790,7 @@ class Door(Thing):
     def __init__(self, name):
         """Sets essential properties for the Door instance """
         super().__init__(name)
+        self.invItem = False
 
         # TODO: create instance properties closed_desc and open_desc - possibly on Thing
         self.state_desc = "It is currently closed. "

@@ -20,7 +20,18 @@ class Actor(Thing):
         self.invItem = False  # cannot be added to the contains
         self.connection = None  # this should almost always be None, but setting it probably won't break anything
         self.contains_preposition = None
-        self.parent_obj = False
+
+        # COMPOSITE OBJECTS
+        self.is_composite = False
+        self.parent_obj = None
+        self.lock_obj = None
+        self.children_desc = None
+        self.child_Things = []
+        self.child_Surfaces = []
+        self.child_Containers = []
+        self.child_UnderSpaces = []
+        self.children = []
+
         self.size = 50
         self.far_away = False
         self.adjectives = []
@@ -34,7 +45,6 @@ class Actor(Thing):
         self.contains = {}
         self.sub_contains = {}
         self.name = name
-        self.is_composite = False
         self.commodity = False
         self.can_lead = False
         # verbose_name is modified when adjectives are applied using the setAdjectives method of the Thing class

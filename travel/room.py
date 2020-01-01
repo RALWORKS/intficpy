@@ -265,8 +265,6 @@ class Room:
     def resolveDarkness(self, me):
         can_see = True
         if self.dark:
-            from intficpy.things.thing import LightSource
-
             lightsource = None
             for key in self.contains:
                 for item in self.contains[key]:
