@@ -1,4 +1,6 @@
-from unittest import main, TestCase
+import unittest
+
+from .helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
 from intficpy.actor import Player
@@ -7,7 +9,7 @@ from intficpy.vocab import english, verbDict, nounDict
 from intficpy.parser import getThing, initGame
 
 
-class TestParser(TestCase):
+class TestParser(IFPTestCase):
     def setUp(self):
         class App:
             def __init__(self):
@@ -70,4 +72,4 @@ class TestParser(TestCase):
 
 
 if __name__ == "__main__":
-    main()
+    unittest.main()
