@@ -27,11 +27,16 @@ from .daemons import daemons
 
 
 def extractInline(app, output_string, main_file):
-    """Extract creator-defined inline functions with <<funcName>> syntax embeded in game text output
-	Called by printToGUI in gui.py, on every string printed
-	Takes arguments app, pointing to the PyQt application, and output_string, a string to be printed by the GUI
-	Calls functions
-	Returns the same string, without <<functions>>, and with the possible addition of string segments from creator-defined inline functions """
+    """
+    Extract creator-defined inline functions with <<funcName>> syntax embeded in game 
+    text output
+    Called by printToGUI in gui.py, on every string printed
+    Takes arguments app, pointing to the PyQt application, and output_string, a string 
+    to be printed by the GUI
+    Calls functions
+    Returns the same string, without <<functions>>, and with the possible addition of 
+    string segments from creator-defined inline functions
+    """
     main_module = importlib.import_module(main_file)
     output_tokens = tokenize(output_string)
     i = 0
@@ -94,10 +99,13 @@ def extractInline(app, output_string, main_file):
 
 
 def getDirection(me, app, input_tokens):
-    """Check for direction statement as in "west" or "ne"
-	Takes arguments app, pointing to the PyQt application, me, pointing to the player object, and input_tokens, a list of strings
-	Called every turn by parseInput
-	Returns a Boolean specifying whether the input is a travel command """
+    """
+    Check for direction statement as in "west" or "ne"
+    Takes arguments app, pointing to the PyQt application, me, pointing to the player 
+    object, and input_tokens, a list of strings
+    Called every turn by parseInput
+    Returns a Boolean specifying whether the input is a travel command
+    """
     d = input_tokens[0]
     # if first word is "go", skip first word, assume next word is a direction
     if input_tokens[0] == "go" and len(input_tokens) == 2:
@@ -117,11 +125,15 @@ def getDirection(me, app, input_tokens):
 
 
 def getCurVerb(app, input_tokens):
-    """Identify the verb
-	Takes arguments app, pointing to the PyQt application, and input_tokens, the tokenized player command (list of strings)
-	Called every turn by parseInput
-	Returns a two item list. The first is a Verb object and an associated verb form (list of strings), or None. 
-	The second is True if potential verb matches were found, False otherwise  """
+    """
+    Identify the verb
+    Takes arguments app, pointing to the PyQt application, and input_tokens, the 
+    tokenized player command (list of strings)
+    Called every turn by parseInput
+    Returns a two item list. The first is a Verb object and an associated verb form 
+    (list of strings), or None. 
+    The second is True if potential verb matches were found, False otherwise
+    """
     # look up first word in verb dictionary
     if input_tokens[0] in verbDict:
         verbs = list(verbDict[input_tokens[0]])
@@ -145,11 +157,16 @@ def getCurVerb(app, input_tokens):
 
 
 def verbByObjects(app, input_tokens, verbs):
-    """Disambiguates verbs based on syntax used
-	Takes arguments app, pointing to the PyQt application, input_tokens, the tokenized player command (list of strings), and verbs, a list of Verb objects (verb.py)
-	Called by getCurVerb
-	Iterates through verb list, comparing syntax in input to the entries in the .syntax property of the verb
-	Returns a two item list of a Verb object and an associated verb form (list of strings), or None """
+    """
+    Disambiguates verbs based on syntax used
+    Takes arguments app, pointing to the PyQt application, input_tokens, the tokenized 
+    player command (list of strings), and verbs, a list of Verb objects (verb.py)
+    Called by getCurVerb
+    Iterates through verb list, comparing syntax in input to the entries in the .syntax 
+    property of the verb
+    Returns a two item list of a Verb object and an associated verb form (list of 
+    strings), or None
+    """
     nearMatch = []
     for cur_verb in verbs:
         for verb_form in cur_verb.syntax:
@@ -285,11 +302,14 @@ def verbByObjects(app, input_tokens, verbs):
 
 
 def checkExtra(verb_form, dobj, iobj, input_tokens):
-    """Checks for words unaccounted for by verb form
-	Takes argument verb_form, a verb form (list of strings), dobj and iobj, the gramatical direct and indirect objects from 
-	the command (lists of strings), and input tokens, the 	tokenized player command (list of strings)
-	Called by verbByObjects
-	Returns a list, empty or containing one word strings (extra words)"""
+    """
+    Checks for words unaccounted for by verb form
+    Takes argument verb_form, a verb form (list of strings), dobj and iobj, the 
+    grammatical direct and indirect objects from 
+    the command (lists of strings), and input tokens, the     tokenized player command 
+    (list of strings)
+    Called by verbByObjects
+    Returns a list, empty or containing one word strings (extra words)"""
 
     accounted = []
     extra = list(input_tokens)
@@ -331,10 +351,14 @@ def checkExtra(verb_form, dobj, iobj, input_tokens):
 
 
 def matchPrepKeywords(verbs, input_tokens):
-    """Check for prepositions in the tokenized player command, and remove any candidate verbs whose preposition does not match
-	Takes arguments verbs, a list of Verb objects (verb.py), and input_tokens, the tokenized player command (list of strings)
-	Not currently used by parser
-	Returns a list of Verb objects or an empty list """
+    """
+    Check for prepositions in the tokenized player command, and remove any candidate 
+    verbs whose preposition does not match
+    Takes arguments verbs, a list of Verb objects (verb.py), and input_tokens, the 
+    tokenized player command (list of strings)
+    Not currently used by parser
+    Returns a list of Verb objects or an empty list
+    """
     remove_verb = []
     for p in english.prepositions:
         if p in input_tokens and len(input_tokens) > 1:
@@ -386,9 +410,14 @@ def matchPrepKeywords(verbs, input_tokens):
 
 
 def getVerbSyntax(app, cur_verb, input_tokens):
-    """Match tokens in input with tokens in verb syntax verb_forms to choose which syntax to assume
-	Takes arguments app, pointing to the PyQt application, cur_verb, the Verb object (verb.py) being anaylzed, and input_tokens, the tokenized player command (list of strings)
-	Returns the most probable verb_form (list of strings), or None """
+    """
+    Match tokens in input with tokens in verb syntax verb_forms to choose which syntax 
+    to assume
+    Takes arguments app, pointing to the PyQt application, cur_verb, the Verb object 
+    (verb.py) being anaylzed, and input_tokens, the tokenized player command (list of 
+    strings)
+    Returns the most probable verb_form (list of strings), or None
+    """
     for verb_form in cur_verb.syntax:
         i = len(verb_form)
         for word in verb_form:
@@ -407,11 +436,15 @@ def getVerbSyntax(app, cur_verb, input_tokens):
 
 
 def getGrammarObj(me, app, cur_verb, input_tokens, verb_form):
-    """Analyze input using the chosen verb_form to find any objects
-	Takes arguments me, pointing to the player, a Player object (player.py), app, the PyQt application, cur_ver, a Verb object (verb.py),
-	input_tokens, the tokenized player command (list of strings), and verb_form, the assumed syntax of the command (list of strings)
-	Called by parseInput
-	Returns None or a list of two items, either lists of strings, or None"""
+    """
+    Analyze input using the chosen verb_form to find any objects
+    Takes arguments me, pointing to the player, a Player object (player.py), app, the 
+    PyQt application, cur_ver, a Verb object (verb.py),
+    input_tokens, the tokenized player command (list of strings), and verb_form, the 
+    assumed syntax of the command (list of strings)
+    Called by parseInput
+    Returns None or a list of two items, either lists of strings, or None
+    """
     # first, choose the correct syntax
     if not verb_form:
         return None
@@ -517,11 +550,17 @@ def adjacentStrObj(app, verb_form, input_tokens, strobj):
 
 # NOTE: print_verb_error prevents the duplication of the error message in the event of improper Verb definition. A little bit hacky.
 def analyzeSyntax(app, verb_form, tag, input_tokens, print_verb_error=True):
-    """Parse verb form (list of strings) to find the words directly preceding and following object tags, and pass these to getObjWords find the objects in the player's command
-	Takes arguments app, the PyQt application, verb_form, the assumed syntax of the command (list of strings), tag (string, "<dobj>" or "<iobj>"),
-	input_tokens (list of strings) and print_verb_error (Boolean), False when called by verbByObjects
-	Called by getVerbSyntax and verbByObjects
-	Returns None or a list of strings """
+    """
+    Parse verb form (list of strings) to find the words directly preceding and 
+    following object tags, and pass these to getObjWords find the objects in the 
+    player's command
+    Takes arguments app, the PyQt application, verb_form, the assumed syntax of the 
+    command (list of strings), tag (string, "<dobj>" or "<iobj>"),
+    input_tokens (list of strings) and print_verb_error (Boolean), False when called by 
+    verbByObjects
+    Called by getVerbSyntax and verbByObjects
+    Returns None or a list of strings
+    """
     # get words before and after
     if tag in verb_form:
         obj_i = verb_form.index(tag)
@@ -538,10 +577,15 @@ def analyzeSyntax(app, verb_form, tag, input_tokens, print_verb_error=True):
 
 
 def checkObj(me, app, cur_verb, dobj, iobj):
-    """Make sure that the player command contains the correct number of grammatical objects, and get implied objects if applicable
-	Takes arguments me, app, cur_verb (Verb object, verb.py), dobj, the direct object of the command (list of strings or None), and iobj, the indirect object (list of strings or None)
-	Called by  getGrammarObj
-	Returns None, or a list of two items, either lists of strings, or None"""
+    """
+    Make sure that the player command contains the correct number of grammatical 
+    objects, and get implied objects if applicable
+    Takes arguments me, app, cur_verb (Verb object, verb.py), dobj, the direct object 
+    of the command (list of strings or None), and iobj, the indirect object (list of 
+    strings or None)
+    Called by  getGrammarObj
+    Returns None, or a list of two items, either lists of strings, or None
+    """
     missing = False
     if cur_verb.hasDobj and not dobj:
         if cur_verb.impDobj:
@@ -575,11 +619,16 @@ def checkObj(me, app, cur_verb, dobj, iobj):
 
 
 def getObjWords(app, before, after, input_tokens):
-    """Create a list of all nouns and adjectives (strings) referring to a direct or indirect object
-	Takes arguments app, pointing to the PyQt application, before, the word expected before the grammatical object (string), after,
-	the word expected after the grammatical object (string or None), and input_tokens, the tokenized player command (list of strings)
-	Called by analyzeSyntax
-	Returns an array of strings or None """
+    """
+    Create a list of all nouns and adjectives (strings) referring to a direct or 
+    indirect object
+    Takes arguments app, pointing to the PyQt application, before, the word expected 
+    before the grammatical object (string), after,
+    the word expected after the grammatical object (string or None), and input_tokens, 
+    the tokenized player command (list of strings)
+    Called by analyzeSyntax
+    Returns an array of strings or None
+    """
     if before[0] == "<":
         # find the index of the first noun in the noun dict. if there is more than one, reject any that double as adjectives
         nounlist = []
@@ -638,9 +687,11 @@ def getObjWords(app, before, after, input_tokens):
 
 
 def wearRangeCheck(me, thing):
-    """Check if the Thing is being worn
-	Takes arguments me, pointing to the Player, and thing, a Thing
-	Returns True if within range, False otherwise """
+    """
+    Check if the Thing is being worn
+    Takes arguments me, pointing to the Player, and thing, a Thing
+    Returns True if within range, False otherwise
+    """
     if thing.ix not in me.wearing:
         return False
     elif thing not in me.wearing[thing.ix]:
@@ -650,9 +701,11 @@ def wearRangeCheck(me, thing):
 
 
 def roomRangeCheck(me, thing):
-    """Check if the Thing is in the current room
-	Takes arguments me, pointing to the Player, and thing, a Thing
-	Returns True if within range, False otherwise """
+    """
+    Check if the Thing is in the current room
+    Takes arguments me, pointing to the Player, and thing, a Thing
+    Returns True if within range, False otherwise
+    """
     out_loc = me.getOutermostLocation()
     if not out_loc.resolveDarkness(me):
         return False
@@ -672,9 +725,11 @@ def roomRangeCheck(me, thing):
 
 
 def knowsRangeCheck(me, thing):
-    """Check if the Player knows about a Thing
-	Takes arguments me, pointing to the Player, and thing, a Thing
-	Returns True if within range, False otherwise """
+    """
+    Check if the Player knows about a Thing
+    Takes arguments me, pointing to the Player, and thing, a Thing
+    Returns True if within range, False otherwise
+    """
     if not thing.known_ix in me.knows_about:
         return False
     else:
@@ -682,9 +737,11 @@ def knowsRangeCheck(me, thing):
 
 
 def nearRangeCheck(me, thing):
-    """Check if the Thing is near (room or contains)
-	Takes arguments me, pointing to the Player, and thing, a Thing
-	Returns True if within range, False otherwise """
+    """
+    Check if the Thing is near (room or contains)
+    Takes arguments me, pointing to the Player, and thing, a Thing
+    Returns True if within range, False otherwise
+    """
     out_loc = me.getOutermostLocation()
     too_dark = not out_loc.resolveDarkness(me)
     found = False
@@ -716,9 +773,11 @@ def nearRangeCheck(me, thing):
 
 
 def invRangeCheck(me, thing):
-    """Check if the Thing is in the Player contains
-	Takes arguments me, pointing to the Player, and thing, a Thing
-	Returns True if within range, False otherwise """
+    """
+    Check if the Thing is in the Player contains
+    Takes arguments me, pointing to the Player, and thing, a Thing
+    Returns True if within range, False otherwise
+    """
     if thing.ix in me.contains:
         if thing not in me.contains[thing.ix]:
             pass
@@ -745,7 +804,9 @@ def directionRangeCheck(obj):
 
 
 def getUniqueConcepts(things):
-    """Eliminates all items with duplicate known_ix properties. """
+    """
+    Eliminates all items with duplicate known_ix properties.
+    """
     unique = []
     check_list = things
     while check_list:
@@ -761,10 +822,15 @@ def getUniqueConcepts(things):
 
 
 def checkRange(me, app, things, scope):
-    """Eliminates all grammatical object candidates that are not within the scope of the current verb
-	Takes arguments me, things, a list of Thing objects (thing.py) that are candidates for the target of a player's action, and scope, a string representing the range of the verb
-	Called by getThing
-	Returns a list of Thing objects, or an empty list"""
+    """
+    Eliminates all grammatical object candidates that are not within the scope of the 
+    current verb
+    Takes arguments me, things, a list of Thing objects (thing.py) that are candidates 
+    for the target of a player's action, and scope, a string representing the range of 
+    the verb
+    Called by getThing
+    Returns a list of Thing objects, or an empty list
+    """
     out_range = []
     if scope == "wearing":
         for thing in things:
@@ -817,10 +883,13 @@ def checkRange(me, app, things, scope):
 
 
 def verbScopeError(app, scope, noun_adj_arr, me):
-    """Prints the appropriate Thing out of scope message
-	Takes arguments app, pointing to the PyQt app, scope, a string, and noun_adj_arr, a list of strings
-	Called by getThing and checkAdjectives
-	Returns None """
+    """
+    Prints the appropriate Thing out of scope message
+    Takes arguments app, pointing to the PyQt app, scope, a string, and noun_adj_arr, a 
+    list of strings
+    Called by getThing and checkAdjectives
+    Returns None
+    """
     noun = " ".join(noun_adj_arr)
     if scope == "wearing":
         app.printToGUI("You aren't wearing any " + noun + ".")
@@ -848,11 +917,14 @@ def verbScopeError(app, scope, noun_adj_arr, me):
 
 
 def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
-    """Get the Thing object in range associated with a list of adjectives and a noun
-	Takes arguments me, app, noun_adj_array, a list of strings referring to an in game item, taken from the player command, 
-	and scope, a string specifying the range of the verb
-	Called by callVerb
-	Returns a single Thing object (thing.py) or None """
+    """
+    Get the Thing object in range associated with a list of adjectives and a noun
+    Takes arguments me, app, noun_adj_array, a list of strings referring to an in game 
+    item, taken from the player command, 
+    and scope, a string specifying the range of the verb
+    Called by callVerb
+    Returns a single Thing object (thing.py) or None
+    """
     # get noun (last word)
     endnoun = True
     for item in lastTurn.things:
@@ -889,11 +961,14 @@ def getThing(me, app, noun_adj_arr, scope, far_obj, obj_direction):
 
 
 def verboseNamesMatch(things):
-    """Check if any of the potential grammatical objects have identical verbose names
-	Takes the list of things associated with the direct or indirect object 
-	Returns a list of two items: 
-		Item one is True if duplicates are present, else False
-		Item two is dictionary mapping verbose names to lists of Things from the input with that name"""
+    """
+    Check if any of the potential grammatical objects have identical verbose names
+    Takes the list of things associated with the direct or indirect object 
+    Returns a list of two items: 
+        Item one is True if duplicates are present, else False
+        Item two is dictionary mapping verbose names to lists of Things from the input 
+        with that name
+    """
     duplicates_present = False
     name_dict = {}
     for item in things:
@@ -909,19 +984,26 @@ def verboseNamesMatch(things):
 
 
 def locationsDistinct(things):
-    """Check if identically named items can be distinguished by their locations
-	Takes a list of items to check
-	Returns False if all locations are the same, True otherwise """
+    """
+    Check if identically named items can be distinguished by their locations
+    Takes a list of items to check
+    Returns False if all locations are the same, True otherwise
+    """
     locs = [item.location for item in things]
     return not locs.count(locs[1]) == len(locs)
 
 
 def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_direction):
-    """If there are multiple Thing objects matching the noun, check the adjectives to narrow down to exactly 1
-	Takes arguments app, noun_adj_arr, a list of strings referring to an in game item, taken from the player command,noun (string), things, a list of Thing objects
-	(things.py) that are 	candidates for the target of the player's action, and scope, a string specifying the range of the verb
-	Called by getThing
-	Returns a single Thing object or None"""
+    """
+    If there are multiple Thing objects matching the noun, check the adjectives to 
+    narrow down to exactly 1
+    Takes arguments app, noun_adj_arr, a list of strings referring to an in game item, 
+    taken from the player command,noun (string), things, a list of Thing objects
+    (things.py) that are     candidates for the target of the player's action, and 
+    scope, a string specifying the range of the verb
+    Called by getThing
+    Returns a single Thing object or None
+    """
     if things == lastTurn.things:
         lastTurn.ambiguous = False
         lastTurn.things = []
@@ -1126,11 +1208,16 @@ def checkAdjectives(app, me, noun_adj_arr, noun, things, scope, far_obj, obj_dir
 
 
 def callVerb(me, app, cur_verb, obj_words):
-    """Gets the Thing objects (if any) referred to in the player command, then calls the verb function
-	Takes arguments me, app, cur_verb, a Verb object (verb.py), and obj_words, a list with two items representing the grammatical
-	direct and indirect objects, either lists of strings, or None
-	Called by parseInput and disambig
-	Returns a Boolean, True if a verb function is successfully called, False otherwise"""
+    """
+    Gets the Thing objects (if any) referred to in the player command, then calls
+    the verb function
+    Takes arguments me, app, cur_verb, a Verb object (verb.py), and obj_words, a list
+    with two items representing the grammatical
+    direct and indirect objects, either lists of strings, or None
+    Called by parseInput and disambig
+    Returns a Boolean, True if a verb function is successfully called, False 
+    otherwise
+    """
     # FIRST, check if dobj and or iobj have already been found
     # if not, set objs to None
     # checking dobj
@@ -1500,10 +1587,13 @@ def callVerb(me, app, cur_verb, obj_words):
 
 
 def disambig(me, app, input_tokens):
-    """When disambiguation mode is active, use the player input to specify the target for the previous turn's ambiguous command
-	Takes arguments me, app, and input_tokens
-	called by parseInput
-	Returns a Boolean, True if disambiguation successful """
+    """
+    When disambiguation mode is active, use the player input to specify the target for 
+    the previous turn's ambiguous command
+    Takes arguments me, app, and input_tokens
+    called by parseInput
+    Returns a Boolean, True if disambiguation successful
+    """
     dobj = lastTurn.dobj
     iobj = lastTurn.iobj
     cur_verb = lastTurn.verb
@@ -1519,17 +1609,22 @@ def disambig(me, app, input_tokens):
 
 
 def roomDescribe(me, app):
-    """Wrapper for room describe function (room.py) """
+    """
+    Wrapper for room describe function (room.py)
+    """
     out_loc = me.getOutermostLocation()
     out_loc.describe(me, app)
 
 
 # NOTE: typing "save" with no file specified currently breaks the terminal version
 def saveLoadCheck(input_tokens, me, app):
-    """Checks if the player has entered a save or load command
-	Takes arguments input_tokens, the tokenized player command (list of strings), me, the player (Player object, player.py), and app, the PyQt application
-	Called by parseInput
-	Returns a Boolean """
+    """
+    Checks if the player has entered a save or load command
+    Takes arguments input_tokens, the tokenized player command (list of strings), me, 
+    the player (Player object, player.py), and app, the PyQt application
+    Called by parseInput
+    Returns a Boolean
+    """
     if input_tokens[0] == "save":
         # app.getSaveFileGUI is not defined for terminal version
         fname = app.getSaveFileGUI()
@@ -1585,10 +1680,13 @@ def getConvCommand(me, app, input_tokens):
 
 
 def parseInput(me, app, input_string):
-    """Parse player input, and respond to commands each turn
-	Takes arguments me, the player (Player object, player.py), app, the PyQt application, and input_string, the raw player input
-	Called by mainLoop in terminal version, turnMain (gui.py) in GUI version
-	Returns 0 when complete """
+    """
+    Parse player input, and respond to commands each turn
+    Takes arguments me, the player (Player object, player.py), app, the PyQt 
+    application, and input_string, the raw player input
+    Called by mainLoop in terminal version, turnMain (gui.py) in GUI version
+    Returns 0 when complete
+    """
     # clean and tokenize
     input_string = cleanInput(input_string)
     input_tokens = tokenize(input_string)
@@ -1667,9 +1765,12 @@ def parseInput(me, app, input_string):
 
 
 def initGame(me, app, main_file):
-    """Called when the game is opened to show opening and describe the first room
-	Takes arguments me, the player (Player object, player.py) and app, the PyQt application
-	Called in the creator's main game file """
+    """
+    Called when the game is opened to show opening and describe the first room
+    Takes arguments me, the player (Player object, player.py) and app, the PyQt 
+    application
+    Called in the creator's main game file
+    """
     quit = False
     aboutGame.main_file = main_file
     if not lastTurn.gameOpening == False:
@@ -1683,9 +1784,13 @@ def initGame(me, app, main_file):
 
 # NOTE: This function has not been updated recently, and may require modification to accomodate all features
 def mainLoop(me, app):
-    """Main loop for terminal version; not used in GUI version
-	Takes arguments me, the player (Player object, player.py) and app, an object defined in the creator's main game file
-	app must have a method printToGUI which prints to the TERMINAL. the method is so named for compatibility with the GUI version """
+    """
+    Main loop for terminal version; not used in GUI version
+    Takes arguments me, the player (Player object, player.py) and app, an object 
+    defined in the creator's main game file
+    app must have a method printToGUI which prints to the TERMINAL. the method is so 
+    named for compatibility with the GUI version
+    """
     quit = False
     roomDescribe(me, app)
     while not quit:
