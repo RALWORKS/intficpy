@@ -1,18 +1,11 @@
 from intficpy.things.thing_base import Thing
 from intficpy.things.things import Container, LightSource
+from intficpy.gameplay.object_maps import rooms
 
 ##############################################################
 # ROOM.PY - verbs for IntFicPy
 # Defines the Room class
 ##############################################################
-
-
-# a dictionary of the indeces of all Room objects, mapped to their object
-# populated at runtime
-rooms = {}
-# index is an integer appended to the string "room"- increases by 1 for each Room defined
-# index of a room will always be the same provided the game file is written according to the rules
-room_ix = 0
 
 
 class Room:
@@ -21,10 +14,7 @@ class Room:
     def __init__(self, name, desc):
         """Initially set basic properties for the Room instance """
         # indexing for save
-        global room_ix
-        self.ix = "room" + str(room_ix)
-        room_ix = room_ix + 1
-        rooms[self.ix] = self
+        rooms.addEntry(self)
         self.location = None
         self.discovered = False
         # area or room type
@@ -422,10 +412,7 @@ class OutdoorRoom(Room):
     def __init__(self, name, desc):
         """Initially set basic properties for the OutdoorRoom instance """
         # indexing for save
-        global room_ix
-        self.ix = "room" + str(room_ix)
-        room_ix = room_ix + 1
-        rooms[self.ix] = self
+        rooms.addEntry(self)
         self.location = None
         self.discovered = False
         # area or room type
@@ -502,10 +489,7 @@ class RoomGroup:
 
     def __init__(self):
         # indexing
-        global room_ix
-        self.ix = "room" + str(room_ix)
-        room_ix = room_ix + 1
-        rooms[self.ix] = self
+        rooms.addEntry(self)
         # attributes
         self.members = []
         self.ceiling = None

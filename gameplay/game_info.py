@@ -70,3 +70,25 @@ class gameInfo:
 
 
 aboutGame = gameInfo()
+
+
+class TurnInfo:
+    """Class of lastTurn, used for disambiguation mode """
+
+    things = []
+    ambiguous = False
+    err = False
+    verb = False
+    dobj = False
+    iobj = False
+    ambig_noun = None
+    find_by_loc = False
+    turn_list = []
+    back = 0
+    gameOpening = False
+    gameEnding = False
+    convNode = False
+    specialTopics = {}
+
+
+lastTurn = TurnInfo

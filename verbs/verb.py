@@ -19,12 +19,18 @@ from intficpy.things.things import (
     Pressable,
 )
 from intficpy.travel.room import Room
-from intficpy.score.game_info import aboutGame
+from intficpy.gameplay.game_info import aboutGame, lastTurn
+from intficpy.gameplay.score import score, hints
+from intficpy.vocab.vocab import verbDict
+from intficpy.serializers.serializer import curSave
 
 ##############################################################
 # VERB.PY - verbs for IntFicPy
 # Defines the Verb class,  and the default verbs
 ##############################################################
+# TODO: sort out circular imports for travel.travel
+# currently importing from travel inside functions as a workaround
+# move the most common implicit verbs into their own module?
 
 
 class Verb:
@@ -925,11 +931,12 @@ scoreVerb.hasDobj = False
 
 
 def scoreVerbFunc(me, app):
-    """View the current score
-	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    from intficpy.score import score
+    """
+    View the current score
+    Takes arguments me, pointing to the player, and app, the PyQt5 GUI app
+    """
 
-    score.score.score(app)
+    score.score(app)
 
 
 # replace default verbFunc method
@@ -946,9 +953,8 @@ fullScoreVerb.hasDobj = False
 def fullScoreVerbFunc(me, app):
     """View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    from intficpy.score import score
 
-    score.score.fullscore(app)
+    score.fullscore(app)
 
 
 # replace default verbFunc method
@@ -1027,7 +1033,6 @@ helpVerbVerb.dtype = "String"
 def helpVerbVerbFunc(me, app, dobj):
     """View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    from intficpy.vocab.vocab import verbDict
 
     app.printToGUI("<b>Verb Help: " + " ".join(dobj) + "</b>")
     if dobj[0] in verbDict:
@@ -1078,7 +1083,6 @@ hintVerb.hasDobj = False
 def hintVerbFunc(me, app):
     """View the current score
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    from intficpy.score.score import hints
 
     if hints.cur_node:
         if len(hints.cur_node.hints) > 0:
@@ -1358,8 +1362,6 @@ talkToVerb.dtype = "Actor"
 def getImpTalkTo(me, app):
     """If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    # import parser to gain access to the record of the last turn
-    from intficpy.parser import parser
 
     people = []
     # find every Actor in the current location
@@ -1376,12 +1378,12 @@ def getImpTalkTo(me, app):
             return people[0]
         app.printToGUI("There's no one obvious to talk to here.")
     elif (
-        isinstance(parser.lastTurn.dobj, Actor)
-        and not parser.lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(parser.lastTurn.dobj)
+        isinstance(lastTurn.dobj, Actor)
+        and not lastTurn.dobj.ignore_if_ambiguous
+        and loc.containsItem(lastTurn.dobj)
     ):
         # ask whomever the player last interracted with
-        return parser.lastTurn.dobj
+        return lastTurn.dobj
     else:
         people2 = list(people)
         for p in people:
@@ -1391,7 +1393,7 @@ def getImpTalkTo(me, app):
             return people2[0]
         # turn disambiguation mode on
         app.printToGUI("Please specify a person to talk to. ")
-        parser.lastTurn.ambiguous = True
+        lastTurn.ambiguous = True
 
 
 # replace default getImpDobj method
@@ -1401,7 +1403,6 @@ talkToVerb.getImpDobj = getImpTalkTo
 def talkToVerbFunc(me, app, dobj, skip=False):
     """Talk to an Actor
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-    from intficpy.things.thing import reflexive
 
     if not skip:
         runfunc = True
@@ -1453,8 +1454,6 @@ askVerb.dtype = "Actor"
 def getImpAsk(me, app):
     """If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    # import parser to gain access to the record of the last turn
-    from intficpy.parser import parser
 
     people = []
     loc = me.getOutermostLocation()
@@ -1471,12 +1470,12 @@ def getImpAsk(me, app):
             return people[0]
         app.printToGUI("There's no one obvious here to ask.")
     elif (
-        isinstance(parser.lastTurn.dobj, Actor)
-        and not parser.lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(parser.lastTurn.dobj)
+        isinstance(lastTurn.dobj, Actor)
+        and not lastTurn.dobj.ignore_if_ambiguous
+        and loc.containsItem(lastTurn.dobj)
     ):
         # ask whomever the player last interracted with
-        return parser.lastTurn.dobj
+        return lastTurn.dobj
     else:
         people2 = list(people)
         for p in people:
@@ -1486,7 +1485,7 @@ def getImpAsk(me, app):
             return people2[0]
         app.printToGUI("Please specify a person to ask.")
         # turn disambiguation mode on
-        parser.lastTurn.ambiguous = True
+        lastTurn.ambiguous = True
 
 
 # replace the default getImpDobj method
@@ -1494,9 +1493,11 @@ askVerb.getImpDobj = getImpAsk
 
 
 def askVerbFunc(me, app, dobj, iobj, skip=False):
-    """Ask an Actor about a Thing
-	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-    from intficpy.things.thing import reflexive
+    """
+    Ask an Actor about a Thing
+    Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing,
+    and iobj, a Thing
+    """
 
     if isinstance(dobj, Actor):
         if dobj.hermit_topic:
@@ -1560,8 +1561,6 @@ tellVerb.dtype = "Actor"
 def getImpTell(me, app):
     """If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    # import parser to gain access to the record of the last turn
-    from intficpy.parser import parser
 
     people = []
     loc = me.getOutermostLocation()
@@ -1578,12 +1577,12 @@ def getImpTell(me, app):
             return people[0]
         app.printToGUI("There's no one obvious here to tell.")
     elif (
-        isinstance(parser.lastTurn.dobj, Actor)
-        and not parser.lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(parser.lastTurn.dobj)
+        isinstance(lastTurn.dobj, Actor)
+        and not lastTurn.dobj.ignore_if_ambiguous
+        and loc.containsItem(lastTurn.dobj)
     ):
         # ask whomever the player last interracted with
-        return parser.lastTurn.dobj
+        return lastTurn.dobj
     else:
         people2 = list(people)
         for p in people:
@@ -1593,7 +1592,7 @@ def getImpTell(me, app):
             return people2[0]
         # turn disambiguation mode on
         app.printToGUI("Please specify a person to ask.")
-        parser.lastTurn.ambiguous = True
+        lastTurn.ambiguous = True
 
 
 # replace default getImpDobj method
@@ -1603,7 +1602,6 @@ tellVerb.getImpDobj = getImpTell
 def tellVerbFunc(me, app, dobj, iobj, skip=False):
     """Tell an Actor about a Thing
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-    from intficpy.things.thing import reflexive
 
     if isinstance(dobj, Actor):
         if dobj.hermit_topic:
@@ -1664,8 +1662,6 @@ giveVerb.dtype = "Actor"
 def getImpGive(me, app):
     """If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    # import parser to gain access to the record of the last turn
-    from intficpy.parser import parser
 
     people = []
     loc = me.getOutermostLocation()
@@ -1682,12 +1678,12 @@ def getImpGive(me, app):
             return people[0]
         app.printToGUI("There's no one obvious here to give it to.")
     elif (
-        isinstance(parser.lastTurn.dobj, Actor)
-        and not parser.lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(parser.lastTurn.dobj)
+        isinstance(lastTurn.dobj, Actor)
+        and not lastTurn.dobj.ignore_if_ambiguous
+        and loc.containsItem(lastTurn.dobj)
     ):
         # ask whomever the player last interracted with
-        return parser.lastTurn.dobj
+        return lastTurn.dobj
     else:
         people2 = list(people)
         for p in people:
@@ -1697,7 +1693,7 @@ def getImpGive(me, app):
             return people2[0]
         # turn disambiguation mode on
         app.printToGUI("Please specify a person to give it to.")
-        parser.lastTurn.ambiguous = True
+        lastTurn.ambiguous = True
 
 
 # replace default getImpDobj method
@@ -1778,8 +1774,6 @@ showVerb.dtype = "Actor"
 def getImpShow(me, app):
     """If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    # import parser to gain access to the record of the last turn
-    from intficpy.parser import parser
 
     people = []
     loc = me.getOutermostLocation()
@@ -1796,12 +1790,12 @@ def getImpShow(me, app):
             return people[0]
         app.printToGUI("There's no one obvious here to show.")
     elif (
-        isinstance(parser.lastTurn.dobj, Actor)
-        and not parser.lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(parser.lastTurn.dobj)
+        isinstance(lastTurn.dobj, Actor)
+        and not lastTurn.dobj.ignore_if_ambiguous
+        and loc.containsItem(lastTurn.dobj)
     ):
         # ask whomever the player last interracted with
-        return parser.lastTurn.dobj
+        return lastTurn.dobj
     else:
         people2 = list(people)
         for p in people:
@@ -1811,7 +1805,7 @@ def getImpShow(me, app):
             return people2[0]
         # turn disambiguation mode on
         app.printToGUI("Please specify a person to show.")
-        parser.lastTurn.ambiguous = True
+        lastTurn.ambiguous = True
 
 
 # replace default getImpDobj method
@@ -3655,7 +3649,6 @@ def useVerbFunc(me, app, dobj, skip=False):
         if isinstance(dobj, LightSource):
             return lightVerb.verbFunc(me, app, dobj)
         elif isinstance(dobj, Key):
-            from intficpy.parser.parser import lastTurn
 
             app.printToGUI(
                 "What would you like to unlock with " + dobj.lowNameArticle(True) + "?"
@@ -3787,7 +3780,6 @@ buyVerb.dscope = "knows"
 def buyVerbFunc(me, app, dobj):
     """Redriect to buy from
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
-    from intficpy.parser.parser import lastTurn
 
     people = []
     # find every Actor in the current location
@@ -3919,8 +3911,7 @@ sellVerb.dscope = "invflex"
 
 def sellVerbFunc(me, app, dobj):
     """Redriect to sell to
-	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
-    from intficpy.parser.parser import lastTurn
+    Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
 
     people = []
     # find every Actor in the current location
@@ -3980,7 +3971,6 @@ recordOnVerb.preposition = ["on"]
 def recordOnVerbFunc(me, app):
     """Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-    from intficpy.serializers.serializer import curSave
 
     f = app.getRecordFileGUI()
     curSave.recordOn(app, f)
@@ -4000,7 +3990,6 @@ recordOffVerb.preposition = ["off"]
 def recordOffVerbFunc(me, app):
     """Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-    from intficpy.serializer.serializer import curSave
 
     curSave.recordOff(app)
 
@@ -4017,7 +4006,6 @@ playBackVerb.syntax = [["playback"]]
 def playBackVerbFunc(me, app):
     """Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-    from intficpy.parser.parser import parseInput, lastTurn, daemons
 
     f = app.getPlayBackFileGUI()
     if not f:

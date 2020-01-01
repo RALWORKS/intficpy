@@ -1,18 +1,12 @@
 import copy
 
 from intficpy.vocab.vocab import nounDict
+from intficpy.gameplay.object_maps import things
 
 ##############################################################
 # THING_BASE.PY - the Thing class for IntFicPy
 # Defines the Thing class, and the thing dictionary
 ##############################################################
-
-# a dictionary of the indeces of all Thing objects, including subclass instances, mapped to their object
-# populated at runtime
-things = {}
-# index is an integer appended to the string "thing"- increases by 1 for each Thing defined
-# index of a Thing will always be the same provided the game file is written according to the rules
-thing_ix = 0
 
 
 class Thing:
@@ -21,47 +15,88 @@ class Thing:
     def __init__(self, name):
         """Sets essential properties for the Thing instance """
         # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
+        things.addEntry(self)
+
         self.known_ix = self.ix
         self.ignore_if_ambiguous = False
         self.cannot_interact_msg = None
-        # False except when Thing is the face of a TravelConnector
+
+        # TRAVELCONNECTOR FACE
+        self.twin = None
         self.connection = None
         self.direction = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
+
+        # CONTENTS
+        self.contains = {}
+        self.sub_contains = {}
+        # contain type flags
         self.contains_on = False
         self.contains_in = False
         self.contains_under = False
+        # is valid Player location?
+        self.canSit = False
+        self.canStand = False
+        self.canLie = False
+        # language
+        # TODO: these should default to in/out (out of?) to eliminate the null check
+        self.contains_preposition = None
+        self.contains_preposition_inverse = None
+
+        # COMPOSITE OBJECTS
+        self.is_composite = False
+        self.parent_obj = None
+        self.lock_obj = None
+        self.children_desc = None
+        self.child_Things = []
+        self.child_Surfaces = []
+        self.child_Containers = []
+        self.child_UnderSpaces = []
+        self.children = []
+
+        # OPEN/CLOSE
+        self.has_lid = False
+        self.is_open = False
+
+        # thing properties
+        self.far_away = False
+
+        self.size = 50
+
+        # ARTICLES & PLURALIZATION
         self.isPlural = False
         self.special_plural = False
         self.hasArticle = True
         self.isDefinite = False
-        self.invItem = True
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
+
+        # STATE DESCRIPTIONS
+        self.lock_desc = ""
+        self.state_desc = ""
+
+        # LOCATION & INVITEM STATUS
         self.location = False
+        self.invItem = True
+
+        # ACTION MESSAGES
+        self.cannotTakeMsg = "You cannot take that."
+
+        # VOCABULARY
+        self.adjectives = []
         self.name = name
         self.synonyms = []
         self.manual_update = False
         # verbose name will be updated when adjectives are added
         self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
+
+        # CAPABILITIES
+        # can I do x with this?
+        self.wearable = False
+
+        # TODO: reevalute how this works
+        # should the item take objects given to it? Irrelevant if not Actor
         self.give = False
+
+        # DESCRIPTION
+        self.desc_reveal = False  # reveal contents in description
         # the default description to print from the room
         self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
         self.base_xdesc = self.base_desc
@@ -203,10 +238,7 @@ class Thing:
 		The copy object is by default treated as not distinct from the original in Player knowledge (me.knows_about dictionary). 
 		To override this behaviour, manually set the copy's known_ix to its own ix property. """
         out = copy.copy(self)
-        global thing_ix
-        out.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[out.ix] = out
+        things.addEntry(out)
         nounDict[out.name].append(out)
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
@@ -285,26 +317,18 @@ class Thing:
 
     def addComposite(self, item):
         self.is_composite = True
-        try:
-            defined = self.child_Things
-        except:
-            self.children_desc = False
-            self.child_Things = []
-            self.child_Surfaces = []
-            self.child_Containers = []
-            self.child_UnderSpaces = []
-            self.children = []
         item.parent_obj = self
+
         self.children.append(item)
-        # if item.contains_on:
-        # 	self.child_Surfaces.append(item)
-        # elif item.contains_in:
-        # 	self.child_Containers.append(item)
-        # elif item.contains_under:
-        # 	self.child_UnderSpaces.append(item)
-        # elif isinstance(item, Thing):
-        # 	# TODO: this does not seem right
-        # 	self.child_Containers.append(item)
+        if item.contains_on:
+            self.child_Surfaces.append(item)
+        elif item.contains_in:
+            self.child_Containers.append(item)
+        elif item.contains_under:
+            self.child_UnderSpaces.append(item)
+        elif isinstance(item, Thing):
+            self.child_Things.append(item)
+
         self.location.addThing(item)
         item.invItem = False
         item.cannotTakeMsg = (

@@ -3,7 +3,7 @@
 
 from intficpy.things.thing_base import Thing
 from intficpy.things.actor import Actor
-from intficpy.score import score
+from intficpy.gameplay import score
 from intficpy.travel import travel, room
 
 

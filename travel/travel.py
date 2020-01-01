@@ -2,17 +2,12 @@ from intficpy.things.thing_base import Thing
 from intficpy.things.things import Door, Lock, AbstractClimbable, Surface
 from intficpy.verbs.verb import openVerb, standUpVerb
 from intficpy.travel import room
+from intficpy.gameplay.object_maps import connectors
 
 ##############################################################
 # ROOM.PY - travel functions for IntFicPy
 # Defines travel functions and the direction vocab dictionary
 ##############################################################
-# a dictionary of the indeces of all TravelConnector objects, including subclass instances, mapped to their object
-# populated at runtime
-connectors = {}
-# index is an integer appended to the string "thing"- increases by 1 for each Thing defined
-# index of a Thing will always be the same provided the game file is written according to the rules
-connector_ix = 0
 
 
 class TravelConnector:
@@ -20,11 +15,8 @@ class TravelConnector:
 	Links two rooms together"""
 
     def __init__(self, room1, direction1, room2, direction2, name="doorway", prep=0):
-        global connector_ix
-        self.ix = "connector" + str(connector_ix)
+        connectors.addEntry(self)
         self.prep = prep
-        connector_ix = connector_ix + 1
-        connectors[self.ix] = self
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = None
@@ -281,10 +273,7 @@ class DoorConnector(TravelConnector):
 	Links two rooms together"""
 
     def __init__(self, room1, direction1, room2, direction2):
-        global connector_ix
-        self.ix = "connector" + str(connector_ix)
-        connector_ix = connector_ix + 1
-        connectors[self.ix] = self
+        connectors.addEntry(self)
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = None
@@ -504,10 +493,7 @@ class LadderConnector(TravelConnector):
 	Links two rooms together"""
 
     def __init__(self, room1, room2):
-        global connector_ix
-        self.ix = "connector" + str(connector_ix)
-        connector_ix = connector_ix + 1
-        connectors[self.ix] = self
+        connectors.addEntry(self)
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = None
@@ -599,10 +585,7 @@ class StaircaseConnector(TravelConnector):
 	Links two rooms together"""
 
     def __init__(self, room1, room2):
-        global connector_ix
-        self.ix = "connector" + str(connector_ix)
-        connector_ix = connector_ix + 1
-        connectors[self.ix] = self
+        connectors.addEntry(self)
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = False

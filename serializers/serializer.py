@@ -3,15 +3,18 @@ import importlib
 import types
 import inspect
 
-from intficpy.things.actor import Actor, Topic, SpecialTopic, SaleItem
-from intficpy.things.thing_base import Thing, things
-from intficpy.things.things import Abstract
-from intficpy.travel import room
-from intficpy.score import score
-from intficpy.travel import travel
-from intficpy.parser import parser
-from intficpy.utils import tools
+from intficpy.gameplay.score import score, hints
+from intficpy.gameplay.daemons import daemons
 from intficpy.vocab.vocab import nounDict as vocab_nounDict
+from intficpy.gameplay.object_maps import (
+    achievements,
+    hintnodes,
+    rooms,
+    connectors,
+    actors,
+    things,
+    topics,
+)
 
 ##############################################################
 # SERIALIZER.PY - the save/load system for IntFicPy
@@ -60,7 +63,7 @@ class SaveState:
             ):
                 saveDict["vars"][var] = x
         saveDict["score"] = {}
-        for attr, value in score.score.__dict__.items():
+        for attr, value in score.__dict__.items():
             if isinstance(value, list):
                 out = []
                 for x in value:
@@ -69,7 +72,7 @@ class SaveState:
             else:
                 saveDict["score"][attr] = self.simplifyAttr(value, main_module)
         saveDict["hints"] = {}
-        for attr, value in score.hints.__dict__.items():
+        for attr, value in hints.__dict__.items():
             if isinstance(value, list):
                 out = []
                 for x in value:
@@ -77,53 +80,48 @@ class SaveState:
                 saveDict["hints"][attr] = out
             else:
                 saveDict["hints"][attr] = self.simplifyAttr(value, main_module)
-        for key in Things:
+        for key in things.dict:
             if key not in saveDict:
                 saveDict[key] = {}
-                for attr, value in Things[key].__dict__.items():
+                for attr, value in things.dict[key].__dict__.items():
                     saveDict[key][attr] = self.simplifyAttr(value, main_module)
-        for key in score.hintnodes:
+        for key in hintnodes.dict:
             if key not in saveDict:
                 saveDict[key] = {}
-                for attr, value in score.hintnodes[key].__dict__.items():
+                for attr, value in hintnodes.dict[key].__dict__.items():
                     if attr == "hints":
                         continue
                     saveDict[key][attr] = self.simplifyAttr(value, main_module)
-        for key in travel.connectors:
+        for key in connectors.dict:
             if key not in saveDict:
                 saveDict[key] = {}
-                for attr, value in travel.connectors[key].__dict__.items():
+                for attr, value in connectors.dict[key].__dict__.items():
                     saveDict[key][attr] = self.simplifyAttr(value, main_module)
-        for key in actor.actors:
+        for key in actors.dict:
             if key not in saveDict:
                 saveDict[key] = {}
-                for attr, value in actor.actors[key].__dict__.items():
+                for attr, value in actors.dict[key].__dict__.items():
                     saveDict[key][attr] = self.simplifyAttr(value, main_module)
-        for key in room.rooms:
+        for key in rooms.dict:
             if key not in saveDict:
                 saveDict[key] = {}
-                for attr, value in room.rooms[key].__dict__.items():
+                for attr, value in rooms.dict[key].__dict__.items():
                     if attr == "contains":
-                        saveDict[key][attr] = self.encodeRoomContents(room.rooms[key])
+                        saveDict[key][attr] = self.encodeRoomContents(rooms.dict[key])
                     else:
                         saveDict[key][attr] = self.simplifyAttr(value, main_module)
-        for key in score.endings:
+        for key in achievements.dict:
             if key not in saveDict:
                 saveDict[key] = {}
-                for attr, value in score.endings[key].__dict__.items():
+                for attr, value in achievements.dict[key].__dict__.items():
                     saveDict[key][attr] = self.simplifyAttr(value, main_module)
-        for key in score.achievements:
+        for key in topics.dict:
             if key not in saveDict:
                 saveDict[key] = {}
-                for attr, value in score.achievements[key].__dict__.items():
-                    saveDict[key][attr] = self.simplifyAttr(value, main_module)
-        for key in actor.topics:
-            if key not in saveDict:
-                saveDict[key] = {}
-                for attr, value in actor.topics[key].__dict__.items():
+                for attr, value in topics.dict[key].__dict__.items():
                     saveDict[key][attr] = self.simplifyAttr(value, main_module)
         saveDict["daemons"] = []
-        for item in parser.daemons.funcs:
+        for item in daemons.funcs:
             saveDict["daemons"].append(self.simplifyAttr(item, main_module))
         if not "." in f:
             f = f + ".sav"
@@ -149,7 +147,7 @@ class SaveState:
 		(Thing, Actor, Achievement, Ending, Abstranct, Topic, TravelConnector, or Room)
 		and replaces user-defined functions with function names
 		Takes arguments value, (the attribute to be simplified), and main_module (the imported Python file of the current game) """
-        if tools.isSerializableClassInstance(value):
+        if hasattr(value, "obj_map"):
             out = "<obj>" + value.ix
             return out
         elif isinstance(value, types.FunctionType):
@@ -168,19 +166,7 @@ class SaveState:
             x = 0
             for x in range(0, len(value)):
                 val = value[x]
-                if (
-                    isinstance(val, Thing)
-                    or isinstance(val, Actor)
-                    or isinstance(val, score.Achievement)
-                    or isinstance(val, score.AbstractScore)
-                    or isinstance(val, score.Ending)
-                    or isinstance(val, Abstract)
-                    or isinstance(val, Topic)
-                    or isinstance(val, travel.TravelConnector)
-                    or isinstance(val, room.Room)
-                    or isinstance(val, SpecialTopic)
-                    or isinstance(val, SaleItem)
-                ):
+                if hasattr(val, "obj_map"):
                     out.append("<obj>" + val.ix)
                 elif isinstance(val, types.FunctionType):
                     # func = getattr(main_module, value[x])
@@ -198,19 +184,7 @@ class SaveState:
                     x = 0
                     for x in range(0, len(value[key])):
                         val = value[key][x]
-                        if (
-                            isinstance(val, Thing)
-                            or isinstance(val, Actor)
-                            or isinstance(val, score.Achievement)
-                            or isinstance(val, score.AbstractScore)
-                            or isinstance(val, score.Ending)
-                            or isinstance(val, Abstract)
-                            or isinstance(val, Topic)
-                            or isinstance(val, travel.TravelConnector)
-                            or isinstance(val, room.Room)
-                            or isinstance(val, SpecialTopic)
-                            or isinstance(val, SaleItem)
-                        ):
+                        if hasattr(val, "obj_map"):
                             out[key].append("<obj>" + val.ix)
                         elif isinstance(val, types.FunctionType):
                             # func = getattr(main_module, value[key][x])
@@ -218,19 +192,7 @@ class SaveState:
                         else:
                             out[key].append(val)
                         x = x + 1
-                elif (
-                    isinstance(value[key], Thing)
-                    or isinstance(value[key], Actor)
-                    or isinstance(value[key], score.Achievement)
-                    or isinstance(value[key], score.AbstractScore)
-                    or isinstance(value[key], score.Ending)
-                    or isinstance(value[key], Abstract)
-                    or isinstance(value[key], Topic)
-                    or isinstance(value[key], travel.TravelConnector)
-                    or isinstance(value[key], room.Room)
-                    or isinstance(value[key], SpecialTopic)
-                    or isinstance(value[key], SaleItem)
-                ):
+                elif hasattr(value, "obj_map"):
                     out[key] = "<obj>" + value[key].ix
                 elif isinstance(value[key], types.FunctionType):
                     # func = getattr(main_module, value[key])
@@ -247,26 +209,24 @@ class SaveState:
         if not ix:
             return None
         if "thing" in ix:
-            return Things[ix]
+            return things.dict[ix]
         elif "actor" in ix:
-            return actor.actors[ix]
+            return actors.dict[ix]
         elif "hintnode" in ix:
-            return score.hintnodes[ix]
+            return hintnodes.dict[ix]
         elif "room" in ix:
-            out = room.rooms[ix]
+            out = rooms.dict[ix]
             if ix not in self.rooms_loaded:
                 self.rooms_loaded.append(ix)
             return out
         elif "topic" in ix:
-            return actor.topics[ix]
+            return topics.dict[ix]
         elif "connector" in ix:
-            return travel.connectors[ix]
+            return connectors.dict[ix]
         elif "achievement" in ix:
-            return score.achievements[ix]
-        elif "ending" in ix:
-            return score.endings[ix]
+            return achievements.dict[ix]
         else:
-            print("unexpected ix format")
+            print(f"unexpected ix format: {ix}")
             return None
 
     def deserializeMethod(self, method_arr):
@@ -295,7 +255,8 @@ class SaveState:
         for key in self.rooms_loaded:
             item = loadDict[key]
             obj = self.dictLookup(key)
-            if not isinstance(obj, room.Room):
+            # distiguish Room objects from RoomGroup objects
+            if not hasattr(obj, "room_group"):
                 continue
             # obj.contains = {}
             # obj.sub_contains = {}
@@ -306,7 +267,7 @@ class SaveState:
         for key in self.rooms_loaded:
             item = loadDict[key]
             obj = self.dictLookup(key)
-            if not isinstance(obj, room.Room):
+            if not hasattr(obj, "room_group"):
                 continue
             # obj.contains = {}
             # obj.sub_contains = {}
@@ -357,19 +318,19 @@ class SaveState:
         loadDict = pickle.load(savefile)
         # superficial check for save file validity - a file that fails is definitely not valid
         try:
-            score.score.total = loadDict["score"]["total"]
+            score.total = loadDict["score"]["total"]
         except:
             return False
-        score.score.possible = loadDict["score"]["possible"]
-        score.score.achievements = []
+        score.possible = loadDict["score"]["possible"]
+        score.achievements = []
         for ach in loadDict["score"]["achievements"]:
-            score.score.achievements.append(self.dictLookup(ach[5:]))
-        score.hints.stack = []
+            score.achievements.append(self.dictLookup(ach[5:]))
+        hints.stack = []
         for item in loadDict["hints"]["stack"]:
-            score.hints.stack.append(self.dictLookup(item[5:]))
-        score.hints.cur_node = loadDict["hints"]["cur_node"]
-        if score.hints.cur_node:
-            score.hints.cur_node = self.dictLookup(score.hints.cur_node[5:])
+            hints.stack.append(self.dictLookup(item[5:]))
+        hints.cur_node = loadDict["hints"]["cur_node"]
+        if hints.cur_node:
+            hints.cur_node = self.dictLookup(hints.cur_node[5:])
         for name in loadDict["vars"]:
             if isinstance(loadDict["vars"][name], list):
                 tmp = []
@@ -401,15 +362,14 @@ class SaveState:
                     setattr(main_module, name, tmp)
             else:
                 setattr(main_module, name, loadDict["vars"][name])
-        parser.daemons.funcs = []
+        daemons.funcs = []
         for value in loadDict["daemons"]:
             if value[0] == "<meth>":
                 x = self.deserializeMethod(value)
             else:
                 x = value[6:]
                 x = getattr(main_module, x)
-            parser.daemons.add(x)
-            # parser.daemons.add(name)
+            daemons.add(x)
         for key in loadDict:
             if key == "vars" or key == "score" or key == "daemons" or key == "hints":
                 pass

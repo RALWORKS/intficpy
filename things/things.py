@@ -2,7 +2,7 @@ import copy
 
 from intficpy.vocab.vocab import nounDict
 from intficpy.things.actor import Actor, Player
-from intficpy.things.thing_base import Thing, thing_ix, things
+from intficpy.things.thing_base import Thing
 
 
 class Surface(Thing):
@@ -10,62 +10,18 @@ class Surface(Thing):
 
     def __init__(self, name, me):
         """Sets the essential properties for a new Surface object """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing and addThing to dictionary for save/load
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        # properties
-        self.direction = None
-        self.desc_reveal = True
-        self.xdesc_reveal = True
-        self.known_ix = self.ix
-        self.me = me
+        super().__init__(name)
+
+        self._me = me
         self.contains_preposition = "on"
         self.contains_on = True
         self.contains_preposition_inverse = "off"
-        self.connection = None
-        self.isPlural = False
-        self.hasArticle = True
-        self.isDefinite = False
+
         self.canSit = False
         self.canStand = False
         self.canLie = False
-        # the items on the Surface
-        self.contains = {}
-        self.synonyms = []
-        self.location = False
-        # items contained by items on the Surface
-        # accessible by default, but not shown in outermost description
-        self.sub_contains = {}
-        self.far_away = False
-        self.adjectives = []
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.name = name
-        self.manual_update = False
-        # verbose_name will be updated by Thing method setAdjectives
-        self.verbose_name = name
-        self.give = False
-        # default description printed by room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        # description of items on the Surface
-        # will be appended to descriptions
-        self.contains_desc = ""
-        # Surfaces are not contains items by default, but can be safely made so
-        self.invItem = False
-        self.cannotTakeMsg = "You cannot take that."
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+
+        self.desc_reveal = True
 
     def containsListUpdate(self, update_desc=True, update_xdesc=True):
         """Update description of contents
@@ -102,8 +58,8 @@ class Surface(Thing):
                 onlist = onlist + " and "
             else:
                 onlist = onlist + ", "
-            if key not in self.me.knows_about:
-                self.me.knows_about.append(key)
+            if key not in self._me.knows_about:
+                self._me.knows_about.append(key)
         # if contains is empty, there should be no onlist
         # TODO: consider rewriting this logic to avoid contructing an empty onlist, then deleting it
         if len(list_version) == 0:
@@ -309,62 +265,19 @@ class Container(Thing):
     """Things that can contain other Things """
 
     def __init__(self, name, me):
-        """Set basic properties for the Container instance
-		Takes argument name, a single noun (string)"""
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # index and add to dictionary for save/load
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        self.me = me
+        """
+        Set basic properties for the Container instance
+        Takes argument name, a single noun (string)
+        """
+        super().__init__(name)
         self.size = 50
         self.desc_reveal = True
         self.xdesc_reveal = True
         self.contains_preposition = "in"
         self.contains_in = True
         self.contains_preposition_inverse = "out"
-        self.connection = None
-        self.direction = None
-        self.holds_liquid = False
-        self.far_away = False
-        self.has_lid = False
-        self.lock_obj = False
-        self.lock_desc = ""
-        self.state_desc = ""
-        self.is_composite = False
-        self.parent_obj = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.name = name
-        self.verbose_name = name
-        self.manual_update = False
-        self.adjectives = []
-        self.synonyms = []
-        self.give = False
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        # description of contents
-        self.contains_desc = ""
-        self.location = False
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+
+        self._me = me
 
     def updateDesc(self):
         self.containsListUpdate(True, True)
@@ -422,8 +335,8 @@ class Container(Thing):
                 inlist = inlist + " and "
             else:
                 inlist = inlist + ", "
-            if key not in self.me.knows_about:
-                self.me.knows_about.append(key)
+            if key not in self._me.knows_about:
+                self._me.knows_about.append(key)
         # remove the empty inlist in the case of no contents
         # TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
         if len(list_version) == 0:
@@ -745,46 +658,17 @@ class LightSource(Thing):
     """Class for Things that are light sources """
 
     def __init__(self, name):
-        """Set basic properties for the LightSource instance
-		Takes argument name, a single noun (string)"""
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # index and add to dictionary for save/load
-        global thing_ix
-        # indexing
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # Thing properties
-        self.size = 20
-        self.connection = None
-        self.direction = None
-        self.far_away = False
-        self.state_desc = ""
-        self.is_composite = False
-        self.parent_obj = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.name = name
-        self.manual_update = False
-        self.verbose_name = name
-        self.adjectives = []
-        self.synonyms = []
-        self.give = False
+        """
+        Set basic properties for the LightSource instance
+        Takes argument name, a single noun (string)
+        """
+        super().__init__(name)
+
         self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
         self.base_xdesc = self.base_desc
         self.desc = self.base_desc + "It is currently not lit. "
         self.xdesc = self.base_xdesc + "It is currently not lit. "
+
         # LightSource properties
         self.is_lit = False
         self.player_can_light = True
@@ -806,12 +690,6 @@ class LightSource(Thing):
         self.lit_desc = "It is currently lit. "
         self.not_lit_desc = "It is currently not lit. "
         self.expired_desc = "It is burnt out. "
-        self.location = False
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
 
     def describeThing(self, description):
         self.base_desc = description
@@ -901,55 +779,7 @@ class AbstractClimbable(Thing):
 
     def __init__(self, name):
         """Sets essential properties for the AbstractClimbable instance """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # connector properties
-        self.twin = None
-        self.connection = None
-        self.direction = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = False
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.manual_update = False
-        self.synonyms = []
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+        super().__init__(name)
 
 
 class Door(Thing):
@@ -958,59 +788,10 @@ class Door(Thing):
 
     def __init__(self, name):
         """Sets essential properties for the Door instance """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # door properties
-        self.direction = None
-        self.twin = None
-        self.is_open = False
-        self.lock_obj = False
+        super().__init__(name)
+
+        # TODO: create instance properties closed_desc and open_desc - possibly on Thing
         self.state_desc = "It is currently closed. "
-        self.lock_desc = ""
-        self.connection = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = False
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.manual_update = False
-        self.synonyms = []
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc + self.state_desc
-        self.xdesc = self.base_xdesc + self.state_desc
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
 
     def makeOpen(self):
         self.is_open = True
@@ -1080,58 +861,7 @@ class Key(Thing):
 
     def __init__(self, name="key"):
         """Sets essential properties for the Thing instance """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # key properties
-        self.lock = False
-        # False except when Thing is the face of a TravelConnector
-        self.connection = None
-        self.direction = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 10
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.manual_update = False
-        self.synonyms = []
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
-        self.give = False
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+        super().__init__(name)
 
 
 class Lock(Thing):
@@ -1139,64 +869,16 @@ class Lock(Thing):
 
     def __init__(self, is_locked, key_obj, name="lock"):
         """Sets essential properties for the Lock instance """
-        # indexing for save
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # lock
+        super().__init__(name)
+
         self.is_locked = is_locked
         self.key_obj = key_obj
-        self.is_composite = False
-        self.parent_obj = None
-        self.twin = None
+
+        # TODO: extract strings into instance properties
         if self.is_locked:
             self.state_desc = " It is currently locked. "
         else:
             self.state_desc = "It is currently unlocked. "
-        # False except when Thing is the face of a TravelConnector
-        self.connection = None
-        self.direction = None
-        # thing properties
-        self.far_away = False
-        self.size = 20
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = False
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
-        self.give = False
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc + self.state_desc
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
 
     def makeUnlocked(self):
         self.is_locked = False
@@ -1249,47 +931,7 @@ class Abstract(Thing):
     """Class for abstract game items with no location, such as ideas"""
 
     def __init__(self, name):
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # properties
-        self.connection = None
-        self.direction = None
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = False
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        self.give = False
-        # no physical form or location, so no desc/xdesc
-        # self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        # self.base_xdesc = self.base_desc
-        # self.desc = self.base_desc
-        # self.xdesc = self.base_xdesc
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+        super().__init__(name)
 
     def makeKnown(self, me):
         if not self.ix in me.knows_about:
@@ -1302,57 +944,13 @@ class UnderSpace(Thing):
     def __init__(self, name, me):
         """Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # index and add to dictionary for save/load
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        # properties
-        self.desc_reveal = True
-        self.xdesc_reveal = True
-        self.connection = None
-        self.direction = None
-        self.known_ix = self.ix
-        self.me = me
-        self.far_away = False
-        self.revealed = False
-        self.state_desc = ""
+        super().__init__(name)
+
+        self._me = me
         self.size = 50
         self.contains_preposition = "under"
         self.contains_under = True
         self.contains_preposition_inverse = "out"
-        self.is_composite = False
-        self.parent_obj = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.name = name
-        self.verbose_name = name
-        self.adjectives = []
-        self.synonyms = []
-        self.manual_update = False
-        self.give = False
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        # description of contents
-        self.contains_desc = ""
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
 
     def compositeBaseDesc(self):
         if self.is_composite:
@@ -1426,8 +1024,8 @@ class UnderSpace(Thing):
                 inlist = inlist + " and "
             else:
                 inlist = inlist + ", "
-            if key not in self.me.knows_about:
-                self.me.knows_about.append(key)
+            if key not in self._me.knows_about:
+                self._me.knows_about.append(key)
         # remove the empty inlist in the case of no contents
         # TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
         if len(list_version) == 0:
@@ -1697,57 +1295,7 @@ class Transparent(Thing):
 
     def __init__(self, name):
         """Sets essential properties for the Transparent instance """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # False except when Thing is the face of a TravelConnector
-        self.connection = None
-        self.direction = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
-        self.give = False
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        self.look_through_desc = "Looking through reveals nothing of interest. "
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+        super().__init__(name)
 
     def lookThrough(self, me, app):
         """Called when the Transparent instance is dobj for verb look through
@@ -1756,63 +1304,19 @@ class Transparent(Thing):
 
 
 class Readable(Thing):
-    """Readable Things 
-	Set the read_desc property to print the same string every time read [instance as dobj] is used
-	Replace default readText method for more complicated behaviour """
+    """
+    Readable Things 
+    Set the read_desc property to print the same string every time 
+    READ [instance as dobj] is used.
+
+    Replace default readText method for more complicated behaviour
+    """
 
     def __init__(self, name, text="There's nothing written here. "):
         """Sets essential properties for the Readable instance """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # False except when Thing is the face of a TravelConnector
-        self.connection = None
-        self.direction = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
-        self.give = False
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        self.read_desc = text
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+        super().__init__(name)
+
+        self.read_desc = text  # the default description for the examine command
 
     def readText(self, me, app):
         """Called when the Transparent instance is dobj for verb look through
@@ -1825,58 +1329,8 @@ class Book(Readable):
 
     def __init__(self, name, text="There's nothing written here. "):
         """Sets essential properties for the Book instance """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # False except when Thing is the face of a TravelConnector
-        self.connection = None
-        self.direction = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
-        self.give = False
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        self.read_desc = text
+        super().__init__(name, text)
         self.is_open = False
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
 
     def makeOpen(self):
         self.is_open = True
@@ -1890,61 +1344,15 @@ class Book(Readable):
 
 
 class Pressable(Thing):
-    """Things that do something when pressed
-	Game creators should redefine the pressThing method for the instance to trigger events when the press/push verb is used """
+    """
+    Things that do something when pressed
+    Game creators should redefine the pressThing method for the instance to trigger
+    events when the PRESS/PUSH verb is used
+    """
 
     def __init__(self, name):
         """Sets essential properties for the Pressable instance """
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # False except when Thing is the face of a TravelConnector
-        self.connection = None
-        self.direction = None
-        # thing properties
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
-        self.isDefinite = False
-        self.invItem = True
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
-        self.give = False
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
+        super().__init__(name)
 
     def pressThing(self, me, app):
         """Game creators should redefine this method for their Pressable instances """
@@ -1952,27 +1360,25 @@ class Pressable(Thing):
 
 
 class Liquid(Thing):
-    """Liquid represents liquid
-	Can fill a container where holds_liquid is True, can be poured, and can optionally be drunk 
-	Game creators should redefine the pressThing method for the instance to trigger events when the press/push verb is used """
+    """
+    Can fill a container where holds_liquid is True, can be poured, and can
+    optionally be drunk 
+
+    Game creators should redefine the pressThing method for the instance to
+    trigger events when the press/push verb is used
+    """
 
     def __init__(self, name, liquid_type):
-        """Sets essential properties for the Liquid instance 
-		The liquid_type property should be a short description of what the liquid is, such as "water" or "motor oil"
-		This will be used to determine what liquids can be merged and mixed
-		Replace the mixWith property to allow mixing of Liquids"""
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        # indexing for save
-        global thing_ix
-        self.ix = "thing" + str(thing_ix)
-        thing_ix = thing_ix + 1
-        things[self.ix] = self
-        self.known_ix = self.ix
-        # False except when Thing is the face of a TravelConnector
-        self.connection = None
-        self.direction = None
-        # thing properties
+        """
+        Sets essential properties for the Liquid instance 
+
+        The liquid_type property should be a short description
+        of what the liquid is, such as "water" or "motor oil"
+        This will be used to determine what liquids can be merged and mixed
+        Replace the mixWith property to allow mixing of Liquids
+        """
+        super().__init__(name)
+
         self.can_drink = True
         self.can_pour_out = True
         self.can_fill_from = True
@@ -1984,45 +1390,13 @@ class Liquid(Thing):
         )
         self.cannot_pour_out_msg = "You shouldn't dump that out. "
         self.cannot_drink_msg = "You shouldn't drink that. "
-        self.far_away = False
-        self.is_composite = False
-        self.parent_obj = None
-        self.size = 50
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
-        self.isPlural = False
-        self.special_plural = False
-        self.hasArticle = True
+
         self.is_numberless = True
-        self.isDefinite = False
-        self.invItem = False
-        self.adjectives = []
-        self.cannotTakeMsg = "You cannot take that."
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearable = False
-        self.location = False
-        self.name = name
-        self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
-        # Thing instances that are not Actors cannot be spoken to
-        self.give = False
-        # the default description to print from the room
+
         self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
         self.base_xdesc = self.base_desc
         self.desc = self.base_desc
         self.xdesc = self.base_xdesc
-        # the default description for the examine command
-        # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
-        else:
-            nounDict[name] = [self]
 
     def getContainer(self):
         """Redirect to the Container rather than the Liquid for certain verbs (i.e. take) """

@@ -1,17 +1,11 @@
+from intficpy.gameplay.daemons import daemons
+from intficpy.gameplay.object_maps import achievements, hintnodes
+from intficpy.gameplay.game_info import lastTurn
+
 ##############################################################
 # SCORE.PY - achievements and score for IntFicPy
 # Defines the Achievement class, and the Ending class
 ##############################################################
-# a dictionary of the indeces of all Thing objects, including subclass instances, mapped to their object
-# populated at runtime
-achievements = {}
-# index is an integer appended to the string "thing"- increases by 1 for each Thing defined
-# index of a Thing will always be the same provided the game file is written according to the rules
-achievement_ix = 0
-endings = {}
-ending_ix = 0
-hintnodes = {}
-hintnode_ix = 0
 
 
 class Achievement:
@@ -19,10 +13,7 @@ class Achievement:
 
     def __init__(self, points, desc):
         # indexing
-        global achievement_ix
-        self.ix = "achievement" + str(achievement_ix)
-        achievement_ix = achievement_ix + 1
-        achievements[self.ix] = self
+        achievements.addEntry(self)
         # essential properties
         self.points = points
         self.desc = desc
@@ -75,10 +66,7 @@ score = AbstractScore()
 
 class Ending:
     def __init__(self, good, title, desc):
-        global ending_ix
-        self.ix = "ending" + str(ending_ix)
-        ending_ix = ending_ix + 1
-        endings[self.ix] = self
+        achievements.addEntry(self)
         self.good = good
         self.title = title
         self.desc = desc
@@ -102,7 +90,6 @@ class HintSystem:
         if node not in self.pending:
             self.pending.append(node)
         if self.pending and not self.pending_daemon:
-            from intficpy.parser.parser import daemons
 
             self.pending_daemon = True
             if not self.checkPending in daemons.funcs:
@@ -172,10 +159,7 @@ hints = HintSystem()
 
 class Hint:
     def __init__(self, text, achievement=None, cost=0):
-        global hintnode_ix
-        self.ix = "hintnode" + str(hintnode_ix)
-        hintnode_ix += 1
-        hintnodes[self.ix] = self
+        hintnodes.addEntry(self)
         self.text = text
         self.achievement = achievement
         self.cost = cost
@@ -196,10 +180,7 @@ class Hint:
 
 class HintNode:
     def __init__(self, hints):
-        global hintnode_ix
-        self.ix = "hintnode" + str(hintnode_ix)
-        hintnode_ix += 1
-        hintnodes[self.ix] = self
+        hintnodes.addEntry(self)
         self.cur_hint = 0
         self.hints = []
         self.next_node = None
@@ -240,7 +221,6 @@ class HintNode:
     def nextHint(self, app):
         """Gives the next hint associated with the HintNode
 		Returns True if a hint can be given, False on failure """
-        from intficpy.parser.parser import lastTurn, cleanInput
 
         if len(self.hints) == 0:
             print("ERROR: cannot use nextHint on empty HintNode ")
@@ -273,8 +253,7 @@ class HintNode:
 
 
 def previousTurnHint():
-    from intficpy.intficpy.parser.parser import lastTurn, cleanInput
 
     if len(lastTurn.turn_list) < 2:
         return False
-    return cleanInput(lastTurn.turn_list[-2], False) == "hint"
+    return lastTurn.turn_list[-2] == "hint"

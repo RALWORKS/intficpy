@@ -1,95 +1,29 @@
-import string
 import importlib
 
 # intficpy framework files
+from intficpy.parser.tokenizer import cleanInput, tokenize, removeArticles
 from intficpy.vocab.vocab import english, verbDict, nounDict
-from intficpy.verbs.verb import scoreVerb, fullScoreVerb, helpVerbVerb, getVerb
+from intficpy.verbs.verb import (
+    scoreVerb,
+    fullScoreVerb,
+    helpVerbVerb,
+    getVerb,
+    standUpVerb,
+    dropVerb,
+)
 from intficpy.things.thing_base import Thing
 from intficpy.things.things import Container, Surface, UnderSpace, Liquid
 from intficpy.serializers.serializer import curSave
 from intficpy.travel.room import Room
 from intficpy.travel.travel import directionDict
-from intficpy.score.game_info import aboutGame
+from intficpy.gameplay.game_info import aboutGame, lastTurn
+from intficpy.gameplay.daemons import daemons
 
 ##############################################################
 # PARSER.PY - the parser for IntFicPy
 # Contains the input loop and parsing functions for the framework
 ##############################################################
 # TODO: Fix save system for terminal version
-
-
-class TurnInfo:
-    """Class of lastTurn, used for disambiguation mode """
-
-    things = []
-    ambiguous = False
-    err = False
-    verb = False
-    dobj = False
-    iobj = False
-    ambig_noun = None
-    find_by_loc = False
-    turn_list = []
-    back = 0
-    gameOpening = False
-    gameEnding = False
-    convNode = False
-    specialTopics = {}
-
-
-lastTurn = TurnInfo
-
-
-class RunEvery:
-    """Class of daemons, an object containing creator-defined functions to be evaluated every turn """
-
-    def __init__(self):
-        self.funcs = []
-
-    def runAll(self, me, app):
-        for func in self.funcs:
-            func(me, app)
-
-    def add(self, daemon):
-        self.funcs.append(daemon)
-
-    def remove(self, daemon):
-        if daemon in self.funcs:
-            self.funcs.remove(daemon)
-
-
-daemons = RunEvery()
-
-
-def cleanInput(input_string, record=True):
-    """Used on player commands to remove punctuation and convert to lowercase
-	Takes the raw user input (string)
-	Returns a string """
-    input_string = input_string.lower()
-    # input_string = re.sub(r'[^\w\s]','',input_string)
-    exclude = set(string.punctuation)
-    input_string = "".join(ch for ch in input_string if ch not in exclude)
-    if record:
-        lastTurn.turn_list.append(input_string)
-        if curSave.recfile:
-            curSave.recfile.write(input_string + "\n")
-            curSave.recfile.flush()
-    return input_string
-
-
-def tokenize(input_string):
-    """Convert input to a list of tokens
-	Takes a string as an argument, and returns a list of strings """
-    # tokenize input with spaces
-    tokens = input_string.split()
-    return tokens
-
-
-def removeArticles(tokens):
-    for article in english.articles:
-        while article in tokens:
-            tokens.remove(article)
-    return tokens
 
 
 def extractInline(app, output_string, main_file):
@@ -840,7 +774,7 @@ def checkRange(me, app, things, scope):
         for thing in things:
             if not roomRangeCheck(me, thing) and invRangeCheck(me, thing):
                 # implicit drop
-                verb.dropVerb.verbFunc(me, app, thing)
+                dropVerb.verbFunc(me, app, thing)
                 pass
             elif not roomRangeCheck(me, thing):
                 out_range.append(thing)
@@ -1442,7 +1376,7 @@ def callVerb(me, app, cur_verb, obj_words):
         if cur_verb.iscope == "text" or cur_verb.iscope == "direction":
             pass
         elif cur_verb.iscope == "room" and invRangeCheck(me, cur_iobj):
-            verb.dropVerb.verbFunc(me, app, cur_iobj)
+            dropVerb.verbFunc(me, app, cur_iobj)
         elif (
             cur_verb.iscope == "inv"
             or (cur_verb.iscope == "invflex" and cur_iobj is not me)
@@ -1469,7 +1403,7 @@ def callVerb(me, app, cur_verb, obj_words):
             if cur_verb.dscope == "text" or cur_verb.dscope == "direction":
                 pass
             elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
-                verb.dropVerb.verbFunc(me, app, cur_dobj)
+                dropVerb.verbFunc(me, app, cur_dobj)
             elif (
                 cur_verb.dscope == "inv"
                 or (cur_verb.dscope == "invflex" and cur_dobj is not me)
@@ -1490,7 +1424,7 @@ def callVerb(me, app, cur_verb, obj_words):
             if cur_verb.dscope == "text" or cur_verb.dscope == "direction":
                 pass
             elif cur_verb.dscope == "room" and invRangeCheck(me, cur_dobj):
-                verb.dropVerb.verbFunc(me, app, cur_dobj)
+                dropVerb.verbFunc(me, app, cur_dobj)
             elif (
                 cur_verb.dscope == "inv"
                 or (cur_verb.dscope == "invflex" and cur_dobj is not me)
@@ -1542,7 +1476,7 @@ def callVerb(me, app, cur_verb, obj_words):
         if (
             cur_verb.dscope != "inv" or cur_verb.iscope != "inv"
         ) and me.position != "standing":
-            verb.standUpVerb.verbFunc(me, app)
+            standUpVerb.verbFunc(me, app)
         cur_verb.verbFunc(me, app, cur_dobj, cur_iobj)
     elif cur_verb.hasDobj:
         if (
@@ -1550,7 +1484,7 @@ def callVerb(me, app, cur_verb, obj_words):
             and cur_verb.dscope != "invflex"
             and me.position != "standing"
         ):
-            verb.standUpVerb.verbFunc(me, app)
+            standUpVerb.verbFunc(me, app)
         cur_verb.verbFunc(me, app, cur_dobj)
     elif cur_verb.hasIobj:
         if (
@@ -1558,7 +1492,7 @@ def callVerb(me, app, cur_verb, obj_words):
             and cur_verb.iscope != "invflex"
             and me.position != "standing"
         ):
-            verb.standUpVerb.verbFunc(me, app)
+            standUpVerb.verbFunc(me, app)
         cur_verb.verbFunc(me, app, cur_iobj)
     else:
         cur_verb.verbFunc(me, app)

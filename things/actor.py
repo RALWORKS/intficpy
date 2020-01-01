@@ -1,22 +1,12 @@
 from intficpy.things.thing_base import Thing
-from intficpy.things.things import Container
 from intficpy.vocab import vocab
-from intficpy.parser.parser import cleanInput, tokenize, removeArticles
+from intficpy.parser.tokenizer import cleanInput, tokenize, removeArticles
+from intficpy.gameplay.object_maps import actors, topics
 
 ##############################################################
 # ACTOR.PY - the Actor class for IntFicPy
 # Contains the Actor class, the Topic class the actors dictionary
 ##############################################################
-
-# a dictionary of the indeces of all Actor objects, mapped to their object
-# populated at runtime
-actors = {}
-# index is an integer appended to the string "actor"- increases by 1 for each Actor defined
-# index of an actor will always be the same provided the game file is written according to the rules
-actor_ix = 0
-
-topics = {}
-topic_ix = 0
 
 
 class Actor(Thing):
@@ -24,6 +14,7 @@ class Actor(Thing):
 
     def __init__(self, name):
         """Intitializes the Actor instance and sets essential properties """
+        actors.addEntry(self)
         self.ignore_if_ambiguous = False
         self.cannot_interact_msg = None
         self.invItem = False  # cannot be added to the contains
@@ -99,11 +90,6 @@ class Actor(Thing):
         # specifies the article to use in output
         self.hasArticle = True
         self.isDefinite = False
-        # indexing for save
-        global actor_ix
-        self.ix = "actor" + str(actor_ix)
-        actor_ix = actor_ix + 1
-        actors[self.ix] = self
         self.known_ix = self.ix
 
     def makeProper(self, proper_name):
@@ -152,7 +138,7 @@ class Actor(Thing):
     def addThing(self, item):
         """Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
-        if isinstance(item, Container):
+        if item.contains_in:
             if item.lock_obj:
                 if item.lock_obj.ix in self.contains:
                     if not item.lock_obj in self.contains[item.lock_obj.ix]:
@@ -221,7 +207,7 @@ class Actor(Thing):
 
     def removeThing(self, item):
         """Remove an item from contents, update decription """
-        if isinstance(item, Container):
+        if item.contains_in:
             if item.lock_obj:
                 if item.lock_obj.ix in self.contains:
                     if item.lock_obj in self.contains[item.lock_obj.ix]:
@@ -370,6 +356,7 @@ class Player(Actor):
     def __init__(self, name):
         """Set basic properties for the Player instance
 		Takes argument loc, a Room"""
+        actors.addEntry(self)
         self.cannot_interact_msg = None
         self.ignore_if_ambiguous = False
         self.connection = None  # this should almost always be None, but setting it probably won't break anything
@@ -414,10 +401,6 @@ class Player(Actor):
         self.isDefinite = False
         self.commodity = False
         self.can_lead = False
-        global actor_ix
-        self.ix = "actor" + str(actor_ix)
-        actor_ix = actor_ix + 1
-        actors[self.ix] = self
         self.known_ix = self.ix
         self.knows_about = [self.ix]
 
@@ -482,12 +465,11 @@ class Player(Actor):
 class Topic:
     """class for conversation topics"""
 
+    save_dict = actors
+
     def __init__(self, topic_text):
         self.text = topic_text
-        global topic_ix
-        self.ix = "topic" + str(topic_ix)
-        topic_ix = topic_ix + 1
-        topics[self.ix] = self
+        topics.addEntry(self)
         self.owner = None
 
     def func(self, app, suggest=True):
@@ -504,10 +486,7 @@ class SpecialTopic:
         self.text = topic_text
         self.suggestion = suggestion
         self.alternate_phrasings = []
-        global topic_ix
-        self.ix = "topic" + str(topic_ix)
-        topic_ix = topic_ix + 1
-        topics[self.ix] = self
+        topics.addEntry(self)
         self.owner = None
 
     def func(self, app, suggest=True):
@@ -532,10 +511,7 @@ class SaleItem:
         self.wants_no_more_msg = None
         self.purchase_msg = "You purchase " + item.lowNameArticle(False) + ". "
         self.sell_msg = "You sell " + item.lowNameArticle(True) + ". "
-        global topic_ix
-        self.ix = "topic" + str(topic_ix)
-        topic_ix = topic_ix + 1
-        topics[self.ix] = self
+        topics.addEntry(self)
 
     def buyUnit(self, me, app):
         for i in range(0, self.price):
@@ -608,15 +584,12 @@ def getNested(target):
 	Takes argument target, pointing to a Thing
 	Returns a list of Things
 	Used by multiple verbs """
-    from intficpy.things.thing import Container
 
     # list to populate with found Things
     nested = []
     # iterate through top level contents
-    if isinstance(target, Container):
-        if target.has_lid:
-            if target.is_open == False:
-                return []
+    if target.has_lid and not target.is_open:
+        return []
     for key in target.contains:
         for item in target.contains[key]:
             nested.append(item)
