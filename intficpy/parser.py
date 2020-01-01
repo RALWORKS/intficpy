@@ -1,9 +1,9 @@
 import importlib
 
-# intficpy framework files
-from intficpy.parser.tokenizer import cleanInput, tokenize, removeArticles
-from intficpy.vocab.vocab import english, verbDict, nounDict
-from intficpy.verbs.verb import (
+# .files
+from .tokenizer import cleanInput, tokenize, removeArticles
+from .vocab import english, verbDict, nounDict
+from .verb import (
     scoreVerb,
     fullScoreVerb,
     helpVerbVerb,
@@ -11,13 +11,13 @@ from intficpy.verbs.verb import (
     standUpVerb,
     dropVerb,
 )
-from intficpy.things.thing_base import Thing
-from intficpy.things.things import Container, Surface, UnderSpace, Liquid
-from intficpy.serializers.serializer import curSave
-from intficpy.travel.room import Room
-from intficpy.travel.travel import directionDict
-from intficpy.gameplay.game_info import aboutGame, lastTurn
-from intficpy.gameplay.daemons import daemons
+from .thing_base import Thing
+from .things import Container, Surface, UnderSpace, Liquid
+from .serializer import curSave
+from .room import Room
+from .travel import directionDict
+from .game_info import aboutGame, lastTurn
+from .daemons import daemons
 
 ##############################################################
 # PARSER.PY - the parser for IntFicPy

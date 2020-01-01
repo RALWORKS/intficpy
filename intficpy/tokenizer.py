@@ -1,8 +1,8 @@
 import string
 
-from intficpy.vocab.vocab import english
-from intficpy.serializers.serializer import curSave
-from intficpy.gameplay.game_info import lastTurn
+from .vocab import english
+from .serializer import curSave
+from .game_info import lastTurn
 
 ##############################################################
 # TOKENIZER.PY - tokenizing and cleaning functions for IntFicPy

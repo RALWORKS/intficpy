@@ -17,9 +17,9 @@ from PyQt5.QtWidgets import (
     QFileDialog,
 )
 from PyQt5.QtGui import QIcon, QFont, QIcon
-from intficpy.things.things import reflexive
-from intficpy.serializers.serializer import curSave
-from intficpy.parser.parser import (
+from .things import reflexive
+from .serializer import curSave
+from .parser import (
     parseInput,
     initGame,
     daemons,
@@ -29,7 +29,7 @@ from intficpy.parser.parser import (
 
 ##############################################################
 # GUI.PY - the GUI for IntFicPy
-# Defines the default GUI application for IntFicPy games
+# Defines the default GUI application for .
 ##############################################################
 # TODO: modify App.__init__ to allow for insertion of a custom stylesheet directly from the main game file when the GUI is created
 # TODO: display game title in the window title

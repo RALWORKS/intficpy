@@ -1,7 +1,7 @@
 import copy
 
-from intficpy.vocab.vocab import nounDict
-from intficpy.gameplay.object_maps import things
+from .vocab import nounDict
+from .object_maps import things
 
 ##############################################################
 # THING_BASE.PY - the Thing class for IntFicPy

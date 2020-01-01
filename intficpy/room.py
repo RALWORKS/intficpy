@@ -1,6 +1,6 @@
-from intficpy.things.thing_base import Thing
-from intficpy.things.things import Container, LightSource
-from intficpy.gameplay.object_maps import rooms
+from .thing_base import Thing
+from .things import Container, LightSource
+from .object_maps import rooms
 
 ##############################################################
 # ROOM.PY - verbs for IntFicPy
@@ -9,7 +9,7 @@ from intficpy.gameplay.object_maps import rooms
 
 
 class Room:
-    """Room is the overarching class for all locations in an IntFicPy game """
+    """Room is the overarching class for all locations in an .game """
 
     def __init__(self, name, desc):
         """Initially set basic properties for the Room instance """
@@ -135,7 +135,7 @@ class Room:
     def addThing(self, item):
         """Places a Thing in a Room
 		Should generally be used by game creators instead of using room.contains.append() directly """
-        from intficpy.things import actor
+        from .actor import Actor
 
         if isinstance(item, Container):
             if item.lock_obj:
@@ -153,7 +153,7 @@ class Room:
                     self.addThing(item2)
         item.location = self
         # nested items
-        if not isinstance(item, actor.Actor):
+        if not isinstance(item, Actor):
             nested = getNested(item)
             for t in nested:
                 if t.ix in self.sub_contains:
@@ -404,7 +404,7 @@ class Room:
 
 
 class OutdoorRoom(Room):
-    """Room is the class for outdoor locations in an IntFicPy game
+    """Room is the class for outdoor locations in an .game
 	OutdoorRooms have no walls, and the floor is called ground"""
 
     def __init__(self, name, desc):

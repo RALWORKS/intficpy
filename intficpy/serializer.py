@@ -3,10 +3,10 @@ import importlib
 import types
 import inspect
 
-from intficpy.gameplay.score import score, hints
-from intficpy.gameplay.daemons import daemons
-from intficpy.vocab.vocab import nounDict as vocab_nounDict
-from intficpy.gameplay.object_maps import (
+from .score import score, hints
+from .daemons import daemons
+from .vocab import nounDict as vocab_nounDict
+from .object_maps import (
     achievements,
     hintnodes,
     rooms,
@@ -143,7 +143,7 @@ class SaveState:
         return dict_out
 
     def simplifyAttr(self, value, main_module):
-        """Gets the unique key for objects that are instances of IntFicPy engine classes 
+        """Gets the unique key for objects that are instances of .engine classes 
 		(Thing, Actor, Achievement, Ending, Abstranct, Topic, TravelConnector, or Room)
 		and replaces user-defined functions with function names
 		Takes arguments value, (the attribute to be simplified), and main_module (the imported Python file of the current game) """

@@ -1,7 +1,6 @@
-from intficpy.vocab import vocab
-from intficpy.things.actor import Actor
-from intficpy.things.thing_base import Thing
-from intficpy.things.things import (
+from .actor import Actor
+from .thing_base import Thing
+from .things import (
     reflexive,
     Container,
     Surface,
@@ -18,12 +17,12 @@ from intficpy.things.things import (
     LightSource,
     Pressable,
 )
-from intficpy.travel.room import Room
-from intficpy.gameplay.game_info import aboutGame, lastTurn
-from intficpy.gameplay.score import score, hints
-from intficpy.gameplay.daemons import daemons
-from intficpy.vocab.vocab import verbDict
-from intficpy.serializers.serializer import curSave
+from .room import Room
+from .game_info import aboutGame, lastTurn
+from .score import score, hints
+from .daemons import daemons
+from .vocab import verbDict
+from .serializer import curSave
 
 ##############################################################
 # VERB.PY - verbs for IntFicPy
@@ -41,10 +40,10 @@ class Verb:
         """Set default properties for the Verb instance
 		Takes argument word, a one word verb (string)
 		The creator can build constructions like "take off" by specifying prepositions and syntax """
-        if word in vocab.verbDict:
-            vocab.verbDict[word].append(self)
+        if word in verbDict:
+            verbDict[word].append(self)
         elif word is not None:
-            vocab.verbDict[word] = [self]
+            verbDict[word] = [self]
         if list_word and list_word not in aboutGame.verbs:
             aboutGame.verbs.append(list_word)
         elif word and word not in aboutGame.verbs and not exempt_from_list:
@@ -78,10 +77,10 @@ class Verb:
         """Add a synonym verb
 			Takes argument word, a single verb (string)
 			The creator can build constructions like "take off" by specifying prepositions and syntax """
-        if word in vocab.verbDict:
-            vocab.verbDict[word].append(self)
+        if word in verbDict:
+            verbDict[word].append(self)
         else:
-            vocab.verbDict[word] = [self]
+            verbDict[word] = [self]
 
     def discover(self, app, show_msg, list_word=False):
         if (
@@ -179,7 +178,7 @@ def getNested(target):
     return nested
 
 
-# Below are IntFicPy's built in verbs
+# Below are .s built in verbs
 ###########################################################################
 
 # GET/TAKE
@@ -2504,7 +2503,7 @@ climbUpVerb.preposition = ["up"]
 def climbUpVerbFunc(me, app):
     """Climb up to the room above
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    from intficpy.travel import travel
+    from .travel import travel
 
     cur_loc = me.getOutermostLocation()
     if cur_loc.up:
@@ -2934,7 +2933,7 @@ exitVerb.syntax = [["exit"]]
 def exitVerbFunc(me, app):
     """Climb out of a Container you currently occupy
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    from intficpy.travel import travel
+    from .travel import travel
 
     out_loc = me.getOutermostLocation()
     if isinstance(me.location, Thing):
@@ -2957,7 +2956,7 @@ enterVerb.syntax = [["enter"]]
 def enterVerbFunc(me, app):
     """Climb out of a Container you currently occupy
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-    from intficpy.travel import travel
+    from .travel import travel
 
     out_loc = me.getOutermostLocation()
     if out_loc.entrance:
@@ -4007,7 +4006,7 @@ playBackVerb.syntax = [["playback"]]
 def playBackVerbFunc(me, app):
     """Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-    from intficpy.parser.parser import parseInput
+    from .parser import parseInput
 
     f = app.getPlayBackFileGUI()
     if not f:
@@ -4045,7 +4044,7 @@ leadDirVerb.dtype = "Actor"
 def leadDirVerbFunc(me, app, dobj, iobj, skip=False):
     """Lead an Actor in a direction
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing, and iobj, a Thing """
-    from intficpy.travel.travel import TravelConnector
+    from .travel import TravelConnector
 
     if not skip:
         runfunc = True
@@ -4062,7 +4061,7 @@ def leadDirVerbFunc(me, app, dobj, iobj, skip=False):
         app.printToGUI("You cannot lead that. ")
         return False
     elif dobj.can_lead:
-        from intficpy.travel.travel import getDirectionFromString, directionDict
+        from .travel import getDirectionFromString, directionDict
 
         destination = getDirectionFromString(dobj.getOutermostLocation(), iobj)
         if not destination:

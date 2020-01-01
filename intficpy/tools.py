@@ -1,10 +1,10 @@
 # TOOLS.PY
 # A collection of miscellaneous functions to simplify common tasks in IntFicPy
 
-from intficpy.things.thing_base import Thing
-from intficpy.things.actor import Actor
-from intficpy.gameplay import score
-from intficpy.travel import travel, room
+from .thing_base import Thing
+from .actor import Actor
+from .gameplay import score
+from .travel import travel, room
 
 
 def isSerializableClassInstance(obj):

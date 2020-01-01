@@ -1,8 +1,8 @@
 import copy
 
-from intficpy.vocab.vocab import nounDict
-from intficpy.things.actor import Actor, Player
-from intficpy.things.thing_base import Thing
+from .vocab import nounDict
+from .actor import Actor, Player
+from .thing_base import Thing
 
 
 class Surface(Thing):
@@ -284,7 +284,7 @@ class Container(Thing):
 
     def containsListUpdate(self, update_desc=True, update_xdesc=True):
         """Update description for addition/removal of items from the Container instance """
-        from intficpy.things.actor import Player
+        from .actor import Player
 
         # desc = self.base_desc
         # xdesc = self.base_xdesc
@@ -401,7 +401,6 @@ class Container(Thing):
     def addThing(self, item, update_desc=True, update_xdesc=True):
         """Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
-        from intficpy.things import actor
 
         item.location = self
         if isinstance(item, Container):
@@ -719,7 +718,7 @@ class LightSource(Thing):
         else:
             if self.consumable:
                 # add the consumeLightSource daemon
-                from intficpy.parser.parser import daemons
+                from .parser import daemons
 
                 daemons.add(self.consumeLightSourceDaemon)
             self.is_lit = True
@@ -733,7 +732,7 @@ class LightSource(Thing):
         else:
             if self.consumable:
                 # remove the consumeLightSource daemon
-                from intficpy.parser.parser import daemons
+                from .parser import daemons
 
                 if self.consumeLightSourceDaemon in daemons.funcs:
                     daemons.remove(self.consumeLightSourceDaemon)
@@ -743,8 +742,8 @@ class LightSource(Thing):
 
     def consumeLightSourceDaemon(self, me, app):
         """Runs every turn while a consumable light source is active, to keep track of time left. """
-        from intficpy.parser.parser import lastTurn, daemons
-        from intficpy.verbs.verb import helpVerb, helpVerbVerb, aboutVerb
+        from .parser import lastTurn, daemons
+        from .verb import helpVerb, helpVerbVerb, aboutVerb
 
         if not (
             lastTurn.verb == helpVerb
@@ -982,7 +981,7 @@ class UnderSpace(Thing):
 
     def containsListUpdate(self, update_desc=True, update_xdesc=True):
         """Update description for addition/removal of items from the UnderSpace instance """
-        from intficpy.things.actor import Player
+        from .actor import Player
 
         # desc = self.base_desc
         # xdesc = self.base_xdesc
@@ -1059,8 +1058,6 @@ class UnderSpace(Thing):
         return True
 
     def revealUnder(self):
-        from intficpy.things import actor
-
         self.revealed = True
         self.containsListUpdate()
         for key in self.contains:
@@ -1074,7 +1071,7 @@ class UnderSpace(Thing):
                 while next_loc:
                     if not contentshidden:
                         nested = getNested(item)
-                        if not isinstance(item, actor.Actor):
+                        if not isinstance(item, Actor):
                             for t in nested:
                                 if t.ix in next_loc.sub_contains:
                                     if not t in next_loc.sub_contains[t.ix]:
@@ -1121,8 +1118,6 @@ class UnderSpace(Thing):
     def addThing(self, item):
         """Add an item to contents, update descriptions
 		Takes argument item, pointing to a Thing """
-        from intficpy.things import actor
-
         item.location = self
         revealed = self.revealed
         if isinstance(item, Container):

@@ -1,8 +1,8 @@
-from intficpy.things.thing_base import Thing
-from intficpy.things.things import Door, Lock, AbstractClimbable, Surface
-from intficpy.verbs.verb import openVerb, standUpVerb
-from intficpy.travel import room
-from intficpy.gameplay.object_maps import connectors
+from .thing_base import Thing
+from .things import Door, Lock, AbstractClimbable, Surface
+from .verb import openVerb, standUpVerb
+from .room import Room
+from .object_maps import connectors
 
 ##############################################################
 # ROOM.PY - travel functions for IntFicPy
@@ -150,7 +150,7 @@ class TravelConnector:
                 print("error: invalid direction input for TravelConnector: " + d[x])
 
     def setFromPrototype(self, connector):
-        from intficpy.vocab import vocab
+        from .vocab import vocab
 
         x = 0
         self.entranceA_msg = connector.entranceA_msg
@@ -698,7 +698,7 @@ def preRemovePlayer(me, app):
                 "You get out of " + x.getArticle(True) + x.verbose_name + "."
             )
         x = x.location
-        while not isinstance(x, room.Room):
+        while not isinstance(x, Room):
             x.sub_contains[me.ix].remove(me)
             if x.sub_contains[me.ix] == []:
                 del x.sub_contains[me.ix]

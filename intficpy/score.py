@@ -1,6 +1,6 @@
-from intficpy.gameplay.daemons import daemons
-from intficpy.gameplay.object_maps import achievements, hintnodes
-from intficpy.gameplay.game_info import lastTurn
+from .daemons import daemons
+from .object_maps import achievements, hintnodes
+from .game_info import lastTurn
 
 ##############################################################
 # SCORE.PY - achievements and score for IntFicPy
@@ -9,7 +9,7 @@ from intficpy.gameplay.game_info import lastTurn
 
 
 class Achievement:
-    """Class for achievements in the IntFicPy game"""
+    """Class for achievements in the .game"""
 
     def __init__(self, points, desc):
         # indexing
@@ -72,11 +72,9 @@ class Ending:
         self.desc = desc
 
     def endGame(self, me, app):
-        from intficpy.parser import parser
-
         app.printToGUI("<b>" + self.title + "</b>")
         app.printToGUI(self.desc)
-        parser.lastTurn.gameEnding = True
+        lastTurn.gameEnding = True
 
 
 class HintSystem:

@@ -1,7 +1,7 @@
-from intficpy.things.thing_base import Thing
-from intficpy.vocab import vocab
-from intficpy.parser.tokenizer import cleanInput, tokenize, removeArticles
-from intficpy.gameplay.object_maps import actors, topics
+from .thing_base import Thing
+from . import vocab
+from .tokenizer import cleanInput, tokenize, removeArticles
+from .object_maps import actors, topics
 
 ##############################################################
 # ACTOR.PY - the Actor class for IntFicPy
@@ -316,7 +316,7 @@ class Actor(Thing):
         self.show_topics = {}
 
     def printSuggestions(self, app):
-        from intficpy.parser.parser import lastTurn
+        from .parser import lastTurn
 
         if self.special_topics != {}:
             lastTurn.convNode = True
@@ -352,7 +352,7 @@ class Actor(Thing):
     def getOutermostLocation(self):
         """Gets the Actor's current room 
 		Takes argument app, pointing to the PyQt5 GUI"""
-        from intficpy.travel.room import Room
+        from .room import Room
 
         x = self.location
         while not isinstance(x, Room):
