@@ -1,5 +1,8 @@
 from unittest import TestCase
 
+from intficpy.actor import Player
+from intficpy.room import Room
+
 class TestApp:
     def __init__(self):
         pass
