@@ -10,20 +10,6 @@ from intficpy.parser import getThing, initGame
 
 
 class TestParser(IFPTestCase):
-    def setUp(self):
-        class App:
-            def __init__(self):
-                pass
-
-            def printToGUI(self, msg, *args):
-                print(f"APP PRINT: {msg}")
-
-        self.app = App()
-        self.me = Player("me")
-        self.room = Room("room", "desc")
-        self.room.addThing(self.me)
-        self.me.setPlayer()
-
     def test_get_thing(self):
         noun = "neverseenthisonebefore"
         self.assertNotIn(
@@ -33,7 +19,7 @@ class TestParser(IFPTestCase):
             "initially exist in nounDict",
         )
         item1 = Thing(noun)
-        self.room.addThing(item1)
+        self.start_room.addThing(item1)
         self.assertTrue(
             noun in nounDict, "Name was not added to nounDict after Thing creation"
         )
@@ -44,7 +30,7 @@ class TestParser(IFPTestCase):
         )
 
         item2 = Thing(noun)
-        self.room.addThing(item2)
+        self.start_room.addThing(item2)
         self.assertEqual(len(nounDict[noun]), 2)
 
         adj1 = "unique"
