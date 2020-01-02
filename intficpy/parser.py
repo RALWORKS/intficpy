@@ -153,7 +153,7 @@ def getCurVerb(app, input_tokens):
         return [None, False]
     vbo = verbByObjects(app, input_tokens, verbs)
     found_verbs = bool(verbs)
-    return [vbo, True]
+    return [vbo, found_verbs]
 
 
 def verbByObjects(app, input_tokens, verbs):
@@ -614,7 +614,7 @@ def checkObj(me, app, cur_verb, dobj, iobj):
     lastTurn.dobj = dobj
     lastTurn.iobj = iobj
     if missing:
-        return False
+        return None
     return [dobj, iobj]
 
 
@@ -1415,9 +1415,11 @@ def callVerb(me, app, cur_verb, obj_words):
             )
             lastTurn.dobj = False
             if cur_dobj:
-                # app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + cur_dobj.verbose_name + ".)")
+                # app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + 
+                # cur_dobj.verbose_name + ".)")
                 lastTurn.iobj = cur_dobj
-    # apparent duplicate checking of objects is to allow last.iobj to be set before the turn is aborted in event of incomplete input
+    # apparent duplicate checking of objects is to allow last.iobj to be set before the 
+    # turn is aborted in event of incomplete input
     if cur_verb.dscope == "text" or not cur_dobj or cur_verb.dscope == "direction":
         pass
     elif not cur_dobj.location:
