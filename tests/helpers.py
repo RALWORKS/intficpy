@@ -7,10 +7,10 @@ from intficpy.vocab import nounDict
 
 class TestApp:
     def __init__(self):
-        pass
+        self.print_stack = []
 
     def printToGUI(self, msg, *args):
-        print(f"APP PRINT: {msg}")
+        self.print_stack.append(msg)
 
 class IFPTestCase(TestCase):
     def setUp(self):
