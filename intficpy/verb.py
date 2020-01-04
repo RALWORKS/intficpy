@@ -479,8 +479,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
         app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
         dobj.location = me.location
         dobj.location.addThing(dobj)
-    # if dobj is in sub_contains, remove it
-    # set the Thing's location property
+        return True
     elif dobj.parent_obj:
         app.printToGUI(
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
@@ -489,6 +488,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
             + dobj.parent_obj.verbose_name
             + ". "
         )
+        return False
     elif not dobj.invItem:
         app.printToGUI("Error: not an inventory item. ")
         print(dobj)
@@ -496,7 +496,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
         app.printToGUI(
             "You are not holding " + dobj.getArticle(True) + dobj.verbose_name + "."
         )
-
+        return False
 
 # replace the default verbFunc method
 dropVerb.verbFunc = dropVerbFunc
@@ -1109,6 +1109,7 @@ def lookVerbFunc(me, app):
     # print location description
     loc = me.getOutermostLocation()
     loc.describe(me, app)
+    return True
 
 
 # replace default verbFunc method
@@ -1146,6 +1147,7 @@ def examineVerbFunc(me, app, dobj, skip=False):
         app.printToGUI(dobj.cannot_interact_msg)
         return False
     app.printToGUI(dobj.xdesc)
+    return True
 
 
 # replace default verbFunc method
