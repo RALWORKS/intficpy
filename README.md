@@ -24,7 +24,24 @@ The class for non-player-characters in IntFicPy is Actor. The most important dis
 IntFicPy is currently in the testing phase. The first release is planned for fall, some time after IFComp 2019 closes. 
 
 # Installation and Use
-To install, download the IntFicPy folder, and place inside of a project folder. Downloaded folder is named intficpy. To use the GUI, you will need to have PyQt5 installed. Additionally, the save system depends on pickle. A short introduction to creating games with IntFicPy can be found on the GitHub wiki. Feel free to experiment with the examples. To run an example, place it in IntFicPy's parent folder, and run it with Python 3.
+
+After cloning the repo, install the dependencies, then the IntFicPy package.
+
+```
+$ cd intficpy
+$ pipenv shell
+$ pipenv install
+$ pip install -e .
+```
+You should now be able to run the example game.
+```
+$ python examples/testgame.py
+```
+You can also run the tests.
+```
+$ python -m unittest discover
+```
+Test coverage is currently not great, but slowly improving.
 
 # License
 IntFicPy is distributed with a GPL3 license

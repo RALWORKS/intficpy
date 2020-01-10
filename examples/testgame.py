@@ -4,8 +4,8 @@ import random
 from PyQt5.QtWidgets import QApplication
 
 # imports from intficpy
-from intficpy.travel.room import Room, OutdoorRoom
-from intficpy.things.things import (
+from intficpy.room import Room, OutdoorRoom
+from intficpy.things import (
     Surface,
     Container,
     Clothing,
@@ -14,17 +14,17 @@ from intficpy.things.things import (
     Lock,
     UnderSpace,
 )
-from intficpy.things.thing_base import Thing
-from intficpy.gameplay.score import Achievement, Ending
-from intficpy.travel.travel import (
+from intficpy.thing_base import Thing
+from intficpy.score import Achievement, Ending
+from intficpy.travel import (
     TravelConnector,
     DoorConnector,
     LadderConnector,
     StaircaseConnector,
 )
-from intficpy.things.actor import Actor, Player, Topic, SpecialTopic
-import intficpy.parser.parser as parser
-import intficpy.ui.gui as gui
+from intficpy.actor import Actor, Player, Topic, SpecialTopic
+import intficpy.parser as parser
+import intficpy.gui as gui
 
 app = QApplication(sys.argv)
 gui.Prelim(__name__)
