@@ -30,7 +30,7 @@ IntFicPy's first release, originally planned for fall 2019, is postponed until f
 
 If you want to play around with the library, please do - and I'd love to hear your feedback - but be aware that IntFicPy is not currently stable.
 
-# How to Install IntFicPy
+## How to Install IntFicPy
 
 After cloning the repo, install the dependencies, then the IntFicPy package.
 
