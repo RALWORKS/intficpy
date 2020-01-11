@@ -10,7 +10,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Terminal Mode
 + some non graphical features may not be available in terminal mode
 + replace html tags
-+ make sure new version of inine functions works correctly
++ make sure new version of inline functions works correctly
 
 ## FEATURES THAT REQUIRE TESTING
 + the MORE or m built in inline function needs more testing and possible refining
@@ -19,29 +19,39 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + give thing with give enabled
 + update examples/terminaltestgame.py
 
+## Unit Tests
+### Parser
+### Verbs
+### Travel
++ can travel between rooms
++ can travel travel between rooms using
+    + TravelConnector
+    + Door
+    + Ladder/Stairs
+### Things
++ add a Thing to a room
++ add a Thing to a Thing
+    + Surface
+    + Container
+    + UnderSpace
++ create an item of each subclass
++ create an Abstract
++ remove all contents
++ add and remove a composite item
++ add and remove an item with a lock
+
 ##  PREPARATIONS FOR FIRST BETA (Upcoming Features)
+
 ### Convenience & Ease of Use
 + better ordering in room descriptions
 ### Essential New Features
 + add a set_hint_node property to Topic and SpecialTopic, to advance the current hint when a conversation point is reached
 ### Other New Features
-+ strdobj/striobj, where objects are interpreted as strings rather than names of Things ("look up rodent in dictionary") Watch out for adjacent objects in verb syntax.
 + display the game title in the GUI window title
-+ allow game creators to modify the look of the GUI from within the main gamefile
 
 ## MAJOR CHANGES (Eventual Implementation)
 + Rewrite GUI with a different GUI module (currently using Qt - most likely will switch to kivy)
 + write script to ensure game creator compliance with IntFicPy rules and syntax
 + support multiple Player characters
 
-## LAST DOCUMENTATION UPDATE COMPLETED: 29/04/2019
-(X) actor.py
-(X) parser.py
-(X) thing.py
-(X) vocab.py
-(X) gui.py
-(X) player.py
-(X) room.py
-(X) travel.py
-(X) serializer.py
-(X) verb.py
+
