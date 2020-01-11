@@ -89,6 +89,11 @@ class TestAddRemoveThing(IFPTestCase):
             "the parent xdesc",
         )
 
+        if child.lock_obj:
+            self.assertNotIn(child.lock_obj.ix, parent.contains)
+        for sub_item in child.children:
+            self.assertNotIn(sub_item.ix, parent.contains)
+
         parent.addThing(child)
         self.assertIn(
             child.ix,
@@ -108,6 +113,30 @@ class TestAddRemoveThing(IFPTestCase):
             f"Item added to {parent}, but item verbose_name not found in xdesc",
         )
 
+        if child.lock_obj:
+            self.assertIn(
+                child.lock_obj.ix,
+                parent.contains,
+                f"Added item to {parent}, but lock_obj not added"
+            )
+            self.assertIn(
+                child.lock_obj,
+                parent.contains[child.lock_obj.ix],
+                f"Item lock_obj ix in {parent}, but lock_obj not found under ix"
+            )
+        for sub_item in child.children:
+            self.assertIn(
+                sub_item.ix,
+                parent.contains,
+                f"Added item to {parent}, but composite {sub_item} not added"
+            )
+            self.assertIn(
+                sub_item,
+                parent.contains[sub_item.ix],
+                f"Composite {sub_item} ix in {parent}, but item not found "
+                "under ix"
+            )
+
         parent.removeThing(child)
         self.assertNotIn(
             child.ix,
@@ -119,6 +148,19 @@ class TestAddRemoveThing(IFPTestCase):
             parent.xdesc,
             f"Item removed from {parent}, but item verbose_name still in xdesc",
         )
+
+        if child.lock_obj:
+            self.assertNotIn(
+                child.lock_obj.ix,
+                parent.contains,
+                f"lock_obj {child.lock_obj} not removed from {parent}"
+            )
+        for sub_item in child.children:
+            self.assertNotIn(
+                sub_item.ix,
+                parent.contains,
+                f"composite child {sub_item} not removed from {parent}"
+            )
 
     def test_add_remove_from_Surface(self):
         parent = Surface("parent", self.me)
@@ -138,9 +180,58 @@ class TestAddRemoveThing(IFPTestCase):
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
+    def test_add_remove_composite_item_from_Surface(self):
+        parent = Surface("parent", self.me)
+        child = Thing("child")
+        sub = Thing("sub")
+        child.addComposite(sub)
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
 
-class TestComposite(IFPTestCase):
-    pass
+    def test_add_remove_composite_item_from_Container(self):
+        parent = Container("parent", self.me)
+        child = Thing("child")
+        sub = Thing("sub")
+        child.addComposite(sub)
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_composite_item_from_UnderSpace(self):
+        parent = Surface("parent", self.me)
+        child = Container("child", self.me)
+        child.has_lid = True
+        lock = Lock("lock", None)
+        child.setLock(lock)
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_item_with_lock_from_Surface(self):
+        parent = Surface("parent", self.me)
+        child = Container("child", self.me)
+        child.has_lid = True
+        lock = Lock("lock", None)
+        child.setLock(lock)
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_item_with_lock_from_Container(self):
+        parent = Container("parent", self.me)
+        child = Container("child", self.me)
+        child.has_lid = True
+        lock = Lock("lock", None)
+        child.setLock(lock)
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_item_with_lock_from_UnderSpace(self):
+        parent = Surface("parent", self.me)
+        child = Container("child", self.me)
+        child.has_lid = True
+        lock = Lock("lock", None)
+        child.setLock(lock)
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
 
 
 add_thing_instantiation_tests()
