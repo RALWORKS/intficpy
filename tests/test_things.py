@@ -78,12 +78,65 @@ class TestCreateAllTypes(IFPTestCase):
         )
 
 
-class TestThing(IFPTestCase):
-    pass
-
-
 class TestAddRemoveThing(IFPTestCase):
-    pass
+    def _assert_can_add_remove(self, parent, child):
+        self.assertNotIn(child.ix, parent.contains)
+
+        self.assertNotIn(
+            child.verbose_name,
+            parent.xdesc,
+            "This test needs the child verbose_name to not intially be in "
+            "the parent xdesc",
+        )
+
+        parent.addThing(child)
+        self.assertIn(
+            child.ix,
+            parent.contains,
+            f"Tried to add item to {parent} but ix not in contains",
+        )
+        self.assertIn(
+            child,
+            parent.contains[child.ix],
+            f"Tried to add item to {parent}. ix in contains, but item not "
+            "found under key",
+        )
+
+        self.assertIn(
+            child.verbose_name,
+            parent.xdesc,
+            f"Item added to {parent}, but item verbose_name not found in xdesc",
+        )
+
+        parent.removeThing(child)
+        self.assertNotIn(
+            child.ix,
+            parent.contains,
+            f"Tried to remove unique item from {parent} but ix still in " "contains",
+        )
+        self.assertNotIn(
+            child.verbose_name,
+            parent.xdesc,
+            f"Item removed from {parent}, but item verbose_name still in xdesc",
+        )
+
+    def test_add_remove_from_Surface(self):
+        parent = Surface("parent", self.me)
+        child = Thing("child")
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_from_Container(self):
+        parent = Container("parent", self.me)
+        child = Thing("child")
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_from_UnderSpace(self):
+        parent = Surface("parent", self.me)
+        child = Thing("child")
+        self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
 
 
 class TestComposite(IFPTestCase):
