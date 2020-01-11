@@ -1415,10 +1415,10 @@ def callVerb(me, app, cur_verb, obj_words):
             )
             lastTurn.dobj = False
             if cur_dobj:
-                # app.printToGUI("(Assuming " + cur_dobj.getArticle(True) + 
+                # app.printToGUI("(Assuming " + cur_dobj.getArticle(True) +
                 # cur_dobj.verbose_name + ".)")
                 lastTurn.iobj = cur_dobj
-    # apparent duplicate checking of objects is to allow last.iobj to be set before the 
+    # apparent duplicate checking of objects is to allow last.iobj to be set before the
     # turn is aborted in event of incomplete input
     if cur_verb.dscope == "text" or not cur_dobj or cur_verb.dscope == "direction":
         pass

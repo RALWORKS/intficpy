@@ -498,6 +498,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
         )
         return False
 
+
 # replace the default verbFunc method
 dropVerb.verbFunc = dropVerbFunc
 

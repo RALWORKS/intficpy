@@ -13,7 +13,7 @@ from intficpy.verb import (
     leadDirVerb,
     jumpOverVerb,
     giveVerb,
-    examineVerb
+    examineVerb,
 )
 
 
@@ -52,9 +52,7 @@ class TestGetCurVerb(IFPTestCase):
         self.start_room.addThing(dobj)
 
         tokens = self._insert_objects_into_phrase(
-            leadDirVerb.syntax[0],
-            [dobj.name],
-            ["north"]
+            leadDirVerb.syntax[0], [dobj.name], ["north"]
         )
 
         expected_verb_tokens = leadDirVerb.syntax[0]
@@ -70,8 +68,7 @@ class TestGetCurVerb(IFPTestCase):
 
     def test_gets_correct_verb_with_prepopsition_dobj_only(self):
         tokens = self._insert_dobj_into_phrase(
-            jumpOverVerb.syntax[0],
-            ["tall", "mountain"]
+            jumpOverVerb.syntax[0], ["tall", "mountain"]
         )
 
         expected_verb_tokens = jumpOverVerb.syntax[0]
@@ -87,9 +84,7 @@ class TestGetCurVerb(IFPTestCase):
 
     def test_gets_correct_verb_with_preposition_dobj_and_iobj(self):
         tokens = self._insert_objects_into_phrase(
-            setOnVerb.syntax[0],
-            ["yellow", "fish"],
-            ["red", "shelf"]
+            setOnVerb.syntax[0], ["yellow", "fish"], ["red", "shelf"]
         )
 
         expected_verb_tokens = setOnVerb.syntax[0]
@@ -121,9 +116,7 @@ class TestGetGrammarObj(IFPTestCase):
         expected_iobj = ["wonderful", "item"]
 
         tokens = self._insert_objects_into_phrase(
-            setOnVerb.syntax[0],
-            expected_dobj,
-            expected_iobj
+            setOnVerb.syntax[0], expected_dobj, expected_iobj
         )
         ggo = getGrammarObj(self.me, self.app, setOnVerb, tokens, setOnVerb.syntax[0])
 
@@ -143,9 +136,7 @@ class TestGetGrammarObj(IFPTestCase):
         expected_iobj = [iobj_item.name]
 
         tokens = self._insert_objects_into_phrase(
-            giveVerb.syntax[1],
-            expected_dobj,
-            expected_iobj
+            giveVerb.syntax[1], expected_dobj, expected_iobj
         )
         ggo = getGrammarObj(self.me, self.app, giveVerb, tokens, giveVerb.syntax[1])
 
@@ -163,16 +154,10 @@ class TestGetGrammarObj(IFPTestCase):
         expected_iobj = ["west"]
 
         tokens = self._insert_objects_into_phrase(
-            leadDirVerb.syntax[0],
-            expected_dobj,
-            expected_iobj
+            leadDirVerb.syntax[0], expected_dobj, expected_iobj
         )
         ggo = getGrammarObj(
-            self.me,
-            self.app,
-            leadDirVerb,
-            tokens,
-            leadDirVerb.syntax[0]
+            self.me, self.app, leadDirVerb, tokens, leadDirVerb.syntax[0]
         )
 
         self.assertTrue(ggo)

@@ -12,7 +12,7 @@ from intficpy.verb import (
     examineVerb,
     setInVerb,
     setOnVerb,
-    setUnderVerb
+    setUnderVerb,
 )
 
 
@@ -204,6 +204,7 @@ class TestSetVerbs(IFPTestCase):
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,12 +5,14 @@ from intficpy.actor import Player
 from intficpy.room import Room
 from intficpy.vocab import nounDict
 
+
 class TestApp:
     def __init__(self):
         self.print_stack = []
 
     def printToGUI(self, msg, *args):
         self.print_stack.append(msg)
+
 
 class IFPTestCase(TestCase):
     def setUp(self):
@@ -22,12 +24,12 @@ class IFPTestCase(TestCase):
 
     def _insert_dobj_into_phrase(self, phrase, dobj):
         ix = phrase.index("<dobj>")
-        phrase = phrase[:ix] + dobj + phrase[ix+1:]
+        phrase = phrase[:ix] + dobj + phrase[ix + 1 :]
         return phrase
 
     def _insert_iobj_into_phrase(self, phrase, iobj):
         ix = phrase.index("<iobj>")
-        phrase = phrase[:ix] + iobj + phrase[ix+1:]
+        phrase = phrase[:ix] + iobj + phrase[ix + 1 :]
         return phrase
 
     def _insert_objects_into_phrase(self, phrase, dobj, iobj):
