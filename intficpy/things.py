@@ -553,7 +553,8 @@ class Container(Thing):
             if not lock_obj.parent_obj:
                 self.lock_obj = lock_obj
                 lock_obj.parent_obj = self
-                self.location.addThing(lock_obj)
+                if self.location:
+                    self.location.addThing(lock_obj)
                 lock_obj.setAdjectives(
                     lock_obj.adjectives + self.adjectives + [self.name]
                 )
@@ -575,6 +576,8 @@ class Container(Thing):
                     + self.verbose_name
                     + ": lock_obj.parent already set "
                 )
+        elif not self.has_lid:
+            print("Cannot set lock_obj for " + self.verbose_name + ": no lid ")
         else:
             print("Cannot set lock_obj for " + self.verbose_name + ": not a Lock ")
 

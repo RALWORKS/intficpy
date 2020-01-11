@@ -333,7 +333,8 @@ class Thing:
         elif isinstance(item, Thing):
             self.child_Things.append(item)
 
-        self.location.addThing(item)
+        if self.location:
+            self.location.addThing(item)
         item.invItem = False
         item.cannotTakeMsg = (
             item.capNameArticle(True)
