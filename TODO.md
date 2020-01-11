@@ -17,7 +17,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + Abstract class - try breaking it with features that shouldn't be used
 + inline functions with multiple arguments
 + give thing with give enabled
-+ update examples/terminaltestgame.py
 
 ## Unit Tests
 ### Parser
@@ -30,12 +29,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
     + Ladder/Stairs
 ### Things
 + add a Thing to a room
-+ add a Thing to a Thing
-    + Surface
-    + Container
-    + UnderSpace
-+ create an item of each subclass
-+ create an Abstract
 + remove all contents
 + add and remove a composite item
 + add and remove an item with a lock
