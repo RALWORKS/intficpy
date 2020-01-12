@@ -19,7 +19,7 @@ from intficpy.travel import (
     TravelConnector,
     DoorConnector,
     LadderConnector,
-    StaircaseConnector
+    StaircaseConnector,
 )
 
 
@@ -317,7 +317,6 @@ class TestTravelConnectors(IFPTestCase):
             f"{self.me.location}",
         )
 
-        
     def test_can_travel_TravelConnector(self):
         room1 = Room("A place", "Description of a place. ")
         room2 = Room("A different place", "Description of a different place. ")
@@ -345,6 +344,7 @@ class TestTravelConnectors(IFPTestCase):
         c = StaircaseConnector(room1, room2)
 
         self._assert_can_travel(room1, room2, c)
+
 
 if __name__ == "__main__":
     unittest.main()

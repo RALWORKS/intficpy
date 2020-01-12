@@ -3,7 +3,8 @@ import unittest
 from .helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
-from intficpy.things import Surface, Container, UnderSpace
+from intficpy.things import Surface, Container, UnderSpace, Readable
+from intficpy.room import Room
 from intficpy.parser import getThing, getCurVerb, getGrammarObj, callVerb
 from intficpy.verb import (
     getVerb,
@@ -13,6 +14,14 @@ from intficpy.verb import (
     setInVerb,
     setOnVerb,
     setUnderVerb,
+    lookVerb,
+    examineVerb,
+    lookInVerb,
+    lookUnderVerb,
+    readVerb,
+    getAllVerb,
+    dropAllVerb,
+    invVerb,
 )
 
 
@@ -204,6 +213,141 @@ class TestSetVerbs(IFPTestCase):
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
+
+
+class TestLookVerbs(IFPTestCase):
+    def test_look(self):
+        room = Room("Strange Room", "It's strange in here. ")
+        item = Thing("hullabaloo")
+        item.describeThing("All around is a hullabaloo. ")
+        room.addThing(item)
+
+        self.me.location.removeThing(self.me)
+        room.addThing(self.me)
+
+        lookVerb.verbFunc(self.me, self.app)
+        look_desc = self.app.print_stack.pop()
+        look_title = self.app.print_stack.pop()
+
+        self.assertIn(room.name, look_title, f"Room title printed incorrectly")
+        self.assertIn(room.desc, look_desc, "Room description not printed by look")
+        self.assertIn(item.desc, look_desc, "Item description not printed by look")
+
+    def test_examine(self):
+        item = Thing("widget")
+        item.xdescribeThing("It's a shiny little widget. ")
+
+        examineVerb.verbFunc(self.me, self.app, item)
+
+        examine_desc = self.app.print_stack.pop()
+
+        self.assertEqual(
+            examine_desc,
+            item.xdesc,
+            f"Examine desc printed incorrectly. Expecting {item.xdesc}, got {examine_desc}",
+        )
+
+    def test_look_in(self):
+        parent = Container("shoebox", self.me)
+        child = Thing("penny")
+        parent.addThing(child)
+
+        lookInVerb.verbFunc(self.me, self.app, parent)
+
+        look_in_desc = self.app.print_stack.pop()
+
+        self.assertEqual(
+            look_in_desc,
+            parent.contains_desc,
+            f"Contains desc printed incorrectly. Expected {parent.contains_desc} got "
+            f"{look_in_desc}"
+        )
+
+    def test_look_under(self):
+        parent = UnderSpace("table", self.me)
+        child = Thing("penny")
+        parent.addThing(child)
+
+        lookUnderVerb.verbFunc(self.me, self.app, parent)
+
+        look_under_desc = self.app.print_stack.pop()
+
+        self.assertEqual(
+            look_under_desc,
+            parent.contains_desc,
+            f"Contains desc printed incorrectly. Expected {parent.contains_desc} got "
+            f"{look_under_desc}"
+        )
+
+    def test_read(self):
+        item = Readable("note", "I'm sorry, but I have to do this. ")
+
+        readVerb.verbFunc(self.me, self.app, item)
+
+        read_desc = self.app.print_stack.pop()
+
+        self.assertEqual(
+            read_desc,
+            item.read_desc,
+            f"Item text printed incorrectly. Expecting {item.read_desc}, got {read_desc}"
+        )
+
+
+class TestInventoryVerbs(IFPTestCase):
+    def test_get_all_drop_all(self):
+        item1 = Thing("miracle")
+        item2 = Thing("wonder")
+        item1.invItem = True
+        item2.invItem = True
+        item3 = item2.copyThing()
+        item1.makeKnown(self.me)
+        item3.makeKnown(self.me)
+        self.start_room.addThing(item1)
+        self.start_room.addThing(item3)
+        self.me.addThing(item2)
+
+        self.assertNotIn(item1.ix, self.me.contains)
+        self.assertIn(item2.ix, self.me.contains)
+        self.assertNotIn(item3, self.me.contains[item2.ix])
+
+        getAllVerb.verbFunc(self.me, self.app)
+        getall_msg = self.app.print_stack.pop()
+
+        self.assertIn(
+            item1.ix,
+            self.me.contains,
+            f"Item not added to inv with get all. Msg: '{getall_msg}'"
+        )
+        self.assertIn(item1, self.me.contains[item1.ix])
+        self.assertIn(
+            item2.ix,
+            self.me.contains,
+            f"Item not added to inv with get all. Msg: '{getall_msg}'"
+        )
+        self.assertIn(item2, self.me.contains[item2.ix])
+
+        getAllVerb.verbFunc(self.me, self.app)
+        getall_msg = self.app.print_stack.pop()
+        self.assertEqual(getall_msg, "There are no obvious items here to take. ")
+
+        dropAllVerb.verbFunc(self.me, self.app)
+        dropall_msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            len(self.me.contains),
+            0,
+            f"Expected empty inv, but found {self.me.contains}"
+        )
+
+        self.assertIn(item1.ix, self.start_room.contains)
+        self.assertIn(item1, self.start_room.contains[item1.ix])
+        self.assertIn(item2.ix, self.start_room.contains)
+        self.assertIn(item2, self.start_room.contains[item2.ix])
+        self.assertIn(item3, self.start_room.contains[item2.ix])
+
+        dropAllVerb.verbFunc(self.me, self.app)
+        dropall_msg = self.app.print_stack.pop()
+        self.assertEqual(dropall_msg, "Your inventory is empty. ")
 
 
 if __name__ == "__main__":
