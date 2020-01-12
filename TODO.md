@@ -1,50 +1,133 @@
 # INTFICPY - Write Parser Based Interactive Fiction in Python
 IntFicPy is a tool for building parser based interactive fiction using Python. Currently, IntFicPy is in preparation for the first Beta release. A demo game, planned to be released for IFComp 2019, is in early development.
 
-## KNOWN BUGS
-### Saving
-+ default save location should be home folder
-### Serializer
+## TODO: CHANGES
+
+### Save/Load and Serializer
 + check validity of save file before trying to load
-+ support more depth in lists/dicts
-### Terminal Mode
++ reevaluate WHAT we want to save. might decide to explicitly not save anything that is
+  not an IFP object.
+
+### Terminal Mode & Alternate UI Support
++ purge all non graphical functionality from the GUI App class
++ replace the style parameter of app.printToGUI with a string? we could even pass in a
+  CSS class
 + some non graphical features may not be available in terminal mode
 + replace html tags
 + make sure new version of inline functions works correctly
 
-## FEATURES THAT REQUIRE TESTING
+### Travel
++ put some more info into directionDict, so we can use it to get rid of the giant
+  if/else blocks in the TravelConnector inits
+
+### Refactoring
++ alternative to passing me & app around all the time:
+  move the whole game into a Game class. User instantiates, and passes in an App, which
+  they can write however they want, as long as it has an app.print method that takes
+  the right parameters. App instance creates Parser instance. Now we don't have to pass
+  me, because it's stored in app. Easier to update me, too. App still gets passed around,
+  but much less.
++ Base class IFPObject that handles registration and keeps a list of
+  all instances? Standardise, so we can simplify the serializer
+
+
+## TODO: TESTING
 + the MORE or m built in inline function needs more testing and possible refining
 + Abstract class - try breaking it with features that shouldn't be used
 + inline functions with multiple arguments
 + give thing with give enabled
 
-## Unit Tests
-### Parser
-### Verbs
+### Test Parser
+
 ### Travel
-+ can travel between rooms
-+ can travel travel between rooms using
-    + TravelConnector
-    + Door
-    + Ladder/Stairs
+
 ### Things
-+ add a Thing to a room
 + remove all contents
-+ add and remove a composite item
-+ add and remove an item with a lock
 
-##  PREPARATIONS FOR FIRST BETA (Upcoming Features)
+### Save/Load
++ from any given save file, loading, and saving again should always produce an identical
+  file.
+  tasks that might be challenging for the serializer:
+    + composite items
+    + deeply nested items
+    + nested dicts and arrays in custom IFP object properties
 
-### Convenience & Ease of Use
-+ better ordering in room descriptions
-### Essential New Features
-+ add a set_hint_node property to Topic and SpecialTopic, to advance the current hint when a conversation point is reached
-### Other New Features
-+ display the game title in the GUI window title
-
-## MAJOR CHANGES (Eventual Implementation)
-+ Rewrite GUI with a different GUI module (currently using Qt - most likely will switch to kivy)
-+ write script to ensure game creator compliance with IntFicPy rules and syntax
-+ support multiple Player characters
-
+### Test Verbs
+#### Test Look
++ look
++ examine
++ look in
++ look under
++ read
+#### Test Inventory
++ inventory
++ get all
++ drop all
+#### Test Open/Close/Lock
++ open
++ close
++ lock
++ unlock
++ lock with
++ unlock with
+#### Test Conversation
++ ask about
++ tell about
++ give to
++ show to
++ talk to
++ buy
++ sell
++ buy from
++ sell to
+#### Test Score
++ score
++ fullscore
+#### Test Help
++ help
++ about
++ verbs
++ herb help
++ hint
++ instructions
+#### Test Movement
++ climb
++ climb on
++ climb down
++ climb down from
++ climb in
++ climb out
++ climb out of
++ stand on
++ sit on
++ lie on
++ stand in
++ sit in
++ lie in
++ exit
++ enter
++ lead
+#### Test Positions
++ stand
++ sit
++ lie down
+#### Test Liquids
++ pour
++ fill
++ drink
+#### Test Misc Verbs
++ press
++ push
++ light
++ extinguish
++ wear
++ doff
++ record on
++ record off
++ playback
+#### Test Placeholder Verbs
++ jump
++ kill
++ kick
++ break
 
