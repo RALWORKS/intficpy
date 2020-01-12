@@ -16,6 +16,10 @@ from intficpy.travel import (
     travelD,
     travelIn,
     travelOut,
+    TravelConnector,
+    DoorConnector,
+    LadderConnector,
+    StaircaseConnector
 )
 
 
@@ -290,8 +294,57 @@ class TestDirectionTravel(IFPTestCase):
 
 
 class TestTravelConnectors(IFPTestCase):
-    pass
+    def _assert_can_travel(self, room1, room2, connector):
+        self.me.location.removeThing(self.me)
+        room1.addThing(self.me)
+        self.assertIs(
+            self.me.location, room1, "This test needs the user to start in room1"
+        )
 
+        connector.travel(self.me, self.app)
+        self.assertIs(
+            self.me.location,
+            room2,
+            f"Tried to travel {connector} to {room2}, '{room2.name}', but player in "
+            f"{self.me.location}",
+        )
+
+        connector.travel(self.me, self.app)
+        self.assertIs(
+            self.me.location,
+            room1,
+            f"Tried to travel {connector} to {room1}, '{room1.name}', but player in "
+            f"{self.me.location}",
+        )
+
+        
+    def test_can_travel_TravelConnector(self):
+        room1 = Room("A place", "Description of a place. ")
+        room2 = Room("A different place", "Description of a different place. ")
+        c = TravelConnector(room1, "n", room2, "s")
+
+        self._assert_can_travel(room1, room2, c)
+
+    def test_can_travel_DoorConnector(self):
+        room1 = Room("A place", "Description of a place. ")
+        room2 = Room("A different place", "Description of a different place. ")
+        c = DoorConnector(room1, "n", room2, "s")
+
+        self._assert_can_travel(room1, room2, c)
+
+    def test_can_travel_LadderConnector(self):
+        room1 = Room("A place", "Description of a place. ")
+        room2 = Room("A different place", "Description of a different place. ")
+        c = LadderConnector(room1, room2)
+
+        self._assert_can_travel(room1, room2, c)
+
+    def test_can_travel_StaircaseConnector(self):
+        room1 = Room("A place", "Description of a place. ")
+        room2 = Room("A different place", "Description of a different place. ")
+        c = StaircaseConnector(room1, room2)
+
+        self._assert_can_travel(room1, room2, c)
 
 if __name__ == "__main__":
     unittest.main()
