@@ -6,6 +6,7 @@ from intficpy.thing_base import Thing
 from intficpy.object_maps import things, actors
 from intficpy.things import Surface, Container, UnderSpace, Liquid, Lock
 from intficpy.actor import Actor
+from intficpy.room import Room
 
 
 def make_thing_instantiation_test(thing_class):
@@ -51,7 +52,7 @@ class TestCreateAllTypes(IFPTestCase):
         self.assertIn(
             item.ix,
             things.dict,
-            f"Tried to create a {Liquid.__name__}, but index not in " "things obj_map",
+            f"Tried to create a {Liquid.__name__}, but index not in things obj_map",
         )
         self.assertIs(
             things.dict[item.ix],
@@ -67,7 +68,7 @@ class TestCreateAllTypes(IFPTestCase):
         self.assertIn(
             item.ix,
             actors.dict,
-            f"Tried to create a {Actor.__name__}, but index not in " "things obj_map",
+            f"Tried to create a {Actor.__name__}, but index not in things obj_map",
         )
         self.assertIs(
             actors.dict[item.ix],
@@ -77,16 +78,40 @@ class TestCreateAllTypes(IFPTestCase):
             f"the new instance {item}",
         )
 
+    def test_create_Lock(self):
+        item = Lock(Lock.__name__, None)
+        self.assertTrue(item.ix)
+        self.assertIn(
+            item.ix,
+            things.dict,
+            f"Tried to create a {Lock.__name__}, but index not in things obj_map",
+        )
+        self.assertIs(
+            things.dict[item.ix],
+            item,
+            f"New {Lock.__name__} index successfully added to "
+            f"object_map, but {things.dict[item.ix]} found under key instead of "
+            f"the new instance {item}",
+        )
+
 
 class TestAddRemoveThing(IFPTestCase):
+    def _get_full_desc(self, subject):
+        if hasattr(subject, "describe"):
+            subject.describe(self.me, self.app)
+            return self.app.print_stack.pop()
+        return subject.xdesc
+
     def _assert_can_add_remove(self, parent, child):
         self.assertNotIn(child.ix, parent.contains)
 
+        parent_desc = self._get_full_desc(parent)
+
         self.assertNotIn(
             child.verbose_name,
-            parent.xdesc,
+            parent_desc,
             "This test needs the child verbose_name to not intially be in "
-            "the parent xdesc",
+            "the parent description",
         )
 
         if child.lock_obj:
@@ -107,34 +132,35 @@ class TestAddRemoveThing(IFPTestCase):
             "found under key",
         )
 
+        parent_desc = self._get_full_desc(parent)
+
         self.assertIn(
             child.verbose_name,
-            parent.xdesc,
-            f"Item added to {parent}, but item verbose_name not found in xdesc",
+            parent_desc,
+            f"Item added to {parent}, but item verbose_name not found in description",
         )
 
         if child.lock_obj:
             self.assertIn(
                 child.lock_obj.ix,
                 parent.contains,
-                f"Added item to {parent}, but lock_obj not added"
+                f"Added item to {parent}, but lock_obj not added",
             )
             self.assertIn(
                 child.lock_obj,
                 parent.contains[child.lock_obj.ix],
-                f"Item lock_obj ix in {parent}, but lock_obj not found under ix"
+                f"Item lock_obj ix in {parent}, but lock_obj not found under ix",
             )
         for sub_item in child.children:
             self.assertIn(
                 sub_item.ix,
                 parent.contains,
-                f"Added item to {parent}, but composite {sub_item} not added"
+                f"Added item to {parent}, but composite {sub_item} not added",
             )
             self.assertIn(
                 sub_item,
                 parent.contains[sub_item.ix],
-                f"Composite {sub_item} ix in {parent}, but item not found "
-                "under ix"
+                f"Composite {sub_item} ix in {parent}, but item not found " "under ix",
             )
 
         parent.removeThing(child)
@@ -143,9 +169,10 @@ class TestAddRemoveThing(IFPTestCase):
             parent.contains,
             f"Tried to remove unique item from {parent} but ix still in " "contains",
         )
+        parent_desc = self._get_full_desc(parent)
         self.assertNotIn(
             child.verbose_name,
-            parent.xdesc,
+            parent_desc,
             f"Item removed from {parent}, but item verbose_name still in xdesc",
         )
 
@@ -153,13 +180,13 @@ class TestAddRemoveThing(IFPTestCase):
             self.assertNotIn(
                 child.lock_obj.ix,
                 parent.contains,
-                f"lock_obj {child.lock_obj} not removed from {parent}"
+                f"lock_obj {child.lock_obj} not removed from {parent}",
             )
         for sub_item in child.children:
             self.assertNotIn(
                 sub_item.ix,
                 parent.contains,
-                f"composite child {sub_item} not removed from {parent}"
+                f"composite child {sub_item} not removed from {parent}",
             )
 
     def test_add_remove_from_Surface(self):
@@ -175,9 +202,15 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_from_UnderSpace(self):
-        parent = Surface("parent", self.me)
+        parent = UnderSpace("parent", self.me)
+        parent.revealed = True
         child = Thing("child")
         self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_from_Room(self):
+        parent = Room("parent", "This is a room. ")
+        child = Thing("child")
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_Surface(self):
@@ -197,12 +230,19 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_UnderSpace(self):
-        parent = Surface("parent", self.me)
-        child = Container("child", self.me)
-        child.has_lid = True
-        lock = Lock("lock", None)
-        child.setLock(lock)
+        parent = UnderSpace("parent", self.me)
+        parent.revealed = True
+        child = Thing("child")
+        sub = Thing("sub")
+        child.addComposite(sub)
         self.start_room.addThing(parent)
+        self._assert_can_add_remove(parent, child)
+
+    def test_add_remove_composite_item_from_Room(self):
+        parent = Room("parent", "This is a room. ")
+        child = Thing("child")
+        sub = Thing("sub")
+        child.addComposite(sub)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_Surface(self):
@@ -224,7 +264,8 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_UnderSpace(self):
-        parent = Surface("parent", self.me)
+        parent = UnderSpace("parent", self.me)
+        parent.revealed = True
         child = Container("child", self.me)
         child.has_lid = True
         lock = Lock("lock", None)
@@ -232,6 +273,14 @@ class TestAddRemoveThing(IFPTestCase):
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
+    def test_add_remove_item_with_lock_from_Room(self):
+        parent = Room("parent", "This is a room. ")
+        parent.revealed = True
+        child = Container("child", self.me)
+        child.has_lid = True
+        lock = Lock("lock", None)
+        child.setLock(lock)
+        self._assert_can_add_remove(parent, child)
 
 
 add_thing_instantiation_tests()
