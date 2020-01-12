@@ -514,14 +514,12 @@ dropAllVerb.keywords = ["all", "everything"]
 def dropAllVerbFunc(me, app):
     """Drop everything in the inventory
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-    inv = list(me.contains.items())
+    inv = [item for key, sublist in me.contains.items() for item in sublist]
     dropped = 0
-    for key, val in inv:
-        for item in val:
-            if item.ix in me.contains and not item.parent_obj:
-                if item in me.contains[item.ix]:
-                    dropVerb.verbFunc(me, app, item)
-                    dropped = dropped + 1
+    for item in inv:
+        if me.containsItem(item):
+            dropVerb.verbFunc(me, app, item)
+            dropped = dropped + 1
     if dropped == 0:
         app.printToGUI("Your inventory is empty. ")
 
