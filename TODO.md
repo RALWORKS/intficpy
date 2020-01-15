@@ -29,6 +29,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
   but much less.
 + Base class IFPObject that handles registration and keeps a list of
   all instances? Standardise, so we can simplify the serializer
++ pull out printed strings to instance properties
 
 
 ## TODO: TESTING
@@ -53,21 +54,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
     + nested dicts and arrays in custom IFP object properties
 
 ### Test Verbs
-#### Test Inventory
-+ inventory
-#### Test Open/Close/Lock
-+ open
-+ close
-+ lock
-+ unlock
-+ lock with
-+ unlock with
 #### Test Conversation
-+ ask about
-+ tell about
-+ give to
-+ show to
-+ talk to
 + buy
 + sell
 + buy from

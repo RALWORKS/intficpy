@@ -3,9 +3,10 @@ import unittest
 from .helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
-from intficpy.things import Surface, Container, UnderSpace, Readable
+from intficpy.things import Surface, Container, UnderSpace, Readable, Lock, Key
+from intficpy.actor import Actor, Topic
 from intficpy.room import Room
-from intficpy.parser import getThing, getCurVerb, getGrammarObj, callVerb
+from intficpy.travel import DoorConnector
 from intficpy.verb import (
     getVerb,
     dropVerb,
@@ -22,6 +23,16 @@ from intficpy.verb import (
     getAllVerb,
     dropAllVerb,
     invVerb,
+    openVerb,
+    closeVerb,
+    lockVerb,
+    lockWithVerb,
+    unlockVerb,
+    unlockWithVerb,
+    askVerb,
+    tellVerb,
+    giveVerb,
+    showVerb,
 )
 
 
@@ -86,44 +97,6 @@ class TestDropVerb(IFPTestCase):
 
         success = dropVerb.verbFunc(self.me, self.app, item)
         self.assertFalse(success)
-
-
-class TestExamineVerb(IFPTestCase):
-    def test_verb_func_prints_xdesc(self):
-        item = Thing(self._get_unique_noun())
-        self.start_room.addThing(item)
-
-        success = examineVerb.verbFunc(self.me, self.app, item)
-        self.assertTrue(success)
-
-        printed = self.app.print_stack[-1]
-
-        self.assertEqual(printed, item.xdesc)
-
-
-class TestLookVerb(IFPTestCase):
-    def test_look_verb_prints_room_desc(self):
-        self.start_room.desc = "You are in a bright, wonderful room."
-        self.assertEqual(self.me.location, self.start_room)
-
-        success = lookVerb.verbFunc(self.me, self.app)
-        self.assertTrue(success)
-
-        printed = self.app.print_stack[-1]
-
-        self.assertIn(self.start_room.desc, printed)
-
-    def test_look_verb_prints_item_desc(self):
-        item = Thing(self._get_unique_noun())
-        item.desc = f"A {item.verbose_name} lurks in the corner. "
-        self.start_room.addThing(item)
-
-        success = lookVerb.verbFunc(self.me, self.app)
-        self.assertTrue(success)
-
-        printed = self.app.print_stack[-1]
-
-        self.assertIn(item.desc, printed)
 
 
 class TestSetVerbs(IFPTestCase):
@@ -260,7 +233,7 @@ class TestLookVerbs(IFPTestCase):
             look_in_desc,
             parent.contains_desc,
             f"Contains desc printed incorrectly. Expected {parent.contains_desc} got "
-            f"{look_in_desc}"
+            f"{look_in_desc}",
         )
 
     def test_look_under(self):
@@ -276,7 +249,7 @@ class TestLookVerbs(IFPTestCase):
             look_under_desc,
             parent.contains_desc,
             f"Contains desc printed incorrectly. Expected {parent.contains_desc} got "
-            f"{look_under_desc}"
+            f"{look_under_desc}",
         )
 
     def test_read(self):
@@ -289,12 +262,12 @@ class TestLookVerbs(IFPTestCase):
         self.assertEqual(
             read_desc,
             item.read_desc,
-            f"Item text printed incorrectly. Expecting {item.read_desc}, got {read_desc}"
+            f"Item text printed incorrectly. Expecting {item.read_desc}, got {read_desc}",
         )
 
 
 class TestInventoryVerbs(IFPTestCase):
-    def test_get_all_drop_all(self):
+    def test_get_all_drop(self):
         item1 = Thing("miracle")
         item2 = Thing("wonder")
         item1.invItem = True
@@ -316,13 +289,13 @@ class TestInventoryVerbs(IFPTestCase):
         self.assertIn(
             item1.ix,
             self.me.contains,
-            f"Item not added to inv with get all. Msg: '{getall_msg}'"
+            f"Item not added to inv with get all. Msg: '{getall_msg}'",
         )
         self.assertIn(item1, self.me.contains[item1.ix])
         self.assertIn(
             item2.ix,
             self.me.contains,
-            f"Item not added to inv with get all. Msg: '{getall_msg}'"
+            f"Item not added to inv with get all. Msg: '{getall_msg}'",
         )
         self.assertIn(item2, self.me.contains[item2.ix])
 
@@ -330,24 +303,454 @@ class TestInventoryVerbs(IFPTestCase):
         getall_msg = self.app.print_stack.pop()
         self.assertEqual(getall_msg, "There are no obvious items here to take. ")
 
+    def test_drop_all(self):
+        item1 = Thing("miracle")
+        item2 = Thing("wonder")
+        item1.invItem = True
+        item2.invItem = True
+        item1.makeKnown(self.me)
+        item2.makeKnown(self.me)
+        self.me.addThing(item1)
+        self.me.addThing(item2)
+
+        self.assertIs(
+            self.me.location,
+            self.start_room,
+            "This test needs the Player to be in the start room",
+        )
+
         dropAllVerb.verbFunc(self.me, self.app)
         dropall_msg = self.app.print_stack.pop()
 
         self.assertEqual(
             len(self.me.contains),
             0,
-            f"Expected empty inv, but found {self.me.contains}"
+            f"Expected empty inv, but found {self.me.contains}",
         )
 
         self.assertIn(item1.ix, self.start_room.contains)
         self.assertIn(item1, self.start_room.contains[item1.ix])
         self.assertIn(item2.ix, self.start_room.contains)
         self.assertIn(item2, self.start_room.contains[item2.ix])
-        self.assertIn(item3, self.start_room.contains[item2.ix])
-
         dropAllVerb.verbFunc(self.me, self.app)
         dropall_msg = self.app.print_stack.pop()
         self.assertEqual(dropall_msg, "Your inventory is empty. ")
+
+    def test_view_inv_with_items(self):
+        item1 = Thing("miracle")
+        item2 = Thing("wonder")
+        item1.invItem = True
+        item2.invItem = True
+        item3 = item2.copyThing()
+        self.me.addThing(item1)
+        self.me.addThing(item3)
+        self.me.addThing(item2)
+
+        invVerb.verbFunc(self.me, self.app)
+        inv_msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            len(self.me.contains[item2.ix]),
+            2,
+            f"This test assumes two {item2.ix} items in the inventory ",
+        )
+
+        BASE_INV_MSG = "You have"
+        itemstr1 = f"{item1.lowNameArticle()}"
+        itemstr2 = f"{len(self.me.contains[item2.ix])} {item2.getPlural()}"
+
+        self.assertIn(
+            itemstr1,
+            inv_msg,
+            "Single item added to inventory, but message does not match expected",
+        )
+
+        self.assertIn(
+            itemstr1,
+            inv_msg,
+            "Stacked item added to inventory, but message does not match expected",
+        )
+
+        inv_msg = inv_msg.replace(itemstr1, "")
+        inv_msg = inv_msg.replace(itemstr2, "")
+        inv_msg = inv_msg.replace("and", "")
+        inv_msg = inv_msg.replace(",", "")
+        inv_msg = inv_msg.replace(".", "")
+        inv_msg = " ".join(inv_msg.split())
+
+        self.assertEqual(inv_msg, BASE_INV_MSG, "Inv message in unexpected format")
+
+    def test_view_empty_inv(self):
+        dropAllVerb.verbFunc(self.me, self.app)
+        self.assertEqual(
+            len(self.me.contains), 0, "This test requires an empty player inventory"
+        )
+
+        EMPTY_INV_MSG = "You don't have anything with you."
+
+        invVerb.verbFunc(self.me, self.app)
+        inv_msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            inv_msg,
+            EMPTY_INV_MSG,
+            "Viewed empty inventory. Message does not match expected.",
+        )
+
+
+class TestDoorVerbs(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.room1 = Room("A cold room", "This room is cold. ")
+        self.room2 = Room("A hot room", "This room is uncomfortably hot. ")
+        self.door = DoorConnector(self.room1, "se", self.room2, "nw")
+        self.key = Key("key")
+        self.me.addThing(self.key)
+        self.lock = Lock(False, self.key)
+        self.lock.is_locked = False
+        self.door.setLock(self.lock)
+
+    def test_open_door(self):
+        self.assertFalse(
+            self.door.entranceA.is_open,
+            "This test needs the door to be initially closed",
+        )
+        self.assertFalse(
+            self.door.entranceA.lock_obj.is_locked,
+            "This test needs the door to be initially unlocked",
+        )
+
+        openVerb.verbFunc(self.me, self.app, self.door.entranceA)
+
+        self.assertTrue(
+            self.door.entranceA.is_open,
+            "Performed open verb on unlocked door, but door is closed."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_close_door(self):
+        self.door.entranceA.makeOpen()
+        self.assertTrue(
+            self.door.entranceA.is_open, "This test needs the door to be initially open"
+        )
+
+        closeVerb.verbFunc(self.me, self.app, self.door.entranceA)
+
+        self.assertFalse(
+            self.door.entranceA.is_open,
+            "Performed close verb on open door, but door is open."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_lock_door(self):
+        self.lock.is_locked = False
+        self.assertIn(self.key.ix, self.me.contains)
+        self.assertIn(self.key, self.me.contains[self.key.ix])
+
+        lockVerb.verbFunc(self.me, self.app, self.door.entranceA)
+
+        self.assertTrue(
+            self.lock.is_locked,
+            "Performed lock verb with key in inv, but lock is unlocked."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_unlock_door(self):
+        self.lock.is_locked = True
+        self.assertIn(self.key.ix, self.me.contains)
+        self.assertIn(self.key, self.me.contains[self.key.ix])
+
+        unlockVerb.verbFunc(self.me, self.app, self.door.entranceA)
+
+        self.assertFalse(
+            self.lock.is_locked,
+            "Performed unlock verb with key in inv, but lock is locked."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_lock_door_with(self):
+        self.lock.is_locked = False
+        self.assertIn(self.key.ix, self.me.contains)
+        self.assertIn(self.key, self.me.contains[self.key.ix])
+
+        lockWithVerb.verbFunc(self.me, self.app, self.door.entranceA, self.key)
+
+        self.assertTrue(
+            self.lock.is_locked,
+            "Performed lock with verb with key, but lock is unlocked."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_unlock_door_with(self):
+        self.lock.is_locked = True
+        self.assertIn(self.key.ix, self.me.contains)
+        self.assertIn(self.key, self.me.contains[self.key.ix])
+
+        unlockWithVerb.verbFunc(self.me, self.app, self.door.entranceA, self.key)
+
+        self.assertFalse(
+            self.lock.is_locked,
+            "Performed unlock verb with key, but lock is locked."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_open_locked_door(self):
+        self.lock.is_locked = True
+        self.assertFalse(
+            self.door.entranceA.is_open,
+            "This test needs the door to be initially closed",
+        )
+        self.assertTrue(
+            self.door.entranceA.lock_obj.is_locked,
+            "This test needs the door to be initially locked",
+        )
+
+        openVerb.verbFunc(self.me, self.app, self.door.entranceA)
+
+        self.assertFalse(
+            self.door.entranceA.is_open,
+            "Performed open verb on locked door, but door is open."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+
+class TestLidVerbs(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.container = Container("chest", self.me)
+        self.container.has_lid = True
+        self.container.is_open = False
+        self.key = Key("key")
+        self.me.addThing(self.key)
+        self.lock = Lock(False, self.key)
+        self.lock.is_locked = False
+        self.container.setLock(self.lock)
+
+    def test_open_container(self):
+        self.assertFalse(
+            self.container.is_open,
+            "This test needs the container to be initially closed",
+        )
+        self.assertFalse(
+            self.container.lock_obj.is_locked,
+            "This test needs the container to be initially unlocked",
+        )
+
+        openVerb.verbFunc(self.me, self.app, self.container)
+
+        self.assertTrue(
+            self.container.is_open,
+            "Performed open verb on unlocked container, but lid is closed."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_close_container(self):
+        self.container.is_open = True
+        self.assertTrue(
+            self.container.is_open, "This test needs the container to be initially open"
+        )
+
+        closeVerb.verbFunc(self.me, self.app, self.container)
+
+        self.assertFalse(
+            self.container.is_open,
+            "Performed close verb on open container, but lid is open."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+    def test_open_locked_container(self):
+        self.lock.is_locked = True
+        self.assertFalse(
+            self.container.is_open,
+            "This test needs the container to be initially closed",
+        )
+        self.assertTrue(
+            self.container.lock_obj.is_locked,
+            "This test needs the container to be initially locked",
+        )
+
+        openVerb.verbFunc(self.me, self.app, self.container)
+
+        self.assertFalse(
+            self.container.is_open,
+            "Performed open verb on locked container, but lid is open."
+            f"Msg: {self.app.print_stack[-1]}",
+        )
+
+
+class TestConversationVerbs(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.item = Thing("mess")
+        self.actor = Actor("Jenny")
+        self.start_room.addThing(self.item)
+        self.start_room.addThing(self.actor)
+        self.CANNOT_TALK_MSG = "You cannot talk to that."
+        self.topic = Topic('"Ah, yes," says Jenny mysteriously. ')
+
+    def test_ask_inanimate(self):
+        askVerb.verbFunc(self.me, self.app, self.item, self.actor)
+        msg = self.app.print_stack.pop()
+        self.assertEqual(
+            msg,
+            self.CANNOT_TALK_MSG,
+            "Tried ask verb with an inanimate dobj. Expected msg "
+            f"{self.CANNOT_TALK_MSG}, received {msg}",
+        )
+
+    def test_tell_inanimate(self):
+        tellVerb.verbFunc(self.me, self.app, self.item, self.actor)
+        msg = self.app.print_stack.pop()
+        self.assertEqual(
+            msg,
+            self.CANNOT_TALK_MSG,
+            "Tried ask verb with an inanimate dobj. Expected msg "
+            f"{self.CANNOT_TALK_MSG}, received {msg}",
+        )
+
+    def test_give_inanimate(self):
+        giveVerb.verbFunc(self.me, self.app, self.item, self.item)
+        msg = self.app.print_stack.pop()
+        self.assertEqual(
+            msg,
+            self.CANNOT_TALK_MSG,
+            "Tried ask verb with an inanimate dobj. Expected msg "
+            f"{self.CANNOT_TALK_MSG}, received {msg}",
+        )
+
+    def test_show_inanimate(self):
+        showVerb.verbFunc(self.me, self.app, self.item, self.item)
+        msg = self.app.print_stack.pop()
+        self.assertEqual(
+            msg,
+            self.CANNOT_TALK_MSG,
+            "Tried ask verb with an inanimate dobj. Expected msg "
+            f"{self.CANNOT_TALK_MSG}, received {msg}",
+        )
+
+    def test_ask_no_defined_topic(self):
+        self.actor.defaultTopic(self.app)
+        default = self.app.print_stack.pop()
+
+        self.assertNotIn(
+            self.item.ix, self.actor.ask_topics,
+        )
+
+        askVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            default,
+            "Tried ask verb for topic not in ask topics. Expected default topic "
+            f"{default}, received {msg}",
+        )
+
+    def test_tell_no_defined_topic(self):
+        self.actor.defaultTopic(self.app)
+        default = self.app.print_stack.pop()
+
+        self.assertNotIn(
+            self.item.ix, self.actor.tell_topics,
+        )
+
+        tellVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            default,
+            "Tried tell verb for topic not in tell topics. Expected default topic "
+            f"{default}, received {msg}",
+        )
+
+    def test_give_no_defined_topic(self):
+        self.actor.defaultTopic(self.app)
+        default = self.app.print_stack.pop()
+
+        self.assertNotIn(
+            self.item.ix, self.actor.give_topics,
+        )
+
+        giveVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            default,
+            "Tried give verb for topic not in give topics. Expected default topic "
+            f"{default}, received {msg}",
+        )
+
+    def test_show_no_defined_topic(self):
+        self.actor.defaultTopic(self.app)
+        default = self.app.print_stack.pop()
+
+        self.assertNotIn(
+            self.item.ix, self.actor.show_topics,
+        )
+
+        showVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            default,
+            "Tried show verb for topic not in show topics. Expected default topic "
+            f"{default}, received {msg}",
+        )
+
+    def test_ask_with_topic(self):
+        self.actor.addTopic("ask", self.topic, self.item)
+
+        askVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
+
+    def test_tell_with_topic(self):
+        self.actor.addTopic("tell", self.topic, self.item)
+
+        tellVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried tell verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
+
+    def test_give_with_topic(self):
+        self.actor.addTopic("give", self.topic, self.item)
+
+        giveVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried give verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
+
+    def test_show_with_topic(self):
+        self.actor.addTopic("show", self.topic, self.item)
+
+        showVerb.verbFunc(self.me, self.app, self.actor, self.item)
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried show verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
 
 
 if __name__ == "__main__":
