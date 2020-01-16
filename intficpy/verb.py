@@ -103,7 +103,7 @@ class Verb:
 		Takes arguments me, pointing to the player, app, pointing to the GUI app, and dobj, the direct object
 		Should generally be overwritten by the game creator
 		Optionally add arguments dobj and iobj, and set hasDobj and hasIobj appropriately """
-        app.printToGUI("You " + self.word + ".")
+        app.printToGUI("You " + self.word + ". ")
 
     def getImpDobj(self, me, app):
         """Get the implicit direct object
@@ -243,13 +243,13 @@ def getVerbFunc(me, app, dobj, skip=False):
                     "You already have "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + "."
+                    + ". "
                 )
                 return False
             elif not isinstance(dobj.location, Room):
                 return removeFromVerb.verbFunc(me, app, dobj, dobj.location)
         # print the action message
-        app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ".")
+        app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ". ")
         if isinstance(dobj, UnderSpace) and not dobj.contains == {}:
             results = dobj.moveContentsOut()
             msg = results[0]
@@ -476,7 +476,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
         if container:
             dobj = container
     if dobj.invItem and me.removeThing(dobj):
-        app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ".")
+        app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ". ")
         dobj.location = me.location
         dobj.location.addThing(dobj)
         return True
@@ -494,7 +494,7 @@ def dropVerbFunc(me, app, dobj, skip=False):
         print(dobj)
     else:
         app.printToGUI(
-            "You are not holding " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You are not holding " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -579,7 +579,7 @@ def setOnVerbFunc(me, app, dobj, iobj, skip=False):
                 "You set "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + " on the ground."
+                + " on the ground. "
             )
             outer_loc.addThing(dobj)
             return True
@@ -604,7 +604,7 @@ def setOnVerbFunc(me, app, dobj, iobj, skip=False):
                 + " on "
                 + iobj.getArticle(True)
                 + iobj.verbose_name
-                + "."
+                + ". "
             )
             iobj.addThing(dobj)
             return True
@@ -693,7 +693,7 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
                 + " inside, as "
                 + iobj.getArticle(True)
                 + iobj.verbose_name
-                + " is closed."
+                + " is closed. "
             )
             return False
     if isinstance(iobj, Container) and iobj.size >= dobj.size:
@@ -718,7 +718,7 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
             + " in "
             + iobj.getArticle(True)
             + iobj.verbose_name
-            + "."
+            + ". "
         )
         # me.contains.remove(dobj)
         me.removeThing(dobj)
@@ -732,12 +732,12 @@ def setInVerbFunc(me, app, dobj, iobj, skip=False):
             dobj.capNameArticle(True)
             + " is too big to fit inside the "
             + iobj.verbose_name
-            + "."
+            + ". "
         )
         return False
     else:
         app.printToGUI(
-            "There is no way to put it inside the " + iobj.verbose_name + "."
+            "There is no way to put it inside the " + iobj.verbose_name + ". "
         )
         return False
 
@@ -808,7 +808,7 @@ def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
             + " "
             + iobj.getArticle(True)
             + iobj.verbose_name
-            + "."
+            + ". "
         )
         me.removeThing(dobj)
         iobj.addThing(dobj)
@@ -823,7 +823,7 @@ def setUnderVerbFunc(me, app, dobj, iobj, skip=False):
         )
         return False
     else:
-        app.printToGUI("There is no reason to put it under there.")
+        app.printToGUI("There is no reason to put it under there. ")
         return False
 
 
@@ -843,7 +843,7 @@ def invVerbFunc(me, app):
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
     # describe contains
     if me.contains == {}:
-        app.printToGUI("You don't have anything with you.")
+        app.printToGUI("You don't have anything with you. ")
     else:
         # the string to print listing the contains
         invdesc = "You have "
@@ -883,7 +883,7 @@ def invVerbFunc(me, app):
                 invdesc = invdesc + " (" + c + ")"
             # add appropriate punctuation and "and"
             if key is list_version[-1]:
-                invdesc = invdesc + "."
+                invdesc = invdesc + ". "
             else:
                 invdesc = invdesc + ", "
             if len(list_version) > 1:
@@ -911,7 +911,7 @@ def invVerbFunc(me, app):
                 )
             # add appropriate punctuation and "and"
             if key is list_version[-1]:
-                weardesc = weardesc + "."
+                weardesc = weardesc + ". "
             elif key is list_version[-2]:
                 weardesc = weardesc + " and "
             else:
@@ -1221,7 +1221,7 @@ def lookInVerbFunc(me, app, dobj, skip=False):
                     "You cannot see inside "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + " as it is closed."
+                    + " as it is closed. "
                 )
                 return False
         if len(list_version) > 0:
@@ -1231,11 +1231,11 @@ def lookInVerbFunc(me, app, dobj, skip=False):
                     me.knows_about.append(key)
             return True
         else:
-            app.printToGUI(dobj.capNameArticle(True) + " is empty.")
+            app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
             return True
     else:
         app.printToGUI(
-            "You cannot look inside " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot look inside " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -1278,7 +1278,7 @@ def lookUnderVerbFunc(me, app, dobj, skip=False):
                 + " "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + "."
+                + ". "
             )
             return True
     elif dobj.invItem:
@@ -1290,7 +1290,7 @@ def lookUnderVerbFunc(me, app, dobj, skip=False):
             "There's no reason to look under "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + "."
+            + ". "
         )
         return False
 
@@ -1372,12 +1372,12 @@ def getImpTalkTo(me, app):
             if isinstance(item, Actor) and not item == me:
                 people.append(item)
     if len(people) == 0:
-        app.printToGUI("There's no one obvious to talk to here.")
+        app.printToGUI("There's no one obvious to talk to here. ")
     elif len(people) == 1:
         # ask the only actor in the room
         if not people[0].ignore_if_ambiguous:
             return people[0]
-        app.printToGUI("There's no one obvious to talk to here.")
+        app.printToGUI("There's no one obvious to talk to here. ")
     elif (
         isinstance(lastTurn.dobj, Actor)
         and not lastTurn.dobj.ignore_if_ambiguous
@@ -1433,7 +1433,7 @@ def talkToVerbFunc(me, app, dobj, skip=False):
         else:
             dobj.defaultTopic(app)
     else:
-        app.printToGUI("You cannot talk to that.")
+        app.printToGUI("You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1464,12 +1464,12 @@ def getImpAsk(me, app):
             if isinstance(item, Actor) and not item == me:
                 people.append(item)
     if len(people) == 0:
-        app.printToGUI("There's no one obvious here to ask.")
+        app.printToGUI("There's no one obvious here to ask. ")
     elif len(people) == 1:
         # ask the only actor in the room
         if not people[0].ignore_if_ambiguous:
             return people[0]
-        app.printToGUI("There's no one obvious here to ask.")
+        app.printToGUI("There's no one obvious here to ask. ")
     elif (
         isinstance(lastTurn.dobj, Actor)
         and not lastTurn.dobj.ignore_if_ambiguous
@@ -1484,7 +1484,7 @@ def getImpAsk(me, app):
                 people2.remove(p)
         if len(people2) == 1:
             return people2[0]
-        app.printToGUI("Please specify a person to ask.")
+        app.printToGUI("Please specify a person to ask. ")
         # turn disambiguation mode on
         lastTurn.ambiguous = True
 
@@ -1540,7 +1540,7 @@ def askVerbFunc(me, app, dobj, iobj, skip=False):
         else:
             dobj.defaultTopic(app)
     else:
-        app.printToGUI("You cannot talk to that.")
+        app.printToGUI("You cannot talk to that. ")
 
 
 # replace the default verbFunc method
@@ -1571,12 +1571,12 @@ def getImpTell(me, app):
             if isinstance(item, Actor) and not item == me:
                 people.append(item)
     if len(people) == 0:
-        app.printToGUI("There's no one obvious here to tell.")
+        app.printToGUI("There's no one obvious here to tell. ")
     elif len(people) == 1:
         # ask the only actor in the room
         if not people[0].ignore_if_ambiguous:
             return people[0]
-        app.printToGUI("There's no one obvious here to tell.")
+        app.printToGUI("There's no one obvious here to tell. ")
     elif (
         isinstance(lastTurn.dobj, Actor)
         and not lastTurn.dobj.ignore_if_ambiguous
@@ -1592,7 +1592,7 @@ def getImpTell(me, app):
         if len(people2) == 1:
             return people2[0]
         # turn disambiguation mode on
-        app.printToGUI("Please specify a person to ask.")
+        app.printToGUI("Please specify a person to ask. ")
         lastTurn.ambiguous = True
 
 
@@ -1641,7 +1641,7 @@ def tellVerbFunc(me, app, dobj, iobj, skip=False):
         else:
             dobj.defaultTopic(app)
     else:
-        app.printToGUI("You cannot talk to that.")
+        app.printToGUI("You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1672,12 +1672,12 @@ def getImpGive(me, app):
             if isinstance(item, Actor) and not item == me:
                 people.append(item)
     if len(people) == 0:
-        app.printToGUI("There's no one obvious here to give it to.")
+        app.printToGUI("There's no one obvious here to give it to. ")
     elif len(people) == 1:
         # ask the only actor in the room
         if not people[0].ignore_if_ambiguous:
             return people[0]
-        app.printToGUI("There's no one obvious here to give it to.")
+        app.printToGUI("There's no one obvious here to give it to. ")
     elif (
         isinstance(lastTurn.dobj, Actor)
         and not lastTurn.dobj.ignore_if_ambiguous
@@ -1693,7 +1693,7 @@ def getImpGive(me, app):
         if len(people2) == 1:
             return people2[0]
         # turn disambiguation mode on
-        app.printToGUI("Please specify a person to give it to.")
+        app.printToGUI("Please specify a person to give it to. ")
         lastTurn.ambiguous = True
 
 
@@ -1753,7 +1753,7 @@ def giveVerbFunc(me, app, dobj, iobj, skip=False):
             dobj.defaultTopic(app)
             return True
     else:
-        app.printToGUI("You cannot talk to that.")
+        app.printToGUI("You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1784,12 +1784,12 @@ def getImpShow(me, app):
             if isinstance(item, Actor) and not item == me:
                 people.append(item)
     if len(people) == 0:
-        app.printToGUI("There's no one obvious here to show.")
+        app.printToGUI("There's no one obvious here to show. ")
     elif len(people) == 1:
         # ask the only actor in the room
         if not people[0].ignore_if_ambiguous:
             return people[0]
-        app.printToGUI("There's no one obvious here to show.")
+        app.printToGUI("There's no one obvious here to show. ")
     elif (
         isinstance(lastTurn.dobj, Actor)
         and not lastTurn.dobj.ignore_if_ambiguous
@@ -1805,7 +1805,7 @@ def getImpShow(me, app):
         if len(people2) == 1:
             return people2[0]
         # turn disambiguation mode on
-        app.printToGUI("Please specify a person to show.")
+        app.printToGUI("Please specify a person to show. ")
         lastTurn.ambiguous = True
 
 
@@ -1855,7 +1855,7 @@ def showVerbFunc(me, app, dobj, iobj, skip=False):
             dobj.defaultTopic(app)
 
     else:
-        app.printToGUI("You cannot talk to that.")
+        app.printToGUI("You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1893,7 +1893,7 @@ def wearVerbFunc(me, app, dobj, skip=False):
         app.printToGUI(dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Clothing):
-        app.printToGUI("You wear " + dobj.getArticle(True) + dobj.verbose_name + ".")
+        app.printToGUI("You wear " + dobj.getArticle(True) + dobj.verbose_name + ". ")
         # me.contains.remove(dobj)
         me.contains[dobj.ix].remove(dobj)
         if me.contains[dobj.ix] == []:
@@ -1904,7 +1904,7 @@ def wearVerbFunc(me, app, dobj, skip=False):
         else:
             me.wearing[dobj.ix] = [dobj]
     else:
-        app.printToGUI("You cannot wear that.")
+        app.printToGUI("You cannot wear that. ")
 
 
 # replace default verbFunc method
@@ -1938,7 +1938,7 @@ def doffVerbFunc(me, app, dobj, skip=False):
         if not runfunc:
             return True
 
-    app.printToGUI("You take off " + dobj.getArticle(True) + dobj.verbose_name + ".")
+    app.printToGUI("You take off " + dobj.getArticle(True) + dobj.verbose_name + ". ")
     # me.contains.append(dobj)
     if dobj.ix in me.contains:
         me.contains[dobj.ix].append(dobj)
@@ -1978,10 +1978,10 @@ def lieDownVerbFunc(me, app):
                 outer_loc = me.getOutermostLocation()
                 me.location.removeThing(me)
                 outer_loc.addThing(me)
-        app.printToGUI("You lie down.")
+        app.printToGUI("You lie down. ")
         me.makeLying()
     else:
-        app.printToGUI("You are already lying down.")
+        app.printToGUI("You are already lying down. ")
 
 
 # replace default verbFunc method
@@ -2012,10 +2012,10 @@ def standUpVerbFunc(me, app):
                 outer_loc = me.getOutermostLocation()
                 me.location.removeThing(me)
                 outer_loc.addThing(me)
-        app.printToGUI("You stand up.")
+        app.printToGUI("You stand up. ")
         me.makeStanding()
     else:
-        app.printToGUI("You are already standing.")
+        app.printToGUI("You are already standing. ")
 
 
 # replace default verbFunc method
@@ -2045,10 +2045,10 @@ def sitDownVerbFunc(me, app):
                 outer_loc = me.getOutermostLocation()
                 me.location.removeThing(me)
                 outer_loc.addThing(me)
-        app.printToGUI("You sit down.")
+        app.printToGUI("You sit down. ")
         me.makeSitting()
     else:
-        app.printToGUI("You are already sitting.")
+        app.printToGUI("You are already sitting. ")
 
 
 # replace default verbFunc method
@@ -2085,18 +2085,18 @@ def standOnVerbFunc(me, app, dobj, skip=False):
                 "You are already standing on "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + "."
+                + ". "
             )
         elif me.location == outer_loc:
             app.printToGUI(
-                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + "."
+                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             me.makeStanding()
         else:
             me.location.removeThing(me)
             outer_loc.addThing(me)
             app.printToGUI(
-                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + "."
+                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             me.makeStanding()
         return True
@@ -2105,11 +2105,11 @@ def standOnVerbFunc(me, app, dobj, skip=False):
             "You are already standing on "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + "."
+            + ". "
         )
     elif isinstance(dobj, Surface) and dobj.canStand:
         app.printToGUI(
-            "You stand on " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if me in me.location.contains[me.ix]:
             me.location.contains[me.ix].remove(me)
@@ -2119,7 +2119,7 @@ def standOnVerbFunc(me, app, dobj, skip=False):
         me.makeStanding()
     else:
         app.printToGUI(
-            "You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2158,18 +2158,18 @@ def sitOnVerbFunc(me, app, dobj, skip=False):
                 "You are already sitting on "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + "."
+                + ". "
             )
         elif me.location == outer_loc:
             app.printToGUI(
-                "You sit on " + dobj.getArticle(True) + dobj.verbose_name + "."
+                "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             me.makeSitting()
         else:
             me.location.removeThing(me)
             outer_loc.addThing(me)
             app.printToGUI(
-                "You sit on " + dobj.getArticle(True) + dobj.verbose_name + "."
+                "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             me.makeSitting()
         return True
@@ -2178,10 +2178,10 @@ def sitOnVerbFunc(me, app, dobj, skip=False):
             "You are already sitting on "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + "."
+            + ". "
         )
     elif isinstance(dobj, Surface) and dobj.canSit:
-        app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name + ".")
+        app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". ")
         if me in me.location.contains[me.ix]:
             me.location.contains[me.ix].remove(me)
             if me.location.contains[me.ix] == []:
@@ -2190,7 +2190,7 @@ def sitOnVerbFunc(me, app, dobj, skip=False):
         me.makeSitting()
     else:
         app.printToGUI(
-            "You cannot sit on " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
 
 
@@ -2233,18 +2233,18 @@ def lieOnVerbFunc(me, app, dobj):
                 "You are already lying "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + "."
+                + ". "
             )
         elif me.location == outer_loc:
             app.printToGUI(
-                "You lie on " + dobj.getArticle(True) + dobj.verbose_name + "."
+                "You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             me.makeLying()
         else:
             me.location.removeThing(me)
             outer_loc.addThing(me)
             app.printToGUI(
-                "You lie on the " + dobj.getArticle(True) + dobj.verbose_name + "."
+                "You lie on the " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             me.makeLying()
         return True
@@ -2253,10 +2253,10 @@ def lieOnVerbFunc(me, app, dobj):
             "You are already lying on "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + "."
+            + ". "
         )
     elif isinstance(dobj, Surface) and dobj.canLie:
-        app.printToGUI("You lie on " + dobj.getArticle(True) + dobj.verbose_name + ".")
+        app.printToGUI("You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". ")
         if me in me.location.contains[me.ix]:
             me.location.contains[me.ix].remove(me)
             if me.location.contains[me.ix] == []:
@@ -2266,7 +2266,7 @@ def lieOnVerbFunc(me, app, dobj):
         return True
     else:
         app.printToGUI(
-            "You cannot lie on " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
 
 
@@ -2302,11 +2302,11 @@ def sitInVerbFunc(me, app, dobj, skip=False):
             "You are already sitting in "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + "."
+            + ". "
         )
         return True
     elif isinstance(dobj, Container) and dobj.canSit:
-        app.printToGUI("You sit in " + dobj.getArticle(True) + dobj.verbose_name + ".")
+        app.printToGUI("You sit in " + dobj.getArticle(True) + dobj.verbose_name + ". ")
         if me in me.location.contains[me.ix]:
             me.location.contains[me.ix].remove(me)
             if me.location.contains[me.ix] == []:
@@ -2315,7 +2315,7 @@ def sitInVerbFunc(me, app, dobj, skip=False):
         me.makeSitting()
     else:
         app.printToGUI(
-            "You cannot sit in " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot sit in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2356,12 +2356,12 @@ def standInVerbFunc(me, app, dobj, skip=False):
             "You are already standing in "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + "."
+            + ". "
         )
         return True
     elif isinstance(dobj, Container) and dobj.canStand:
         app.printToGUI(
-            "You stand in " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You stand in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if me in me.location.contains[me.ix]:
             me.location.contains[me.ix].remove(me)
@@ -2372,7 +2372,7 @@ def standInVerbFunc(me, app, dobj, skip=False):
         return True
     else:
         app.printToGUI(
-            "You cannot stand in " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot stand in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2415,11 +2415,11 @@ def lieInVerbFunc(me, app, dobj, skip=False):
             "You are already lying in "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + "."
+            + ". "
         )
         return True
     elif isinstance(dobj, Container) and dobj.canLie:
-        app.printToGUI("You lie in " + dobj.getArticle(True) + dobj.verbose_name + ".")
+        app.printToGUI("You lie in " + dobj.getArticle(True) + dobj.verbose_name + ". ")
         if me in me.location.contains[me.ix]:
             me.location.contains[me.ix].remove(me)
             if me.location.contains[me.ix] == []:
@@ -2429,7 +2429,7 @@ def lieInVerbFunc(me, app, dobj, skip=False):
         return True
     else:
         app.printToGUI(
-            "You cannot lie in " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot lie in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2473,7 +2473,7 @@ def climbOnVerbFunc(me, app, dobj, skip=False):
         if dobj.direction == "u":
             dobj.connection.travel(me, app)
         else:
-            app.printToGUI("You can't climb up that.")
+            app.printToGUI("You can't climb up that. ")
             return False
     elif isinstance(dobj, Surface) and dobj.canStand:
         standOnVerb.verbFunc(me, app, dobj)
@@ -2486,7 +2486,7 @@ def climbOnVerbFunc(me, app, dobj, skip=False):
         return True
     else:
         app.printToGUI(
-            "You cannot climb on " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot climb on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2543,7 +2543,7 @@ def climbDownVerbFunc(me, app):
             "You climb down from "
             + me.location.getArticle(True)
             + me.location.verbose_name
-            + "."
+            + ". "
         )
         outer_loc = me.location.location
         me.location.removeThing(me)
@@ -2592,7 +2592,7 @@ def climbDownFromVerbFunc(me, app, dobj, skip=False):
             dobj.connection.travel(me, app)
             return True
         else:
-            app.printToGUI("You can't climb down from that.")
+            app.printToGUI("You can't climb down from that. ")
             return False
     elif me.location == dobj:
         if isinstance(me.location, Surface):
@@ -2600,7 +2600,7 @@ def climbDownFromVerbFunc(me, app, dobj, skip=False):
                 "You climb down from "
                 + me.location.getArticle(True)
                 + me.location.verbose_name
-                + "."
+                + ". "
             )
             outer_loc = me.location.location
             me.location.removeThing(me)
@@ -2610,7 +2610,7 @@ def climbDownFromVerbFunc(me, app, dobj, skip=False):
             return False
     else:
         app.printToGUI(
-            "You are not on " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You are not on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2687,7 +2687,7 @@ def climbInVerbFunc(me, app, dobj, skip=False):
                     "You cannot climb into "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + ", since it is closed."
+                    + ", since it is closed. "
                 )
                 return False
         standInVerb.verbFunc(me, app, dobj)
@@ -2699,7 +2699,7 @@ def climbInVerbFunc(me, app, dobj, skip=False):
                     "You cannot climb into "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + ", since it is closed."
+                    + ", since it is closed. "
                 )
                 return False
         sitInVerb.verbFunc(me, app, dobj)
@@ -2711,14 +2711,14 @@ def climbInVerbFunc(me, app, dobj, skip=False):
                     "You cannot climb into "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + ", since it is closed."
+                    + ", since it is closed. "
                 )
                 return False
         lieInVerb.verbFunc(me, app, dobj)
         return True
     else:
         app.printToGUI(
-            "You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2742,7 +2742,7 @@ def climbOutVerbFunc(me, app):
             "You climb out of "
             + me.location.getArticle(True)
             + me.location.verbose_name
-            + "."
+            + ". "
         )
         outer_loc = me.location.location
         me.location.removeThing(me)
@@ -2788,7 +2788,7 @@ def climbOutOfVerbFunc(me, app, dobj, skip=False):
                 "You climb out of "
                 + me.location.getArticle(True)
                 + me.location.verbose_name
-                + "."
+                + ". "
             )
             outer_loc = me.location.location
             me.location.removeThing(me)
@@ -2799,7 +2799,7 @@ def climbOutOfVerbFunc(me, app, dobj, skip=False):
             return False
     else:
         app.printToGUI(
-            "You are not in " + dobj.getArticle(True) + dobj.verbose_name + "."
+            "You are not in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -3921,7 +3921,7 @@ def sellVerbFunc(me, app, dobj):
             if isinstance(item, Actor) and not item == me:
                 people.append(item)
     if len(people) == 0:
-        app.printToGUI("There's no one obvious here to sell to.")
+        app.printToGUI("There's no one obvious here to sell to. ")
     elif len(people) == 1:
         # ask the only actor in the room
         iobj = people[0]
@@ -3934,7 +3934,7 @@ def sellVerbFunc(me, app, dobj):
         for p in remove_list:
             people.remove(p)
         if len(people) == 0:
-            app.printToGUI("There's no one obvious here to sell to.")
+            app.printToGUI("There's no one obvious here to sell to. ")
         elif len(people) == 1:
             return sellToVerb.verbFunc(me, app, dobj, people[0])
         elif lastTurn.dobj in people:
@@ -4167,7 +4167,7 @@ def killVerbFunc(me, app, dobj, skip=False):
         app.printToGUI("Violence isn't the answer to this one. ")
     else:
         app.printToGUI(
-            dobj.capNameArticle(True) + " cannot be killed, as it is not alive."
+            dobj.capNameArticle(True) + " cannot be killed, as it is not alive. "
         )
 
 
@@ -4558,7 +4558,7 @@ def pourIntoVerbFunc(me, app, dobj, iobj, skip=False):
                 else:
                     app.printToGUI(
                         item.capNameArticle(True)
-                        + " is too large to fit inside. It falls to the ground."
+                        + " is too large to fit inside. It falls to the ground. "
                     )
                     loc.addThing(item)
             return True
