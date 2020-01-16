@@ -71,12 +71,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + instructions
 #### Test Movement
 + climb
-+ climb on
-+ climb down
-+ climb down from
-+ climb in
-+ climb out
-+ climb out of
 + stand on
 + sit on
 + lie on

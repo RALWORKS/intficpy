@@ -3,7 +3,15 @@ import unittest
 from .helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
-from intficpy.things import Surface, Container, UnderSpace, Readable, Lock, Key
+from intficpy.things import (
+    Surface,
+    Container,
+    UnderSpace,
+    Readable,
+    Lock,
+    Key,
+    Clothing,
+)
 from intficpy.actor import Actor, Topic
 from intficpy.room import Room
 from intficpy.travel import DoorConnector
@@ -33,6 +41,13 @@ from intficpy.verb import (
     tellVerb,
     giveVerb,
     showVerb,
+    wearVerb,
+    climbOnVerb,
+    climbDownFromVerb,
+    climbDownVerb,
+    climbInVerb,
+    climbOutVerb,
+    climbOutOfVerb,
 )
 
 
@@ -336,67 +351,6 @@ class TestInventoryVerbs(IFPTestCase):
         dropall_msg = self.app.print_stack.pop()
         self.assertEqual(dropall_msg, "Your inventory is empty. ")
 
-    def test_view_inv_with_items(self):
-        item1 = Thing("miracle")
-        item2 = Thing("wonder")
-        item1.invItem = True
-        item2.invItem = True
-        item3 = item2.copyThing()
-        self.me.addThing(item1)
-        self.me.addThing(item3)
-        self.me.addThing(item2)
-
-        invVerb.verbFunc(self.me, self.app)
-        inv_msg = self.app.print_stack.pop()
-
-        self.assertEqual(
-            len(self.me.contains[item2.ix]),
-            2,
-            f"This test assumes two {item2.ix} items in the inventory ",
-        )
-
-        BASE_INV_MSG = "You have"
-        itemstr1 = f"{item1.lowNameArticle()}"
-        itemstr2 = f"{len(self.me.contains[item2.ix])} {item2.getPlural()}"
-
-        self.assertIn(
-            itemstr1,
-            inv_msg,
-            "Single item added to inventory, but message does not match expected",
-        )
-
-        self.assertIn(
-            itemstr1,
-            inv_msg,
-            "Stacked item added to inventory, but message does not match expected",
-        )
-
-        inv_msg = inv_msg.replace(itemstr1, "")
-        inv_msg = inv_msg.replace(itemstr2, "")
-        inv_msg = inv_msg.replace("and", "")
-        inv_msg = inv_msg.replace(",", "")
-        inv_msg = inv_msg.replace(".", "")
-        inv_msg = " ".join(inv_msg.split())
-
-        self.assertEqual(inv_msg, BASE_INV_MSG, "Inv message in unexpected format")
-
-    def test_view_empty_inv(self):
-        dropAllVerb.verbFunc(self.me, self.app)
-        self.assertEqual(
-            len(self.me.contains), 0, "This test requires an empty player inventory"
-        )
-
-        EMPTY_INV_MSG = "You don't have anything with you."
-
-        invVerb.verbFunc(self.me, self.app)
-        inv_msg = self.app.print_stack.pop()
-
-        self.assertEqual(
-            inv_msg,
-            EMPTY_INV_MSG,
-            "Viewed empty inventory. Message does not match expected.",
-        )
-
 
 class TestDoorVerbs(IFPTestCase):
     def setUp(self):
@@ -424,7 +378,7 @@ class TestDoorVerbs(IFPTestCase):
 
         self.assertTrue(
             self.door.entranceA.is_open,
-            "Performed open verb on unlocked door, but door is closed."
+            "Performed open verb on unlocked door, but door is closed. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -438,7 +392,7 @@ class TestDoorVerbs(IFPTestCase):
 
         self.assertFalse(
             self.door.entranceA.is_open,
-            "Performed close verb on open door, but door is open."
+            "Performed close verb on open door, but door is open. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -451,7 +405,7 @@ class TestDoorVerbs(IFPTestCase):
 
         self.assertTrue(
             self.lock.is_locked,
-            "Performed lock verb with key in inv, but lock is unlocked."
+            "Performed lock verb with key in inv, but lock is unlocked. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -464,7 +418,7 @@ class TestDoorVerbs(IFPTestCase):
 
         self.assertFalse(
             self.lock.is_locked,
-            "Performed unlock verb with key in inv, but lock is locked."
+            "Performed unlock verb with key in inv, but lock is locked. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -477,7 +431,7 @@ class TestDoorVerbs(IFPTestCase):
 
         self.assertTrue(
             self.lock.is_locked,
-            "Performed lock with verb with key, but lock is unlocked."
+            "Performed lock with verb with key, but lock is unlocked. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -490,7 +444,7 @@ class TestDoorVerbs(IFPTestCase):
 
         self.assertFalse(
             self.lock.is_locked,
-            "Performed unlock verb with key, but lock is locked."
+            "Performed unlock verb with key, but lock is locked. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -509,7 +463,7 @@ class TestDoorVerbs(IFPTestCase):
 
         self.assertFalse(
             self.door.entranceA.is_open,
-            "Performed open verb on locked door, but door is open."
+            "Performed open verb on locked door, but door is open. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -540,7 +494,7 @@ class TestLidVerbs(IFPTestCase):
 
         self.assertTrue(
             self.container.is_open,
-            "Performed open verb on unlocked container, but lid is closed."
+            "Performed open verb on unlocked container, but lid is closed. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -554,7 +508,7 @@ class TestLidVerbs(IFPTestCase):
 
         self.assertFalse(
             self.container.is_open,
-            "Performed close verb on open container, but lid is open."
+            "Performed close verb on open container, but lid is open. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -573,7 +527,7 @@ class TestLidVerbs(IFPTestCase):
 
         self.assertFalse(
             self.container.is_open,
-            "Performed open verb on locked container, but lid is open."
+            "Performed open verb on locked container, but lid is open. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
@@ -585,7 +539,7 @@ class TestConversationVerbs(IFPTestCase):
         self.actor = Actor("Jenny")
         self.start_room.addThing(self.item)
         self.start_room.addThing(self.actor)
-        self.CANNOT_TALK_MSG = "You cannot talk to that."
+        self.CANNOT_TALK_MSG = "You cannot talk to that. "
         self.topic = Topic('"Ah, yes," says Jenny mysteriously. ')
 
     def test_ask_inanimate(self):
@@ -751,6 +705,401 @@ class TestConversationVerbs(IFPTestCase):
             "Tried show verb for topic in ask topics. Expected topic text "
             f"{self.topic.text}, received {msg}",
         )
+
+
+class TestEmptyInventory(IFPTestCase):
+    def test_view_empty_inv(self):
+        dropAllVerb.verbFunc(self.me, self.app)
+        self.assertEqual(
+            len(self.me.contains), 0, "This test requires an empty player inventory"
+        )
+
+        EMPTY_INV_MSG = "You don't have anything with you. "
+
+        invVerb.verbFunc(self.me, self.app)
+        inv_msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            inv_msg,
+            EMPTY_INV_MSG,
+            "Viewed empty inventory. Message does not match expected. ",
+        )
+
+
+class TestFullInventory(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.parent = Thing("cube")
+        self.child = Container("slot", self.me)
+        self.parent.addComposite(self.child)
+        self.stacked1 = Thing("tile")
+        self.stacked2 = self.stacked1.copyThing()
+        self.clothing = Clothing("scarf")
+        self.clothing1 = Clothing("mitten")
+        self.clothing2 = self.clothing1.copyThing()
+
+        self.me.addThing(self.parent)
+        self.me.addThing(self.child)
+        self.me.addThing(self.stacked1)
+        self.me.addThing(self.stacked2)
+        self.me.addThing(self.clothing)
+        self.me.addThing(self.clothing1)
+        self.me.addThing(self.clothing2)
+
+        wearVerb.verbFunc(self.me, self.app, self.clothing)
+        wearVerb.verbFunc(self.me, self.app, self.clothing1)
+        wearVerb.verbFunc(self.me, self.app, self.clothing2)
+
+    def strip_desc(self, desc):
+        desc = desc.replace(". ", "").replace(",", "").replace("and", "")
+        return " ".join(desc.split())
+
+    def test_inventory_items_desc(self):
+        BASE_MSG = "You have"
+
+        invVerb.verbFunc(self.me, self.app)
+        self.app.print_stack.pop()
+        inv_desc = self.app.print_stack.pop()
+
+        parent_desc = self.parent.lowNameArticle()
+        stacked_desc = (
+            f"{len(self.me.contains[self.stacked1.ix])} " f"{self.stacked1.getPlural()}"
+        )
+
+        self.assertIn(
+            parent_desc, inv_desc, "Composite item description should be in inv desc"
+        )
+        inv_desc = inv_desc.replace(parent_desc, "")
+
+        self.assertIn(
+            stacked_desc, inv_desc, "Stacked item description should be in inv desc"
+        )
+        inv_desc = inv_desc.replace(stacked_desc, "")
+
+        inv_desc = self.strip_desc(inv_desc)
+        self.assertEqual(
+            inv_desc, BASE_MSG, "Remaining inv desc should match base message"
+        )
+
+    def test_inventory_wearing_desc(self):
+        BASE_MSG = "You are wearing"
+
+        invVerb.verbFunc(self.me, self.app)
+        wearing_desc = self.app.print_stack.pop()
+
+        clothing_desc = self.clothing.lowNameArticle()
+        stacked_clothing_desc = (
+            f"{len(self.me.wearing[self.clothing1.ix])} "
+            f"{self.clothing1.getPlural()}"
+        )
+
+        self.assertIn(
+            clothing_desc,
+            wearing_desc,
+            "Clothing item description should be in inv desc",
+        )
+        wearing_desc = wearing_desc.replace(clothing_desc, "")
+
+        self.assertIn(
+            stacked_clothing_desc,
+            wearing_desc,
+            "Stacked clothing item description should be in inv desc",
+        )
+        wearing_desc = wearing_desc.replace(stacked_clothing_desc, "")
+
+        wearing_desc = self.strip_desc(wearing_desc)
+        self.assertEqual(
+            wearing_desc, BASE_MSG, "Remaining wearing desc should match base message"
+        )
+
+
+class TestPlayerGetOn(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.surface = Surface("bench", self.me)
+        self.start_room.addThing(self.surface)
+
+    def test_climb_on_cannot_sit_stand_lie(self):
+        FAILURE_MSG = f"You cannot climb on {self.surface.lowNameArticle(True)}. "
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbOnVerb.verbFunc(self.me, self.app, self.surface)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, FAILURE_MSG)
+
+    def test_climb_on_can_lie(self):
+        SUCCESS_MSG = f"You lie on {self.surface.lowNameArticle(True)}. "
+
+        self.surface.canLie = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbOnVerb.verbFunc(self.me, self.app, self.surface)
+        self.assertIs(self.me.location, self.surface)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_on_can_sit(self):
+        SUCCESS_MSG = f"You sit on {self.surface.lowNameArticle(True)}. "
+
+        self.surface.canSit = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbOnVerb.verbFunc(self.me, self.app, self.surface)
+        self.assertIs(self.me.location, self.surface)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_on_can_stand(self):
+        SUCCESS_MSG = f"You stand on {self.surface.lowNameArticle(True)}. "
+
+        self.surface.canStand = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbOnVerb.verbFunc(self.me, self.app, self.surface)
+        self.assertIs(self.me.location, self.surface)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+
+class TestPlayerGetOff(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.surface = Surface("bench", self.me)
+        self.surface.canStand = True
+        self.start_room.addThing(self.surface)
+        climbOnVerb.verbFunc(self.me, self.app, self.surface)
+        self.assertIs(self.me.location, self.surface)
+
+    def test_climb_down_from(self):
+        SUCCESS_MSG = f"You climb down from {self.surface.lowNameArticle(True)}. "
+
+        climbDownFromVerb.verbFunc(self.me, self.app, self.surface)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_down(self):
+        SUCCESS_MSG = f"You climb down from {self.surface.lowNameArticle(True)}. "
+
+        climbDownVerb.verbFunc(self.me, self.app)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+
+class TestPlayerGetIn(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.container = Container("box", self.me)
+        self.start_room.addThing(self.container)
+
+    def test_climb_in_cannot_sit_stand_lie(self):
+        FAILURE_MSG = f"You cannot climb into {self.container.lowNameArticle(True)}. "
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, FAILURE_MSG)
+
+    def test_climb_in_can_lie(self):
+        SUCCESS_MSG = f"You lie in {self.container.lowNameArticle(True)}. "
+
+        self.container.canLie = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.container)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_in_can_sit(self):
+        SUCCESS_MSG = f"You sit in {self.container.lowNameArticle(True)}. "
+
+        self.container.canSit = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.container)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_in_can_stand(self):
+        SUCCESS_MSG = f"You stand in {self.container.lowNameArticle(True)}. "
+
+        self.container.canStand = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.container)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+
+class TestPlayerGetInOpenLid(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.container = Container("box", self.me)
+        self.container.has_lid = True
+        self.container.is_open = True
+        self.start_room.addThing(self.container)
+
+    def test_climb_in_can_lie(self):
+        SUCCESS_MSG = f"You lie in {self.container.lowNameArticle(True)}. "
+
+        self.container.canLie = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.container)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_in_can_sit(self):
+        SUCCESS_MSG = f"You sit in {self.container.lowNameArticle(True)}. "
+
+        self.container.canSit = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.container)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_in_can_stand(self):
+        SUCCESS_MSG = f"You stand in {self.container.lowNameArticle(True)}. "
+
+        self.container.canStand = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.container)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+
+class TestPlayerGetInClosedLid(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.container = Container("box", self.me)
+        self.container.has_lid = True
+        self.container.is_open = False
+        self.start_room.addThing(self.container)
+
+    def test_climb_in_can_lie(self):
+        FAILURE_MSG = (
+            f"You cannot climb into {self.container.lowNameArticle(True)}, "
+            "since it is closed. "
+        )
+
+        self.container.canLie = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, FAILURE_MSG)
+
+    def test_climb_in_can_sit(self):
+        FAILURE_MSG = (
+            f"You cannot climb into {self.container.lowNameArticle(True)}, "
+            "since it is closed. "
+        )
+
+        self.container.canSit = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, FAILURE_MSG)
+
+    def test_climb_in_can_stand(self):
+        FAILURE_MSG = (
+            f"You cannot climb into {self.container.lowNameArticle(True)}, "
+            "since it is closed. "
+        )
+
+        self.container.canStand = True
+
+        self.assertIs(
+            self.me.location, self.start_room, "Player needs to start in start_room"
+        )
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, FAILURE_MSG)
+
+
+class TestPlayerGetOut(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.container = Container("box", self.me)
+        self.container.canStand = True
+        self.start_room.addThing(self.container)
+        climbInVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.container)
+
+    def test_climb_out_of(self):
+        SUCCESS_MSG = f"You climb out of {self.container.lowNameArticle(True)}. "
+
+        climbOutOfVerb.verbFunc(self.me, self.app, self.container)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
+
+    def test_climb_out(self):
+        SUCCESS_MSG = f"You climb out of {self.container.lowNameArticle(True)}. "
+
+        climbOutVerb.verbFunc(self.me, self.app)
+        self.assertIs(self.me.location, self.start_room)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(msg, SUCCESS_MSG)
 
 
 if __name__ == "__main__":
