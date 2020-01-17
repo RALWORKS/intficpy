@@ -3803,8 +3803,6 @@ def buyVerbFunc(me, app, dobj):
             people.remove(p)
         if len(people) == 0:
             app.printToGUI("There's no one obvious here to buy from. ")
-        elif len(people) == 1:
-            return buyFromVerb.verbFunc(me, app, dobj, people[0])
         elif lastTurn.dobj in people:
             return buyFromVerb.verbFunc(me, app, dobj, lastTurn.dobj)
         elif lastTurn.iobj in people:
