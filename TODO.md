@@ -55,9 +55,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 
 ### Test Verbs
 #### Test Conversation
-+ buy
 + sell
-+ buy from
 + sell to
 #### Test Score
 + score
@@ -71,12 +69,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + instructions
 #### Test Movement
 + climb
-+ stand on
-+ sit on
-+ lie on
-+ stand in
-+ sit in
-+ lie in
 + exit
 + enter
 + lead
