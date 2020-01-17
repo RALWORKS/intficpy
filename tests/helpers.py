@@ -42,3 +42,24 @@ class IFPTestCase(TestCase):
         if noun in nounDict:
             noun = self._get_unique_noun()
         return noun
+
+    def assertItemIn(self, item, contains_dict, msg):
+        self.assertIn(item.ix, contains_dict, f"Index not in dictionary: {msg}")
+        self.assertIn(
+            item,
+            contains_dict[item.ix],
+            f"Index in dictionary, but item not found under index: {msg}",
+        )
+
+    def assertItemNotIn(self, item, contains_dict, msg):
+        if item.ix in contains_dict:
+            self.assertNotIn(
+                item, contains_dict[ix], f"Item unexpectedly found in dictionary: {msg}"
+            )
+
+    def assertItemExactlyOnceIn(self, item, contains_dict, msg):
+        self.assertIn(item.ix, contains_dict, f"Index not in dictionary: {msg}")
+        n = len(contains_dict[item.ix])
+        self.assertEqual(
+            n, 1, f"Expected a single occurrence of item {item}, found {n}: {msg}"
+        )
