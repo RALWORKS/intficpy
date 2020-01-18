@@ -116,6 +116,38 @@ class Verb:
 		The creator should overwrite this if planning to use implicit objects """
         app.printToGUI("Error: no implicit indirect object defined")
 
+    @staticmethod
+    def disambiguateActor(me, app, len0_msg, base_disambig_msg):
+        """
+        Disambiguate Actors. Excludes the Player.
+        room - the room to search
+        len0_msg - message to print in the case of no Actors
+        base_disambig_msg - base message for disambiguation
+        """
+        room = me.getOutermostLocation()
+        people = room.contentsByClass(Actor)
+        people.remove(me)
+        people = list(filter(lambda item: not item.ignore_if_ambiguous, people))
+
+        if len(people) == 0:
+            app.printToGUI(len0_msg)
+        elif lastTurn.dobj in people and isinstance(lastTurn.dobj, Actor):
+            return [lastTurn.dobj]
+        elif lastTurn.iobj in people and isinstance(lastTurn.iobj, Actor):
+            return [lastTurn.iobj]
+        else:
+            msg = base_disambig_msg
+            for p in people:
+                msg = msg + p.lowNameArticle(True)
+                if p is people[-1]:
+                    msg = msg + "? "
+                elif p is people[-2]:
+                    msg = msg + " or "
+                else:
+                    msg = msg + ", "
+            app.printToGUI(msg)
+        return people
+
 
 def getNested(target):
     """Use a depth first search to find all nested Things in Containers and Surfaces
@@ -3782,46 +3814,24 @@ def buyVerbFunc(me, app, dobj):
     """Redriect to buy from
 	Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
 
-    people = []
-    # find every Actor in the current location
-    for key, items in me.getOutermostLocation().contains.items():
-        for item in items:
-            if isinstance(item, Actor) and not item == me:
-                people.append(item)
-    if len(people) == 0:
-        app.printToGUI("There's no one obvious here to buy from. ")
-    elif len(people) == 1:
-        # ask the only actor in the room
-        iobj = people[0]
-        return buyFromVerb.verbFunc(me, app, dobj, iobj)
-    else:
-        remove_list = []
-        for p in people:
-            if p.ignore_if_ambiguous:
-                remove_list.append(p)
-        for p in remove_list:
-            people.remove(p)
-        if len(people) == 0:
-            app.printToGUI("There's no one obvious here to buy from. ")
-        elif lastTurn.dobj in people:
-            return buyFromVerb.verbFunc(me, app, dobj, lastTurn.dobj)
-        elif lastTurn.iobj in people:
-            return buyFromVerb.verbFunc(me, app, dobj, lastTurn.iobj)
-        listpeople = "Would you like to buy from "
-        for p in people:
-            listpeople = listpeople + p.lowNameArticle(True)
-            if p is people[-1]:
-                listpeople = listpeople + "? "
-            elif p is people[-2]:
-                listpeople = listpeople + " or "
-            else:
-                listpeople = listpeople + ", "
-        app.printToGUI(listpeople)
+    people = Verb.disambiguateActor(
+        me,
+        app,
+        "There's no one obvious here to buy from. ",
+        "Would you like to buy from ",
+    )
+    if len(people) > 1:
         lastTurn.verb = buyFromVerb
         lastTurn.dobj = dobj
-        lastTurn.iobj = False
+        lastTurn.iobj = None
         lastTurn.things = people
         lastTurn.ambiguous = True
+        return False
+
+    elif len(people) == 0:
+        return False
+
+    return buyFromVerb.verbFunc(me, app, dobj, people[0])
 
 
 # replace the default verbFunc method
@@ -3912,48 +3922,26 @@ def sellVerbFunc(me, app, dobj):
     """Redriect to sell to
     Takes arguments me, pointing to the player, app, the PyQt5 GUI app, dobj, a Thing """
 
-    people = []
-    # find every Actor in the current location
-    for key, items in me.getOutermostLocation().contains.items():
-        for item in items:
-            if isinstance(item, Actor) and not item == me:
-                people.append(item)
-    if len(people) == 0:
-        app.printToGUI("There's no one obvious here to sell to. ")
-    elif len(people) == 1:
+    people = Verb.disambiguateActor(
+        me,
+        app,
+        "There's no one obvious here to sell to. ",
+        "Would you like to sell it to ",
+    )
+
+    if len(people) == 1:
         # ask the only actor in the room
         iobj = people[0]
         return sellToVerb.verbFunc(me, app, dobj, iobj)
-    else:
-        remove_list = []
-        for p in people:
-            if p.ignore_if_ambiguous:
-                remove_list.append(p)
-        for p in remove_list:
-            people.remove(p)
-        if len(people) == 0:
-            app.printToGUI("There's no one obvious here to sell to. ")
-        elif len(people) == 1:
-            return sellToVerb.verbFunc(me, app, dobj, people[0])
-        elif lastTurn.dobj in people:
-            return sellToVerb.verbFunc(me, app, dobj, lastTurn.dobj)
-        elif lastTurn.iobj in people:
-            return sellToVerb.verbFunc(me, app, dobj, lastTurn.iobj)
-        listpeople = "Would you like to sell it to "
-        for p in people:
-            listpeople = listpeople + p.lowNameArticle(True)
-            if p is people[-1]:
-                listpeople = listpeople + "? "
-            elif p is people[-2]:
-                listpeople = listpeople + " or "
-            else:
-                listpeople = listpeople + ", "
-        app.printToGUI(listpeople)
+
+    if len(people) > 1:
         lastTurn.verb = sellToVerb
         lastTurn.dobj = dobj
-        lastTurn.iobj = False
+        lastTurn.iobj = None
         lastTurn.things = people
         lastTurn.ambiguous = True
+
+    return False
 
 
 # replace the default verbFunc method

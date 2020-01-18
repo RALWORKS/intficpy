@@ -402,6 +402,19 @@ class Room:
         """Operations to perform immediately after printing the room description. Empty by default. Override for custom events. """
         pass
 
+    def contentsByClass(self, class_ref):
+        """
+        Get all top level contents of a given class
+        """
+        return list(filter(lambda item: isinstance(item, class_ref), self.contentsList))
+
+    @property
+    def contentsList(self):
+        """
+        Return the room contents as a flattened list
+        """
+        return [item for ix, sublist in self.contains.items() for item in sublist]
+
 
 class OutdoorRoom(Room):
     """Room is the class for outdoor locations in an .game
