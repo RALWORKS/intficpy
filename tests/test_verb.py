@@ -51,6 +51,8 @@ from intficpy.verb import (
     climbOutOfVerb,
     buyVerb,
     buyFromVerb,
+    sellVerb,
+    sellToVerb,
 )
 
 
@@ -1328,7 +1330,7 @@ class TestBuyNotEnoughMoney(IFPTestCase):
         )
 
 
-class TestBuyRoomWithMultipleActors(IFPTestCase):
+class TestBuyInRoomWithMultipleActors(IFPTestCase):
     def setUp(self):
         super().setUp()
         self.sale_item = Thing("bulb")
@@ -1363,7 +1365,9 @@ class TestBuyRoomWithMultipleActors(IFPTestCase):
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
         self.assertEqual(
-            msg, expected, "Unexpected msg after attempting to buy from ambigous Actor"
+            msg,
+            expected,
+            "Unexpected mkddffsg after attempting to buy from ambigous Actor",
         )
 
         self.assertItemExactlyOnceIn(
@@ -1387,6 +1391,259 @@ class TestBuyRoomWithMultipleActors(IFPTestCase):
             self.sale_item,
             self.me.contains,
             "Attempted to buy item. Received success message. ",
+        )
+
+
+class TestSell(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.sale_item = Thing("widget")
+        self.sale_item.makeKnown(self.me)
+        self.actor = Actor("Dmitri")
+        self.currency = Thing("penny")
+        self.me.addThing(self.sale_item)
+        self.me.addThing(self.sale_item.copyThing())
+        self.actor.addWillBuy(self.sale_item, self.currency, 1, 1)
+        self.start_room.addThing(self.actor)
+
+        self.BASE_DOES_NOT_WANT_MORE_MSG = "will not buy any more"
+
+    def test_sell(self):
+        self.assertItemIn(
+            self.sale_item,
+            self.me.contains,
+            "This test needs widgets in the inventory. ",
+        )
+        self.assertEqual(len(self.me.contains[self.sale_item.ix]), 2)
+
+        sellVerb.verbFunc(self.me, self.app, self.sale_item)
+
+        msg = self.app.print_stack.pop()
+        expected = (
+            f"(Received: {self.actor.will_buy[self.sale_item.ix].price} "
+            f"{self.currency.verbose_name}) "
+        )
+        self.assertEqual(msg, expected, "Unexpected msg after attempting to sell item")
+
+        self.assertItemExactlyOnceIn(
+            self.currency,
+            self.me.contains,
+            "Attempted to sell item. Received success message. ",
+        )
+
+        sellVerb.verbFunc(self.me, self.app, self.sale_item)
+        msg = self.app.print_stack.pop()
+
+        self.assertIn(
+            self.BASE_DOES_NOT_WANT_MORE_MSG,
+            msg,
+            "Tried to sell item to actor who should not want any more. Received "
+            "unexpected msg",
+        )
+        self.assertItemExactlyOnceIn(
+            self.currency,
+            self.me.contains,
+            "Attempted to buy out of stock item. Number in inventory should not have "
+            "changed. ",
+        )
+
+    def test_sell_to(self):
+        self.assertItemIn(
+            self.sale_item,
+            self.me.contains,
+            "This test needs widgets in the inventory. ",
+        )
+        self.assertEqual(len(self.me.contains[self.sale_item.ix]), 2)
+
+        sellToVerb.verbFunc(self.me, self.app, self.sale_item, self.actor)
+
+        msg = self.app.print_stack.pop()
+        expected = (
+            f"(Received: {self.actor.will_buy[self.sale_item.ix].price} "
+            f"{self.currency.verbose_name}) "
+        )
+        self.assertEqual(msg, expected, "Unexpected msg after attempting to sell item")
+
+        self.assertItemExactlyOnceIn(
+            self.currency,
+            self.me.contains,
+            "Attempted to sell item. Received success message. ",
+        )
+
+        sellToVerb.verbFunc(self.me, self.app, self.sale_item, self.actor)
+        msg = self.app.print_stack.pop()
+
+        self.assertIn(
+            self.BASE_DOES_NOT_WANT_MORE_MSG,
+            msg,
+            "Tried to sell item to actor who should not want any more. Received "
+            "unexpected msg",
+        )
+        self.assertItemExactlyOnceIn(
+            self.currency,
+            self.me.contains,
+            "Attempted to buy out of stock item. Number in inventory should not have "
+            "changed. ",
+        )
+
+
+class TestSellDoesNotWant(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.sale_item = Thing("widget")
+        self.sale_item.makeKnown(self.me)
+        self.actor = Actor("Dmitri")
+        self.me.addThing(self.sale_item)
+
+        self.start_room.addThing(self.actor)
+
+        self.BASE_DOES_NOT_WANT_MSG = "doesn't want to buy"
+
+    def test_sell(self):
+        self.assertItemExactlyOnceIn(
+            self.sale_item,
+            self.me.contains,
+            "This test needs a widget in the inventory. ",
+        )
+
+        sellVerb.verbFunc(self.me, self.app, self.sale_item)
+
+        msg = self.app.print_stack.pop()
+        self.assertIn(
+            self.BASE_DOES_NOT_WANT_MSG,
+            msg,
+            "Unexpected msg after attempting to sell item",
+        )
+
+        self.assertItemExactlyOnceIn(
+            self.sale_item,
+            self.me.contains,
+            "Attempted to sell item actor does not want. Should still have exactly 1.",
+        )
+
+    def test_sell_to(self):
+        self.assertItemExactlyOnceIn(
+            self.sale_item,
+            self.me.contains,
+            "This test needs a widget in the inventory. ",
+        )
+
+        sellToVerb.verbFunc(self.me, self.app, self.sale_item, self.actor)
+
+        msg = self.app.print_stack.pop()
+        self.assertIn(
+            self.BASE_DOES_NOT_WANT_MSG,
+            msg,
+            "Unexpected msg after attempting to sell item",
+        )
+
+        self.assertItemExactlyOnceIn(
+            self.sale_item,
+            self.me.contains,
+            "Attempted to sell item actor does not want. Should still have exactly 1.",
+        )
+
+
+class TestSellInRoomWithMultipleActors(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.sale_item = Thing("bulb")
+        self.actor1 = Actor("Dmitri")
+        self.actor2 = Actor("Kate")
+        self.currency = Thing("penny")
+        self.me.addThing(self.sale_item)
+        self.actor1.addWillBuy(self.sale_item, self.currency, 1, 1)
+        self.start_room.addThing(self.actor1)
+        self.start_room.addThing(self.actor2)
+
+    def test_sell(self):
+        sellVerb.verbFunc(self.me, self.app, self.sale_item)
+
+        msg = self.app.print_stack.pop()
+        BASE_DISAMBIG_MSG = "Would you like to sell it to"
+        self.assertIn(
+            BASE_DISAMBIG_MSG,
+            msg,
+            "Unexpected message after attempting to sell to ambiguous Actor",
+        )
+
+        self.assertItemIn(
+            self.sale_item, self.me.contains, "Attempted to sell to ambiguous Actor."
+        )
+
+    def test_sell_with_lastTurn_dobj_actor(self):
+        lastTurn.dobj = self.actor1
+
+        sellVerb.verbFunc(self.me, self.app, self.sale_item)
+
+        msg = self.app.print_stack.pop()
+        expected = (
+            f"(Received: {self.actor1.will_buy[self.sale_item.ix].price} "
+            f"{self.currency.verbose_name}) "
+        )
+        self.assertEqual(
+            msg, expected, "Unexpected msg after attempting to sell from ambigous Actor"
+        )
+
+        self.assertItemExactlyOnceIn(
+            self.currency,
+            self.me.contains,
+            "Attempted to sell item. Recieved success message. Expected 1 currency. ",
+        )
+        self.assertItemNotIn(
+            self.sale_item,
+            self.me.contains,
+            "Attempted to buy item. Received success message. Expected no sale_item "
+            "in inv.",
+        )
+
+    def test_sell_with_lastTurn_iobj_actor(self):
+        lastTurn.iobj = self.actor1
+
+        sellVerb.verbFunc(self.me, self.app, self.sale_item)
+
+        msg = self.app.print_stack.pop()
+        expected = (
+            f"(Received: {self.actor1.will_buy[self.sale_item.ix].price} "
+            f"{self.currency.verbose_name}) "
+        )
+        self.assertEqual(
+            msg, expected, "Unexpected msg after attempting to sell from ambigous Actor"
+        )
+
+        self.assertItemExactlyOnceIn(
+            self.currency,
+            self.me.contains,
+            "Attempted to sell item. Recieved success message. Expected 1 currency. ",
+        )
+        self.assertItemNotIn(
+            self.sale_item,
+            self.me.contains,
+            "Attempted to buy item. Received success message. Expected no sale_item "
+            "in inv.",
+        )
+
+
+class TestSellInRoomWithNoActors(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.sale_item = Thing("bulb")
+        self.currency = Thing("penny")
+        self.me.addThing(self.sale_item)
+
+    def test_sell(self):
+        sellVerb.verbFunc(self.me, self.app, self.sale_item)
+
+        msg = self.app.print_stack.pop()
+        NOONE_HERE_MSG = "There's no one obvious here to sell to. "
+        self.assertIn(
+            NOONE_HERE_MSG,
+            msg,
+            "Unexpected message after attempting to sell in room with no Actor",
+        )
+
+        self.assertItemIn(
+            self.sale_item, self.me.contains, "Attempted to sell in room with no Actor."
         )
 
 

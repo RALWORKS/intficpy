@@ -54,19 +54,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
     + nested dicts and arrays in custom IFP object properties
 
 ### Test Verbs
-#### Test Conversation
-+ sell
-+ sell to
-#### Test Score
-+ score
-+ fullscore
-#### Test Help
-+ help
-+ about
-+ verbs
-+ herb help
-+ hint
-+ instructions
 #### Test Movement
 + climb
 + exit
@@ -87,6 +74,17 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + extinguish
 + wear
 + doff
+#### Test Score
++ score
++ fullscore
+#### Test Help
++ help
++ about
++ verbs
++ herb help
++ hint
++ instructions
+#### Test Record/Playback
 + record on
 + record off
 + playback
