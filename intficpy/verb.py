@@ -129,6 +129,8 @@ class Verb:
         people.remove(me)
         people = list(filter(lambda item: not item.ignore_if_ambiguous, people))
 
+        if len(people) == 1:
+            return people
         if len(people) == 0:
             app.printToGUI(len0_msg)
         elif lastTurn.dobj in people and isinstance(lastTurn.dobj, Actor):
@@ -147,67 +149,6 @@ class Verb:
                     msg = msg + ", "
             app.printToGUI(msg)
         return people
-
-
-def getNested(target):
-    """Use a depth first search to find all nested Things in Containers and Surfaces
-	Takes argument target, pointing to a Thing
-	Returns a list of Things
-	Used by multiple verbs """
-    # list to populate with found Things
-    nested = []
-    # iterate through top level contents
-    for key, items in target.contains.items():
-        for item in items:
-            lvl = 0
-            push = False
-            # a dictionary of levels used to keep track of what has not yet been searched
-            lvl_dict = {}
-            lvl_dict[0] = []
-            # get a list of things in the top level
-            for key, things in item.contains.items():
-                for thing in things:
-                    lvl_dict[0].append
-            # a list of the parent items of each level
-            # last item is current parent
-            lvl_parent = [item]
-            if item not in nested:
-                nested.append(item)
-            # when the bottom level is empty, the search is complete
-            while lvl_dict[0] != []:
-                # a list of searched items to remove from the level
-                remove_scanned = []
-                # pop to lower level if empty
-                if lvl_dict[lvl] == []:
-                    lvl_dict[lvl - 1].remove(lvl_parent[-1])
-                    lvl_parent = lvl_parent[:-1]
-                    lvl = lvl - 1
-                # scan items on current level
-                for y in lvl_dict[lvl]:
-                    if not y in nested:
-                        # if y contains items, push into y.contains
-                        if y.contains != {}:
-                            lvl = lvl + 1
-                            lvl_dict[lvl] = []
-                            for things, key in item.contains.items():
-                                for thing in things:
-                                    lvl_dict[lvl].append
-                            lvl_parent.append(y)
-                            push = True
-                            # break
-                        else:
-                            remove_scanned.append(y)
-                # remove scanned items from lvl_dict
-                for r in remove_scanned:
-                    # NOTE: this will break for duplicate objects with contents
-                    if push:
-                        lvl_dict[lvl - 1].remove(r)
-                    else:
-                        lvl_dict[lvl].remove(r)
-
-                # reset push marker
-                push = False
-    return nested
 
 
 # Below are .s built in verbs
@@ -1396,37 +1337,22 @@ def getImpTalkTo(me, app):
     """If no dobj is specified, try to guess the Actor
 	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
 
-    people = []
-    # find every Actor in the current location
-    loc = me.getOutermostLocation()
-    for key, items in loc.contains.items():
-        for item in items:
-            if isinstance(item, Actor) and not item == me:
-                people.append(item)
+    people = Verb.disambiguateActor(
+        me,
+        app,
+        "There's no one obvious here to talk to. ",
+        "Would you like to talk to ",
+    )
+
     if len(people) == 0:
-        app.printToGUI("There's no one obvious to talk to here. ")
+        return None
+
     elif len(people) == 1:
-        # ask the only actor in the room
-        if not people[0].ignore_if_ambiguous:
-            return people[0]
-        app.printToGUI("There's no one obvious to talk to here. ")
-    elif (
-        isinstance(lastTurn.dobj, Actor)
-        and not lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(lastTurn.dobj)
-    ):
-        # ask whomever the player last interracted with
-        return lastTurn.dobj
-    else:
-        people2 = list(people)
-        for p in people:
-            if p.ignore_if_ambiguous:
-                people2.remove(p)
-        if len(people2) == 1:
-            return people2[0]
-        # turn disambiguation mode on
-        app.printToGUI("Please specify a person to talk to. ")
-        lastTurn.ambiguous = True
+        return people[0]
+
+    lastTurn.things = people
+    lastTurn.ambiguous = True
+    return None
 
 
 # replace default getImpDobj method
@@ -1484,45 +1410,8 @@ askVerb.preposition = ["about"]
 askVerb.dtype = "Actor"
 
 
-def getImpAsk(me, app):
-    """If no dobj is specified, try to guess the Actor
-	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-
-    people = []
-    loc = me.getOutermostLocation()
-    # find every Actor in the current location
-    for key, items in loc.contains.items():
-        for item in items:
-            if isinstance(item, Actor) and not item == me:
-                people.append(item)
-    if len(people) == 0:
-        app.printToGUI("There's no one obvious here to ask. ")
-    elif len(people) == 1:
-        # ask the only actor in the room
-        if not people[0].ignore_if_ambiguous:
-            return people[0]
-        app.printToGUI("There's no one obvious here to ask. ")
-    elif (
-        isinstance(lastTurn.dobj, Actor)
-        and not lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(lastTurn.dobj)
-    ):
-        # ask whomever the player last interracted with
-        return lastTurn.dobj
-    else:
-        people2 = list(people)
-        for p in people:
-            if p.ignore_if_ambiguous:
-                people2.remove(p)
-        if len(people2) == 1:
-            return people2[0]
-        app.printToGUI("Please specify a person to ask. ")
-        # turn disambiguation mode on
-        lastTurn.ambiguous = True
-
-
 # replace the default getImpDobj method
-askVerb.getImpDobj = getImpAsk
+askVerb.getImpDobj = getImpTalkTo
 
 
 def askVerbFunc(me, app, dobj, iobj, skip=False):
@@ -1590,46 +1479,8 @@ tellVerb.impDobj = True
 tellVerb.preposition = ["about"]
 tellVerb.dtype = "Actor"
 
-
-def getImpTell(me, app):
-    """If no dobj is specified, try to guess the Actor
-	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-
-    people = []
-    loc = me.getOutermostLocation()
-    # find every Actor in the current location
-    for key, items in loc.contains.items():
-        for item in items:
-            if isinstance(item, Actor) and not item == me:
-                people.append(item)
-    if len(people) == 0:
-        app.printToGUI("There's no one obvious here to tell. ")
-    elif len(people) == 1:
-        # ask the only actor in the room
-        if not people[0].ignore_if_ambiguous:
-            return people[0]
-        app.printToGUI("There's no one obvious here to tell. ")
-    elif (
-        isinstance(lastTurn.dobj, Actor)
-        and not lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(lastTurn.dobj)
-    ):
-        # ask whomever the player last interracted with
-        return lastTurn.dobj
-    else:
-        people2 = list(people)
-        for p in people:
-            if p.ignore_if_ambiguous:
-                people2.remove(p)
-        if len(people2) == 1:
-            return people2[0]
-        # turn disambiguation mode on
-        app.printToGUI("Please specify a person to ask. ")
-        lastTurn.ambiguous = True
-
-
 # replace default getImpDobj method
-tellVerb.getImpDobj = getImpTell
+tellVerb.getImpDobj = getImpTalkTo
 
 
 def tellVerbFunc(me, app, dobj, iobj, skip=False):
@@ -1692,45 +1543,8 @@ giveVerb.preposition = ["to"]
 giveVerb.dtype = "Actor"
 
 
-def getImpGive(me, app):
-    """If no dobj is specified, try to guess the Actor
-	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-
-    people = []
-    loc = me.getOutermostLocation()
-    # find every Actor in the current location
-    for key, items in loc.contains.items():
-        for item in items:
-            if isinstance(item, Actor) and not item == me:
-                people.append(item)
-    if len(people) == 0:
-        app.printToGUI("There's no one obvious here to give it to. ")
-    elif len(people) == 1:
-        # ask the only actor in the room
-        if not people[0].ignore_if_ambiguous:
-            return people[0]
-        app.printToGUI("There's no one obvious here to give it to. ")
-    elif (
-        isinstance(lastTurn.dobj, Actor)
-        and not lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(lastTurn.dobj)
-    ):
-        # ask whomever the player last interracted with
-        return lastTurn.dobj
-    else:
-        people2 = list(people)
-        for p in people:
-            if p.ignore_if_ambiguous:
-                people2.remove(p)
-        if len(people2) == 1:
-            return people2[0]
-        # turn disambiguation mode on
-        app.printToGUI("Please specify a person to give it to. ")
-        lastTurn.ambiguous = True
-
-
 # replace default getImpDobj method
-giveVerb.getImpDobj = getImpGive
+giveVerb.getImpDobj = getImpTalkTo
 
 
 def giveVerbFunc(me, app, dobj, iobj, skip=False):
@@ -1803,46 +1617,8 @@ showVerb.impDobj = True
 showVerb.preposition = ["to"]
 showVerb.dtype = "Actor"
 
-
-def getImpShow(me, app):
-    """If no dobj is specified, try to guess the Actor
-	Takes arguments me, pointing to the player, and app, the PyQt5 GUI app """
-
-    people = []
-    loc = me.getOutermostLocation()
-    # find every Actor in the current location
-    for key, items in loc.contains.items():
-        for item in items:
-            if isinstance(item, Actor) and not item == me:
-                people.append(item)
-    if len(people) == 0:
-        app.printToGUI("There's no one obvious here to show. ")
-    elif len(people) == 1:
-        # ask the only actor in the room
-        if not people[0].ignore_if_ambiguous:
-            return people[0]
-        app.printToGUI("There's no one obvious here to show. ")
-    elif (
-        isinstance(lastTurn.dobj, Actor)
-        and not lastTurn.dobj.ignore_if_ambiguous
-        and loc.containsItem(lastTurn.dobj)
-    ):
-        # ask whomever the player last interracted with
-        return lastTurn.dobj
-    else:
-        people2 = list(people)
-        for p in people:
-            if p.ignore_if_ambiguous:
-                people2.remove(p)
-        if len(people2) == 1:
-            return people2[0]
-        # turn disambiguation mode on
-        app.printToGUI("Please specify a person to show. ")
-        lastTurn.ambiguous = True
-
-
 # replace default getImpDobj method
-showVerb.getImpDobj = getImpShow
+showVerb.getImpDobj = getImpTalkTo
 
 
 def showVerbFunc(me, app, dobj, iobj, skip=False):

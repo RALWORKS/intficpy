@@ -352,3 +352,20 @@ class Thing:
         self.desc = self.desc + self.children_desc
         self.xdesc = self.xdesc + self.children_desc
         self.containsListUpdate()
+
+    def getNested(self):
+        """
+        Find revealed nested Things
+        """
+        # list to populate with found Things
+        nested = []
+        # iterate through top level contents
+        if self.has_lid and not self.is_open:
+            return []
+        for key in self.contains:
+            for item in self.contains[key]:
+                nested.append(item)
+        for key in self.sub_contains:
+            for item in self.sub_contains[key]:
+                nested.append(item)
+        return nested

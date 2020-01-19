@@ -116,7 +116,7 @@ class Surface(Thing):
                     self.addThing(item2)
         item.location = self
         # nested items
-        nested = getNested(item)
+        nested = item.getNested()
         next_loc = self.location
         while next_loc:
             if not isinstance(item, Actor):
@@ -167,7 +167,7 @@ class Surface(Thing):
                 if item2.ix in self.sub_contains:
                     if item2 in self.sub_contains[item2.ix]:
                         self.removeThing(item2)
-        nested = getNested(item)
+        nested = item.getNested()
         for t in nested:
             if t.ix in self.sub_contains:
                 if t in self.sub_contains[t.ix]:
@@ -423,7 +423,7 @@ class Container(Thing):
                 else:
                     self.addThing(item2)
         # nested items
-        nested = getNested(item)
+        nested = item.getNested()
         next_loc = self.location
         while next_loc:
             if not isinstance(item, Actor):
@@ -458,7 +458,7 @@ class Container(Thing):
         list_version = list(self.contains.keys())
         for key in list_version:
             for item in self.contains[key]:
-                nested = getNested(item)
+                nested = item.getNested()
                 next_loc = self.location
                 while next_loc:
                     for x in nested:
@@ -476,7 +476,7 @@ class Container(Thing):
         list_version = list(self.contains.keys())
         for key in list_version:
             for item in self.contains[key]:
-                nested = getNested(item)
+                nested = item.getNested()
                 next_loc = self.location
                 while next_loc:
                     for x in nested:
@@ -508,7 +508,7 @@ class Container(Thing):
                 if item2.ix in self.sub_contains:
                     if item2 in self.sub_contains[item2.ix]:
                         self.removeThing(item2)
-        nested = getNested(item)
+        nested = item.getNested()
         for t in nested:
             if t.ix in self.sub_contains:
                 if t in self.sub_contains[t.ix]:
@@ -1073,7 +1073,7 @@ class UnderSpace(Thing):
                             contentshidden = True
                 while next_loc:
                     if not contentshidden:
-                        nested = getNested(item)
+                        nested = item.getNested()
                         if not isinstance(item, Actor):
                             for t in nested:
                                 if t.ix in next_loc.sub_contains:
@@ -1148,7 +1148,7 @@ class UnderSpace(Thing):
             if item.has_lid:
                 if item.is_open == False:
                     contentshidden = True
-        nested = getNested(item)
+        nested = item.getNested()
         next_loc = self.location
         if revealed:
             while next_loc:
@@ -1197,7 +1197,7 @@ class UnderSpace(Thing):
                 if item2.ix in self.sub_contains:
                     if item2 in self.sub_contains[item2.ix]:
                         self.removeThing(item2)
-        nested = getNested(item)
+        nested = item.getNested()
         for t in nested:
             if t.ix in self.sub_contains:
                 if t in self.sub_contains[t.ix]:
@@ -1265,27 +1265,6 @@ class UnderSpace(Thing):
 
     def updateDesc(self):
         self.containsListUpdate()
-
-
-def getNested(target):
-    """Find revealed nested Things
-	Takes argument target, pointing to a Thing
-	Returns a list of Things
-	Used by multiple verbs """
-    # list to populate with found Things
-    nested = []
-    # iterate through top level contents
-    if isinstance(target, Container):
-        if target.has_lid:
-            if target.is_open == False:
-                return []
-    for key in target.contains:
-        for item in target.contains[key]:
-            nested.append(item)
-    for key in target.sub_contains:
-        for item in target.sub_contains[key]:
-            nested.append(item)
-    return nested
 
 
 class Transparent(Thing):

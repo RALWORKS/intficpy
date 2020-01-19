@@ -21,6 +21,9 @@ class Actor(Thing):
         self.connection = None  # this should almost always be None, but setting it probably won't break anything
         self.contains_preposition = None
 
+        self.is_open = False
+        self.has_lid = False
+
         # COMPOSITE OBJECTS
         self.is_composite = False
         self.parent_obj = None
@@ -164,7 +167,7 @@ class Actor(Thing):
                     self.addThing(item2)
         item.location = self
         # nested items
-        nested = getNested(item)
+        nested = item.getNested()
         for t in nested:
             if t.ix in self.sub_contains:
                 self.sub_contains[t.ix].append(t)
@@ -234,7 +237,7 @@ class Actor(Thing):
                     if item2 in self.sub_contains[item2.ix]:
                         self.removeThing(item2)
         # nested items
-        nested = getNested(item)
+        nested = item.getNested()
         for t in nested:
             if t.ix in self.sub_contains:
                 if t in self.sub_contains[t.ix]:
@@ -370,6 +373,8 @@ class Player(Actor):
         self.cannot_interact_msg = None
         self.ignore_if_ambiguous = False
         self.connection = None  # this should almost always be None, but setting it probably won't break anything
+        self.is_open = False
+        self.has_lid = False
         self.contains_preposition = None
         self.name = name
         self.verbose_name = "yourself"
@@ -587,23 +592,3 @@ class SaleItem:
 
     def boughtAll(self, me, app):
         pass
-
-
-def getNested(target):
-    """Find revealed nested Things
-	Takes argument target, pointing to a Thing
-	Returns a list of Things
-	Used by multiple verbs """
-
-    # list to populate with found Things
-    nested = []
-    # iterate through top level contents
-    if target.has_lid and not target.is_open:
-        return []
-    for key in target.contains:
-        for item in target.contains[key]:
-            nested.append(item)
-    for key in target.sub_contains:
-        for item in target.sub_contains[key]:
-            nested.append(item)
-    return nested

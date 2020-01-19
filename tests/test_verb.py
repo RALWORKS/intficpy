@@ -2,6 +2,7 @@ import unittest
 
 from .helpers import IFPTestCase
 
+from intficpy.parser import checkObj
 from intficpy.game_info import lastTurn
 from intficpy.thing_base import Thing
 from intficpy.things import (
@@ -53,6 +54,7 @@ from intficpy.verb import (
     buyFromVerb,
     sellVerb,
     sellToVerb,
+    talkToVerb,
 )
 
 
@@ -1645,6 +1647,48 @@ class TestSellInRoomWithNoActors(IFPTestCase):
         self.assertItemIn(
             self.sale_item, self.me.contains, "Attempted to sell in room with no Actor."
         )
+
+
+class TestGetImpTalkToNobodyNear(IFPTestCase):
+    def test_get_implicit(self):
+        objects = checkObj(self.me, self.app, talkToVerb, None, None)
+        self.assertIsNone(objects)
+
+        msg = self.app.print_stack.pop()
+        self.assertEqual(
+            msg, "There's no one obvious here to talk to. ",
+        )
+
+
+class TestGetImpTalkToAmbiguous(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.actor1 = Actor("grocer")
+        self.actor2 = Actor("patron")
+        self.start_room.addThing(self.actor1)
+        self.start_room.addThing(self.actor2)
+
+    def test_get_implicit(self):
+        objects = checkObj(self.me, self.app, talkToVerb, None, None)
+        self.assertIsNone(objects)
+        msg = self.app.print_stack.pop()
+        self.assertIn("Would you like to talk to ", msg)
+
+    def test_get_implicit_with_lastTurn_dobj(self):
+        lastTurn.dobj = self.actor1
+        (dobj, iobj) = checkObj(self.me, self.app, talkToVerb, None, None)
+        self.assertIs(dobj, self.actor1)
+
+
+class TestGetImpTalkToUnambiguous(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.actor1 = Actor("grocer")
+        self.start_room.addThing(self.actor1)
+
+    def test_get_implicit(self):
+        (dobj, iobj) = checkObj(self.me, self.app, talkToVerb, None, None)
+        self.assertIs(dobj, self.actor1)
 
 
 if __name__ == "__main__":
