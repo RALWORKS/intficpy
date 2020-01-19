@@ -41,67 +41,46 @@ class SaveState:
         saveDict = {}
         self.found_items = []
         main_module = importlib.import_module(main_file)
-        creatorvars = dir(main_module)
-        saveDict["vars"] = {}
-        for var in creatorvars:
-            x = getattr(main_module, var)
-            if isinstance(x, list):
-                tmp = []
-                for item in x:
-                    tmp.append(self.simplifyAttr(item, main_module))
-                saveDict["vars"][var] = tmp
-            elif isinstance(x, dict):
-                tmp = {}
-                for k, val in x.items():
-                    tmp[k] = self.simplifyAttr(x, main_module)
-                saveDict["vars"][var] = tmp
-            elif (
-                not isinstance(x, types.ModuleType)
-                and not inspect.isclass(x)
-                and not hasattr(x, "__dict__")
-                and not var.startswith("__")
-            ):
-                saveDict["vars"][var] = x
         saveDict["score"] = {}
         for attr, value in score.__dict__.items():
             if isinstance(value, list):
                 out = []
                 for x in value:
-                    out.append(self.simplifyAttr(x, main_module))
+                    out.append(self.simplifyAttr(x))
                 saveDict["score"][attr] = out
             else:
-                saveDict["score"][attr] = self.simplifyAttr(value, main_module)
+                saveDict["score"][attr] = self.simplifyAttr(value)
         saveDict["hints"] = {}
         for attr, value in hints.__dict__.items():
             if isinstance(value, list):
                 out = []
                 for x in value:
-                    out.append(self.simplifyAttr(x, main_module))
+                    out.append(self.simplifyAttr(x))
                 saveDict["hints"][attr] = out
             else:
-                saveDict["hints"][attr] = self.simplifyAttr(value, main_module)
+                saveDict["hints"][attr] = self.simplifyAttr(value)
         for key in things.dict:
             if key not in saveDict:
                 saveDict[key] = {}
                 for attr, value in things.dict[key].__dict__.items():
-                    saveDict[key][attr] = self.simplifyAttr(value, main_module)
+                    saveDict[key][attr] = self.simplifyAttr(value)
         for key in hintnodes.dict:
             if key not in saveDict:
                 saveDict[key] = {}
                 for attr, value in hintnodes.dict[key].__dict__.items():
                     if attr == "hints":
                         continue
-                    saveDict[key][attr] = self.simplifyAttr(value, main_module)
+                    saveDict[key][attr] = self.simplifyAttr(value)
         for key in connectors.dict:
             if key not in saveDict:
                 saveDict[key] = {}
                 for attr, value in connectors.dict[key].__dict__.items():
-                    saveDict[key][attr] = self.simplifyAttr(value, main_module)
+                    saveDict[key][attr] = self.simplifyAttr(value)
         for key in actors.dict:
             if key not in saveDict:
                 saveDict[key] = {}
                 for attr, value in actors.dict[key].__dict__.items():
-                    saveDict[key][attr] = self.simplifyAttr(value, main_module)
+                    saveDict[key][attr] = self.simplifyAttr(value)
         for key in rooms.dict:
             if key not in saveDict:
                 saveDict[key] = {}
@@ -109,20 +88,20 @@ class SaveState:
                     if attr == "contains":
                         saveDict[key][attr] = self.encodeRoomContents(rooms.dict[key])
                     else:
-                        saveDict[key][attr] = self.simplifyAttr(value, main_module)
+                        saveDict[key][attr] = self.simplifyAttr(value)
         for key in achievements.dict:
             if key not in saveDict:
                 saveDict[key] = {}
                 for attr, value in achievements.dict[key].__dict__.items():
-                    saveDict[key][attr] = self.simplifyAttr(value, main_module)
+                    saveDict[key][attr] = self.simplifyAttr(value)
         for key in topics.dict:
             if key not in saveDict:
                 saveDict[key] = {}
                 for attr, value in topics.dict[key].__dict__.items():
-                    saveDict[key][attr] = self.simplifyAttr(value, main_module)
+                    saveDict[key][attr] = self.simplifyAttr(value)
         saveDict["daemons"] = []
         for item in daemons.funcs:
-            saveDict["daemons"].append(self.simplifyAttr(item, main_module))
+            saveDict["daemons"].append(self.simplifyAttr(item))
         if not "." in f:
             f = f + ".sav"
         savefile = open(f, "wb+")
@@ -142,23 +121,21 @@ class SaveState:
                     dict_out[key].append([item.ix, item_entry, False])
         return dict_out
 
-    def simplifyAttr(self, value, main_module):
+    def simplifyAttr(self, value):
         """Gets the unique key for objects that are instances of .engine classes 
 		(Thing, Actor, Achievement, Ending, Abstranct, Topic, TravelConnector, or Room)
 		and replaces user-defined functions with function names
-		Takes arguments value, (the attribute to be simplified), and main_module (the imported Python file of the current game) """
+		Takes arguments value, (the attribute to be simplified)"""
         if hasattr(value, "obj_map"):
             out = "<obj>" + value.ix
             return out
         elif isinstance(value, types.FunctionType):
-            # func = getattr(main_module, value)
             out = "<func>" + value.__name__
             return out
         elif isinstance(value, types.MethodType):
-            # func = getattr(main_module, value)
             meth_nam = value.__name__
             meth_inst = value.__self__
-            out = ["<meth>", meth_nam, self.simplifyAttr(meth_inst, main_module)]
+            out = ["<meth>", meth_nam, self.simplifyAttr(meth_inst)]
             # print(out)
             return out
         elif isinstance(value, list):
@@ -169,7 +146,6 @@ class SaveState:
                 if hasattr(val, "obj_map"):
                     out.append("<obj>" + val.ix)
                 elif isinstance(val, types.FunctionType):
-                    # func = getattr(main_module, value[x])
                     out.append("<func>" + val.__name__)
                 else:
                     out.append(val)
@@ -187,7 +163,6 @@ class SaveState:
                         if hasattr(val, "obj_map"):
                             out[key].append("<obj>" + val.ix)
                         elif isinstance(val, types.FunctionType):
-                            # func = getattr(main_module, value[key][x])
                             out[key].append("<func>" + value[key][x].__name__)
                         else:
                             out[key].append(val)
@@ -195,7 +170,6 @@ class SaveState:
                 elif hasattr(value, "obj_map"):
                     out[key] = "<obj>" + value[key].ix
                 elif isinstance(value[key], types.FunctionType):
-                    # func = getattr(main_module, value[key])
                     out[key] = "<func>" + value[key].__name__
             return out
         else:
@@ -331,37 +305,7 @@ class SaveState:
         hints.cur_node = loadDict["hints"]["cur_node"]
         if hints.cur_node:
             hints.cur_node = self.dictLookup(hints.cur_node[5:])
-        for name in loadDict["vars"]:
-            if isinstance(loadDict["vars"][name], list):
-                tmp = []
-                # print(name)
-                # print(loadDict["vars"][name])
-                for v in loadDict["vars"][name]:
-                    if isinstance(v, list):
-                        tmp2 = []
-                        for v2 in v:
-                            if "<obj>" in v2:
-                                tmp.append(self.dictLookup(v2[5:]))
-                            else:
-                                tmp.append(v2)
-                        tmp.append(tmp2)
-                    if "<obj>" in v:
-                        tmp.append(self.dictLookup(v[5:]))
-                    else:
-                        # print(v)
-                        tmp.append(v)
-                    # print(tmp)
-                    setattr(main_module, name, tmp)
-            elif isinstance(loadDict["vars"][name], dict):
-                tmp = {}
-                for k, v in loadDict["vars"][name].items():
-                    if "<obj>" in v:
-                        tmp[k] = self.dictLookup(v[5:])
-                    else:
-                        tmp[k] = v
-                    setattr(main_module, name, tmp)
-            else:
-                setattr(main_module, name, loadDict["vars"][name])
+
         daemons.funcs = []
         for value in loadDict["daemons"]:
             if value[0] == "<meth>":
@@ -453,6 +397,7 @@ class SaveState:
                         setattr(obj, key2, loadDict[key][key2])
         self.emptyRooms(loadDict)
         self.populateRooms(loadDict)
+        savefile.close()
         return True
 
     def recordOn(self, app, f):
