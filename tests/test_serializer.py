@@ -2,7 +2,7 @@ import os
 
 from .helpers import IFPTestCase
 
-from intficpy.serializer import curSave
+from intficpy.serializer import SaveGame, LoadGame
 from intficpy.thing_base import Thing
 from intficpy.things import Surface, Container
 
@@ -19,9 +19,11 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
         size = []
 
         for i in range(0, 5):
-            curSave.saveState(self.me, self.path, __name__)
+            SaveGame(self.path)
             size.append(os.path.getsize(self.path))
-            curSave.loadState(self.me, self.path, self.app, __name__)
+            l = LoadGame(self.path)
+            l.is_valid()
+            l.load()
 
         self.assertTrue(
             size[-1] - size[0] < 300,
@@ -51,7 +53,7 @@ class TestSaveLoadNested(IFPTestCase):
         self.item3.addThing(self.item4)
         self.item2.addThing(self.item5)
 
-        curSave.saveState(self.me, self.path, __name__)
+        SaveGame(self.path)
         self.start_room.removeThing(self.item1)
         self.item1.removeThing(self.item2)
         self.item2.removeThing(self.item3)
@@ -59,7 +61,9 @@ class TestSaveLoadNested(IFPTestCase):
         self.item2.removeThing(self.item5)
 
     def test_load(self):
-        curSave.loadState(self.me, self.path, self.app, __name__)
+        l = LoadGame(self.path)
+        l.is_valid()
+        l.load()
 
         self.assertItemExactlyOnceIn(
             self.item1, self.start_room.contains, "Failed to load top level item."
