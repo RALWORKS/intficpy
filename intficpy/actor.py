@@ -1,7 +1,7 @@
+from .ifp_object import IFPObject
 from .thing_base import Thing
 from . import vocab
 from .tokenizer import cleanInput, tokenize, removeArticles
-from .object_maps import actors, topics
 
 ##############################################################
 # ACTOR.PY - the Actor class for IntFicPy
@@ -14,76 +14,8 @@ class Actor(Thing):
 
     def __init__(self, name):
         """Intitializes the Actor instance and sets essential properties """
-        actors.addEntry(self)
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
-        self.invItem = False  # cannot be added to the contains
-        self.connection = None  # this should almost always be None, but setting it probably won't break anything
-        self.contains_preposition = None
+        super().__init__(name)
 
-        self.is_open = False
-        self.has_lid = False
-
-        # COMPOSITE OBJECTS
-        self.is_composite = False
-        self.parent_obj = None
-        self.lock_obj = None
-        self.children_desc = None
-        self.child_Things = []
-        self.child_Surfaces = []
-        self.child_Containers = []
-        self.child_UnderSpaces = []
-        self.children = []
-
-        self.size = 50
-        self.far_away = False
-        self.adjectives = []
-        self.synonyms = []
-        self.special_plural = False
-        self.isPlural = False
-        self.location = None
-        self.hasArticle = True
-        self.isDefinite = False
-        self.position = "standing"
-        self.contains = {}
-        self.sub_contains = {}
-        self.name = name
-        self.commodity = False
-        self.can_lead = False
-        # verbose_name is modified when adjectives are applied using the setAdjectives method of the Thing class
-        self.verbose_name = name
-        # the default description of the Actor in a room
-        self.base_desc = self.getArticle().capitalize() + name + " is here. "
-        if self.position != "standing":
-            self.desc = (
-                self.base_desc
-                + " "
-                + (self.getArticle(True) + self.name).capitalize()
-                + " is "
-                + self.position
-                + " down."
-            )
-        else:
-            self.desc = self.base_desc
-        self.base_xdesc = self.base_desc
-        if self.position != "standing":
-            self.xdesc = (
-                self.base_xdesc
-                + " "
-                + (self.getArticle(True) + self.name).capitalize()
-                + " is "
-                + self.position
-                + " down."
-            )
-        else:
-            self.desc = self.base_desc
-        self.cannotTakeMsg = "You cannot take a person."
-        # add name to the noun lookup dictionary
-        if name not in vocab.nounDict:
-            vocab.nounDict[name] = [self]
-        elif self not in vocab.nounDict[name]:
-            vocab.nounDict[name].append(self)
-        # topics for conversation
         self.for_sale = {}
         self.will_buy = {}
         self.ask_topics = {}
@@ -100,10 +32,11 @@ class Actor(Thing):
         self.manual_suggest = False
         # prints when player's question/statement does not match a topic
         self.default_topic = "No response."
-        # specifies the article to use in output
-        self.hasArticle = True
-        self.isDefinite = False
-        self.known_ix = self.ix
+
+        self.knows_about = [self.ix]
+        self.position = "standing"
+        self.commodity = False
+        self.wearing = {}
 
     def makeProper(self, proper_name):
         """Makes the name of an Actor into proper name
@@ -352,72 +285,17 @@ class Actor(Thing):
         if item.ix not in self.will_buy:
             self.will_buy[item.ix] = SaleItem(item, currency, price, max_wanted)
 
-    def getOutermostLocation(self):
-        """Gets the Actor's current room 
-		Takes argument app, pointing to the PyQt5 GUI"""
-        from .room import Room
-
-        x = self.location
-        while not isinstance(x, Room):
-            x = x.location
-        return x
-
 
 class Player(Actor):
     """Class for Player objects """
 
     def __init__(self, name):
-        """Set basic properties for the Player instance
-		Takes argument loc, a Room"""
-        actors.addEntry(self)
-        self.cannot_interact_msg = None
-        self.ignore_if_ambiguous = False
-        self.connection = None  # this should almost always be None, but setting it probably won't break anything
-        self.is_open = False
-        self.has_lid = False
-        self.contains_preposition = None
-        self.name = name
-        self.verbose_name = "yourself"
-        self.is_composite = False
-        self.invItem = False
-        self.far_away = False
-        self.cannotTakeMsg = "You cannot take yourself."
-        self.parent_obj = False
-        self.special_plural = False
-        self.size = 50
-        self.adjectives = []
-        self.synonyms = []
-        self.position = "standing"
-        self.contains = {}
-        self.sub_contains = {}
-        self.wearing = {}
-        self.inv_max = 100
+        super().__init__(name)
+
         self.desc = ""
         self.base_desc = ""
         self.xdesc = "You notice nothing remarkable about yourself. "
         self.base_xdesc = "You notice nothing remarkable about yourself. "
-        self.sticky_topic = None
-        self.hi_topic = None
-        self.return_hi_topic = None
-        self.said_hi = False
-        self.hermit_topic = None
-        self.manual_suggest = False
-        self.for_sale = {}
-        self.will_buy = {}
-        self.ask_topics = {}
-        self.tell_topics = {}
-        self.give_topics = {}
-        self.show_topics = {}
-        self.special_topics = {}
-        self.special_topics_alternate_keys = {}
-        self.default_topic = "No one responds. This should come as a relief."
-        self.isPlural = False
-        self.hasArticle = False
-        self.isDefinite = False
-        self.commodity = False
-        self.can_lead = False
-        self.known_ix = self.ix
-        self.knows_about = [self.ix]
 
     def setPlayer(self):
         self.addSynonym("me")
@@ -477,14 +355,12 @@ class Player(Actor):
             self.xdesc = self.base_xdesc + " You are lying down."
 
 
-class Topic:
+class Topic(IFPObject):
     """class for conversation topics"""
 
-    save_dict = actors
-
     def __init__(self, topic_text):
+        super().__init__
         self.text = topic_text
-        topics.addEntry(self)
         self.owner = None
 
     def func(self, app, suggest=True):
@@ -494,14 +370,14 @@ class Topic:
                 self.owner.printSuggestions(app)
 
 
-class SpecialTopic:
+class SpecialTopic(IFPObject):
     """class for conversation topics"""
 
     def __init__(self, suggestion, topic_text):
+        super().__init__()
         self.text = topic_text
         self.suggestion = suggestion
         self.alternate_phrasings = []
-        topics.addEntry(self)
         self.owner = None
 
     def func(self, app, suggest=True):
@@ -514,9 +390,9 @@ class SpecialTopic:
         self.alternate_phrasings.append(phrasing)
 
 
-class SaleItem:
+class SaleItem(IFPObject):
     def __init__(self, item, currency, price, number):
-        self.ix = item.ix
+        super().__init__()
         self.thing = item
         self.currency = currency
         self.price = price
@@ -526,7 +402,6 @@ class SaleItem:
         self.wants_no_more_msg = None
         self.purchase_msg = "You purchase " + item.lowNameArticle(False) + ". "
         self.sell_msg = "You sell " + item.lowNameArticle(True) + ". "
-        topics.addEntry(self)
 
     def buyUnit(self, me, app):
         for i in range(0, self.price):

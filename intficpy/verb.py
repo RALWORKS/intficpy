@@ -22,7 +22,7 @@ from .game_info import aboutGame, lastTurn
 from .score import score, hints
 from .daemons import daemons
 from .vocab import verbDict
-from .serializer import curSave
+from .serializer import SaveGame, LoadGame
 
 ##############################################################
 # VERB.PY - verbs for IntFicPy
@@ -3736,7 +3736,7 @@ def recordOnVerbFunc(me, app):
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
 
     f = app.getRecordFileGUI()
-    curSave.recordOn(app, f)
+    # curSave.recordOn(app, f)
 
 
 # replace the default verb function
@@ -3753,8 +3753,8 @@ recordOffVerb.preposition = ["off"]
 def recordOffVerbFunc(me, app):
     """Take all obvious invItems in the current room
 	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-
-    curSave.recordOff(app)
+    pass
+    # curSave.recordOff(app)
 
 
 # replace the default verb function

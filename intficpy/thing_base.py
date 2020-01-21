@@ -1,7 +1,7 @@
 import copy
 
+from .physical_entity import PhysicalEntity
 from .vocab import nounDict
-from .object_maps import things
 
 ##############################################################
 # THING_BASE.PY - the Thing class for IntFicPy
@@ -9,13 +9,11 @@ from .object_maps import things
 ##############################################################
 
 
-class Thing:
+class Thing(PhysicalEntity):
     """Thing is the overarching class for all items that exist in the game """
 
     def __init__(self, name):
-        """Sets essential properties for the Thing instance """
-        # indexing for save
-        things.addEntry(self)
+        super().__init__()
 
         self.known_ix = self.ix
         self.ignore_if_ambiguous = False
@@ -27,8 +25,6 @@ class Thing:
         self.direction = None
 
         # CONTENTS
-        self.contains = {}
-        self.sub_contains = {}
         # contain type flags
         self.contains_on = False
         self.contains_in = False
@@ -44,6 +40,7 @@ class Thing:
         self.revealed = False
         self.desc_reveal = True
         self.xdesc_reveal = True
+        self.contains_desc = ""
 
         # COMPOSITE OBJECTS
         self.is_composite = False
@@ -94,6 +91,7 @@ class Thing:
         # CAPABILITIES
         # can I do x with this?
         self.wearable = False
+        self.commodity = True
 
         # TODO: reevalute how this works
         # should the item take objects given to it? Irrelevant if not Actor
@@ -116,16 +114,6 @@ class Thing:
     def makeKnown(self, me):
         if self.known_ix and (not self.known_ix in me.knows_about):
             me.knows_about.append(self.known_ix)
-
-    def getOutermostLocation(self):
-        """Gets the Thing's current room 
-		Takes argument app, pointing to the PyQt5 GUI"""
-        x = self.location
-        old = self.location
-        while x:
-            old = x
-            x = x.location
-        return old
 
     def containsItem(self, item):
         """Returns True if item is in the Thing's contains or sub_contains dictionary """
@@ -242,7 +230,7 @@ class Thing:
 		The copy object is by default treated as not distinct from the original in Player knowledge (me.knows_about dictionary). 
 		To override this behaviour, manually set the copy's known_ix to its own ix property. """
         out = copy.copy(self)
-        things.addEntry(out)
+        self.registerNewIndex()
         nounDict[out.name].append(out)
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:

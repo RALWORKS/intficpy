@@ -1,7 +1,6 @@
 import string
 
 from .vocab import english
-from .serializer import curSave
 from .game_info import lastTurn
 
 ##############################################################
@@ -21,9 +20,9 @@ def cleanInput(input_string, record=True):
     input_string = "".join(ch for ch in input_string if ch not in exclude)
     if record:
         lastTurn.turn_list.append(input_string)
-        if curSave.recfile:
-            curSave.recfile.write(input_string + "\n")
-            curSave.recfile.flush()
+    #        if curSave.recfile:
+    #            curSave.recfile.write(input_string + "\n")
+    #            curSave.recfile.flush()
     return input_string
 
 

@@ -92,121 +92,6 @@ class Surface(Thing):
                 self.xdesc = self.base_xdesc + onlist
         self.contains_desc = onlist
 
-    def addThing(self, item):
-        """Add a Thing to a Surface
-		Takes argument item, pointing to a Thing"""
-        if isinstance(item, Container):
-            if item.lock_obj and (
-                item.lock_obj.ix in self.contains
-                or item.lock_obj.ix in self.sub_contains
-            ):
-                if not (
-                    item.lock_obj in self.contains[item.lock_obj.ix]
-                    or item.lock_obj in self.sub_contains[item.lock_obj.ix]
-                ):
-                    self.addThing(item.lock_obj)
-            elif item.lock_obj:
-                self.addThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if not item2 in self.contains[item2.ix]:
-                        self.addThing(item2)
-                else:
-                    self.addThing(item2)
-        item.location = self
-        # nested items
-        nested = item.getNested()
-        next_loc = self.location
-        while next_loc:
-            if not isinstance(item, Actor):
-                for t in nested:
-                    if t.ix in next_loc.sub_contains:
-                        if not t in next_loc.sub_contains[t.ix]:
-                            next_loc.sub_contains[t.ix].append(t)
-                    else:
-                        next_loc.sub_contains[t.ix] = [t]
-            if item.ix in next_loc.sub_contains:
-                if not item in next_loc.sub_contains[item.ix]:
-                    next_loc.sub_contains[item.ix].append(item)
-            else:
-                next_loc.sub_contains[item.ix] = [item]
-            next_loc = next_loc.location
-        for t in nested:
-            if not isinstance(item, Actor):
-                if t.ix in self.sub_contains:
-                    self.sub_contains[t.ix].append(t)
-                else:
-                    self.sub_contains[t.ix] = [t]
-        # top level item
-        if item.ix in self.contains:
-            self.contains[item.ix].append(item)
-        else:
-            self.contains[item.ix] = [item]
-        if item.ix in self.location.sub_contains:
-            self.location.sub_contains[item.ix].append(item)
-        else:
-            self.location.sub_contains[item.ix] = [item]
-        self.containsListUpdate()
-
-    def removeThing(self, item, update_desc=True, update_xdesc=True):
-        """Remove a Thing from a Surface """
-        if isinstance(item, Container):
-            if item.lock_obj:
-                if item.lock_obj.ix in self.contains:
-                    if item.lock_obj in self.contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-                if item.lock_obj.ix in self.sub_contains:
-                    if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if item2 in self.contains[item2.ix]:
-                        self.removeThing(item2)
-                if item2.ix in self.sub_contains:
-                    if item2 in self.sub_contains[item2.ix]:
-                        self.removeThing(item2)
-        nested = item.getNested()
-        for t in nested:
-            if t.ix in self.sub_contains:
-                if t in self.sub_contains[t.ix]:
-                    self.sub_contains[t.ix].remove(t)
-                    if self.sub_contains[t.ix] == []:
-                        del self.sub_contains[t.ix]
-        next_loc = self.location
-        while next_loc:
-            if item.ix in next_loc.sub_contains:
-                if item in next_loc.sub_contains[item.ix]:
-                    next_loc.sub_contains[item.ix].remove(item)
-                    if next_loc.sub_contains[item.ix] == []:
-                        del next_loc.sub_contains[item.ix]
-            for t in nested:
-                if t.ix in next_loc.sub_contains:
-                    if t in next_loc.sub_contains[t.ix]:
-                        next_loc.sub_contains[t.ix].remove(t)
-                        if next_loc.sub_contains[t.ix] == []:
-                            del next_loc.sub_contains[t.ix]
-            next_loc = next_loc.location
-        rval = False
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                self.contains[item.ix].remove(item)
-                if self.contains[item.ix] == []:
-                    del self.contains[item.ix]
-                rval = True
-                item.location = False
-                self.containsListUpdate(update_desc, update_xdesc)
-        if item.ix in self.sub_contains:
-            if item in self.sub_contains[item.ix]:
-                self.sub_contains[item.ix].remove(item)
-                if self.sub_contains[item.ix] == []:
-                    del self.sub_contains[item.ix]
-                rval = True
-                item.location = False
-                self.containsListUpdate(update_desc, update_xdesc)
-        return rval
-
     def compositeBaseDesc(self):
         if self.is_composite:
             if self.children_desc:
@@ -257,6 +142,14 @@ class Surface(Thing):
                     if item in self.child_UnderSpaces:
                         continue
                     self.desc = self.desc + item.desc
+        self.containsListUpdate()
+
+    def addThing(self, item):
+        super().addThing(item)
+        self.containsListUpdate()
+
+    def removeThing(self, item):
+        super().removeThing(item)
         self.containsListUpdate()
 
 
@@ -398,61 +291,13 @@ class Container(Thing):
         else:
             self.xdesc = self.base_xdesc
 
-    def addThing(self, item, update_desc=True, update_xdesc=True):
-        """Add an item to contents, update descriptions
-		Takes argument item, pointing to a Thing """
+    def addThing(self, item):
+        super().addThing(item)
+        self.containsListUpdate()
 
-        item.location = self
-        if isinstance(item, Container):
-            if item.lock_obj and (
-                item.lock_obj.ix in self.contains
-                or item.lock_obj.ix in self.sub_contains
-            ):
-                if not (
-                    item.lock_obj in self.contains[item.lock_obj.ix]
-                    or item.lock_obj in self.sub_contains[item.lock_obj.ix]
-                ):
-                    self.addThing(item.lock_obj)
-            elif item.lock_obj:
-                self.addThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if not item2 in self.contains[item2.ix]:
-                        self.addThing(item2)
-                else:
-                    self.addThing(item2)
-        # nested items
-        nested = item.getNested()
-        next_loc = self.location
-        while next_loc:
-            if not isinstance(item, Actor):
-                for t in nested:
-                    if t.ix in next_loc.sub_contains:
-                        if not t in next_loc.sub_contains[t.ix]:
-                            next_loc.sub_contains[t.ix].append(t)
-                    else:
-                        next_loc.sub_contains[t.ix] = [t]
-            if item.ix in next_loc.sub_contains:
-                if not item in next_loc.sub_contains[item.ix]:
-                    next_loc.sub_contains[item.ix].append(item)
-            else:
-                next_loc.sub_contains[item.ix] = [item]
-            next_loc = next_loc.location
-        if not isinstance(item, Actor):
-            for t in nested:
-                if t.ix in self.sub_contains:
-                    self.sub_contains[t.ix].append(t)
-                else:
-                    self.sub_contains[t.ix] = [t]
-        if item.ix in self.contains:
-            self.contains[item.ix].append(item)
-        else:
-            self.contains[item.ix] = [item]
-        if self.has_lid:
-            if not self.is_open:
-                self.hideContents()
-        self.containsListUpdate(update_desc, update_xdesc)
+    def removeThing(self, item):
+        super().removeThing(item)
+        self.containsListUpdate()
 
     def revealContents(self):
         list_version = list(self.contains.keys())
@@ -489,64 +334,6 @@ class Container(Thing):
                         if next_loc.sub_contains[item.ix] == []:
                             del next_loc.sub_contains[item.ix]
                     next_loc = next_loc.location
-
-    def removeThing(self, item, update_desc=True, update_xdesc=True):
-        """Remove an item from contents, update decription """
-        if isinstance(item, Container):
-            if item.lock_obj:
-                if item.lock_obj.ix in self.contains:
-                    if item.lock_obj in self.contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-                if item.lock_obj.ix in self.sub_contains:
-                    if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if item2 in self.contains[item2.ix]:
-                        self.removeThing(item2)
-                if item2.ix in self.sub_contains:
-                    if item2 in self.sub_contains[item2.ix]:
-                        self.removeThing(item2)
-        nested = item.getNested()
-        for t in nested:
-            if t.ix in self.sub_contains:
-                if t in self.sub_contains[t.ix]:
-                    self.sub_contains[t.ix].remove(t)
-                    if self.sub_contains[t.ix] == []:
-                        del self.sub_contains[t.ix]
-        next_loc = self.location
-        while next_loc:
-            if item.ix in next_loc.sub_contains:
-                if item in next_loc.sub_contains[item.ix]:
-                    next_loc.sub_contains[item.ix].remove(item)
-                    if next_loc.sub_contains[item.ix] == []:
-                        del next_loc.sub_contains[item.ix]
-            for t in nested:
-                if t.ix in next_loc.sub_contains:
-                    if t in next_loc.sub_contains[t.ix]:
-                        next_loc.sub_contains[t.ix].remove(t)
-                        if next_loc.sub_contains[t.ix] == []:
-                            del next_loc.sub_contains[t.ix]
-            next_loc = next_loc.location
-        rval = False
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                self.contains[item.ix].remove(item)
-                if self.contains[item.ix] == []:
-                    del self.contains[item.ix]
-                rval = True
-                item.location = False
-                self.containsListUpdate(update_desc, update_xdesc)
-        if item.ix in self.sub_contains:
-            if item in self.sub_contains[item.ix]:
-                self.sub_contains[item.ix].remove(item)
-                if self.sub_contains[item.ix] == []:
-                    del self.sub_contains[item.ix]
-                rval = True
-                item.location = False
-                self.containsListUpdate(update_desc, update_xdesc)
-        return rval
 
     def setLock(self, lock_obj):
         if isinstance(lock_obj, Lock) and self.has_lid:
@@ -1060,6 +847,14 @@ class UnderSpace(Thing):
         self.contains_desc = inlist
         return True
 
+    def addThing(self, item):
+        super().addThing(item)
+        self.containsListUpdate()
+
+    def removeThing(self, item):
+        super().removeThing(item)
+        self.containsListUpdate()
+
     def revealUnder(self):
         self.revealed = True
         self.containsListUpdate()
@@ -1117,125 +912,6 @@ class UnderSpace(Thing):
             return [out, True]
         else:
             return [out, False]
-
-    def addThing(self, item):
-        """Add an item to contents, update descriptions
-		Takes argument item, pointing to a Thing """
-        item.location = self
-        revealed = self.revealed
-        if isinstance(item, Container):
-            if item.lock_obj and (
-                item.lock_obj.ix in self.contains
-                or item.lock_obj.ix in self.sub_contains
-            ):
-                if not (
-                    item.lock_obj in self.contains[item.lock_obj.ix]
-                    or item.lock_obj in self.sub_contains[item.lock_obj.ix]
-                ):
-                    self.addThing(item.lock_obj)
-            elif item.lock_obj:
-                self.addThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if not item2 in self.contains[item2.ix]:
-                        self.addThing(item2)
-                else:
-                    self.addThing(item2)
-        # nested items
-        contentshidden = False
-        if isinstance(item, Container):
-            if item.has_lid:
-                if item.is_open == False:
-                    contentshidden = True
-        nested = item.getNested()
-        next_loc = self.location
-        if revealed:
-            while next_loc:
-                if not isinstance(item, Actor):
-                    for t in nested:
-                        if t.ix in next_loc.sub_contains:
-                            if not t in next_loc.sub_contains[t.ix]:
-                                next_loc.sub_contains[t.ix].append(t)
-                        else:
-                            next_loc.sub_contains[t.ix] = [t]
-                if item.ix in next_loc.sub_contains:
-                    if not item in next_loc.sub_contains[item.ix]:
-                        next_loc.sub_contains[item.ix].append(item)
-                else:
-                    next_loc.sub_contains[item.ix] = [item]
-                next_loc = next_loc.location
-        if not isinstance(item, Actor):
-            for t in nested:
-                if t.ix in self.sub_contains:
-                    if not t in self.sub_contains[t.ix]:
-                        self.sub_contains[t.ix].append(t)
-                else:
-                    self.sub_contains[t.ix] = [t]
-        if item.ix in self.contains:
-            self.contains[item.ix].append(item)
-        else:
-            self.contains[item.ix] = [item]
-        self.revealed = revealed
-        self.containsListUpdate()
-
-    def removeThing(self, item, update_desc=True, update_xdesc=True):
-        """Remove an item from contents, update decription """
-        if isinstance(item, Container):
-            if item.lock_obj:
-                if item.lock_obj.ix in self.contains:
-                    if item.lock_obj in self.contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-                if item.lock_obj.ix in self.sub_contains:
-                    if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if item2 in self.contains[item2.ix]:
-                        self.removeThing(item2)
-                if item2.ix in self.sub_contains:
-                    if item2 in self.sub_contains[item2.ix]:
-                        self.removeThing(item2)
-        nested = item.getNested()
-        for t in nested:
-            if t.ix in self.sub_contains:
-                if t in self.sub_contains[t.ix]:
-                    self.sub_contains[t.ix].remove(t)
-                    if self.sub_contains[t.ix] == []:
-                        del self.sub_contains[t.ix]
-        next_loc = self.location
-        while next_loc:
-            if item.ix in next_loc.sub_contains:
-                if item in next_loc.sub_contains[item.ix]:
-                    next_loc.sub_contains[item.ix].remove(item)
-                    if next_loc.sub_contains[item.ix] == []:
-                        del next_loc.sub_contains[item.ix]
-            for t in nested:
-                if t.ix in next_loc.sub_contains:
-                    if t in next_loc.sub_contains[t.ix]:
-                        next_loc.sub_contains[t.ix].remove(t)
-                        if next_loc.sub_contains[t.ix] == []:
-                            del next_loc.sub_contains[t.ix]
-            next_loc = next_loc.location
-        rval = False
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                self.contains[item.ix].remove(item)
-                if self.contains[item.ix] == []:
-                    del self.contains[item.ix]
-                rval = True
-                item.location = False
-                self.containsListUpdate(update_desc, update_xdesc)
-        if item.ix in self.sub_contains:
-            if item in self.sub_contains[item.ix]:
-                self.sub_contains[item.ix].remove(item)
-                if self.sub_contains[item.ix] == []:
-                    del self.sub_contains[item.ix]
-                rval = True
-                item.location = False
-                self.containsListUpdate(update_desc, update_xdesc)
-        return rval
 
     def describeThing(self, description):
         self.base_desc = description

@@ -1,8 +1,8 @@
+from .ifp_object import IFPObject
 from .thing_base import Thing
 from .things import Door, Lock, AbstractClimbable, Surface
 from .verb import openVerb, standUpVerb
 from .room import Room
-from .object_maps import connectors
 
 ##############################################################
 # ROOM.PY - travel functions for IntFicPy
@@ -10,12 +10,12 @@ from .object_maps import connectors
 ##############################################################
 
 
-class TravelConnector:
+class TravelConnector(IFPObject):
     """Base class for travel connectors
 	Links two rooms together"""
 
     def __init__(self, room1, direction1, room2, direction2, name="doorway", prep=0):
-        connectors.addEntry(self)
+        super().__init__()
         self.prep = prep
         self.pointA = room1
         self.pointB = room2
@@ -273,7 +273,7 @@ class DoorConnector(TravelConnector):
 	Links two rooms together"""
 
     def __init__(self, room1, direction1, room2, direction2):
-        connectors.addEntry(self)
+        self.registerNewIndex()
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = None
@@ -493,7 +493,7 @@ class LadderConnector(TravelConnector):
 	Links two rooms together"""
 
     def __init__(self, room1, room2):
-        connectors.addEntry(self)
+        self.registerNewIndex()
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = None
@@ -585,7 +585,7 @@ class StaircaseConnector(TravelConnector):
 	Links two rooms together"""
 
     def __init__(self, room1, room2):
-        connectors.addEntry(self)
+        self.registerNewIndex()
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = False

@@ -1,6 +1,7 @@
+from .physical_entity import PhysicalEntity
+from .ifp_object import IFPObject
 from .thing_base import Thing
 from .things import Container, LightSource
-from .object_maps import rooms
 
 ##############################################################
 # ROOM.PY - verbs for IntFicPy
@@ -8,14 +9,13 @@ from .object_maps import rooms
 ##############################################################
 
 
-class Room:
+class Room(PhysicalEntity):
     """Room is the overarching class for all locations in an .game """
 
     def __init__(self, name, desc):
-        """Initially set basic properties for the Room instance """
-        # indexing for save
-        rooms.addEntry(self)
-        self.location = None
+        super().__init__()
+        self.is_top_level_location = True
+
         self.discovered = False
         # area or room type
         self.room_group = None
@@ -62,8 +62,6 @@ class Room:
         self.desc = desc
         self.fulldesc = ""
         self.hasWalls = False
-        self.contains = {}
-        self.sub_contains = {}
         self.dark = False
         self.dark_desc = "It's too dark to see. "
         self.dark_msg = "It's too dark to find your way. "
@@ -132,84 +130,6 @@ class Room:
         for wall in self.walls:
             wall.known_ix = None
 
-    def addThing(self, item):
-        """Places a Thing in a Room
-		Should generally be used by game creators instead of using room.contains.append() directly """
-        from .actor import Actor
-
-        if isinstance(item, Container):
-            if item.lock_obj:
-                if item.lock_obj.ix in self.contains:
-                    if not item.lock_obj in self.contains[item.lock_obj.ix]:
-                        self.addThing(item.lock_obj)
-                else:
-                    self.addThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if not item2 in self.contains[item2.ix]:
-                        self.addThing(item2)
-                else:
-                    self.addThing(item2)
-        item.location = self
-        # nested items
-        if not isinstance(item, Actor):
-            nested = item.getNested()
-            for t in nested:
-                if t.ix in self.sub_contains:
-                    self.sub_contains[t.ix].append(t)
-                else:
-                    self.sub_contains[t.ix] = [t]
-        # top level item
-        if item.ix in self.contains:
-            self.contains[item.ix].append(item)
-        else:
-            self.contains[item.ix] = [item]
-
-    def removeThing(self, item):
-        """Removes a Thing from a Room
-		Should generally be used by game creators instead of using room.contains.remove() directly """
-        if isinstance(item, Container):
-            if item.lock_obj:
-                if item.lock_obj.ix in self.contains:
-                    if item.lock_obj in self.contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-                if item.lock_obj.ix in self.sub_contains:
-                    if item.lock_obj in self.sub_contains[item.lock_obj.ix]:
-                        self.removeThing(item.lock_obj)
-        if item.is_composite:
-            for item2 in item.children:
-                if item2.ix in self.contains:
-                    if item2 in self.contains[item2.ix]:
-                        self.removeThing(item2)
-                if item2.ix in self.sub_contains:
-                    if item2 in self.sub_contains[item2.ix]:
-                        self.removeThing(item2)
-        rval = False
-        # nested items
-        nested = item.getNested()
-        for t in nested:
-            if t.ix in self.sub_contains:
-                if t in self.sub_contains[t.ix]:
-                    self.sub_contains[t.ix].remove(t)
-                    if self.sub_contains[t.ix] == []:
-                        del self.sub_contains[t.ix]
-        # top level item
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                self.contains[item.ix].remove(item)
-                if self.contains[item.ix] == []:
-                    del self.contains[item.ix]
-                rval = True
-        if item.ix in self.sub_contains:
-            if item in self.sub_contains[item.ix]:
-                self.sub_contains[item.ix].remove(item)
-                if self.sub_contains[item.ix] == []:
-                    del self.sub_contains[item.ix]
-                rval = True
-        item.location = False
-        return rval
-
     def getLocContents(self, me):
         if len(me.location.contains.items()) > 1:
             onlist = (
@@ -244,23 +164,6 @@ class Room:
                 else:
                     onlist = onlist + ", "
             self.fulldesc = self.fulldesc + onlist
-
-    def containsItem(self, item):
-        """Returns True if item is in the Room's contains or sub_contains dictionary """
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                return True
-        if item.ix in self.sub_contains:
-            if item in self.sub_contains[item.ix]:
-                return True
-        return False
-
-    def strictContainsItem(self, item):
-        """Returns True only if item is in the Room's contains dictionary (top level)"""
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                return True
-        return False
 
     def resolveDarkness(self, me):
         can_see = True
@@ -423,68 +326,17 @@ class OutdoorRoom(Room):
     def __init__(self, name, desc):
         """Initially set basic properties for the OutdoorRoom instance """
         # indexing for save
-        rooms.addEntry(self)
-        self.location = None
-        self.discovered = False
-        # area or room type
-        self.room_group = None
-        # travel connections can be set to other Rooms after initialization
-        self.north = None
-        self.n_false_msg = "You cannot go north from here. "
-        self.n_msg = "You go north. "
-        self.northeast = None
-        self.ne_false_msg = "You cannot go northeast from here. "
-        self.ne_msg = "You go northeast. "
-        self.east = None
-        self.e_false_msg = "You cannot go east from here. "
-        self.e_msg = "You go east. "
-        self.southeast = None
-        self.se_false_msg = "You cannot go southeast from here. "
-        self.se_msg = "You go southeast. "
-        self.south = None
-        self.s_false_msg = "You cannot go south from here. "
-        self.s_msg = "You go south. "
-        self.southwest = None
-        self.sw_false_msg = "You cannot go southwest from here. "
-        self.sw_msg = "You go southwest. "
-        self.west = None
-        self.w_false_msg = "You cannot go west from here. "
-        self.w_msg = "You go west. "
-        self.northwest = None
-        self.nw_false_msg = "You cannot go northwest from here. "
-        self.nw_msg = "You go northwest. "
-        self.up = None
-        self.u_false_msg = "You cannot go up from here. "
-        self.u_msg = "You go up. "
-        self.down = None
-        self.d_false_msg = "You cannot go down from here. "
-        self.d_msg = "You go down. "
-        self.entrance = None
-        self.entrance_false_msg = "There is no obvious entrance here. "
-        self.entrance_msg = "You enter. "
-        self.exit = None
-        self.exit_false_msg = "There is no obvious exit here. "
-        self.exit_msg = "You exit. "
+        super().__init__(name, desc)
 
-        # room properties
-        self.name = name
-        self.desc = desc
-        self.fulldesc = desc
-        self.hasWalls = False
-        self.contains = {}
-        self.sub_contains = {}
-        self.dark = False
-        self.dark_desc = "It's too dark to see. "
-        self.dark_msg = "It's too dark to find your way. "
-        self.dark_visible_exits = []
+        for wall in self.walls:
+            self.removeThing(wall)
         self.walls = []
 
-        self.floor = Thing("ground")
-        self.floor.invItem = False
-        self.floor.describeThing("")
+        self.floor.addSynonym("ground")
+        self.floor.name = "ground"
+        self.floor.verbose_name = "ground"
+        self.floor.removeSynonym("floor")
         self.floor.xdescribeThing("You notice nothing remarkable about the ground. ")
-        self.addThing(self.floor)
-        self.floor.known_ix = None
 
         self.ceiling = Thing("sky")
         self.ceiling.known_ix = None
@@ -495,13 +347,11 @@ class OutdoorRoom(Room):
         self.addThing(self.ceiling)
 
 
-class RoomGroup:
+class RoomGroup(IFPObject):
     """Group similar Rooms and OutdoorRooms to modify shared features """
 
     def __init__(self):
-        # indexing
-        rooms.addEntry(self)
-        # attributes
+        super().__init__
         self.members = []
         self.ceiling = None
         self.floor = None

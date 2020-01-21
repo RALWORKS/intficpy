@@ -1,5 +1,5 @@
+from .ifp_object import IFPObject
 from .daemons import daemons
-from .object_maps import achievements, hintnodes
 from .game_info import lastTurn
 
 ##############################################################
@@ -8,13 +8,11 @@ from .game_info import lastTurn
 ##############################################################
 
 
-class Achievement:
+class Achievement(IFPObject):
     """Class for achievements in the .game"""
 
     def __init__(self, points, desc):
-        # indexing
-        achievements.addEntry(self)
-        # essential properties
+        super().__init__()
         self.points = points
         self.desc = desc
         score.possible = score.possible + self.points
@@ -32,8 +30,9 @@ class Achievement:
             score.total = score.total + self.points
 
 
-class AbstractScore:
+class AbstractScore(IFPObject):
     def __init__(self):
+        super().__init__()
         self.total = 0
         self.possible = 0
         self.achievements = []
@@ -64,9 +63,9 @@ class AbstractScore:
 score = AbstractScore()
 
 
-class Ending:
+class Ending(IFPObject):
     def __init__(self, good, title, desc):
-        achievements.addEntry(self)
+        super().__init__()
         self.good = good
         self.title = title
         self.desc = desc
@@ -77,8 +76,9 @@ class Ending:
         lastTurn.gameEnding = True
 
 
-class HintSystem:
+class HintSystem(IFPObject):
     def __init__(self):
+        super().__init__()
         self.cur_node = None
         self.stack = []
         self.pending = []
@@ -155,9 +155,9 @@ class HintSystem:
 hints = HintSystem()
 
 
-class Hint:
+class Hint(IFPObject):
     def __init__(self, text, achievement=None, cost=0):
-        hintnodes.addEntry(self)
+        super().__init__()
         self.text = text
         self.achievement = achievement
         self.cost = cost
@@ -176,9 +176,9 @@ class Hint:
         self.shown = True
 
 
-class HintNode:
+class HintNode(IFPObject):
     def __init__(self, hints):
-        hintnodes.addEntry(self)
+        super().__init__()
         self.cur_hint = 0
         self.hints = []
         self.next_node = None

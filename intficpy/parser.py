@@ -13,7 +13,6 @@ from .verb import (
 )
 from .thing_base import Thing
 from .things import Container, Surface, UnderSpace, Liquid
-from .serializer import curSave
 from .room import Room
 from .travel import directionDict
 from .game_info import aboutGame, lastTurn
@@ -1627,25 +1626,26 @@ def saveLoadCheck(input_tokens, me, app):
     Called by parseInput
     Returns a Boolean
     """
-    if input_tokens[0] == "save":
-        # app.getSaveFileGUI is not defined for terminal version
-        fname = app.getSaveFileGUI()
-        if not fname:
-            app.newBox(app.box_style1)
-            app.printToGUI("Could not save game")
-        else:
-            curSave.saveState(me, fname, aboutGame.main_file)
-            app.printToGUI("Game saved to " + fname)
-        return True
-    elif input_tokens[0] == "load":
-        fname = app.getLoadFileGUI()
-        if curSave.loadState(me, fname, app, aboutGame.main_file):
-            app.printToGUI("Game loaded from " + fname)
-        else:
-            app.printToGUI("Error loading game. Please select a valid .sav file")
-        return True
-    else:
-        return False
+    #    if input_tokens[0] == "save":
+    #        # app.getSaveFileGUI is not defined for terminal version
+    #        fname = app.getSaveFileGUI()
+    #        if not fname:
+    #            app.newBox(app.box_style1)
+    #            app.printToGUI("Could not save game")
+    #        else:
+    #            curSave.saveState(me, fname, aboutGame.main_file)
+    #            app.printToGUI("Game saved to " + fname)
+    #        return True
+    #    elif input_tokens[0] == "load":
+    #        fname = app.getLoadFileGUI()
+    #        if curSave.loadState(me, fname, app, aboutGame.main_file):
+    #            app.printToGUI("Game loaded from " + fname)
+    #        else:
+    #            app.printToGUI("Error loading game. Please select a valid .sav file")
+    #        return True
+    #    else:
+    #        return False
+    return False
 
 
 def getConvCommand(me, app, input_tokens):
