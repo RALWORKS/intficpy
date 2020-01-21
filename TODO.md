@@ -44,6 +44,7 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 
 ### Things
 + remove all contents
++ test LightSource consume daemon
 
 ### Save/Load
 + from any given save file, loading, and saving again should always produce an identical
@@ -52,6 +53,9 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
     + composite items
     + deeply nested items
     + nested dicts and arrays in custom IFP object properties
+
+### Test Hints
++ test HintSystem pending_daemon
 
 ### Test Verbs
 #### Test Movement

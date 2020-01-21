@@ -3,6 +3,7 @@ import copy
 from .vocab import nounDict
 from .actor import Actor, Player
 from .thing_base import Thing
+from .daemons import Daemon, daemons
 
 
 class Surface(Thing):
@@ -480,6 +481,8 @@ class LightSource(Thing):
         self.not_lit_desc = "It is currently not lit. "
         self.expired_desc = "It is burnt out. "
 
+        self.consumeLightSourceDaemon = Daemon(self.consumeLightSourceDaemonFunc)
+
     def describeThing(self, description):
         self.base_desc = description
         if self.is_lit:
@@ -507,10 +510,8 @@ class LightSource(Thing):
             return False
         else:
             if self.consumable:
-                # add the consumeLightSource daemon
-                from .parser import daemons
-
                 daemons.add(self.consumeLightSourceDaemon)
+
             self.is_lit = True
             self.desc = self.base_desc + self.lit_desc
             self.xdesc = self.base_xdesc + self.lit_desc
@@ -520,17 +521,13 @@ class LightSource(Thing):
             app.printToGUI(self.already_extinguished_msg)
             return True
         else:
-            if self.consumable:
-                # remove the consumeLightSource daemon
-                from .parser import daemons
-
-                if self.consumeLightSourceDaemon in daemons.funcs:
-                    daemons.remove(self.consumeLightSourceDaemon)
+            if self.consumable and self.consumeLightSourceDaemon in daemons.active:
+                daemons.remove(self.consumeLightSourceDaemon)
             self.is_lit = False
             self.desc = self.base_desc + self.not_lit_desc
             self.xdesc = self.base_xdesc + self.not_lit_desc
 
-    def consumeLightSourceDaemon(self, me, app):
+    def consumeLightSourceDaemonFunc(self, me, app):
         """Runs every turn while a consumable light source is active, to keep track of time left. """
         from .parser import lastTurn, daemons
         from .verb import helpVerb, helpVerbVerb, aboutVerb
@@ -549,7 +546,7 @@ class LightSource(Thing):
                 self.is_lit = False
                 self.desc = self.base_desc + self.expired_desc
                 self.xdesc = self.base_xdesc + self.expired_desc
-                if self.consumeLightSourceDaemon in daemons.funcs:
+                if self.consumeLightSourceDaemon in daemons.active:
                     daemons.remove(self.consumeLightSourceDaemon)
             elif me.getOutermostLocation() == self.getOutermostLocation():
                 if self.turns_left < 5:

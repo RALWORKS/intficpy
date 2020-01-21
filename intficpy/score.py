@@ -1,5 +1,5 @@
 from .ifp_object import IFPObject
-from .daemons import daemons
+from .daemons import Daemon, daemons
 from .game_info import lastTurn
 
 ##############################################################
@@ -82,16 +82,17 @@ class HintSystem(IFPObject):
         self.cur_node = None
         self.stack = []
         self.pending = []
-        self.pending_daemon = False
+        self.has_pending_daemon = False
+        self.pending_daemon = Daemon(self.checkPending)
 
     def addPending(self, node):
         if node not in self.pending:
             self.pending.append(node)
-        if self.pending and not self.pending_daemon:
+        if self.pending and not self.has_pending_daemon:
 
-            self.pending_daemon = True
-            if not self.checkPending in daemons.funcs:
-                daemons.add(self.checkPending)
+            self.has_pending_daemon = True
+            if not self.pending_daemon in daemons.active:
+                daemons.add(self.pending_daemon)
 
     def checkPending(self, me, app):
         if self.pending:
