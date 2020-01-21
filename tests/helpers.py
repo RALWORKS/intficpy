@@ -54,7 +54,9 @@ class IFPTestCase(TestCase):
     def assertItemNotIn(self, item, contains_dict, msg):
         if item.ix in contains_dict:
             self.assertNotIn(
-                item, contains_dict[ix], f"Item unexpectedly found in dictionary: {msg}"
+                item,
+                contains_dict[item.ix],
+                f"Item unexpectedly found in dictionary: {msg}",
             )
 
     def assertItemExactlyOnceIn(self, item, contains_dict, msg):
