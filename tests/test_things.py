@@ -2,8 +2,8 @@ import unittest
 
 from .helpers import IFPTestCase
 
+from intficpy.ifp_object import IFPObject
 from intficpy.thing_base import Thing
-from intficpy.object_maps import things, actors
 from intficpy.things import Surface, Container, UnderSpace, Liquid, Lock
 from intficpy.actor import Actor
 from intficpy.room import Room
@@ -20,15 +20,15 @@ def make_thing_instantiation_test(thing_class):
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            things.dict,
+            IFPObject.instances,
             f"Tried to create a {thing_class.__name__}, but index not in "
             "things obj_map",
         )
         self.assertIs(
-            things.dict[item.ix],
+            IFPObject.instances[item.ix],
             item,
             f"New {thing_class.__name__} index successfully added to "
-            f"object_map, but {things.dict[item.ix]} found under key instead of "
+            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
@@ -51,14 +51,14 @@ class TestCreateAllTypes(IFPTestCase):
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            things.dict,
+            IFPObject.instances,
             f"Tried to create a {Liquid.__name__}, but index not in things obj_map",
         )
         self.assertIs(
-            things.dict[item.ix],
+            IFPObject.instances[item.ix],
             item,
             f"New {Liquid.__name__} index successfully added to "
-            f"object_map, but {things.dict[item.ix]} found under key instead of "
+            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
@@ -67,14 +67,14 @@ class TestCreateAllTypes(IFPTestCase):
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            actors.dict,
+            IFPObject.instances,
             f"Tried to create a {Actor.__name__}, but index not in things obj_map",
         )
         self.assertIs(
-            actors.dict[item.ix],
+            IFPObject.instances[item.ix],
             item,
             f"New {Actor.__name__} index successfully added to "
-            f"object_map, but {actors.dict[item.ix]} found under key instead of "
+            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
@@ -83,14 +83,14 @@ class TestCreateAllTypes(IFPTestCase):
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            things.dict,
+            IFPObject.instances,
             f"Tried to create a {Lock.__name__}, but index not in things obj_map",
         )
         self.assertIs(
-            things.dict[item.ix],
+            IFPObject.instances[item.ix],
             item,
             f"New {Lock.__name__} index successfully added to "
-            f"object_map, but {things.dict[item.ix]} found under key instead of "
+            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
