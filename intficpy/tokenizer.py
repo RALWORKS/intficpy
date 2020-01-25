@@ -15,14 +15,13 @@ def cleanInput(input_string, record=True):
     Returns a string
     """
     input_string = input_string.lower()
-    # input_string = re.sub(r'[^\w\s]','',input_string)
     exclude = set(string.punctuation)
     input_string = "".join(ch for ch in input_string if ch not in exclude)
     if record:
         lastTurn.turn_list.append(input_string)
-    #        if curSave.recfile:
-    #            curSave.recfile.write(input_string + "\n")
-    #            curSave.recfile.flush()
+        if lastTurn.recfile:
+            lastTurn.recfile.write(input_string + "\n")
+            lastTurn.recfile.flush()
     return input_string
 
 

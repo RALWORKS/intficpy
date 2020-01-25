@@ -74,21 +74,35 @@ aboutGame = gameInfo()
 
 class TurnInfo:
     """Class of lastTurn, used for disambiguation mode """
+    def __init__(self):
+        self.things = []
+        self.ambiguous = False
+        self.err = False
+        self.verb = False
+        self.dobj = False
+        self.iobj = False
+        self.ambig_noun = None
+        self.find_by_loc = False
+        self.turn_list = []
+        self.back = 0
+        self.gameOpening = False
+        self.gameEnding = False
+        self.convNode = False
+        self.specialTopics = {}
+        self.recfile = None
+        self.turn_list = []
 
-    things = []
-    ambiguous = False
-    err = False
-    verb = False
-    dobj = False
-    iobj = False
-    ambig_noun = None
-    find_by_loc = False
-    turn_list = []
-    back = 0
-    gameOpening = False
-    gameEnding = False
-    convNode = False
-    specialTopics = {}
+    def recordOn(self, f):
+        try:
+            self.recfile = open(f, "w+")
+            return True
+        except:
+            return False
+
+    def recordOff(self):
+        if not self.recfile:
+            return
+        self.recfile.close()
 
 
-lastTurn = TurnInfo
+lastTurn = TurnInfo()

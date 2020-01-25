@@ -18,7 +18,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QIcon, QFont, QIcon
 from .things import reflexive
-from .serializer import curSave
+from .game_info import lastTurn
 from .parser import (
     parseInput,
     initGame,
@@ -132,8 +132,8 @@ class App(QMainWindow):
 
     def closeEvent(self, event):
         """Trigger program close. Close the recording file first, if open. """
-        if curSave.recfile:
-            curSave.recfile.close()
+        if lastTurn.recfile:
+            lastTurn.recfile.close()
         event.accept()
 
     def initUI(self):
@@ -215,8 +215,7 @@ class App(QMainWindow):
         self.printToGUI(t_echo)
         input_string = textboxValue.lower()
         input_string = re.sub(r"[^\w\s]", "", input_string)
-        if input_string != "save" and input_string != "load":
-            self.newBox(self.box_style1)
+        self.newBox(self.box_style1)
         self.turnMain(textboxValue)
 
     def keyPressEvent(self, event):
@@ -366,61 +365,29 @@ class App(QMainWindow):
             fname = fname + ".sav"
         return fname
 
-    def getRecordFileGUI(self):
-        """Creates a QFileDialog when the user types save, and validates the selected file name
-		Returns the file name or None"""
+    def saveFilePrompt(self, extension, filetype_desc, msg):
         cwd = os.getcwd()
         fname = QFileDialog.getSaveFileName(
-            self, "Choose where to save the record", cwd, "Text Files (*.txt)"
+            self, msg, cwd, f"{filetype_desc} (*{extension})"
         )
         fname = fname[0]
         if len(fname) == 0:
             return None
-        # add .sav extension if necessary
-        self.newBox(self.box_style1)
-        if not "." in fname:
-            fname = fname + ".txt"
-        elif (fname.index(".") - len(fname)) != -4:
-            ex_start = fname.index(".")
-            fname = fname[0:ex_start]
-            fname = fname + ".txt"
-        elif fname[-4:] != ".txt":
-            fname = fname[0:-4]
-            fname = fname + ".txt"
-        return fname
 
-    def getLoadFileGUI(self):
-        """Creates a QFileDialog when the user types load, and validates the selected file name
-		Returns the file name if extension is sav, else return None """
-        cwd = os.getcwd()
-        # fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
-        fname = QFileDialog.getOpenFileName(
-            self, "Load save file", cwd, "Save files (*.sav)"
-        )
-        fname = fname[0]
-        # add .sav extension if necessary
-        self.newBox(self.box_style1)
-        if len(fname) < 4:
-            return None
-        elif fname[-4:] == ".sav":
+        if fname.endswith(extension):
             return fname
-        else:
+
+        if "." in fname:
+            fname = fname[:fname.index(".")]
+
+        return fname + extension
+
+    def openFilePrompt(self, extension, filetype_desc, msg):
+        cwd = os.getcwd()
+        fname = QFileDialog.getOpenFileName(
+            self, msg, cwd, f"{filetype_desc} (*{extension})"
+        )
+        if not fname[0].endswith(extension):
             return None
 
-    def getPlayBackFileGUI(self):
-        """Creates a QFileDialog when the user types load, and validates the selected file name
-		Returns the file name if extension is sav, else return None """
-        cwd = os.getcwd()
-        # fname = QFileDialog.getSaveFileName(self, 'Open file', cwd,"Save files (*.sav)")
-        fname = QFileDialog.getOpenFileName(
-            self, "Select file to play back", cwd, "Text files (*.txt)"
-        )
-        fname = fname[0]
-        # add .sav extension if necessary
-        self.newBox(self.box_style1)
-        if len(fname) < 4:
-            return None
-        elif fname[-4:] == ".txt":
-            return fname
-        else:
-            return None
+        return fname[0]

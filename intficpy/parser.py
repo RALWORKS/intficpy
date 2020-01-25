@@ -1616,38 +1616,6 @@ def roomDescribe(me, app):
     out_loc = me.getOutermostLocation()
     out_loc.describe(me, app)
 
-
-# NOTE: typing "save" with no file specified currently breaks the terminal version
-def saveLoadCheck(input_tokens, me, app):
-    """
-    Checks if the player has entered a save or load command
-    Takes arguments input_tokens, the tokenized player command (list of strings), me, 
-    the player (Player object, player.py), and app, the PyQt application
-    Called by parseInput
-    Returns a Boolean
-    """
-    #    if input_tokens[0] == "save":
-    #        # app.getSaveFileGUI is not defined for terminal version
-    #        fname = app.getSaveFileGUI()
-    #        if not fname:
-    #            app.newBox(app.box_style1)
-    #            app.printToGUI("Could not save game")
-    #        else:
-    #            curSave.saveState(me, fname, aboutGame.main_file)
-    #            app.printToGUI("Game saved to " + fname)
-    #        return True
-    #    elif input_tokens[0] == "load":
-    #        fname = app.getLoadFileGUI()
-    #        if curSave.loadState(me, fname, app, aboutGame.main_file):
-    #            app.printToGUI("Game loaded from " + fname)
-    #        else:
-    #            app.printToGUI("Error loading game. Please select a valid .sav file")
-    #        return True
-    #    else:
-    #        return False
-    return False
-
-
 def getConvCommand(me, app, input_tokens):
     possible_topics = list(lastTurn.specialTopics.keys())
     for key in lastTurn.specialTopics:
@@ -1697,8 +1665,6 @@ def parseInput(me, app, input_string):
         if len(input_tokens) == 0:
             # app.printToGUI("I don't understand.")
             lastTurn.err = True
-            return 0
-        if saveLoadCheck(input_tokens, me, app):
             return 0
         if (
             input_tokens[0:2] == ["help", "verb"]
@@ -1776,7 +1742,6 @@ def initGame(me, app, main_file):
     quit = False
     aboutGame.main_file = main_file
     if not lastTurn.gameOpening == False:
-        # app.newBox(app.box_style1)
         lastTurn.gameOpening(app)
     else:
         app.newBox(app.box_style1)
@@ -1784,7 +1749,6 @@ def initGame(me, app, main_file):
     daemons.runAll(me, app)
 
 
-# NOTE: This function has not been updated recently, and may require modification to accomodate all features
 def mainLoop(me, app):
     """
     Main loop for terminal version; not used in GUI version

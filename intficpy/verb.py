@@ -3732,11 +3732,13 @@ recordOnVerb.preposition = ["on"]
 
 
 def recordOnVerbFunc(me, app):
-    """Take all obvious invItems in the current room
-	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-
-    f = app.getRecordFileGUI()
-    # curSave.recordOn(app, f)
+    f = app.saveFilePrompt(".txt", "Text files", "Enter a file to record to")
+    success = lastTurn.recordOn(f)
+    if success:
+        app.printToGUI("**RECORDING ON**")
+    else:
+        app.printToGUI("Could not open file for recording.")
+    return success
 
 
 # replace the default verb function
@@ -3751,10 +3753,8 @@ recordOffVerb.preposition = ["off"]
 
 
 def recordOffVerbFunc(me, app):
-    """Take all obvious invItems in the current room
-	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
-    pass
-    # curSave.recordOff(app)
+    lastTurn.recordOff()
+    app.printToGUI("**RECORDING OFF**")
 
 
 # replace the default verb function
@@ -3767,11 +3767,9 @@ playBackVerb.syntax = [["playback"]]
 
 
 def playBackVerbFunc(me, app):
-    """Take all obvious invItems in the current room
-	Takes arguments me, pointing to the player, app, the PyQt5 application, and dobj, a Thing """
     from .parser import parseInput
 
-    f = app.getPlayBackFileGUI()
+    f = app.openFilePrompt(".txt", "Text files", "Enter a filename for the new recording")
     if not f:
         app.printToGUI("No file selected. ")
         return False
@@ -3802,6 +3800,46 @@ leadDirVerb.hasIobj = True
 leadDirVerb.iscope = "direction"
 leadDirVerb.dscope = "room"
 leadDirVerb.dtype = "Actor"
+
+
+# SAVE
+saveVerb = Verb("save")
+saveVerb.syntax = [["save"]]
+
+def saveVerbFunc(me, app):
+    f = app.saveFilePrompt(".sav", "Save files", "Enter a file to save to")
+    
+    if f:
+        SaveGame(f)
+        app.printToGUI("Game saved.")
+        return True
+    app.printToGUI("Could not save game.")
+    return False
+
+saveVerb.verbFunc = saveVerbFunc
+
+
+# LOAD
+loadVerb = Verb("load")
+loadVerb.syntax = [["load"]]
+
+def loadVerbFunc(me, app):
+    f = app.openFilePrompt(".sav", "Save files", "Enter a file to load")
+    
+    if not f:
+        app.printToGUI("Choose a valid save file to load a game.")
+        return False
+
+    l = LoadGame(f)
+    if not l.is_valid():
+        app.printToGUI("Cannot load game file.")
+        return False
+
+    l.load()
+    app.printToGUI("Game loaded.")
+    return True
+
+loadVerb.verbFunc = loadVerbFunc
 
 
 def leadDirVerbFunc(me, app, dobj, iobj, skip=False):

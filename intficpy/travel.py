@@ -274,6 +274,7 @@ class DoorConnector(TravelConnector):
 
     def __init__(self, room1, direction1, room2, direction2):
         self.registerNewIndex()
+        self.is_top_level_location = False
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = None
@@ -494,6 +495,7 @@ class LadderConnector(TravelConnector):
 
     def __init__(self, room1, room2):
         self.registerNewIndex()
+        self.is_top_level_location = False
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = None
@@ -586,6 +588,7 @@ class StaircaseConnector(TravelConnector):
 
     def __init__(self, room1, room2):
         self.registerNewIndex()
+        self.is_top_level_location = False
         self.pointA = room1
         self.pointB = room2
         self.entranceA_msg = False
