@@ -23,14 +23,18 @@ from intficpy.travel import (
     StaircaseConnector,
 )
 from intficpy.actor import Actor, Player, Topic, SpecialTopic
-import intficpy.parser as parser
+from intficpy.ifp_game import IFPGame
 import intficpy.gui as gui
 
 app = QApplication(sys.argv)
 gui.Prelim(__name__)
 
-parser.aboutGame.setInfo("WIND AND OCEAN", "JSMaika")
-parser.aboutGame.desc = "This is a test game for the IntFicPy parser. "
+me = Player("boy")
+ex = gui.App(me)
+game = IFPGame(me, ex)
+
+game.aboutGame.setInfo("WIND AND OCEAN", "JSMaika")
+game.aboutGame.desc = "This is a test game for the IntFicPy parser. "
 
 seenshackintro = False
 
@@ -60,7 +64,7 @@ def test2(app):
 
 startroom = Room(
     "Shack interior",
-    "You are standing in a one room shack. Light filters in through a cracked, dirty window. <<shore_concept.makeKnown(me)>> <<shack_concept.makeKnown(me)>> <<shack_key_concept.makeKnown(me)>>",
+    "You are standing in a one room shack. Light filters in through a cracked, dirty window. ",
 )
 shack_concept = Abstract("shack")
 shack_key_concept = Abstract("key")
@@ -68,28 +72,26 @@ shack_key_concept.setAdjectives(["shack", "door"])
 shore_concept = Abstract("shore")
 shore_concept.addSynonym("outside")
 
-me = Player("boy")
 startroom.addThing(me)
 me.setPlayer()
 
-
-def opening(a):
-    a.printToGUI(
-        "<b>WIND AND OCEAN: by JSMaika</b><br> <<m>> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area."
+def opening(game):
+    game.app.printToGUI(
+        "<b>WIND AND OCEAN: by JSMaika</b><br> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area."
     )
 
 
-parser.lastTurn.gameOpening = opening
+game.lastTurn.gameOpening = opening
 
 
-def addCave(a):
+def addCave(game):
     cave_concept.makeKnown(me)
 
 
 scarf = Clothing("scarf")
 startroom.addThing(scarf)
 
-box = Container("box", me)
+box = Container("box", game)
 box.canStand = True
 box.canSit = True
 box.canLie = True
@@ -103,17 +105,17 @@ opal.size = 25
 
 box.addThing(opal)
 
-opaltaken = False
+me.opaltaken = False
 
 
-def takeOpalFunc(me, app):
-    global opaltaken
-    if not opaltaken:
-        app.printToGUI(
+def takeOpalFunc(game):
+    print("TAKE")
+    if not me.opaltaken:
+        game.app.printToGUI(
             "As you hold the opal in your hand, you're half-sure you can feel the air cooling around you. A shiver runs down your spine. Something is not right here."
         )
-        opaltaken = True
-        opalAchievement.award(app)
+        me.opaltaken = True
+        opalAchievement.award(game)
 
 
 opal.getVerbDobj = takeOpalFunc
@@ -125,7 +127,7 @@ startroom.addThing(bottle)
 bottle2 = bottle.copyThing()
 startroom.addThing(bottle2)
 
-bench = Surface("bench", me)
+bench = Surface("bench", game)
 bench.canSit = True
 bench.canStand = True
 # bench.invItem = True
@@ -134,7 +136,7 @@ bench.xdescribeThing(
     "The wooden bench is splintering, and faded grey. It looks very old."
 )
 startroom.addThing(bench)
-underbench = UnderSpace("space", me)
+underbench = UnderSpace("space", game)
 underbench.contains_preposition = "in"
 bench.addComposite(underbench)
 underbench.verbose_name = "space under the bench"
@@ -144,7 +146,7 @@ nails.addSynonym("can")
 nails.setAdjectives(["can", "of"])
 bench.addThing(nails)
 
-emptycan = Container("can", me)
+emptycan = Container("can", game)
 emptycan.setAdjectives(["empty", "old"])
 emptycan.size = 30
 startroom.addThing(emptycan)
@@ -154,8 +156,8 @@ beach = OutdoorRoom(
 )
 
 
-def beachEnding(me, app):
-    freeEnding.endGame(me, app)
+def beachEnding(game):
+    freeEnding.endGame(game)
     # print("hullloo")
 
 
@@ -183,19 +185,16 @@ rustykey.setAdjectives(["rusty"])
 # attic.addThing(rustykey)
 cabinlock = Lock(True, rustykey)
 
-sarahthrewkey = False
 
-
-def sarahOpalFunc(me, app, dobj):
-    global sarahthrewkey
-    if not sarahthrewkey and dobj == sarah:
-        app.printToGUI(
+def sarahOpalFunc(game, dobj):
+    if not sarah.threwkey and dobj == sarah:
+        game.app.printToGUI(
             '"Fine!" she cries. "Fine! Take the key and leave! Just get that thing away from me!" '
         )
-        app.printToGUI("Sarah flings a rusty key at you. You catch it.")
+        game.app.printToGUI("Sarah flings a rusty key at you. You catch it.")
         me.addThing(rustykey)
         keyAchievement.award(app)
-        sarahthrewkey = True
+        sarah.threwkey = True
 
 
 opal.giveVerbIobj = sarahOpalFunc
@@ -218,24 +217,20 @@ howgethere = SpecialTopic(
     "ask how you got here",
     'You ask Sarah how you got here. She bites her lip. <br> "There was a storm," she says. "Your ship crashed on shore. I brought you inside."',
 )
+sarah.threwkey = False
 
 
-def sarahDefault(app):
-    app.printToGUI(sarah.default_topic)
+def sarahDefault(game):
+    game.app.printToGUI(sarah.default_topic)
     sarah.addSpecialTopic(howgethere)
 
 
 sarah.defaultTopic = sarahDefault
 
 opalTopic = Topic(
-    '"I should never it from the cave," says Sarah. "I want nothing to do with it. If you\'re smart, you\'ll leave it where you found it." <<cave_concept.makeKnown(me)>>'
+    '"I should never it from the cave," says Sarah. "I want nothing to do with it. If you\'re smart, you\'ll leave it where you found it."'
 )
 sarah.addTopic("asktell", opalTopic, opal)
-
-opalTopic = Topic(
-    'You hold out the opal for Sarah to see. <br> She staggers backward, raising her arms to block her face. "Get that away from me!" she cries, a hint of hysteria in her voice. "Put it away. Put it away!"'
-)
-sarah.addTopic("giveshow", opalTopic, opal)
 
 shackTopic = Topic(
     '"It\'s not such a bad place, this shack," Sarah says. "It\'s warm. Safe."'
@@ -276,6 +271,6 @@ sarah.addTopic("ask", caveTopic, cave_concept)
 
 screen = app.primaryScreen()
 screen = screen.size()
-ex = gui.App(me)
+game.initGame()
 ex.show()
 sys.exit(app.exec_())

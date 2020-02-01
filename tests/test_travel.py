@@ -46,51 +46,51 @@ class TestDirectionTravel(IFPTestCase):
         self.me.location.removeThing(self.me)
         room1.addThing(self.me)
 
-        travelN(self.me, self.app)
+        travelN(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.n_false_msg)
 
-        travelNE(self.me, self.app)
+        travelNE(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.ne_false_msg)
 
-        travelE(self.me, self.app)
+        travelE(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.e_false_msg)
 
-        travelSE(self.me, self.app)
+        travelSE(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.se_false_msg)
 
-        travelS(self.me, self.app)
+        travelS(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.s_false_msg)
 
-        travelSW(self.me, self.app)
+        travelSW(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.sw_false_msg)
 
-        travelW(self.me, self.app)
+        travelW(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.w_false_msg)
 
-        travelNW(self.me, self.app)
+        travelNW(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.nw_false_msg)
 
-        travelU(self.me, self.app)
+        travelU(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.u_false_msg)
 
-        travelD(self.me, self.app)
+        travelD(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.d_false_msg)
 
-        travelIn(self.me, self.app)
+        travelIn(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.entrance_false_msg)
 
-        travelOut(self.me, self.app)
+        travelOut(self.game)
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.exit_false_msg)
 
@@ -105,7 +105,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelN(self.me, self.app)
+        travelN(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.n_msg)
 
@@ -116,7 +116,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelS(self.me, self.app)
+        travelS(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.s_msg)
 
@@ -138,7 +138,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelNE(self.me, self.app)
+        travelNE(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.ne_msg)
 
@@ -149,7 +149,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelSW(self.me, self.app)
+        travelSW(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.sw_msg)
 
@@ -171,7 +171,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelE(self.me, self.app)
+        travelE(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.e_msg)
 
@@ -182,7 +182,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelW(self.me, self.app)
+        travelW(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.w_msg)
 
@@ -204,7 +204,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelSE(self.me, self.app)
+        travelSE(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.se_msg)
 
@@ -215,7 +215,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelNW(self.me, self.app)
+        travelNW(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.nw_msg)
 
@@ -237,7 +237,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelU(self.me, self.app)
+        travelU(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.u_msg)
 
@@ -248,7 +248,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelD(self.me, self.app)
+        travelD(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.d_msg)
 
@@ -270,7 +270,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelIn(self.me, self.app)
+        travelIn(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.entrance_msg)
 
@@ -281,7 +281,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelOut(self.me, self.app)
+        travelOut(self.game)
 
         self.assertEqual(self.app.print_stack[-3], room1.exit_msg)
 
@@ -301,7 +301,7 @@ class TestTravelConnectors(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        connector.travel(self.me, self.app)
+        connector.travel(self.game)
         self.assertIs(
             self.me.location,
             room2,
@@ -309,7 +309,7 @@ class TestTravelConnectors(IFPTestCase):
             f"{self.me.location}",
         )
 
-        connector.travel(self.me, self.app)
+        connector.travel(self.game)
         self.assertIs(
             self.me.location,
             room1,

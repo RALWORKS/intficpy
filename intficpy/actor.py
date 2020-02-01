@@ -37,6 +37,8 @@ class Actor(Thing):
         self.position = "standing"
         self.commodity = False
         self.wearing = {}
+        self.invItem = False
+        self.cannotTakeMsg = "You cannot take a person. "
 
     def makeProper(self, proper_name):
         """Makes the name of an Actor into proper name
@@ -251,25 +253,23 @@ class Actor(Thing):
         self.give_topics = {}
         self.show_topics = {}
 
-    def printSuggestions(self, app):
-        from .parser import lastTurn
-
+    def printSuggestions(self, game):
         if self.special_topics != {}:
-            lastTurn.convNode = True
+            game.lastTurn.convNode = True
             for suggestion in self.special_topics:
-                app.printToGUI("(You could " + suggestion + ")")
-                lastTurn.specialTopics[suggestion] = self.special_topics[suggestion]
+                game.app.printToGUI("(You could " + suggestion + ")")
+                game.lastTurn.specialTopics[suggestion] = self.special_topics[suggestion]
             for phrasing in self.special_topics_alternate_keys:
-                lastTurn.specialTopics[phrasing] = self.special_topics_alternate_keys[
+                game.lastTurn.specialTopics[phrasing] = self.special_topics_alternate_keys[
                     phrasing
                 ]
 
-    def defaultTopic(self, app):
+    def defaultTopic(self, game):
         """The default function for an Actor's default topic
 		Should be overwritten by the game creator for an instance to create special responses
-		Takes argument app, pointing to the PyQt5 GUI"""
-        app.printToGUI(self.default_topic)
-        self.printSuggestions(app)
+		Takes argument game.app, pointing to the PyQt5 GUI"""
+        game.app.printToGUI(self.default_topic)
+        self.printSuggestions(game)
 
     def addSelling(self, item, currency, price, stock):
         """item is the Thing for sale (by the unit), currency is the Thing to offer in exchange 
@@ -363,11 +363,11 @@ class Topic(IFPObject):
         self.text = topic_text
         self.owner = None
 
-    def func(self, app, suggest=True):
-        app.printToGUI(self.text)
+    def func(self, game, suggest=True):
+        game.app.printToGUI(self.text)
         if self.owner and suggest:
             if not self.owner.manual_suggest:
-                self.owner.printSuggestions(app)
+                self.owner.printSuggestions(game)
 
 
 class SpecialTopic(IFPObject):
@@ -380,11 +380,11 @@ class SpecialTopic(IFPObject):
         self.alternate_phrasings = []
         self.owner = None
 
-    def func(self, app, suggest=True):
-        app.printToGUI(self.text)
+    def func(self, game, suggest=True):
+        game.app.printToGUI(self.text)
         if suggest and self.owner:
             if not self.owner.manual_suggest:
-                self.owner.printSuggestions(app)
+                self.owner.printSuggestions(game)
 
     def addAlternatePhrasing(self, phrasing):
         self.alternate_phrasings.append(phrasing)
@@ -403,18 +403,18 @@ class SaleItem(IFPObject):
         self.purchase_msg = "You purchase " + item.lowNameArticle(False) + ". "
         self.sell_msg = "You sell " + item.lowNameArticle(True) + ". "
 
-    def buyUnit(self, me, app):
+    def buyUnit(self, game):
         for i in range(0, self.price):
-            if self.currency.ix in me.contains:
-                me.removeThing(me.contains[self.currency.ix][0])
-            elif self.currency.ix in me.sub_contains:
-                me.removeThing(me.sub_contains[self.currency.ix][0])
+            if self.currency.ix in game.me.contains:
+                game.me.removeThing(game.me.contains[self.currency.ix][0])
+            elif self.currency.ix in game.me.sub_contains:
+                game.me.removeThing(game.me.sub_contains[self.currency.ix][0])
         if self.price > 1:
-            app.printToGUI(
+            game.app.printToGUI(
                 "(Lost: " + str(self.price) + " " + self.currency.getPlural() + ")"
             )
         else:
-            app.printToGUI(
+            game.app.printToGUI(
                 "(Lost: " + str(self.price) + " " + self.currency.verbose_name + ")"
             )
         if self.number is True:
@@ -425,33 +425,33 @@ class SaleItem(IFPObject):
             obj = self.thing
             if obj.location:
                 obj.location.removeThing(obj)
-        me.addThing(obj)
+        game.me.addThing(obj)
         if not self.number is True:
             self.number = self.number - 1
-        app.printToGUI("(Received: " + obj.verbose_name + ") ")
+        game.app.printToGUI("(Received: " + obj.verbose_name + ") ")
 
-    def afterBuy(self, me, app):
+    def afterBuy(self, game):
         pass
 
-    def beforeBuy(self, me, app):
+    def beforeBuy(self, game):
         pass
 
-    def soldOut(self, me, app):
+    def soldOut(self, game):
         pass
 
-    def sellUnit(self, me, app):
-        me.removeThing(self.thing)
-        app.printToGUI("(Lost: " + self.thing.verbose_name + ")")
+    def sellUnit(self, game):
+        game.me.removeThing(self.thing)
+        game.app.printToGUI("(Lost: " + self.thing.verbose_name + ")")
         for i in range(0, self.price):
-            me.addThing(self.currency)
+            game.me.addThing(self.currency)
         if not self.number is True:
             self.number = self.number - 1
         if self.price > 1:
-            app.printToGUI(
+            game.app.printToGUI(
                 "(Received: " + str(self.price) + " " + self.currency.getPlural() + ") "
             )
         else:
-            app.printToGUI(
+            game.app.printToGUI(
                 "(Received: "
                 + str(self.price)
                 + " "
@@ -459,11 +459,11 @@ class SaleItem(IFPObject):
                 + ") "
             )
 
-    def afterSell(self, me, app):
+    def afterSell(self, game):
         pass
 
-    def beforeSell(self, me, app):
+    def beforeSell(self, game):
         pass
 
-    def boughtAll(self, me, app):
+    def boughtAll(self, game):
         pass

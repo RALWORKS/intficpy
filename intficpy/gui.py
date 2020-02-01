@@ -18,14 +18,6 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QIcon, QFont, QIcon
 from .things import reflexive
-from .game_info import lastTurn
-from .parser import (
-    parseInput,
-    initGame,
-    daemons,
-    lastTurn,
-    extractInline,
-)
 
 ##############################################################
 # GUI.PY - the GUI for IntFicPy
@@ -123,17 +115,18 @@ class App(QMainWindow):
         self.initUI()
         self.showMaximized()
         self.me = me
-        # self.newBox(self.box_style1)
-        initGame(me, self, main_file)
+        self.newBox(self.box_style1)
+        #initGame(me, self, main_file)
         self.setStyleSheet(app_style)
         self.new_obox = False
         # used for game-interrupting cutscenes
         # populated by enterForMore()
+        self.game = None
 
     def closeEvent(self, event):
         """Trigger program close. Close the recording file first, if open. """
-        if lastTurn.recfile:
-            lastTurn.recfile.close()
+        if self.game.lastTurn.recfile:
+            self.game.lastTurn.recfile.close()
         event.accept()
 
     def initUI(self):
@@ -183,6 +176,14 @@ class App(QMainWindow):
         self.cutscene = []
         self.anykeyformore = False
 
+        self.new_obox = True
+        self.obox = QFrame()
+        self.obox.setFrameStyle(QFrame.StyledPanel)
+        self.obox.setStyleSheet(self.box_style1)
+        self.olayout = QVBoxLayout()
+        self.obox.setLayout(self.olayout)
+        self.scroll_widget_layout.addWidget(self.obox)
+
     def turnMain(self, input_string):
         """Sends user input to the parser each turn
 		Takes argument input_string, the cleaned user input string """
@@ -191,8 +192,8 @@ class App(QMainWindow):
             return 0
         else:
             # parse string
-            parseInput(self.me, self, input_string)
-            daemons.runAll(self.me, self)
+            self.game.parser.parseInput(input_string)
+            self.game.daemons.runAll(self.game)
 
     def newBox(self, box_style):
         """Creates a new QFrame to wrap text in the game output area
@@ -200,9 +201,6 @@ class App(QMainWindow):
         self.new_obox = True
         self.obox = QFrame()
         self.obox.setFrameStyle(QFrame.StyledPanel)
-        # self.olayout = QVBoxLayout()
-        # self.obox.setLayout(self.olayout)
-        # self.scroll_widget_layout.addWidget(self.obox)
         self.obox.setStyleSheet(box_style)
 
     def on_click(self):
@@ -222,34 +220,26 @@ class App(QMainWindow):
         """Maps on_click to the enter key """
         if self.anykeyformore and self.cutscene != []:
             self.cutsceneNext()
-        elif event.key() == QtCore.Qt.Key_Up and len(lastTurn.turn_list) > 0:
-            lastTurn.back = lastTurn.back - 1
-            if -lastTurn.back >= len(lastTurn.turn_list):
-                lastTurn.back = 0
-            self.textbox.setText(lastTurn.turn_list[lastTurn.back])
+        elif event.key() == QtCore.Qt.Key_Up and len(self.game.lastTurn.turn_list) > 0:
+            self.game.lastTurn.back = self.game.lastTurn.back - 1
+            if -self.game.lastTurn.back >= len(self.game.lastTurn.turn_list):
+                self.game.lastTurn.back = 0
+            self.textbox.setText(self.game.lastTurn.turn_list[self.game.lastTurn.back])
         elif (
             event.key() == QtCore.Qt.Key_Down
-            and len(lastTurn.turn_list) > 0
-            and lastTurn.back < 0
+            and len(self.game.lastTurn.turn_list) > 0
+            and self.game.lastTurn.back < 0
         ):
-            lastTurn.back = lastTurn.back + 1
-            self.textbox.setText(lastTurn.turn_list[lastTurn.back])
+            self.game.lastTurn.back = self.game.lastTurn.back + 1
+            self.textbox.setText(self.game.lastTurn.turn_list[self.game.lastTurn.back])
         elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text()) > 0:
-            lastTurn.back = 0
+            self.game.lastTurn.back = 0
             self.on_click()
 
     def printToGUI(self, out_string, bold=False):
         """Prints game output to the GUI, and scrolls down
 		Takes arguments out_string, the string to print, and bold, a Boolean which defaults to False
 		Returns True on success """
-
-        if len(self.cutscene) > 0 and not self.waiting:
-            self.waiting = True
-            self.cutscene.append(out_string)
-            return True
-        elif len(self.cutscene) > 0:
-            self.cutscene[-1] = self.cutscene[-1] + "<br>" + out_string
-            return True
         try:
             self.new_obox
         except:
@@ -261,47 +251,9 @@ class App(QMainWindow):
             self.new_obox = False
 
         out = QLabel()
+        out.setText(out_string)
         if bold:
             out.setFont(tBold)
-        # remove function calls from output
-        out_string = extractInline(self, out_string, main_file)
-        out.setText(out_string)
-        if "<<m>>" in out_string:
-            self.enterForMore(out_string)
-            return True
-        else:
-            self.olayout.addWidget(out)
-            out.setWordWrap(True)
-            out.setStyleSheet("margin-bottom: 5px")
-            out.setMaximumSize(out.sizeHint())
-            out.setMinimumSize(out.sizeHint())
-            self.obox.setMaximumSize(self.obox.sizeHint())
-            self.obox.setMinimumSize(self.obox.sizeHint())
-            vbar = self.scroll.verticalScrollBar()
-            vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
-            return True
-
-    def enterForMore(self, output_string):
-        self.cutscene = output_string.split("<<m>> ")
-        self.waiting = False
-        self.cutscene[0] = self.cutscene[0] + " [MORE]"
-        try:
-            children = self.obox.findChildren(QLabel)
-        except:
-            self.newBox(self.box_style1)
-            children = None
-        if children:
-            self.newBox(self.box_style1)
-
-        if self.new_obox:
-            self.scroll_widget_layout.addWidget(self.obox)
-            self.olayout = QVBoxLayout()
-            self.obox.setLayout(self.olayout)
-            self.new_obox = False
-
-        out = QLabel()
-        self.cutscene[0] = extractInline(self, self.cutscene[0], main_file)
-        out.setText(self.cutscene[0])
         self.olayout.addWidget(out)
         out.setWordWrap(True)
         out.setStyleSheet("margin-bottom: 5px")
@@ -311,36 +263,7 @@ class App(QMainWindow):
         self.obox.setMinimumSize(self.obox.sizeHint())
         vbar = self.scroll.verticalScrollBar()
         vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
-        del self.cutscene[0]
-        self.anykeyformore = True
-
-    def cutsceneNext(self):
-        self.anykeyformore = False
-        self.newBox(self.box_style1)
-        if self.cutscene[0] != self.cutscene[-1]:
-            self.cutscene[0] = self.cutscene[0] + " [MORE]"
-
-        if self.new_obox:
-            self.scroll_widget_layout.addWidget(self.obox)
-            self.olayout = QVBoxLayout()
-            self.obox.setLayout(self.olayout)
-            self.new_obox = False
-
-        out = QLabel()
-        self.olayout.addWidget(out)
-        out.setWordWrap(True)
-        out.setStyleSheet("margin-bottom: 5px")
-        self.cutscene[0] = extractInline(self, self.cutscene[0], main_file)
-        out.setText(self.cutscene[0])
-        out.setMaximumSize(out.sizeHint())
-        out.setMinimumSize(out.sizeHint())
-        self.obox.setMaximumSize(self.obox.sizeHint())
-        self.obox.setMinimumSize(self.obox.sizeHint())
-        vbar = self.scroll.verticalScrollBar()
-        vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
-        del self.cutscene[0]
-        if not self.cutscene == []:
-            self.anykeyformore = True
+        return True
 
     def getSaveFileGUI(self):
         """Creates a QFileDialog when the user types save, and validates the selected file name

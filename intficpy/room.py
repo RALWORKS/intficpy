@@ -130,32 +130,32 @@ class Room(PhysicalEntity):
         for wall in self.walls:
             wall.known_ix = None
 
-    def getLocContents(self, me):
-        if len(me.location.contains.items()) > 1:
+    def getLocContents(self, game):
+        if len(game.me.location.contains.items()) > 1:
             onlist = (
                 "Also "
-                + me.location.contains_preposition
+                + game.me.location.contains_preposition
                 + " "
-                + me.location.getArticle(True)
-                + me.location.verbose_name
+                + game.me.location.getArticle(True)
+                + game.me.location.verbose_name
                 + " is "
             )
             # iterate through contents, appending the verbose_name of each to onlist
-            list_version = list(me.location.contains.keys())
-            list_version.remove(me.ix)
+            list_version = list(game.me.location.contains.keys())
+            list_version.remove(game.me.ix)
             for key in list_version:
-                if len(me.location.contains[key]) > 1:
+                if len(game.me.location.contains[key]) > 1:
                     onlist = (
                         onlist
                         + str(len(things))
                         + " "
-                        + me.location.contains[key][0].verbose_name
+                        + game.me.location.contains[key][0].verbose_name
                     )
                 else:
                     onlist = (
                         onlist
-                        + me.location.contains[key][0].getArticle()
-                        + me.location.contains[key][0].verbose_name
+                        + game.me.location.contains[key][0].getArticle()
+                        + game.me.location.contains[key][0].verbose_name
                     )
                 if key is list_version[-1]:
                     onlist = onlist + "."
@@ -165,7 +165,7 @@ class Room(PhysicalEntity):
                     onlist = onlist + ", "
             self.fulldesc = self.fulldesc + onlist
 
-    def resolveDarkness(self, me):
+    def resolveDarkness(self, game):
         can_see = True
         if self.dark:
             lightsource = None
@@ -175,8 +175,8 @@ class Room(PhysicalEntity):
                         if item.is_lit:
                             lightsource = item
                             break
-            for key in me.contains:
-                for item in me.contains[key]:
+            for key in game.me.contains:
+                for item in game.me.contains[key]:
                     if isinstance(item, LightSource):
                         if item.is_lit:
                             lightsource = item
@@ -185,7 +185,7 @@ class Room(PhysicalEntity):
                 can_see = False
         return can_see
 
-    def describe(self, me, app):
+    def describe(self, game):
         """Prints the Room title and description and lists items in the Room """
         if self.dark:
             lightsource = None
@@ -195,32 +195,32 @@ class Room(PhysicalEntity):
                         if item.is_lit:
                             lightsource = item
                             break
-            for key in me.contains:
-                for item in me.contains[key]:
+            for key in game.me.contains:
+                for item in game.me.contains[key]:
                     if isinstance(item, LightSource):
                         if item.is_lit:
                             lightsource = item
                             break
             if lightsource:
-                app.printToGUI(lightsource.room_lit_msg)
+                game.app.printToGUI(lightsource.room_lit_msg)
             else:
-                app.printToGUI(self.dark_desc)
+                game.app.printToGUI(self.dark_desc)
                 return False
-        self.updateDiscovered(me, app)
-        self.arriveFunc(me, app)
+        self.updateDiscovered(game)
+        self.arriveFunc(game)
         self.fulldesc = self.desc
         desc_loc = False
         child_items = []
         for key, things in self.contains.items():
             for item in things:
-                if item == me.location:
+                if item == game.me.location:
                     desc_loc = key
                 elif item.parent_obj:
                     child_items.append(item.ix)
                 # give player "knowledge" of a thing upon having it described
-                if item.known_ix not in me.knows_about:
-                    # me.knows_about.append(item.known_ix)
-                    item.makeKnown(me)
+                if item.known_ix not in game.me.knows_about:
+                    # game.me.knows_about.append(item.known_ix)
+                    item.makeKnown(game.me)
             if desc_loc != key and key not in child_items and len(things) > 1:
                 self.fulldesc = (
                     self.fulldesc
@@ -237,15 +237,15 @@ class Room(PhysicalEntity):
             if len(self.contains[desc_loc]) > 2:
                 self.fulldesc = self.fulldesc + (
                     "You are "
-                    + me.position
+                    + game.me.position
                     + " "
-                    + me.location.contains_preposition
+                    + game.me.location.contains_preposition
                     + " "
-                    + me.location.getArticle()
-                    + me.location.verbose_name
+                    + game.me.location.getArticle()
+                    + game.me.location.verbose_name
                     + ". "
                 )
-                self.getLocContents(me)
+                self.getLocContents(game.me)
                 self.fulldesc = self.fulldesc + (
                     "There are "
                     + str(len(self.contains[desc_loc]) - 1)
@@ -256,15 +256,15 @@ class Room(PhysicalEntity):
             elif len(self.contains[desc_loc]) > 1:
                 self.fulldesc = self.fulldesc + (
                     "You are "
-                    + me.position
+                    + game.me.position
                     + " "
-                    + me.location.contains_preposition
+                    + game.me.location.contains_preposition
                     + " "
-                    + me.location.getArticle()
-                    + me.location.verbose_name
+                    + game.me.location.getArticle()
+                    + game.me.location.verbose_name
                     + ". "
                 )
-                self.getLocContents(me)
+                self.getLocContents(game)
                 self.fulldesc = self.fulldesc + (
                     "There is another "
                     + self.contains[desc_loc][0].verbose_name
@@ -273,35 +273,35 @@ class Room(PhysicalEntity):
             else:
                 self.fulldesc = self.fulldesc + (
                     "You are "
-                    + me.position
+                    + game.me.position
                     + " "
-                    + me.location.contains_preposition
+                    + game.me.location.contains_preposition
                     + " "
-                    + me.location.getArticle()
-                    + me.location.verbose_name
+                    + game.me.location.getArticle()
+                    + game.me.location.verbose_name
                     + ". "
                 )
-                self.getLocContents(me)
-        app.printToGUI("<b>" + self.name + "</b>")
-        app.printToGUI(self.fulldesc)
-        self.descFunc(me, app)
+                self.getLocContents(game)
+        game.app.printToGUI("<b>" + self.name + "</b>")
+        game.app.printToGUI(self.fulldesc)
+        self.descFunc(game)
         return True
 
-    def updateDiscovered(self, me, app):
+    def updateDiscovered(self, game):
         """Call onDiscovery if not discovered yet. Set discovered to true. """
         if not self.discovered:
-            self.onDiscover(me, app)
+            self.onDiscover(game)
             self.discovered = True
 
-    def onDiscover(self, me, app):
+    def onDiscover(self, game):
         """Operations to perform the first time the room is described. Empty by default. Override for custom events. """
         pass
 
-    def arriveFunc(self, me, app):
+    def arriveFunc(self, game):
         """Operations to perform each time the player arrives in the room, before the description is printed. Empty by default. Override for custom events. """
         pass
 
-    def descFunc(self, me, app):
+    def descFunc(self, game):
         """Operations to perform immediately after printing the room description. Empty by default. Override for custom events. """
         pass
 
@@ -316,7 +316,10 @@ class Room(PhysicalEntity):
         """
         Return the room contents as a flattened list
         """
-        return [item for ix, sublist in self.contains.items() for item in sublist]
+        return (
+            [item for ix, sublist in self.contains.items() for item in sublist]
+            + [item for ix, sublist in self.sub_contains.items() for item in sublist]
+        )
 
 
 class OutdoorRoom(Room):

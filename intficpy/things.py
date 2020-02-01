@@ -3,17 +3,17 @@ import copy
 from .vocab import nounDict
 from .actor import Actor, Player
 from .thing_base import Thing
-from .daemons import Daemon, daemons
+from .daemons import Daemon
 
 
 class Surface(Thing):
     """Class for Things that can have other Things placed on them """
 
-    def __init__(self, name, me):
+    def __init__(self, name, game):
         """Sets the essential properties for a new Surface object """
         super().__init__(name)
 
-        self._me = me
+        self._me = game.me
         self.contains_preposition = "on"
         self.contains_on = True
         self.contains_preposition_inverse = "off"
@@ -158,7 +158,7 @@ class Surface(Thing):
 class Container(Thing):
     """Things that can contain other Things """
 
-    def __init__(self, name, me):
+    def __init__(self, name, game):
         """
         Set basic properties for the Container instance
         Takes argument name, a single noun (string)
@@ -171,7 +171,7 @@ class Container(Thing):
         self.contains_in = True
         self.contains_preposition_inverse = "out"
 
-        self._me = me
+        self._me = game.me
 
     def updateDesc(self):
         self.containsListUpdate(True, True)
@@ -501,60 +501,59 @@ class LightSource(Thing):
         else:
             self.xdesc = self.base_xdesc + self.not_lit_desc
 
-    def light(self, app):
+    def light(self, game):
         if self.is_lit:
-            app.printToGUI(self.already_lit_msg)
+            game.app.printToGUI(self.already_lit_msg)
             return True
         elif self.consumable and not self.turns_left:
-            app.printToGUI(self.cannot_light_expired_msg)
+            game.app.printToGUI(self.cannot_light_expired_msg)
             return False
         else:
             if self.consumable:
-                daemons.add(self.consumeLightSourceDaemon)
+                game.daemons.add(self.consumeLightSourceDaemon)
 
             self.is_lit = True
             self.desc = self.base_desc + self.lit_desc
             self.xdesc = self.base_xdesc + self.lit_desc
 
-    def extinguish(self, app):
+    def extinguish(self, game):
         if not self.is_lit:
-            app.printToGUI(self.already_extinguished_msg)
+            game.app.printToGUI(self.already_extinguished_msg)
             return True
         else:
-            if self.consumable and self.consumeLightSourceDaemon in daemons.active:
-                daemons.remove(self.consumeLightSourceDaemon)
+            if self.consumable and self.consumeLightSourceDaemon in game.daemons.active:
+                game.daemons.remove(self.consumeLightSourceDaemon)
             self.is_lit = False
             self.desc = self.base_desc + self.not_lit_desc
             self.xdesc = self.base_xdesc + self.not_lit_desc
 
-    def consumeLightSourceDaemonFunc(self, me, app):
+    def consumeLightSourceDaemonFunc(self, game):
         """Runs every turn while a consumable light source is active, to keep track of time left. """
-        from .parser import lastTurn, daemons
         from .verb import helpVerb, helpVerbVerb, aboutVerb
 
         if not (
-            lastTurn.verb == helpVerb
-            or lastTurn.verb == helpVerbVerb
-            or lastTurn.verb == aboutVerb
-            or lastTurn.ambiguous
-            or lastTurn.err
+            game.lastTurn.verb == helpVerb
+            or game.lastTurn.verb == helpVerbVerb
+            or game.lastTurn.verb == aboutVerb
+            or game.lastTurn.ambiguous
+            or game.lastTurn.err
         ):
             self.turns_left = self.turns_left - 1
             if self.turns_left == 0:
-                if me.getOutermostLocation() == self.getOutermostLocation():
-                    app.printToGUI(self.extinguishing_expired_msg)
+                if game.me.getOutermostLocation() == self.getOutermostLocation():
+                    game.app.printToGUI(self.extinguishing_expired_msg)
                 self.is_lit = False
                 self.desc = self.base_desc + self.expired_desc
                 self.xdesc = self.base_xdesc + self.expired_desc
-                if self.consumeLightSourceDaemon in daemons.active:
-                    daemons.remove(self.consumeLightSourceDaemon)
-            elif me.getOutermostLocation() == self.getOutermostLocation():
+                if self.consumeLightSourceDaemon in game.daemons.active:
+                    game.daemons.remove(self.consumeLightSourceDaemon)
+            elif game.me.getOutermostLocation() == self.getOutermostLocation():
                 if self.turns_left < 5:
-                    app.printToGUI(
+                    game.app.printToGUI(
                         self.expiry_warning + str(self.turns_left) + " turns left. "
                     )
                 elif (self.turns_left % 5) == 0:
-                    app.printToGUI(
+                    game.app.printToGUI(
                         self.expiry_warning + str(self.turns_left) + " turns left. "
                     )
 
@@ -721,20 +720,16 @@ class Abstract(Thing):
     def __init__(self, name):
         super().__init__(name)
 
-    def makeKnown(self, me):
-        if not self.ix in me.knows_about:
-            me.knows_about.append(self.ix)
-
 
 class UnderSpace(Thing):
     """Things that can have other Things underneath """
 
-    def __init__(self, name, me):
+    def __init__(self, name, game):
         """Set basic properties for the UnderSpace instance
 		Takes argument name, a single noun (string)"""
         super().__init__(name)
 
-        self._me = me
+        self._me = game.me
         self.size = 50
         self.contains_preposition = "under"
         self.contains_under = True
@@ -949,10 +944,10 @@ class Transparent(Thing):
         """Sets essential properties for the Transparent instance """
         super().__init__(name)
 
-    def lookThrough(self, me, app):
+    def lookThrough(self, game):
         """Called when the Transparent instance is dobj for verb look through
 		Creators should overwrite for more complex behaviour """
-        app.printToGUI(self.look_through_desc)
+        game.app.printToGUI(self.look_through_desc)
 
 
 class Readable(Thing):
@@ -970,10 +965,10 @@ class Readable(Thing):
 
         self.read_desc = text  # the default description for the examine command
 
-    def readText(self, me, app):
+    def readText(self, game):
         """Called when the Transparent instance is dobj for verb look through
 		Creators should overwrite for more complex behaviour """
-        app.printToGUI(self.read_desc)
+        game.app.printToGUI(self.read_desc)
 
 
 class Book(Readable):
@@ -1006,9 +1001,9 @@ class Pressable(Thing):
         """Sets essential properties for the Pressable instance """
         super().__init__(name)
 
-    def pressThing(self, me, app):
+    def pressThing(self, game):
         """Game creators should redefine this method for their Pressable instances """
-        app.printToGUI(self.capNameArticle(True) + " has been pressed. ")
+        game.app.printToGUI(self.capNameArticle(True) + " has been pressed. ")
 
 
 class Liquid(Thing):
@@ -1096,12 +1091,12 @@ class Liquid(Thing):
                 vessel.addThing(self.liquid_for_transfer)
                 return True
 
-    def mixWith(self, me, app, base_liquid, mix_in):
+    def mixWith(self, game, base_liquid, mix_in):
         """Replace to allow mixing of specific Liquids
 		Return True when a mixture is allowed, False otherwise """
         return False
 
-    def drinkLiquid(self, me, app):
+    def drinkLiquid(self, game):
         """Replace for custom effects for drinking the Liquid """
         self.location.removeThing(self)
         return True

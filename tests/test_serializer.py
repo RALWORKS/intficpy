@@ -3,7 +3,7 @@ import os
 from .helpers import IFPTestCase
 
 from intficpy.serializer import SaveGame, LoadGame
-from intficpy.daemons import Daemon, daemons
+from intficpy.daemons import Daemon
 from intficpy.thing_base import Thing
 from intficpy.things import Surface, Container
 
@@ -31,6 +31,8 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
             f"Save files appear to be growing in size. Sizes: {size}",
         )
 
+    def tearDown(self):
+        super().tearDown()
         os.remove(self.path)
 
 
@@ -42,9 +44,9 @@ class TestSaveLoadNested(IFPTestCase):
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
 
-        self.item1 = Surface("table", self.me)
-        self.item2 = Container("box", self.me)
-        self.item3 = Container("cup", self.me)
+        self.item1 = Surface("table", self.game)
+        self.item2 = Container("box", self.game)
+        self.item3 = Container("cup", self.game)
         self.item4 = Thing("bean")
         self.item5 = Thing("spider")
 
@@ -99,8 +101,8 @@ class TestSaveLoadComplexAttribute(IFPTestCase):
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
 
-        self.item1 = Surface("table", self.me)
-        self.item2 = Container("box", self.me)
+        self.item1 = Surface("table", self.game)
+        self.item2 = Container("box", self.game)
 
         self.EXPECTED_ATTR = {
             "data": {"sarah_has_seen": True, "containers": [self.item1],},
@@ -148,11 +150,11 @@ class TestSaveLoadDaemon(IFPTestCase):
         self.initial_counter = 0
         self.daemon = Daemon(self._daemon_func)
         self.daemon.counter = 0
-        daemons.add(self.daemon)
+        self.game.daemons.add(self.daemon)
 
         SaveGame(self.path)
         self.daemon.counter = 67
-        daemons.remove(self.daemon)
+        self.game.daemons.remove(self.daemon)
 
     def _daemon_func(self, me, app):
         app.printToGUI(f"Turn #{self.daemon.counter}")
@@ -166,7 +168,7 @@ class TestSaveLoadDaemon(IFPTestCase):
             "The value to load",
         )
         self.assertNotIn(
-            self.daemon, daemons.active, "Daemon should start as inactive."
+            self.daemon, self.game.daemons.active, "Daemon should start as inactive."
         )
 
         l = LoadGame(self.path)
@@ -175,7 +177,7 @@ class TestSaveLoadDaemon(IFPTestCase):
 
         self.assertIn(
             self.daemon,
-            daemons.active,
+            self.game.daemons.active,
             "Daemon was not re-added to active after loading.",
         )
         self.assertEqual(

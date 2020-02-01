@@ -36,13 +36,19 @@ class PhysicalEntity(IFPObject):
                 self.addTopLevelContains(child)
 
         # nested items
-        nested = item.getNested()
-        for t in nested:
+        item_nested = item.getNested()
+        for t in item_nested:
             self.addSubLevelContains(t)
-
         # top level item
         item.location = self
         self.addTopLevelContains(item)
+
+        if not self.location:
+            return True
+
+        self_nested = self.getNested()
+        for t in self_nested:
+            self.location.addSubLevelContains(t)
 
     def addTopLevelContains(self, item):
         if item.ix in self.contains:
@@ -71,7 +77,14 @@ class PhysicalEntity(IFPObject):
             if self.containsItem(t):
                 self.removeContains(t)
 
-        return self.removeContains(item)
+        self.removeContains(item)
+
+        if not self.location:
+            return
+
+        self_nested = self.getNested()
+        for t in self_nested:
+            self.location.removeContains(t)
 
     def removeContains(self, item):
         if self.topLevelContainsItem(item):

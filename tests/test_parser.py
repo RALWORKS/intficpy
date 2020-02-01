@@ -5,7 +5,6 @@ from .helpers import IFPTestCase
 from intficpy.thing_base import Thing
 from intficpy.things import Surface
 from intficpy.vocab import nounDict
-from intficpy.parser import getThing, getCurVerb, getGrammarObj, callVerb
 from intficpy.verb import (
     getVerb,
     lookVerb,
@@ -23,7 +22,7 @@ class TestGetCurVerb(IFPTestCase):
 
         expected_verb_tokens = lookVerb.syntax[0]
 
-        gcv = getCurVerb(self.app, tokens)
+        gcv = self.game.parser.getCurVerb(tokens)
         found_verbs = gcv[1]
         verb = gcv[0][0]
         verb_tokens = gcv[0][1]
@@ -37,7 +36,7 @@ class TestGetCurVerb(IFPTestCase):
 
         expected_verb_tokens = getVerb.syntax[0]
 
-        gcv = getCurVerb(self.app, tokens)
+        gcv = self.game.parser.getCurVerb(tokens)
         found_verbs = gcv[1]
         verb = gcv[0][0]
         verb_tokens = gcv[0][1]
@@ -57,7 +56,7 @@ class TestGetCurVerb(IFPTestCase):
 
         expected_verb_tokens = leadDirVerb.syntax[0]
 
-        gcv = getCurVerb(self.app, tokens)
+        gcv = self.game.parser.getCurVerb(tokens)
         found_verbs = gcv[1]
         verb = gcv[0][0]
         verb_tokens = gcv[0][1]
@@ -73,7 +72,7 @@ class TestGetCurVerb(IFPTestCase):
 
         expected_verb_tokens = jumpOverVerb.syntax[0]
 
-        gcv = getCurVerb(self.app, tokens)
+        gcv = self.game.parser.getCurVerb(tokens)
         found_verbs = gcv[1]
         verb = gcv[0][0]
         verb_tokens = gcv[0][1]
@@ -89,7 +88,7 @@ class TestGetCurVerb(IFPTestCase):
 
         expected_verb_tokens = setOnVerb.syntax[0]
 
-        gcv = getCurVerb(self.app, tokens)
+        gcv = self.game.parser.getCurVerb(tokens)
         found_verbs = gcv[1]
         verb = gcv[0][0]
         verb_tokens = gcv[0][1]
@@ -104,7 +103,7 @@ class TestGetGrammarObj(IFPTestCase):
         expected_dobj = ["marvelous", "object"]
 
         tokens = self._insert_dobj_into_phrase(getVerb.syntax[0], expected_dobj)
-        ggo = getGrammarObj(self.me, self.app, getVerb, tokens, getVerb.syntax[0])
+        ggo = self.game.parser.getGrammarObj(getVerb, tokens, getVerb.syntax[0])
 
         self.assertTrue(ggo)
         (dobj, iobj) = ggo
@@ -118,7 +117,7 @@ class TestGetGrammarObj(IFPTestCase):
         tokens = self._insert_objects_into_phrase(
             setOnVerb.syntax[0], expected_dobj, expected_iobj
         )
-        ggo = getGrammarObj(self.me, self.app, setOnVerb, tokens, setOnVerb.syntax[0])
+        ggo = self.game.parser.getGrammarObj(setOnVerb, tokens, setOnVerb.syntax[0])
 
         self.assertTrue(ggo)
         (dobj, iobj) = ggo
@@ -138,7 +137,7 @@ class TestGetGrammarObj(IFPTestCase):
         tokens = self._insert_objects_into_phrase(
             giveVerb.syntax[1], expected_dobj, expected_iobj
         )
-        ggo = getGrammarObj(self.me, self.app, giveVerb, tokens, giveVerb.syntax[1])
+        ggo = self.game.parser.getGrammarObj(giveVerb, tokens, giveVerb.syntax[1])
 
         self.assertTrue(ggo)
         (dobj, iobj) = ggo
@@ -156,8 +155,8 @@ class TestGetGrammarObj(IFPTestCase):
         tokens = self._insert_objects_into_phrase(
             leadDirVerb.syntax[0], expected_dobj, expected_iobj
         )
-        ggo = getGrammarObj(
-            self.me, self.app, leadDirVerb, tokens, leadDirVerb.syntax[0]
+        ggo = self.game.parser.getGrammarObj(
+            leadDirVerb, tokens, leadDirVerb.syntax[0]
         )
 
         self.assertTrue(ggo)
@@ -182,7 +181,7 @@ class TestCallVerb(IFPTestCase):
             noun in nounDict, "Name was not added to nounDict after Thing creation"
         )
 
-        matched_item1 = getThing(self.me, self.app, [noun], "room", None, None)
+        matched_item1 = self.game.parser.getThing([noun], "room", None, None)
         self.assertIs(
             matched_item1, item1, "Failed to match item from unambiguous noun"
         )
@@ -200,13 +199,13 @@ class TestCallVerb(IFPTestCase):
         item1.setAdjectives([adj1])
         item2.setAdjectives([adj2])
 
-        matched_item1 = getThing(self.me, self.app, [noun], "room", None, None)
+        matched_item1 = self.game.parser.getThing([noun], "room", None, None)
         self.assertIsNone(
             matched_item1,
             "Matched single item with input that should have been ambiguous",
         )
 
-        matched_item1 = getThing(self.me, self.app, [adj1, noun], "room", None, None)
+        matched_item1 = self.game.parser.getThing([adj1, noun], "room", None, None)
         self.assertIs(
             matched_item1,
             item1,
@@ -217,7 +216,7 @@ class TestCallVerb(IFPTestCase):
     def test_call_verb_with_no_objects(self):
         obj_words = [None, None]
 
-        success = callVerb(self.me, self.app, lookVerb, obj_words)
+        success = self.game.parser.callVerb(lookVerb, obj_words)
         self.assertTrue(success)
 
     def test_call_verb_with_dobj(self):
@@ -228,13 +227,13 @@ class TestCallVerb(IFPTestCase):
 
         obj_words = [dobj, None]
 
-        success = callVerb(self.me, self.app, examineVerb, obj_words)
+        success = self.game.parser.callVerb(examineVerb, obj_words)
         self.assertTrue(success)
 
     def test_call_verb_with_dobj_and_iobj(self):
         dobj_item = Thing(self._get_unique_noun())
         self.start_room.addThing(dobj_item)
-        iobj_item = Surface(self._get_unique_noun(), self.me)
+        iobj_item = Surface(self._get_unique_noun(), self.game)
         self.start_room.addThing(iobj_item)
 
         dobj = [dobj_item.name]
@@ -242,7 +241,7 @@ class TestCallVerb(IFPTestCase):
 
         obj_words = [dobj, iobj]
 
-        success = callVerb(self.me, self.app, setOnVerb, obj_words)
+        success = self.game.parser.callVerb(setOnVerb, obj_words)
         self.assertTrue(success)
 
 

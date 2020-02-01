@@ -194,30 +194,30 @@ class TravelConnector(IFPObject):
                     vocab.nounDict[noun] = [self.interactables[x]]
             x = x + 1
 
-    def travel(self, me, app):
+    def travel(self, game):
         try:
-            barrier = self.barrierFunc(me, app)
+            barrier = self.barrierFunc(game)
         except:
             barrier = False
         if barrier:
             return False
-        outer_loc = me.getOutermostLocation()
+        outer_loc = game.me.getOutermostLocation()
         if not self.can_pass:
-            app.printToGUI(self.cannot_pass_msg)
+            game.app.printToGUI(self.cannot_pass_msg)
             return False
         if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
-            preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-                me.location = self.pointB
-                me.location.addThing(me)
+            preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+                game.me.location = self.pointB
+                game.me.location.addThing(game.me)
                 if self.entranceA_msg:
-                    app.printToGUI(self.entranceA_msg)
+                    game.app.printToGUI(self.entranceA_msg)
                 else:
                     if self.prep == 0:
                         x = "through "
@@ -225,28 +225,28 @@ class TravelConnector(IFPObject):
                         x = "into "
                     else:
                         x = "up "
-                    app.printToGUI(
+                    game.app.printToGUI(
                         "You go "
                         + x
                         + self.entranceA.getArticle(True)
                         + self.entranceA.name
                         + "."
                     )
-                me.location.describe(me, app)
+                game.me.location.describe(game)
                 return True
         elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
-            preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-                me.location = self.pointA
-                me.location.addThing(me)
+            preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+                game.me.location = self.pointA
+                game.me.location.addThing(game.me)
                 if self.entranceB_msg:
-                    app.printToGUI(self.entranceB_msg)
+                    game.app.printToGUI(self.entranceB_msg)
                 else:
                     if self.prep == 0:
                         x = "through "
@@ -254,17 +254,17 @@ class TravelConnector(IFPObject):
                         x = "out of "
                     else:
                         x = "down "
-                    app.printToGUI(
+                    game.app.printToGUI(
                         "You go "
                         + x
                         + self.entranceB.getArticle(True)
                         + self.entranceB.name
                         + "."
                     )
-                me.location.describe(me, app)
+                game.me.location.describe(game)
                 return True
         else:
-            app.printToGUI("You cannot go that way. ")
+            game.app.printToGUI("You cannot go that way. ")
             return False
 
 
@@ -410,82 +410,82 @@ class DoorConnector(TravelConnector):
                 + ": not a Lock "
             )
 
-    def travel(self, me, app):
-        outer_loc = me.getOutermostLocation()
-        preRemovePlayer(me, app)
+    def travel(self, game):
+        outer_loc = game.me.getOutermostLocation()
+        preRemovePlayer(game)
         if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
         else:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
 
         if not self.can_pass:
-            app.printToGUI(self.cannot_pass_msg)
+            game.app.printToGUI(self.cannot_pass_msg)
             return False
         elif outer_loc == self.pointA:
             if not self.entranceA.is_open:
-                opened = openVerb.verbFunc(me, app, self.entranceA)
+                opened = openVerb.verbFunc(game, self.entranceA)
                 if not opened:
                     return False
             try:
-                barrier = self.barrierFunc(me, app)
+                barrier = self.barrierFunc(game)
             except:
                 barrier = False
             if barrier:
                 return False
-            # preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-            me.location = self.pointB
-            me.location.addThing(me)
+            # preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+            game.me.location = self.pointB
+            game.me.location.addThing(game.me)
             if self.entranceA_msg:
-                app.printToGUI(self.entranceA_msg)
+                game.app.printToGUI(self.entranceA_msg)
             else:
-                app.printToGUI(
+                game.app.printToGUI(
                     "You go through "
                     + self.entranceA.getArticle(True)
                     + self.entranceA.verbose_name
                     + ". "
                 )
-            me.location.describe(me, app)
+            game.me.location.describe(game)
             return True
         elif outer_loc == self.pointB:
             if not self.entranceB.is_open:
-                opened = openVerb.verbFunc(me, app, self.entranceB)
+                opened = openVerb.verbFunc(game, self.entranceB)
                 if not opened:
                     return False
             try:
-                barrier = self.barrierFunc(me, app)
+                barrier = self.barrierFunc(game)
             except:
                 barrier = False
             if barrier:
                 return False
-            # preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-            me.location = self.pointA
-            me.location.addThing(me)
+            # preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+            game.me.location = self.pointA
+            game.me.location.addThing(game.me)
             if self.entranceB_msg:
-                app.printToGUI(self.entranceB_msg)
+                game.app.printToGUI(self.entranceB_msg)
             else:
-                app.printToGUI(
+                game.app.printToGUI(
                     "You go through "
                     + self.entranceB.getArticle(True)
                     + self.entranceB.verbose_name
                     + ". "
                 )
 
-            me.location.describe(me, app)
+            game.me.location.describe(game)
             return True
         else:
-            app.printToGUI("You cannot go that way. ")
+            game.app.printToGUI("You cannot go that way. ")
             return False
 
 
@@ -533,52 +533,52 @@ class LadderConnector(TravelConnector):
             else:
                 print("error: invalid direction input for LadderConnector: " + d[x])
 
-    def travel(self, me, app):
+    def travel(self, game):
         try:
-            barrier = self.barrierFunc(me, app)
+            barrier = self.barrierFunc(game)
         except:
             barrier = False
         if barrier:
             return False
-        outer_loc = me.getOutermostLocation()
+        outer_loc = game.me.getOutermostLocation()
         if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
-            preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-            me.location = self.pointB
-            me.location.addThing(me)
+            preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+            game.me.location = self.pointB
+            game.me.location.addThing(game.me)
             if self.entranceA_msg:
-                app.printToGUI(self.entranceA_msg)
+                game.app.printToGUI(self.entranceA_msg)
             else:
-                app.printToGUI("You climb the ladder. ")
+                game.app.printToGUI("You climb the ladder. ")
 
-            me.location.describe(me, app)
+            game.me.location.describe(game)
             return True
         elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
-            preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-            me.location = self.pointA
-            me.location.addThing(me)
+            preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+            game.me.location = self.pointA
+            game.me.location.addThing(game.me)
             if self.entranceB_msg:
-                app.printToGUI(self.entranceB_msg)
+                game.app.printToGUI(self.entranceB_msg)
             else:
-                app.printToGUI("You climb the ladder. ")
+                game.app.printToGUI("You climb the ladder. ")
 
-            me.location.describe(me, app)
+            game.me.location.describe(game)
             return True
         else:
-            app.printToGUI("You cannot go that way. ")
+            game.app.printToGUI("You cannot go that way. ")
             return False
 
 
@@ -631,80 +631,80 @@ class StaircaseConnector(TravelConnector):
             else:
                 print("error: invalid direction input for StaircaseConnector: " + d[x])
 
-    def travel(self, me, app):
+    def travel(self, game):
         try:
-            barrier = self.barrierFunc(me, app)
+            barrier = self.barrierFunc(game)
         except:
             barrier = False
         if barrier:
             return False
-        outer_loc = me.getOutermostLocation()
+        outer_loc = game.me.getOutermostLocation()
         if not self.can_pass:
-            app.printToGUI(self.cannot_pass_msg)
+            game.app.printToGUI(self.cannot_pass_msg)
             return False
         elif outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
-            preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-            me.location = self.pointB
-            me.location.addThing(me)
+            preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+            game.me.location = self.pointB
+            game.me.location.addThing(game.me)
             if self.entranceA_msg:
-                app.printToGUI(self.entranceA_msg)
+                game.app.printToGUI(self.entranceA_msg)
             else:
-                app.printToGUI("You climb the staircase. ")
+                game.app.printToGUI("You climb the staircase. ")
 
-            me.location.describe(me, app)
+            game.me.location.describe(game)
             return True
         elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(me) and (
+            if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                app.printToGUI(outer_loc.dark_msg)
+                game.app.printToGUI(outer_loc.dark_msg)
                 return False
-            preRemovePlayer(me, app)
-            if me.location:
-                me.location.removeThing(me)
-            me.location = self.pointA
-            me.location.addThing(me)
+            preRemovePlayer(game)
+            if game.me.location:
+                game.me.location.removeThing(game.me)
+            game.me.location = self.pointA
+            game.me.location.addThing(game.me)
             if self.entranceB_msg:
-                app.printToGUI(self.entranceB_msg)
+                game.app.printToGUI(self.entranceB_msg)
             else:
-                app.printToGUI("You climb the staircase. ")
+                game.app.printToGUI("You climb the staircase. ")
 
-            me.location.describe(me, app)
+            game.me.location.describe(game)
             return True
         else:
-            app.printToGUI("You cannot go that way. ")
+            game.app.printToGUI("You cannot go that way. ")
             return False
 
 
 # travel functions, called by getDirection in parser.py
-def preRemovePlayer(me, app):
+def preRemovePlayer(game):
     """Remove the Player from the current room
 	Called by travel functions
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    x = me.location
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    x = game.me.location
     if isinstance(x, Thing):
-        x.removeThing(me)
+        x.removeThing(game.me)
         x.containsListUpdate()
         if isinstance(x, Surface):
-            app.printToGUI(
+            game.app.printToGUI(
                 "You get off of " + x.getArticle(True) + x.verbose_name + "."
             )
         else:
-            app.printToGUI(
+            game.app.printToGUI(
                 "You get out of " + x.getArticle(True) + x.verbose_name + "."
             )
         x = x.location
         while not isinstance(x, Room):
-            x.sub_contains[me.ix].remove(me)
-            if x.sub_contains[me.ix] == []:
-                del x.sub_contains[me.ix]
+            x.sub_contains[game.me.ix].remove(game.me)
+            if x.sub_contains[game.me.ix] == []:
+                del x.sub_contains[game.me.ix]
             x = x.location
 
 
@@ -738,287 +738,287 @@ def getDirectionFromString(loc, input_string):
         return False
 
 
-def travelN(me, app):
+def travelN(game):
     """Travel north
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("n" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("n" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.north:
-        app.printToGUI(loc.n_false_msg)
+        game.app.printToGUI(loc.n_false_msg)
     elif isinstance(loc.north, TravelConnector):
-        loc.north.travel(me, app)
+        loc.north.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.north
-        me.location.addThing(me)
-        app.printToGUI(loc.n_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.north
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.n_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
-def travelNE(me, app):
+def travelNE(game):
     """Travel northeast
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("ne" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("ne" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.northeast:
-        app.printToGUI(loc.ne_false_msg)
+        game.app.printToGUI(loc.ne_false_msg)
     elif isinstance(loc.northeast, TravelConnector):
-        loc.northeast.travel(me, app)
+        loc.northeast.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.northeast
-        me.location.addThing(me)
-        app.printToGUI(loc.ne_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.northeast
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.ne_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
-def travelE(me, app):
+def travelE(game):
     """Travel east
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("e" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("e" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.east:
-        app.printToGUI(loc.e_false_msg)
+        game.app.printToGUI(loc.e_false_msg)
     elif isinstance(loc.east, TravelConnector):
-        loc.east.travel(me, app)
+        loc.east.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.east
-        me.location.addThing(me)
-        app.printToGUI(loc.e_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.east
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.e_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
-def travelSE(me, app):
+def travelSE(game):
     """Travel southeast
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("se" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("se" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.southeast:
-        app.printToGUI(loc.se_false_msg)
+        game.app.printToGUI(loc.se_false_msg)
     elif isinstance(loc.southeast, TravelConnector):
-        loc.southeast.travel(me, app)
+        loc.southeast.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.southeast
-        me.location.addThing(me)
-        app.printToGUI(loc.se_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.southeast
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.se_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
-def travelS(me, app):
+def travelS(game):
     """Travel south
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("s" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("s" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.south:
-        app.printToGUI(loc.s_false_msg)
+        game.app.printToGUI(loc.s_false_msg)
     elif isinstance(loc.south, TravelConnector):
-        loc.south.travel(me, app)
+        loc.south.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.south
-        me.location.addThing(me)
-        app.printToGUI(loc.s_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.south
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.s_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
-def travelSW(me, app):
+def travelSW(game):
     """Travel southwest
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("sw" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("sw" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.southwest:
-        app.printToGUI(loc.sw_false_msg)
+        game.app.printToGUI(loc.sw_false_msg)
     elif isinstance(loc.southwest, TravelConnector):
-        loc.southwest.travel(me, app)
+        loc.southwest.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.southwest
-        me.location.addThing(me)
-        app.printToGUI(loc.sw_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.southwest
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.sw_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
-def travelW(me, app):
+def travelW(game):
     """Travel west
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("w" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("w" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.west:
-        app.printToGUI(loc.w_false_msg)
+        game.app.printToGUI(loc.w_false_msg)
     elif isinstance(loc.west, TravelConnector):
-        loc.west.travel(me, app)
+        loc.west.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.west
-        me.location.addThing(me)
-        app.printToGUI(loc.w_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.west
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.w_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
 # travel northwest
-def travelNW(me, app):
+def travelNW(game):
     """Travel northwest
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("nw" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("nw" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.northwest:
-        app.printToGUI(loc.nw_false_msg)
+        game.app.printToGUI(loc.nw_false_msg)
     elif isinstance(loc.northwest, TravelConnector):
-        loc.northwest.travel(me, app)
+        loc.northwest.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.northwest
-        me.location.addThing(me)
-        app.printToGUI(loc.nw_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.northwest
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.nw_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
 # travel up
-def travelU(me, app):
+def travelU(game):
     """Travel upward
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("u" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("u" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.up:
-        app.printToGUI(loc.u_false_msg)
+        game.app.printToGUI(loc.u_false_msg)
     elif isinstance(loc.up, TravelConnector):
-        loc.up.travel(me, app)
+        loc.up.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.up
-        me.location.addThing(me)
-        app.printToGUI(loc.u_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.up
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.u_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
 # travel down
-def travelD(me, app):
+def travelD(game):
     """Travel downward
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("d" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("d" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.down:
-        app.printToGUI(loc.d_false_msg)
+        game.app.printToGUI(loc.d_false_msg)
     elif isinstance(loc.down, TravelConnector):
-        loc.down.travel(me, app)
+        loc.down.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.down
-        me.location.addThing(me)
-        app.printToGUI(loc.d_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.down
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.d_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
 # go out
 # synonym "exit" implemented as a verb
-def travelOut(me, app):
+def travelOut(game):
     """Travel out
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("exit" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("exit" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.exit:
-        app.printToGUI(loc.exit_false_msg)
+        game.app.printToGUI(loc.exit_false_msg)
     elif isinstance(loc.exit, TravelConnector):
-        loc.exit.travel(me, app)
+        loc.exit.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.exit
-        me.location.addThing(me)
-        app.printToGUI(loc.exit_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.exit
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.exit_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
 # go in
 # synonym "enter" implemented as a verb
-def travelIn(me, app):
+def travelIn(game):
     """Travel through entance
-	Takes arguments me, pointing to the player, and app, pointing to the GUI app """
-    loc = me.getOutermostLocation()
-    if me.position != "standing":
-        standUpVerb.verbFunc(me, app)
-    if not loc.resolveDarkness(me) and ("entrance" not in loc.dark_visible_exits):
-        app.printToGUI(loc.dark_msg)
+	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    loc = game.me.getOutermostLocation()
+    if game.me.position != "standing":
+        standUpVerb.verbFunc(game)
+    if not loc.resolveDarkness(game.me) and ("entrance" not in loc.dark_visible_exits):
+        game.app.printToGUI(loc.dark_msg)
     elif not loc.entrance:
-        app.printToGUI(loc.entrance_false_msg)
+        game.app.printToGUI(loc.entrance_false_msg)
     elif isinstance(loc.entrance, TravelConnector):
-        loc.entrance.travel(me, app)
+        loc.entrance.travel(game)
     else:
-        preRemovePlayer(me, app)
-        if me.location:
-            me.location.removeThing(me)
-        me.location = loc.entrance
-        me.location.addThing(me)
-        app.printToGUI(loc.entrance_msg)
+        preRemovePlayer(game)
+        if game.me.location:
+            game.me.location.removeThing(game.me)
+        game.me.location = loc.entrance
+        game.me.location.addThing(game.me)
+        game.app.printToGUI(loc.entrance_msg)
 
-        me.location.describe(me, app)
+        game.me.location.describe(game)
 
 
 # maps user input to travel functions

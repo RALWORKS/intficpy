@@ -4,6 +4,7 @@ import random
 from intficpy.actor import Player
 from intficpy.room import Room
 from intficpy.vocab import nounDict
+from intficpy.ifp_game import IFPGame
 
 
 class TestApp:
@@ -18,6 +19,7 @@ class IFPTestCase(TestCase):
     def setUp(self):
         self.app = TestApp()
         self.me = Player("me")
+        self.game = IFPGame(self.me, self.app)
         self.start_room = Room("room", "desc")
         self.start_room.addThing(self.me)
         self.me.setPlayer()

@@ -6,9 +6,9 @@ class DaemonManager(IFPObject):
         super().__init__()
         self.active = []
 
-    def runAll(self, me, app):
+    def runAll(self, game):
         for daemon in self.active:
-            daemon.func(me, app)
+            daemon.func(game)
 
     def add(self, daemon):
         self.active.append(daemon)
@@ -18,10 +18,6 @@ class DaemonManager(IFPObject):
         if daemon in self.active:
             self.active.remove(daemon)
             daemon.onRemove()
-
-
-daemons = DaemonManager()
-
 
 class Daemon(IFPObject):
     """

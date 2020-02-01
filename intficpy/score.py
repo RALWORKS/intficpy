@@ -1,6 +1,5 @@
 from .ifp_object import IFPObject
-from .daemons import Daemon, daemons
-from .game_info import lastTurn
+from .daemons import Daemon
 
 ##############################################################
 # SCORE.PY - achievements and score for IntFicPy
@@ -17,10 +16,11 @@ class Achievement(IFPObject):
         self.desc = desc
         score.possible = score.possible + self.points
 
-    def award(self, app):
+    def award(self, game):
         # add self to fullscore
+        print("AWARD")
         if not self in score.achievements:
-            app.printToGUI(
+            game.app.printToGUI(
                 "<b>ACHIEVEMENT:</b><br>"
                 + str(self.points)
                 + " points for "
@@ -37,8 +37,8 @@ class AbstractScore(IFPObject):
         self.possible = 0
         self.achievements = []
 
-    def score(self, app):
-        app.printToGUI(
+    def score(self, game):
+        game.app.printToGUI(
             "You have scored <b>"
             + str(self.total)
             + " points</b> out of a possible "
@@ -46,13 +46,13 @@ class AbstractScore(IFPObject):
             + ". "
         )
 
-    def fullscore(self, app):
+    def fullscore(self, game):
         if len(self.achievements) == 0:
-            app.printToGUI("You haven't scored any points so far. ")
+            game.app.printToGUI("You haven't scored any points so far. ")
         else:
-            app.printToGUI("You have scored: ")
+            game.app.printToGUI("You have scored: ")
             for achievement in self.achievements:
-                app.printToGUI(
+                game.app.printToGUI(
                     "<b>"
                     + str(achievement.points)
                     + " points</b> for "
@@ -70,10 +70,10 @@ class Ending(IFPObject):
         self.title = title
         self.desc = desc
 
-    def endGame(self, me, app):
-        app.printToGUI("<b>" + self.title + "</b>")
-        app.printToGUI(self.desc)
-        lastTurn.gameEnding = True
+    def endGame(self, game):
+        game.app.printToGUI("<b>" + self.title + "</b>")
+        game.app.printToGUI(self.desc)
+        game.lastTurn.gameEnding = True
 
 
 class HintSystem(IFPObject):
@@ -85,16 +85,16 @@ class HintSystem(IFPObject):
         self.has_pending_daemon = False
         self.pending_daemon = Daemon(self.checkPending)
 
-    def addPending(self, node):
+    def addPending(self, game, node):
         if node not in self.pending:
             self.pending.append(node)
         if self.pending and not self.has_pending_daemon:
 
             self.has_pending_daemon = True
-            if not self.pending_daemon in daemons.active:
-                daemons.add(self.pending_daemon)
+            if not self.pending_daemon in game.daemons.active:
+                game.daemons.add(self.pending_daemon)
 
-    def checkPending(self, me, app):
+    def checkPending(self, game):
         if self.pending:
             remove_nodes = []
             for node in self.pending:
@@ -106,7 +106,7 @@ class HintSystem(IFPObject):
             for node in remove_nodes:
                 self.pending.remove(node)
 
-    def setNextNodeFrom(self, node):
+    def setNextNodeFrom(self, game, node):
         x = node
         if not x:
             return False
@@ -124,7 +124,7 @@ class HintSystem(IFPObject):
                         self.stack.remove(x)
                     return False
                 if not x.checkRequiredComplete():
-                    self.addPending(x)
+                    self.addPending(game, x)
                     return False
                 else:
                     if x not in self.stack:
@@ -137,8 +137,8 @@ class HintSystem(IFPObject):
             nodes_checked.append(x)
         return False
 
-    def setNode(self, node):
-        success = self.setNextNodeFrom(node)
+    def setNode(self, game, node):
+        success = self.setNextNodeFrom(game, node)
         if not success:
             if self.stack:
                 self.cur_node = self.stack[-1]
@@ -146,11 +146,11 @@ class HintSystem(IFPObject):
                 self.cur_node = None
         return True
 
-    def closeNode(self, node):
+    def closeNode(self, game, node):
         node.complete = True
         if node in self.stack:
             self.stack.remove(node)
-        return self.setNode(node)
+        return self.setNode(game, node)
 
 
 hints = HintSystem()
@@ -164,8 +164,8 @@ class Hint(IFPObject):
         self.cost = cost
         self.shown = False
 
-    def giveHint(self, app):
-        app.printToGUI(self.text)
+    def giveHint(self, game):
+        game.app.printToGUI(self.text)
         if (
             isinstance(self.achievement, Achievement)
             and self.cost > 0
@@ -217,42 +217,41 @@ class HintNode(IFPObject):
                 return False
         self.hints = hints
 
-    def nextHint(self, app):
+    def nextHint(self, game):
         """Gives the next hint associated with the HintNode
 		Returns True if a hint can be given, False on failure """
 
         if len(self.hints) == 0:
             print("ERROR: cannot use nextHint on empty HintNode ")
             return False
-        if previousTurnHint():
+        if self.previousTurnHint(game):
             self.cur_hint += 1
         if self.cur_hint == len(self.hints):
             self.cur_hint -= 1
-        self.hints[self.cur_hint].giveHint(app)
+        self.hints[self.cur_hint].giveHint(game.app)
         t = "(Hint tier " + str(self.cur_hint + 1) + "/" + str(len(self.hints))
         if not self.cur_hint < len(self.hints) - 1:
             t += ")"
         else:
             t += " - type hint now to show next)"
-        app.printToGUI(t)
+        game.app.printToGUI(t)
         if self.cur_hint < (len(self.hints) - 1):
             if (
                 not self.hints[self.cur_hint + 1].shown
                 and self.hints[self.cur_hint + 1].achievement
             ):
                 if self.hints[self.cur_hint + 1].cost == 1:
-                    app.printToGUI("(Next tier costs 1 point)")
+                    game.app.printToGUI("(Next tier costs 1 point)")
                 else:
-                    app.printToGUI(
+                    game.app.printToGUI(
                         "(Next tier costs "
                         + str(self.hints[self.cur_hint + 1].cost)
                         + " points)"
                     )
         return True
 
+    def previousTurnHint(self, game):
 
-def previousTurnHint():
-
-    if len(lastTurn.turn_list) < 2:
-        return False
-    return lastTurn.turn_list[-2] == "hint"
+        if len(game.lastTurn.turn_list) < 2:
+            return False
+        return game.lastTurn.turn_list[-2] == "hint"
