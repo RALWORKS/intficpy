@@ -37,13 +37,12 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
             locs_keys.append(len(l.validated_data["locations"]))
             ifp_obj_keys.append(len(l.validated_data["ifp_objects"]))
 
-            if i==0:
+            if i == 0:
                 initial_obj = l.validated_data
-            elif i==4:
+            elif i == 4:
                 latest_obj = l.validated_data
 
             l.load()
-
 
         initial_obj_sizes = {}
         for key, value in initial_obj["ifp_objects"].items():
@@ -67,7 +66,7 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
                 continue
             obj_deltas[abs(value - initial_loc_sizes[key])] = (
                 initial_obj["ifp_objects"][key],
-                latest_obj["ifp_objects"][key]
+                latest_obj["ifp_objects"][key],
             )
 
         if obj_deltas:
@@ -83,7 +82,7 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
                 continue
             loc_deltas[abs(value - initial_loc_sizes[key])] = (
                 initial_obj["locations"][key],
-                latest_obj["locations"][key]
+                latest_obj["locations"][key],
             )
 
         if loc_deltas:
@@ -103,12 +102,11 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
             f"IFP_Object with greatest change in size (delta = {max_obj_delta}):\n\n"
             f"{most_changed_obj[0]}\n\n-->\n\n{most_changed_obj[1]}\n\n"
             f"Location with greatest change in size (delta = {max_loc_delta}):\n"
-            f"{most_changed_loc[0]}\n\n-->\n\n{most_changed_loc[1]}"
+            f"{most_changed_loc[0]}\n\n-->\n\n{most_changed_loc[1]}",
         )
 
         self.assertEqual(
-            initial_obj, latest_obj,
-            "Initial and final loaded data did not match."
+            initial_obj, latest_obj, "Initial and final loaded data did not match."
         )
 
     def tearDown(self):

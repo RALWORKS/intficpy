@@ -2,6 +2,7 @@ from .parser import Parser
 from .daemons import DaemonManager
 from .vocab import verbDict
 
+
 class GameInfo:
     def __init__(self):
         self.title = "IntFicPy Game"
@@ -80,7 +81,9 @@ class GameInfo:
                 verb_list = verb_list + ", "
         app.printToGUI(verb_list)
         if len(self.discovered_verbs) > 0:
-            app.printToGUI("<b>You have discovered the following additional verbs: </b>")
+            app.printToGUI(
+                "<b>You have discovered the following additional verbs: </b>"
+            )
             d_verb_list = ""
             for verb in self.discovered_verbs:
                 verb_list = verb_list + verb
@@ -89,13 +92,14 @@ class GameInfo:
             app.printToGUI(d_verb_list)
         app.printToGUI(
             'For help with phrasing, type "verb help" followed by a verb for a '
-            'complete list of acceptable sentence structures for that verb. This will '
-            'work for any verb, regardless of whether it has been discovered. '
+            "complete list of acceptable sentence structures for that verb. This will "
+            "work for any verb, regardless of whether it has been discovered. "
         )
 
 
 class TurnInfo:
     """Class of lastTurn, used for disambiguation mode """
+
     def __init__(self):
         self.things = []
         self.ambiguous = False

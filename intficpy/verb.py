@@ -203,7 +203,9 @@ def getVerbFunc(game, dobj, skip=False):
             elif not isinstance(dobj.location, Room):
                 return removeFromVerb.verbFunc(game, dobj, dobj.location)
         # print the action message
-        game.app.printToGUI("You take " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You take " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         if isinstance(dobj, UnderSpace) and not dobj.contains == {}:
             results = dobj.moveContentsOut()
             msg = results[0]
@@ -336,11 +338,15 @@ def removeFromVerbFunc(game, dobj, iobj, skip=True):
         )
         return False
     elif iobj == game.me:
-        game.app.printToGUI("You are currently holding " + dobj.lowNameArticle(True) + ". ")
+        game.app.printToGUI(
+            "You are currently holding " + dobj.lowNameArticle(True) + ". "
+        )
         return True
     if isinstance(iobj, Container):
         if not iobj.is_open:
-            game.app.printToGUI("(First trying to open " + iobj.lowNameArticle(True) + ")")
+            game.app.printToGUI(
+                "(First trying to open " + iobj.lowNameArticle(True) + ")"
+            )
             success = openVerb.verbFunc(game, iobj)
             if not success:
                 return False
@@ -430,7 +436,9 @@ def dropVerbFunc(game, dobj, skip=False):
         if container:
             dobj = container
     if dobj.invItem and game.me.removeThing(dobj):
-        game.app.printToGUI("You drop " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You drop " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         dobj.location = game.me.location
         dobj.location.addThing(dobj)
         return True
@@ -1136,7 +1144,9 @@ def lookThroughVerbFunc(game, dobj, skip=False):
         game.app.printToGUI("You cannot look through a person. ")
         return False
     else:
-        game.app.printToGUI("You cannot look through " + dobj.lowNameArticle(True) + ". ")
+        game.app.printToGUI(
+            "You cannot look through " + dobj.lowNameArticle(True) + ". "
+        )
         return False
 
 
@@ -1319,9 +1329,7 @@ def getImpTalkTo(game):
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
 
     people = Verb.disambiguateActor(
-        game,
-        "There's no one obvious here to talk to. ",
-        "Would you like to talk to ",
+        game, "There's no one obvious here to talk to. ", "Would you like to talk to ",
     )
 
     if len(people) == 0:
@@ -1681,7 +1689,9 @@ def wearVerbFunc(game, dobj, skip=False):
         game.app.printToGUI(dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Clothing):
-        game.app.printToGUI("You wear " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You wear " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         # game.me.contains.remove(dobj)
         game.me.contains[dobj.ix].remove(dobj)
         if game.me.contains[dobj.ix] == []:
@@ -1726,7 +1736,9 @@ def doffVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
 
-    game.app.printToGUI("You take off " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+    game.app.printToGUI(
+        "You take off " + dobj.getArticle(True) + dobj.verbose_name + ". "
+    )
     # game.me.contains.append(dobj)
     if dobj.ix in game.me.contains:
         game.me.contains[dobj.ix].append(dobj)
@@ -1888,7 +1900,11 @@ def standOnVerbFunc(game, dobj, skip=False):
             )
             game.me.makeStanding()
         return True
-    if game.me.location == dobj and game.me.position == "standing" and isinstance(dobj, Surface):
+    if (
+        game.me.location == dobj
+        and game.me.position == "standing"
+        and isinstance(dobj, Surface)
+    ):
         game.app.printToGUI(
             "You are already standing on "
             + dobj.getArticle(True)
@@ -1961,7 +1977,11 @@ def sitOnVerbFunc(game, dobj, skip=False):
             )
             game.me.makeSitting()
         return True
-    if game.me.location == dobj and game.me.position == "sitting" and isinstance(dobj, Surface):
+    if (
+        game.me.location == dobj
+        and game.me.position == "sitting"
+        and isinstance(dobj, Surface)
+    ):
         game.app.printToGUI(
             "You are already sitting on "
             + dobj.getArticle(True)
@@ -1969,7 +1989,9 @@ def sitOnVerbFunc(game, dobj, skip=False):
             + ". "
         )
     elif isinstance(dobj, Surface) and dobj.canSit:
-        game.app.printToGUI("You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
             if game.me.location.contains[game.me.ix] == []:
@@ -2036,7 +2058,11 @@ def lieOnVerbFunc(game, dobj):
             )
             game.me.makeLying()
         return True
-    if game.me.location == dobj and game.me.position == "lying" and isinstance(dobj, Surface):
+    if (
+        game.me.location == dobj
+        and game.me.position == "lying"
+        and isinstance(dobj, Surface)
+    ):
         game.app.printToGUI(
             "You are already lying on "
             + dobj.getArticle(True)
@@ -2044,7 +2070,9 @@ def lieOnVerbFunc(game, dobj):
             + ". "
         )
     elif isinstance(dobj, Surface) and dobj.canLie:
-        game.app.printToGUI("You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
             if game.me.location.contains[game.me.ix] == []:
@@ -2085,7 +2113,11 @@ def sitInVerbFunc(game, dobj, skip=False):
     if dobj.cannot_interact_msg:
         game.app.printToGUI(dobj.cannot_interact_msg)
         return False
-    if game.me.location == dobj and game.me.position == "sitting" and isinstance(dobj, Container):
+    if (
+        game.me.location == dobj
+        and game.me.position == "sitting"
+        and isinstance(dobj, Container)
+    ):
         game.app.printToGUI(
             "You are already sitting in "
             + dobj.getArticle(True)
@@ -2094,7 +2126,9 @@ def sitInVerbFunc(game, dobj, skip=False):
         )
         return True
     elif isinstance(dobj, Container) and dobj.canSit:
-        game.app.printToGUI("You sit in " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You sit in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
             if game.me.location.contains[game.me.ix] == []:
@@ -2198,7 +2232,11 @@ def lieInVerbFunc(game, dobj, skip=False):
     if dobj.cannot_interact_msg:
         game.app.printToGUI(dobj.cannot_interact_msg)
         return False
-    if game.me.location == dobj and game.me.position == "lying" and isinstance(dobj, Container):
+    if (
+        game.me.location == dobj
+        and game.me.position == "lying"
+        and isinstance(dobj, Container)
+    ):
         game.app.printToGUI(
             "You are already lying in "
             + dobj.getArticle(True)
@@ -2207,7 +2245,9 @@ def lieInVerbFunc(game, dobj, skip=False):
         )
         return True
     elif isinstance(dobj, Container) and dobj.canLie:
-        game.app.printToGUI("You lie in " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You lie in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
             if game.me.location.contains[game.me.ix] == []:
@@ -2640,7 +2680,9 @@ def openVerbFunc(game, dobj, skip=False):
         )
         return False
     if state == False:
-        game.app.printToGUI("You open " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You open " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         dobj.makeOpen()
         if isinstance(dobj, Container):
             lookInVerb.verbFunc(game, dobj)
@@ -2699,7 +2741,9 @@ def closeVerbFunc(game, dobj, skip=False):
         )
         return False
     if state == True:
-        game.app.printToGUI("You close " + dobj.getArticle(True) + dobj.verbose_name + ". ")
+        game.app.printToGUI(
+            "You close " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
         dobj.makeClosed()
         return True
     else:
@@ -2969,7 +3013,9 @@ def lockVerbFunc(game, dobj, skip=False):
     elif isinstance(dobj, Lock):
         if dobj.parent_obj.is_open:
             if not closeVerb.verbFunc(game, dobj.parent_obj):
-                game.app.printToGUI("Could not close " + dobj.parent_obj.verbose_name + ". ")
+                game.app.printToGUI(
+                    "Could not close " + dobj.parent_obj.verbose_name + ". "
+                )
                 return False
         if not dobj.is_locked:
             if dobj.key_obj:
@@ -3242,7 +3288,9 @@ def lockWithVerbFunc(game, dobj, iobj, skip=False):
     elif isinstance(dobj, Lock):
         if dobj.parent_obj.is_open:
             if not closeVerb.verbFunc(game, dobj.parent_obj):
-                game.app.printToGUI("Could not close " + dobj.parent_obj.verbose_name + ". ")
+                game.app.printToGUI(
+                    "Could not close " + dobj.parent_obj.verbose_name + ". "
+                )
                 return False
         if not dobj.is_locked:
             if not isinstance(iobj, Key):
@@ -3745,7 +3793,9 @@ playBackVerb.syntax = [["playback"]]
 
 
 def playBackVerbFunc(game):
-    f = game.app.openFilePrompt(".txt", "Text files", "Enter a filename for the new recording")
+    f = game.app.openFilePrompt(
+        ".txt", "Text files", "Enter a filename for the new recording"
+    )
     if not f:
         game.app.printToGUI("No file selected. ")
         return False
@@ -3782,15 +3832,17 @@ leadDirVerb.dtype = "Actor"
 saveVerb = Verb("save")
 saveVerb.syntax = [["save"]]
 
+
 def saveVerbFunc(game):
     f = game.app.saveFilePrompt(".sav", "Save files", "Enter a file to save to")
-    
+
     if f:
         SaveGame(f)
         game.app.printToGUI("Game saved.")
         return True
     game.app.printToGUI("Could not save game.")
     return False
+
 
 saveVerb.verbFunc = saveVerbFunc
 
@@ -3799,9 +3851,10 @@ saveVerb.verbFunc = saveVerbFunc
 loadVerb = Verb("load")
 loadVerb.syntax = [["load"]]
 
+
 def loadVerbFunc(game):
     f = game.app.openFilePrompt(".sav", "Save files", "Enter a file to load")
-    
+
     if not f:
         game.app.printToGUI("Choose a valid save file to load a game.")
         return False
@@ -3814,6 +3867,7 @@ def loadVerbFunc(game):
     l.load()
     game.app.printToGUI("Game loaded.")
     return True
+
 
 loadVerb.verbFunc = loadVerbFunc
 
@@ -4092,7 +4146,9 @@ def pressVerbFunc(game, dobj, skip=False):
         game.app.printToGUI("You press " + dobj.lowNameArticle(True) + ". ")
         dobj.pressThing(game)
     else:
-        game.app.printToGUI("Pressing " + dobj.lowNameArticle(True) + " has no effect. ")
+        game.app.printToGUI(
+            "Pressing " + dobj.lowNameArticle(True) + " has no effect. "
+        )
         return False
 
 
@@ -4460,7 +4516,9 @@ def fillFromVerbFunc(game, dobj, iobj, skip=False):
             return False
         else:
             if not dobj.holds_liquid:
-                game.app.printToGUI(dobj.capNameArticle(True) + " cannot hold a liquid. ")
+                game.app.printToGUI(
+                    dobj.capNameArticle(True) + " cannot hold a liquid. "
+                )
                 return False
             if dobj.has_lid:
                 if not dobj.is_open:

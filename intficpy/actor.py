@@ -258,11 +258,13 @@ class Actor(Thing):
             game.lastTurn.convNode = True
             for suggestion in self.special_topics:
                 game.app.printToGUI("(You could " + suggestion + ")")
-                game.lastTurn.specialTopics[suggestion] = self.special_topics[suggestion]
-            for phrasing in self.special_topics_alternate_keys:
-                game.lastTurn.specialTopics[phrasing] = self.special_topics_alternate_keys[
-                    phrasing
+                game.lastTurn.specialTopics[suggestion] = self.special_topics[
+                    suggestion
                 ]
+            for phrasing in self.special_topics_alternate_keys:
+                game.lastTurn.specialTopics[
+                    phrasing
+                ] = self.special_topics_alternate_keys[phrasing]
 
     def defaultTopic(self, game):
         """The default function for an Actor's default topic

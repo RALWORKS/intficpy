@@ -19,6 +19,7 @@ class DaemonManager(IFPObject):
             self.active.remove(daemon)
             daemon.onRemove()
 
+
 class Daemon(IFPObject):
     """
     While active, a Daemon's func is run every turn.

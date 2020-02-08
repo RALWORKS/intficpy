@@ -75,6 +75,7 @@ shore_concept.addSynonym("outside")
 startroom.addThing(me)
 me.setPlayer()
 
+
 def opening(game):
     game.app.printToGUI(
         "<b>WIND AND OCEAN: by JSMaika</b><br> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area."

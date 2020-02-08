@@ -65,7 +65,6 @@ class Parser:
         else:
             return False
 
-
     def getCurVerb(self, input_tokens):
         """
         Identify the verb
@@ -90,13 +89,14 @@ class Parser:
                 )
                 self.game.lastTurn.err = True
             elif not self.game.lastTurn.ambiguous:
-                self.game.app.printToGUI("I don't understand the verb: " + input_tokens[0])
+                self.game.app.printToGUI(
+                    "I don't understand the verb: " + input_tokens[0]
+                )
                 self.game.lastTurn.err = True
             return [None, False]
         vbo = self.verbByObjects(input_tokens, verbs)
         found_verbs = bool(verbs)
         return [vbo, found_verbs]
-
 
     def verbByObjects(self, input_tokens, verbs):
         """
@@ -189,7 +189,9 @@ class Parser:
                     removeMatch.append(pair)
                 elif (not verb.impIobj) and (ibool != verb.hasIobj):
                     removeMatch.append(pair)
-                elif (verb.dscope == "direction" and not self.directionRangeCheck(dobj)) or (
+                elif (
+                    verb.dscope == "direction" and not self.directionRangeCheck(dobj)
+                ) or (
                     verb.iscope == "direction" and not self.directionRangeCheck(iobj)
                 ):
                     removeMatch.append(pair)
@@ -242,7 +244,6 @@ class Parser:
                 self.game.lastTurn.err = True
                 return None
 
-
     def checkExtra(self, verb_form, dobj, iobj, input_tokens):
         """
         Checks for words unaccounted for by verb form
@@ -290,7 +291,6 @@ class Parser:
             if word in extra:
                 extra.remove(word)
         return extra
-
 
     def matchPrepKeywords(self, verbs, input_tokens):
         """
@@ -350,7 +350,6 @@ class Parser:
                 verbs.remove(verb)
         return verbs
 
-
     def getVerbSyntax(self, cur_verb, input_tokens):
         """
         Match tokens in input with tokens in verb syntax verb_forms to choose which syntax 
@@ -375,7 +374,6 @@ class Parser:
         self.game.app.printToGUI("I don't understand. Try rephrasing.")
         self.game.lastTurn.err = True
         return None
-
 
     def getGrammarObj(self, cur_verb, input_tokens, verb_form):
         """
@@ -418,7 +416,6 @@ class Parser:
             dobj = objects[0]
             iobj = objects[1]
         return self.checkObj(cur_verb, dobj, iobj)
-
 
     def adjacentStrObj(self, verb_form, input_tokens, strobj):
         vfd = verb_form.index("<dobj>")
@@ -488,7 +485,6 @@ class Parser:
         else:
             return [tobj, strobj]
 
-
     # NOTE: print_verb_error prevents the duplication of the error message in the event of improper Verb definition. A little bit hacky.
     def analyzeSyntax(self, verb_form, tag, input_tokens, print_verb_error=True):
         """
@@ -515,7 +511,6 @@ class Parser:
         else:
             after = None
         return self.getObjWords(self.game.app, before, after, input_tokens)
-
 
     def checkObj(self, cur_verb, dobj, iobj):
         """
@@ -558,7 +553,6 @@ class Parser:
             return None
         return [dobj, iobj]
 
-
     def getObjWords(self, game, before, after, input_tokens):
         """
         Create a list of all nouns and adjectives (strings) referring to a direct or 
@@ -581,7 +575,10 @@ class Parser:
                 delnoun = []
                 while i < (len(nounlist) - 1):
                     for item in nounDict[nounlist[i]]:
-                        if nounlist[i] in item.adjectives and not nounlist[i] in delnoun:
+                        if (
+                            nounlist[i] in item.adjectives
+                            and not nounlist[i] in delnoun
+                        ):
                             delnoun.append(nounlist[i])
                 for noun in delnoun:
                     nounlist.remove(delnoun)
@@ -626,7 +623,6 @@ class Parser:
             return None
         return obj_words
 
-
     def wearRangeCheck(self, thing):
         """
         Check if the Thing is being worn
@@ -639,7 +635,6 @@ class Parser:
             return False
         else:
             return True
-
 
     def roomRangeCheck(self, thing):
         """
@@ -664,7 +659,6 @@ class Parser:
                 return True
         return False
 
-
     def knowsRangeCheck(self, thing):
         """
         Check if the Player knows about a Thing
@@ -675,7 +669,6 @@ class Parser:
             return False
         else:
             return True
-
 
     def nearRangeCheck(self, thing):
         """
@@ -712,7 +705,6 @@ class Parser:
                 found = True
         return found
 
-
     def invRangeCheck(self, thing):
         """
         Check if the Thing is in the Player contains
@@ -731,7 +723,6 @@ class Parser:
                 return True
         return False
 
-
     def directionRangeCheck(self, obj):
         if isinstance(obj, list):
             if len(obj) > 1:
@@ -742,7 +733,6 @@ class Parser:
             return True
         else:
             return False
-
 
     def getUniqueConcepts(self, things):
         """
@@ -760,7 +750,6 @@ class Parser:
             for thing in duplicates:
                 check_list.remove(thing)
         return unique
-
 
     def checkRange(self, things, scope):
         """
@@ -822,7 +811,6 @@ class Parser:
                 return things2
         return things
 
-
     def verbScopeError(self, scope, noun_adj_arr):
         """
         Prints the appropriate Thing out of scope message
@@ -849,13 +837,14 @@ class Parser:
             self.game.lastTurn.err = True
             return None
         elif scope == "direction":
-            self.game.app.printToGUI(noun.capitalize() + " is not a direction I recognize. ")
+            self.game.app.printToGUI(
+                noun.capitalize() + " is not a direction I recognize. "
+            )
         else:
             # assuming scope = "inv"/"invflex"
             self.game.app.printToGUI("You don't have any " + noun + ".")
             self.game.lastTurn.err = True
             return None
-
 
     def getThing(self, noun_adj_arr, scope, far_obj, obj_direction):
         """
@@ -875,12 +864,18 @@ class Parser:
             t_ix = int(noun_adj_arr[-1])
         except:
             t_ix = -1
-        if self.game.lastTurn.things != [] and (noun_adj_arr[-1] not in nounDict or not endnoun):
+        if self.game.lastTurn.things != [] and (
+            noun_adj_arr[-1] not in nounDict or not endnoun
+        ):
             noun = self.game.lastTurn.ambig_noun
             if noun:
                 noun_adj_arr.append(noun)
             things = self.game.lastTurn.things
-        elif self.game.lastTurn.ambiguous and t_ix <= len(self.game.lastTurn.things) and t_ix > 0:
+        elif (
+            self.game.lastTurn.ambiguous
+            and t_ix <= len(self.game.lastTurn.things)
+            and t_ix > 0
+        ):
             self.game.lastTurn.ambiguous = False
             return self.game.lastTurn.things[t_ix - 1]
         else:
@@ -899,7 +894,6 @@ class Parser:
                 noun_adj_arr, noun, things, scope, far_obj, obj_direction
             )
             return thing
-
 
     def verboseNamesMatch(self, things):
         """
@@ -923,7 +917,6 @@ class Parser:
                 break
         return [duplicates_present, name_dict]
 
-
     def locationsDistinct(self, things):
         """
         Check if identically named items can be distinguished by their locations
@@ -933,8 +926,9 @@ class Parser:
         locs = [item.location for item in things]
         return not locs.count(locs[1]) == len(locs)
 
-
-    def checkAdjectives(self, noun_adj_arr, noun, things, scope, far_obj, obj_direction):
+    def checkAdjectives(
+        self, noun_adj_arr, noun, things, scope, far_obj, obj_direction
+    ):
         """
         If there are multiple Thing objects matching the noun, check the adjectives to 
         narrow down to exactly 1
@@ -1147,7 +1141,6 @@ class Parser:
         else:
             return self.verbScopeError(scope, noun_adj_arr)
 
-
     def callVerb(self, cur_verb, obj_words):
         """
         Gets the Thing objects (if any) referred to in the player command, then calls
@@ -1351,7 +1344,9 @@ class Parser:
             pass
         elif not cur_dobj.location:
             pass
-        elif cur_dobj.location.location == self.game.me and isinstance(cur_dobj, Liquid):
+        elif cur_dobj.location.location == self.game.me and isinstance(
+            cur_dobj, Liquid
+        ):
             cur_dobj = cur_dobj.getContainer()
         elif cur_dobj.location.location == self.game.me and cur_verb.dscope == "inv":
             self.game.app.printToGUI(
@@ -1363,14 +1358,18 @@ class Parser:
                 + cur_dobj.location.verbose_name
                 + ")"
             )
-            success = verb.removeFromVerb.verbFunc(self.game, cur_dobj, cur_dobj.location)
+            success = verb.removeFromVerb.verbFunc(
+                self.game, cur_dobj, cur_dobj.location
+            )
             if not success:
                 return False
         if cur_verb.iscope == "text" or not cur_iobj or cur_verb.iscope == "direction":
             pass
         elif not cur_iobj.location:
             pass
-        elif cur_iobj.location.location == self.game.me and isinstance(cur_iobj, Liquid):
+        elif cur_iobj.location.location == self.game.me and isinstance(
+            cur_iobj, Liquid
+        ):
             cur_iobj = cur_iobj.getContainer()
         elif cur_iobj.location.location == self.game.me and cur_verb.iscope == "inv":
             self.game.app.printToGUI(
@@ -1382,7 +1381,9 @@ class Parser:
                 + cur_iobj.location.verbose_name
                 + ")"
             )
-            success = verb.removeFromVerb.verbFunc(self.game, cur_iobj, cur_iobj.location)
+            success = verb.removeFromVerb.verbFunc(
+                self.game, cur_iobj, cur_iobj.location
+            )
             if not success:
                 return False
 
@@ -1476,13 +1477,17 @@ class Parser:
             cur_iobj = " ".join(cur_iobj)
             correct = self.directionRangeCheck(cur_iobj)
             if not correct:
-                self.game.app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
+                self.game.app.printToGUI(
+                    cur_iobj.capitalize() + " is not a direction I recognize. "
+                )
                 return False
         elif cur_verb.dscope == "direction":
             cur_dobj = " ".join(cur_dobj)
             correct = self.directionRangeCheck(cur_dobj)
             if not correct:
-                self.game.app.printToGUI(cur_iobj.capitalize() + " is not a direction I recognize. ")
+                self.game.app.printToGUI(
+                    cur_iobj.capitalize() + " is not a direction I recognize. "
+                )
                 return False
 
         self.game.lastTurn.convNode = False
@@ -1514,7 +1519,6 @@ class Parser:
             cur_verb.verbFunc(self.game)
         return True
 
-
     def disambig(self, input_tokens):
         """
         When self.disambiguation mode is active, use the player input to specify the target for 
@@ -1535,7 +1539,6 @@ class Parser:
             return False
         self.callVerb(cur_verb, obj_words)
         return True
-
 
     def roomDescribe(self):
         """
@@ -1567,7 +1570,10 @@ class Parser:
                         and topicB in revised_possible_topics
                         and topicA in revised_possible_topics
                     ):
-                        if self.game.lastTurn.specialTopics[topicA] == self.game.lastTurn.specialTopics[topicB]:
+                        if (
+                            self.game.lastTurn.specialTopics[topicA]
+                            == self.game.lastTurn.specialTopics[topicB]
+                        ):
                             revised_possible_topics.remove(topicB)
         if len(revised_possible_topics) != 1:
             return False
@@ -1575,7 +1581,6 @@ class Parser:
             x = revised_possible_topics[0]
             self.game.lastTurn.specialTopics[x].func(self.game)
             return True
-
 
     def parseInput(self, input_string):
         """
@@ -1624,7 +1629,9 @@ class Parser:
             else:
                 cur_verb = None
             if not cur_verb:
-                if self.game.lastTurn.ambiguous and (not gv[1] or self.game.lastTurn.convNode):
+                if self.game.lastTurn.ambiguous and (
+                    not gv[1] or self.game.lastTurn.convNode
+                ):
                     self.disambig(input_tokens)
                     return 0
                 return 0

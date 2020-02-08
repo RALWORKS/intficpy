@@ -316,10 +316,9 @@ class Room(PhysicalEntity):
         """
         Return the room contents as a flattened list
         """
-        return (
-            [item for ix, sublist in self.contains.items() for item in sublist]
-            + [item for ix, sublist in self.sub_contains.items() for item in sublist]
-        )
+        return [item for ix, sublist in self.contains.items() for item in sublist] + [
+            item for ix, sublist in self.sub_contains.items() for item in sublist
+        ]
 
 
 class OutdoorRoom(Room):

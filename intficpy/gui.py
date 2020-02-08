@@ -116,7 +116,7 @@ class App(QMainWindow):
         self.showMaximized()
         self.me = me
         self.newBox(self.box_style1)
-        #initGame(me, self, main_file)
+        # initGame(me, self, main_file)
         self.setStyleSheet(app_style)
         self.new_obox = False
         # used for game-interrupting cutscenes
@@ -301,7 +301,7 @@ class App(QMainWindow):
             return fname
 
         if "." in fname:
-            fname = fname[:fname.index(".")]
+            fname = fname[: fname.index(".")]
 
         return fname + extension
 

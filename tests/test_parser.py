@@ -155,9 +155,7 @@ class TestGetGrammarObj(IFPTestCase):
         tokens = self._insert_objects_into_phrase(
             leadDirVerb.syntax[0], expected_dobj, expected_iobj
         )
-        ggo = self.game.parser.getGrammarObj(
-            leadDirVerb, tokens, leadDirVerb.syntax[0]
-        )
+        ggo = self.game.parser.getGrammarObj(leadDirVerb, tokens, leadDirVerb.syntax[0])
 
         self.assertTrue(ggo)
         (dobj, iobj) = ggo
