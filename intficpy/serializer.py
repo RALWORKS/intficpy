@@ -43,7 +43,7 @@ class SaveGame:
         for attr, value in obj.__dict__.items():
             if attr in ["contains", "sub_contains"]:
                 # contains is handled in the location section
-                pass
+                continue
 
             try:
                 out[attr] = self.serialize_attribute(value)
@@ -190,6 +190,7 @@ class LoadGame:
             if obj.containsItem(item):
                 self.empty_contains(item)
                 obj.removeThing(item)
+        obj.sub_contains.clear()
 
     def add_thing_by_ix(self, destination, ix):
         """
