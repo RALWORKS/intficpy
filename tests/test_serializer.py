@@ -1,5 +1,5 @@
 import os
-
+import pickle
 from .helpers import IFPTestCase
 
 from intficpy.serializer import SaveGame, LoadGame
@@ -18,17 +18,97 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
 
     def test_save_file_size_does_not_grow(self):
         size = []
+        locs_bytes = []
+        locs_keys = []
+        ifp_obj_bytes = []
+        ifp_obj_keys = []
+
+        initial_obj = None
 
         for i in range(0, 5):
             SaveGame(self.path)
             size.append(os.path.getsize(self.path))
             l = LoadGame(self.path)
-            l.is_valid()
+            self.assertTrue(l.is_valid())
+
+            locs_bytes.append(len(pickle.dumps(l.validated_data["locations"])))
+            ifp_obj_bytes.append(len(pickle.dumps(l.validated_data["ifp_objects"])))
+
+            locs_keys.append(len(l.validated_data["locations"]))
+            ifp_obj_keys.append(len(l.validated_data["ifp_objects"]))
+
+            if i==0:
+                initial_obj = l.validated_data
+            elif i==4:
+                latest_obj = l.validated_data
+
             l.load()
+
+
+        initial_obj_sizes = {}
+        for key, value in initial_obj["ifp_objects"].items():
+            initial_obj_sizes[key] = len(pickle.dumps(value))
+
+        initial_loc_sizes = {}
+        for key, value in initial_obj["locations"].items():
+            initial_loc_sizes[key] = len(pickle.dumps(value))
+
+        final_obj_sizes = {}
+        for key, value in latest_obj["ifp_objects"].items():
+            final_obj_sizes[key] = len(pickle.dumps(value))
+
+        final_loc_sizes = {}
+        for key, value in latest_obj["locations"].items():
+            final_loc_sizes[key] = len(pickle.dumps(value))
+
+        obj_deltas = {}
+        for key, value in final_obj_sizes.items():
+            if value == initial_obj_sizes[key]:
+                continue
+            obj_deltas[abs(value - initial_loc_sizes[key])] = (
+                initial_obj["ifp_objects"][key],
+                latest_obj["ifp_objects"][key]
+            )
+
+        if obj_deltas:
+            max_obj_delta = max(obj_deltas.keys())
+            most_changed_obj = obj_deltas[max_obj_delta]
+        else:
+            max_obj_delta = 0
+            most_changed_obj = (None, None)
+
+        loc_deltas = {}
+        for key, value in final_loc_sizes.items():
+            if value == initial_loc_sizes[key]:
+                continue
+            loc_deltas[abs(value - initial_loc_sizes[key])] = (
+                initial_obj["locations"][key],
+                latest_obj["locations"][key]
+            )
+
+        if loc_deltas:
+            max_loc_delta = max(loc_deltas.keys())
+            most_changed_loc = loc_deltas[max_loc_delta]
+        else:
+            max_loc_delta = 0
+            most_changed_loc = (None, None)
 
         self.assertTrue(
             size[-1] - size[0] < 300,
-            f"Save files appear to be growing in size. Sizes: {size}",
+            f"Save files appear to be growing in size. Sizes: {size}\n"
+            f"Locations: {locs_bytes}\n"
+            f"Location keys: {locs_keys}\n"
+            f"IFP_Objects: {ifp_obj_bytes}\n"
+            f"IFP_Object keys: {ifp_obj_keys}\n\n"
+            f"IFP_Object with greatest change in size (delta = {max_obj_delta}):\n\n"
+            f"{most_changed_obj[0]}\n\n-->\n\n{most_changed_obj[1]}\n\n"
+            f"Location with greatest change in size (delta = {max_loc_delta}):\n"
+            f"{most_changed_loc[0]}\n\n-->\n\n{most_changed_loc[1]}"
+        )
+
+        self.assertEqual(
+            initial_obj, latest_obj,
+            "Initial and final loaded data did not match."
         )
 
     def tearDown(self):
