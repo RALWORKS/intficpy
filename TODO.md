@@ -21,15 +21,27 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
   if/else blocks in the TravelConnector inits
 
 ### Refactoring
-+ alternative to passing me & app around all the time:
-  move the whole game into a Game class. User instantiates, and passes in an App, which
-  they can write however they want, as long as it has an app.print method that takes
-  the right parameters. App instance creates Parser instance. Now we don't have to pass
-  me, because it's stored in app. Easier to update me, too. App still gets passed around,
-  but much less.
-+ Base class IFPObject that handles registration and keeps a list of
-  all instances? Standardise, so we can simplify the serializer
+#### Major Refactoring
++ IFP Turn Events System:
+  - app.newBox is the wrong level of abstraction.
+    Box implies **event** so handle events instead of boxes. Let creaters of UIs for
+    IFP interpret an event the way they want.
+    Examples of events:
+    - the player's action on their turn
+    - an NPC walks into a room (triggered by a timer)
+    - the ground shakes and a monster rises up from the deep (triggered by the player's action)
+    IFP and the game creator can assign ordering priorities to events from 0-9
+    Player action event runs every turn with priority 5
+    Add print strings to the events on the current turn, then evaluate all events in order.
+    The game sends app.evaluateEvent (triggerEvent? runEvent? printEvent?)
+    The UI app handles this however it wants.
++ replace <<m>> with an app.morePrompt (event? function tied into an event? property on an event?)
+  Or don't, and just let the app handle it?
++ refactor Parser to use a new exception ParserError instead of passing around None all the time
+
+#### Minor Ugliness
 + pull out printed strings to instance properties
++ clean up travel.py
 
 
 ## TODO: TESTING
@@ -45,14 +57,6 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 ### Things
 + remove all contents
 + test LightSource consume daemon
-
-### Save/Load
-+ from any given save file, loading, and saving again should always produce an identical
-  file.
-  tasks that might be challenging for the serializer:
-    + composite items
-    + deeply nested items
-    + nested dicts and arrays in custom IFP object properties
 
 ### Test Hints
 + test HintSystem pending_daemon
