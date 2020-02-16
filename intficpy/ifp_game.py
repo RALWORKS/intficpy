@@ -145,6 +145,9 @@ class IFPGame:
         self.daemons = DaemonManager()
         self.next_events = {}
 
+        self.turn_event_style = None
+        self.command_event_style = None
+
     def runTurnEvents(self):
         events = sorted(
             [event for name, event in self.next_events.items()],
@@ -153,17 +156,17 @@ class IFPGame:
         for event in events:
             self.app.printEventText(event)
         self.next_events.clear()
-        self.addEvent("turn", 5)
+        self.addEvent("turn", 5, style=self.turn_event_style)
 
     def initGame(self):
-        self.addEvent("turn", 5)
+        self.addEvent("turn", 5, style=self.turn_event_style)
         if self.lastTurn.gameOpening:
             self.lastTurn.gameOpening(self)
         self.parser.roomDescribe()
         self.daemons.runAll(self)
         self.runTurnEvents()
 
-    def addEvent(self, name, priority, text_0=None):
+    def addEvent(self, name, priority, text=None, style=None):
         """
         Add an event to the current turn
 
@@ -175,7 +178,7 @@ class IFPGame:
                 f"Cannot add event with name '{name}': "
                 "Name is already used for current turn."
             )
-        self.next_events[name] = IFPEvent(self, priority, text_0)
+        self.next_events[name] = IFPEvent(self, priority, text, style)
 
     def addTextToEvent(self, name, text):
         """

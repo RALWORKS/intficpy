@@ -32,6 +32,9 @@ gui.Prelim(__name__)
 me = Player("boy")
 ex = gui.App(me)
 game = IFPGame(me, ex)
+game.turn_event_style = ex.box_style1
+game.command_event_style = ex.box_style2
+
 
 game.aboutGame.setInfo("WIND AND OCEAN", "JSMaika")
 game.aboutGame.desc = "This is a test game for the IntFicPy parser. "
@@ -49,7 +52,7 @@ freeEnding = Ending(
 
 
 def test1(app):
-    app.printToGUI("testing")
+    game.addTextToEvent("turn", "testing")
     print("test1")
 
 
@@ -77,7 +80,7 @@ me.setPlayer()
 
 
 def opening(game):
-    game.app.printToGUI(
+    game.addTextToEvent("turn", 
         "<b>WIND AND OCEAN: by JSMaika</b><br> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area."
     )
 
@@ -112,7 +115,7 @@ me.opaltaken = False
 def takeOpalFunc(game):
     print("TAKE")
     if not me.opaltaken:
-        game.app.printToGUI(
+        game.addTextToEvent("turn", 
             "As you hold the opal in your hand, you're half-sure you can feel the air cooling around you. A shiver runs down your spine. Something is not right here."
         )
         me.opaltaken = True
@@ -189,10 +192,10 @@ cabinlock = Lock(True, rustykey)
 
 def sarahOpalFunc(game, dobj):
     if not sarah.threwkey and dobj == sarah:
-        game.app.printToGUI(
+        game.addTextToEvent("turn", 
             '"Fine!" she cries. "Fine! Take the key and leave! Just get that thing away from me!" '
         )
-        game.app.printToGUI("Sarah flings a rusty key at you. You catch it.")
+        game.addTextToEvent("turn", "Sarah flings a rusty key at you. You catch it.")
         me.addThing(rustykey)
         keyAchievement.award(app)
         sarah.threwkey = True
@@ -222,7 +225,7 @@ sarah.threwkey = False
 
 
 def sarahDefault(game):
-    game.app.printToGUI(sarah.default_topic)
+    game.addTextToEvent("turn", sarah.default_topic)
     sarah.addSpecialTopic(howgethere)
 
 

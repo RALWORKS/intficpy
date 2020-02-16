@@ -115,10 +115,7 @@ class App(QMainWindow):
         self.initUI()
         self.showMaximized()
         self.me = me
-        self.newBox(self.box_style1)
-        # initGame(me, self, main_file)
-        self.setStyleSheet(app_style)
-        self.new_obox = False
+
         # used for game-interrupting cutscenes
         # populated by enterForMore()
         self.game = None
@@ -176,14 +173,6 @@ class App(QMainWindow):
         self.cutscene = []
         self.anykeyformore = False
 
-        self.new_obox = True
-        self.obox = QFrame()
-        self.obox.setFrameStyle(QFrame.StyledPanel)
-        self.obox.setStyleSheet(self.box_style1)
-        self.olayout = QVBoxLayout()
-        self.obox.setLayout(self.olayout)
-        self.scroll_widget_layout.addWidget(self.obox)
-
     def turnMain(self, input_string):
         """Sends user input to the parser each turn
 		Takes argument input_string, the cleaned user input string """
@@ -194,26 +183,13 @@ class App(QMainWindow):
             # parse string
             self.game.parser.parseInput(input_string)
             self.game.daemons.runAll(self.game)
-
-    def newBox(self, box_style):
-        """Creates a new QFrame to wrap text in the game output area
-		Takes argument box_style, an integer specifying textbox colour and style """
-        self.new_obox = True
-        self.obox = QFrame()
-        self.obox.setFrameStyle(QFrame.StyledPanel)
-        self.obox.setStyleSheet(box_style)
+            self.game.runTurnEvents()
 
     def on_click(self):
         """Echos input, cleans input, and sends input to turnMain
 		Called when the user presses return """
         textboxValue = self.textbox.text()
         self.textbox.setText("")
-        self.newBox(self.box_style2)
-        t_echo = "> " + textboxValue
-        self.printToGUI(t_echo)
-        input_string = textboxValue.lower()
-        input_string = re.sub(r"[^\w\s]", "", input_string)
-        self.newBox(self.box_style1)
         self.turnMain(textboxValue)
 
     def keyPressEvent(self, event):
@@ -236,29 +212,27 @@ class App(QMainWindow):
             self.game.lastTurn.back = 0
             self.on_click()
 
-    def printToGUI(self, out_string, bold=False):
+    def printEventText(self, event):
         """Prints game output to the GUI, and scrolls down
 		Takes arguments out_string, the string to print, and bold, a Boolean which defaults to False
 		Returns True on success """
-        try:
-            self.new_obox
-        except:
-            self.new_obox = False
-        if self.new_obox:
-            self.scroll_widget_layout.addWidget(self.obox)
-            self.olayout = QVBoxLayout()
-            self.obox.setLayout(self.olayout)
-            self.new_obox = False
+        self.obox = QFrame()
+        self.obox.setFrameStyle(QFrame.StyledPanel)
+        self.obox.setStyleSheet(event.style)
 
-        out = QLabel()
-        out.setText(out_string)
-        if bold:
-            out.setFont(tBold)
-        self.olayout.addWidget(out)
-        out.setWordWrap(True)
-        out.setStyleSheet("margin-bottom: 5px")
-        out.setMaximumSize(out.sizeHint())
-        out.setMinimumSize(out.sizeHint())
+        self.scroll_widget_layout.addWidget(self.obox)
+        self.olayout = QVBoxLayout()
+        self.obox.setLayout(self.olayout)
+
+        for t in event.text:
+            out = QLabel()
+            out.setText(t)
+            self.olayout.addWidget(out)
+            out.setWordWrap(True)
+            out.setStyleSheet("margin-bottom: 5px")
+            out.setMaximumSize(out.sizeHint())
+            out.setMinimumSize(out.sizeHint())
+
         self.obox.setMaximumSize(self.obox.sizeHint())
         self.obox.setMinimumSize(self.obox.sizeHint())
         vbar = self.scroll.verticalScrollBar()
@@ -276,7 +250,7 @@ class App(QMainWindow):
         if len(fname) == 0:
             return None
         # add .sav extension if necessary
-        self.newBox(self.box_style1)
+        #self.newBox(self.box_style1)
         if not "." in fname:
             fname = fname + ".sav"
         elif (fname.index(".") - len(fname)) != -4:

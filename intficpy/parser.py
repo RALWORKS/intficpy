@@ -1607,6 +1607,13 @@ class Parser:
         Called by mainLoop in terminal version, turnMain (gui.py) in GUI version
         Returns 0 when complete
         """
+        # print back the player's command
+        self.game.addEvent(
+            "command",
+            0,
+            text=input_string,
+            style=self.game.command_event_style
+        )
         # clean and self.tokenize
         input_tokens = self.getTokens(input_string)
         if not self.game.lastTurn.gameEnding:

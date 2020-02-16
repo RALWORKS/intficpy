@@ -1,6 +1,7 @@
 class IFPEvent:
-    def __init__(self, game, priority, text_0):
+    def __init__(self, game, priority, text, style):
+        self.style = style
         self.priority = priority
         self.text = []
-        if text_0:
-            self.text.append(text_0)
+        if text:
+            self.text.append(text)
