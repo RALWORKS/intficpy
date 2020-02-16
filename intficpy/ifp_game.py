@@ -1,7 +1,7 @@
 from .parser import Parser
 from .daemons import DaemonManager
 from .vocab import verbDict
-from .events import IFPEvent
+from .event import IFPEvent
 
 
 class GameInfo:
