@@ -84,18 +84,27 @@ class Verb:
 		Takes arguments game.me, pointing to the player, game.app, pointing to the GUI game.app, and dobj, the direct object
 		Should generally be overwritten by the game creator
 		Optionally add arguments dobj and iobj, and set hasDobj and hasIobj appropriately """
-        game.app.printToGUI("You " + self.word + ". ")
+        game.addTextToEvent("turn", "You " + self.word + ". ")
+
+    def _runVerbFuncAndEvents(self, game, *args):
+        """
+        This method is mainly used for testing.
+        Game creators should generally allow IntFicPy to handle running turn events
+        """
+        success = self.verbFunc(game, *args)
+        game.runTurnEvents()
+        return success
 
     def getImpDobj(self, game):
         """Get the implicit direct object
 		The creator should overwrite this if planning to use implicit objects
 		View the ask verb for an example """
-        game.app.printToGUI("Error: no implicit direct object defined")
+        game.addTextToEvent("turn", "Error: no implicit direct object defined")
 
     def getImpIobj(self, game):
         """"Get the implicit indirect object
 		The creator should overwrite this if planning to use implicit objects """
-        game.app.printToGUI("Error: no implicit indirect object defined")
+        game.addTextToEvent("turn", "Error: no implicit indirect object defined")
 
     @staticmethod
     def disambiguateActor(game, len0_msg, base_disambig_msg):
@@ -113,7 +122,7 @@ class Verb:
         if len(people) == 1:
             return people
         if len(people) == 0:
-            game.app.printToGUI(len0_msg)
+            game.addTextToEvent("turn", len0_msg)
         elif game.lastTurn.dobj in people and isinstance(game.lastTurn.dobj, Actor):
             return [game.lastTurn.dobj]
         elif game.lastTurn.iobj in people and isinstance(game.lastTurn.iobj, Actor):
@@ -128,7 +137,7 @@ class Verb:
                     msg = msg + " or "
                 else:
                     msg = msg + ", "
-            game.app.printToGUI(msg)
+            game.addTextToEvent("turn", msg)
         return people
 
 
@@ -164,7 +173,7 @@ def getVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     # first check if dobj can be taken
     while game.me.ix in dobj.sub_contains:
@@ -173,7 +182,9 @@ def getVerbFunc(game, dobj, skip=False):
         elif isinstance(game.me.location, Surface):
             climbDownFromVerb.verbFunc(game, dobj)
         else:
-            game.app.printToGUI("Could not move player out of " + dobj.verbose_name)
+            game.addTextToEvent(
+                "turn", "Could not move player out of " + dobj.verbose_name
+            )
             return False
     if game.me.ix in dobj.contains:
         if isinstance(dobj, Container):
@@ -181,10 +192,12 @@ def getVerbFunc(game, dobj, skip=False):
         elif isinstance(dobj, Surface):
             climbDownFromVerb.verbFunc(game, dobj)
         else:
-            game.app.printToGUI("Could not move player out of " + dobj.verbose_name)
+            game.addTextToEvent(
+                "turn", "Could not move player out of " + dobj.verbose_name
+            )
             return False
     if not game.me.position == "standing":
-        game.app.printToGUI("(First standing up)")
+        game.addTextToEvent("turn", "(First standing up)")
         standUpVerb.verbFunc(game)
     if isinstance(dobj, Liquid):
         container = dobj.getContainer()
@@ -193,18 +206,19 @@ def getVerbFunc(game, dobj, skip=False):
     if dobj.invItem:
         if game.me.containsItem(dobj):
             if dobj.location == game.me:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You already have "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + ". "
+                    + ". ",
                 )
                 return False
             elif not isinstance(dobj.location, Room):
                 return removeFromVerb.verbFunc(game, dobj, dobj.location)
         # print the action message
-        game.app.printToGUI(
-            "You take " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You take " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if isinstance(dobj, UnderSpace) and not dobj.contains == {}:
             results = dobj.moveContentsOut()
@@ -214,7 +228,7 @@ def getVerbFunc(game, dobj, skip=False):
                 msg = msg.capitalize() + " are revealed. "
             else:
                 msg = msg.capitalize() + " is revealed. "
-            game.app.printToGUI(msg)
+            game.addTextToEvent("turn", msg)
         if dobj.is_composite:
             for item in dobj.child_UnderSpaces:
                 if not item.contains == {}:
@@ -225,7 +239,7 @@ def getVerbFunc(game, dobj, skip=False):
                         msg = msg.capitalize() + " are revealed. "
                     else:
                         msg = msg.capitalize() + " is revealed. "
-                    game.app.printToGUI(msg)
+                    game.addTextToEvent("turn", msg)
         while isinstance(dobj.location, Thing):
             old_loc = dobj.location
             if not isinstance(dobj.location, Room):
@@ -241,11 +255,11 @@ def getVerbFunc(game, dobj, skip=False):
         game.me.addThing(dobj)
         return True
     elif dobj.parent_obj:
-        game.app.printToGUI(dobj.cannotTakeMsg)
+        game.addTextToEvent("turn", dobj.cannotTakeMsg)
         return False
     else:
         # if the dobj can't be taken, print the message
-        game.app.printToGUI(dobj.cannotTakeMsg)
+        game.addTextToEvent("turn", dobj.cannotTakeMsg)
         return False
 
 
@@ -302,7 +316,7 @@ def getAllVerbFunc(game):
         else:
             getVerb.verbFunc(game, item)
     if len(items_found) == items_already:
-        game.app.printToGUI("There are no obvious items here to take. ")
+        game.addTextToEvent("turn", "There are no obvious items here to take. ")
 
 
 # replace the default verb function
@@ -326,26 +340,27 @@ def removeFromVerbFunc(game, dobj, iobj, skip=True):
 	Mostly intended for implicit use within the inventory """
     prep = iobj.contains_preposition or "in"
     if dobj == game.me:
-        game.app.printToGUI("You cannot take yourself. ")
+        game.addTextToEvent("turn", "You cannot take yourself. ")
         return False
     elif dobj.location != iobj:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             dobj.capNameArticle(True)
             + " is not "
             + prep
             + " "
-            + iobj.lowNameArticle(True)
+            + iobj.lowNameArticle(True),
         )
         return False
     elif iobj == game.me:
-        game.app.printToGUI(
-            "You are currently holding " + dobj.lowNameArticle(True) + ". "
+        game.addTextToEvent(
+            "turn", "You are currently holding " + dobj.lowNameArticle(True) + ". "
         )
         return True
     if isinstance(iobj, Container):
         if not iobj.is_open:
-            game.app.printToGUI(
-                "(First trying to open " + iobj.lowNameArticle(True) + ")"
+            game.addTextToEvent(
+                "turn", "(First trying to open " + iobj.lowNameArticle(True) + ")"
             )
             success = openVerb.verbFunc(game, iobj)
             if not success:
@@ -354,27 +369,30 @@ def removeFromVerbFunc(game, dobj, iobj, skip=True):
         print(dobj.cannotTakeMsg)
         return False
     if dobj.parent_obj:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             dobj.capNameArticle(True)
             + " is attached to "
-            + dobj.parent_obj.capNameArticle(True)
+            + dobj.parent_obj.capNameArticle(True),
         )
         return False
     if dobj.containsItem(game):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You are currently "
             + dobj.contains_preposition
             + " "
             + dobj.lowNameArticle
-            + ", and therefore cannot take it. "
+            + ", and therefore cannot take it. ",
         )
         return False
-    game.app.printToGUI(
+    game.addTextToEvent(
+        "turn",
         "You remove "
         + dobj.lowNameArticle(True)
         + " from "
         + iobj.lowNameArticle(True)
-        + ". "
+        + ". ",
     )
     iobj.removeThing(dobj)
     game.me.addThing(dobj)
@@ -386,7 +404,7 @@ def removeFromVerbFunc(game, dobj, iobj, skip=True):
             msg = msg.capitalize() + " are revealed. "
         else:
             msg = msg.capitalize() + " is revealed. "
-        game.app.printToGUI(msg)
+        game.addTextToEvent("turn", msg)
         if dobj.is_composite:
             for item in dobj.child_UnderSpaces:
                 if not item.contains == {}:
@@ -397,7 +415,7 @@ def removeFromVerbFunc(game, dobj, iobj, skip=True):
                         msg = msg.capitalize() + " are revealed. "
                     else:
                         msg = msg.capitalize() + " is revealed. "
-                    game.app.printToGUI(msg)
+                    game.addTextToEvent("turn", msg)
     return True
 
 
@@ -429,34 +447,36 @@ def dropVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Liquid):
         container = dobj.getContainer()
         if container:
             dobj = container
     if dobj.invItem and game.me.removeThing(dobj):
-        game.app.printToGUI(
-            "You drop " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You drop " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         dobj.location = game.me.location
         dobj.location.addThing(dobj)
         return True
     elif dobj.parent_obj:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
             + " is attached to "
             + dobj.parent_obj.getArticle(True)
             + dobj.parent_obj.verbose_name
-            + ". "
+            + ". ",
         )
         return False
     elif not dobj.invItem:
-        game.app.printToGUI("Error: not an inventory item. ")
+        game.addTextToEvent("turn", "Error: not an inventory item. ")
         print(dobj)
     else:
-        game.app.printToGUI(
-            "You are not holding " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You are not holding " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
 
@@ -483,7 +503,7 @@ def dropAllVerbFunc(game):
             dropVerb.verbFunc(game, item)
             dropped = dropped + 1
     if dropped == 0:
-        game.app.printToGUI("Your inventory is empty. ")
+        game.addTextToEvent("turn", "Your inventory is empty. ")
 
 
 # replace the default verb function
@@ -513,13 +533,13 @@ def setOnVerbFunc(game, dobj, iobj, skip=False):
     """Put a Thing on a Surface
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
     if dobj == iobj:
-        game.app.printToGUI("You cannot set something on itself. ")
+        game.addTextToEvent("turn", "You cannot set something on itself. ")
         return False
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if not skip:
         runfunc = True
@@ -537,54 +557,58 @@ def setOnVerbFunc(game, dobj, iobj, skip=False):
     outer_loc = game.me.getOutermostLocation()
     if iobj == outer_loc.floor:
         if game.me.removeThing(dobj):
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You set "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + " on the ground. "
+                + " on the ground. ",
             )
             outer_loc.addThing(dobj)
             return True
         elif dobj.parent_obj:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
                 + " is attached to "
                 + dobj.parent_obj.getArticle(True)
                 + dobj.parent_obj.verbose_name
-                + ". "
+                + ". ",
             )
             return False
         else:
-            game.app.printToGUI("ERROR: cannot remove object from inventory ")
+            game.addTextToEvent("turn", "ERROR: cannot remove object from inventory ")
             return False
     if isinstance(iobj, Surface):
         if game.me.removeThing(dobj):
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You set "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
                 + " on "
                 + iobj.getArticle(True)
                 + iobj.verbose_name
-                + ". "
+                + ". ",
             )
             iobj.addThing(dobj)
             return True
         elif dobj.parent_obj:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
                 + " is attached to "
                 + dobj.parent_obj.getArticle(True)
                 + dobj.parent_obj.verbose_name
-                + ". "
+                + ". ",
             )
             return False
         else:
-            game.app.printToGUI("ERROR: cannot remove object from inventory ")
+            game.addTextToEvent("turn", "ERROR: cannot remove object from inventory ")
             return False
     # if iobj is not a Surface
     else:
-        game.app.printToGUI("You cannot set anything on that. ")
+        game.addTextToEvent("turn", "You cannot set anything on that. ")
 
 
 # replace the default verbFunc method
@@ -616,7 +640,7 @@ def setInVerbFunc(game, dobj, iobj, skip=False):
     """Put a Thing in a Container
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
     if iobj == dobj:
-        game.app.printToGUI("You cannot set something in itself. ")
+        game.addTextToEvent("turn", "You cannot set something in itself. ")
         return False
 
     if not skip:
@@ -632,36 +656,39 @@ def setInVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if dobj.parent_obj:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
             + " is attached to "
             + dobj.parent_obj.getArticle(True)
             + dobj.parent_obj.verbose_name
-            + ". "
+            + ". ",
         )
         return False
     if isinstance(iobj, Container) and iobj.has_lid:
         if not iobj.is_open:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You cannot put "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
                 + " inside, as "
                 + iobj.getArticle(True)
                 + iobj.verbose_name
-                + " is closed. "
+                + " is closed. ",
             )
             return False
     if isinstance(iobj, Container) and iobj.size >= dobj.size:
         liquid = iobj.containsLiquid()
         if liquid:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You cannot put "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
@@ -670,17 +697,18 @@ def setInVerbFunc(game, dobj, iobj, skip=False):
                 + iobj.verbose_name
                 + " has "
                 + liquid.lowNameArticle()
-                + " in it. "
+                + " in it. ",
             )
             return False
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You set "
             + dobj.getArticle(True)
             + dobj.verbose_name
             + " in "
             + iobj.getArticle(True)
             + iobj.verbose_name
-            + ". "
+            + ". ",
         )
         # game.me.contains.remove(dobj)
         game.me.removeThing(dobj)
@@ -690,16 +718,17 @@ def setInVerbFunc(game, dobj, iobj, skip=False):
             iobj.addThing(dobj)
         return True
     elif isinstance(iobj, Container):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             dobj.capNameArticle(True)
             + " is too big to fit inside the "
             + iobj.verbose_name
-            + ". "
+            + ". ",
         )
         return False
     else:
-        game.app.printToGUI(
-            "There is no way to put it inside the " + iobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "There is no way to put it inside the " + iobj.verbose_name + ". "
         )
         return False
 
@@ -729,7 +758,7 @@ def setUnderVerbFunc(game, dobj, iobj, skip=False):
     """Put a Thing under an UnderSpace
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
     if iobj == dobj:
-        game.app.printToGUI("You cannot set something under itself. ")
+        game.addTextToEvent("turn", "You cannot set something under itself. ")
         return False
 
     if not skip:
@@ -745,23 +774,25 @@ def setUnderVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     outer_loc = game.me.getOutermostLocation()
     if dobj.parent_obj:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
             + " is attached to "
             + dobj.parent_obj.getArticle(True)
             + dobj.parent_obj.verbose_name
-            + ". "
+            + ". ",
         )
         return False
     if isinstance(iobj, UnderSpace) and dobj.size <= iobj.size:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You set "
             + dobj.getArticle(True)
             + dobj.verbose_name
@@ -770,22 +801,23 @@ def setUnderVerbFunc(game, dobj, iobj, skip=False):
             + " "
             + iobj.getArticle(True)
             + iobj.verbose_name
-            + ". "
+            + ". ",
         )
         game.me.removeThing(dobj)
         iobj.addThing(dobj)
         return True
     elif dobj.size > iobj.size:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
             + " is too big to fit under "
             + iobj.getArticle(True)
             + iobj.verbose_name
-            + ". "
+            + ". ",
         )
         return False
     else:
-        game.app.printToGUI("There is no reason to put it under there. ")
+        game.addTextToEvent("turn", "There is no reason to put it under there. ")
         return False
 
 
@@ -805,7 +837,7 @@ def invVerbFunc(game):
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
     # describe contains
     if game.me.contains == {}:
-        game.app.printToGUI("You don't have anything with you. ")
+        game.addTextToEvent("turn", "You don't have anything with you. ")
     else:
         # the string to print listing the contains
         invdesc = "You have "
@@ -851,7 +883,7 @@ def invVerbFunc(game):
             if len(list_version) > 1:
                 if key is list_version[-2]:
                     invdesc = invdesc + " and "
-        game.app.printToGUI(invdesc)
+        game.addTextToEvent("turn", invdesc)
     # describe clothing
     if game.me.wearing != {}:
         # the string to print listing clothing
@@ -878,7 +910,7 @@ def invVerbFunc(game):
                 weardesc = weardesc + " and "
             else:
                 weardesc = weardesc + ", "
-        game.app.printToGUI(weardesc)
+        game.addTextToEvent("turn", weardesc)
 
 
 # replace default verbFunc method
@@ -995,10 +1027,11 @@ def helpVerbVerbFunc(game, dobj):
     """View the current score
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
 
-    game.app.printToGUI("<b>Verb Help: " + " ".join(dobj) + "</b>")
+    game.addTextToEvent("turn", "<b>Verb Help: " + " ".join(dobj) + "</b>")
     if dobj[0] in verbDict:
-        game.app.printToGUI(
-            'I found the following sentence structures for the verb "' + dobj[0] + '":'
+        game.addTextToEvent(
+            "turn",
+            'I found the following sentence structures for the verb "' + dobj[0] + '":',
         )
         for verb in verbDict[dobj[0]]:
             for form in verb.syntax:
@@ -1024,10 +1057,11 @@ def helpVerbVerbFunc(game, dobj):
                     else:
                         out[ix] = "(thing)"
                 out = " ".join(out)
-                game.app.printToGUI(out)
+                game.addTextToEvent("turn", out)
     else:
-        game.app.printToGUI(
-            'I found no verb corresponding to the input "' + " ".join(dobj) + '". '
+        game.addTextToEvent(
+            "turn",
+            'I found no verb corresponding to the input "' + " ".join(dobj) + '". ',
         )
 
 
@@ -1049,7 +1083,7 @@ def hintVerbFunc(game):
         if len(hints.cur_node.hints) > 0:
             hints.cur_node.nextHint(game)
             return True
-    game.app.printToGUI("There are no hints currently available. ")
+    game.addTextToEvent("turn", "There are no hints currently available. ")
     return False
 
 
@@ -1105,9 +1139,9 @@ def examineVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
-    game.app.printToGUI(dobj.xdesc)
+    game.addTextToEvent("turn", dobj.xdesc)
     return True
 
 
@@ -1135,17 +1169,17 @@ def lookThroughVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Transparent):
         dobj.lookThrough(game)
         return True
     elif isinstance(dobj, Actor):
-        game.app.printToGUI("You cannot look through a person. ")
+        game.addTextToEvent("turn", "You cannot look through a person. ")
         return False
     else:
-        game.app.printToGUI(
-            "You cannot look through " + dobj.lowNameArticle(True) + ". "
+        game.addTextToEvent(
+            "turn", "You cannot look through " + dobj.lowNameArticle(True) + ". "
         )
         return False
 
@@ -1175,31 +1209,36 @@ def lookInVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container):
         list_version = list(dobj.contains.keys())
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You cannot see inside "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + " as it is closed. "
+                    + " as it is closed. ",
                 )
                 return False
         if len(list_version) > 0:
-            game.app.printToGUI(dobj.contains_desc)
+            game.addTextToEvent("turn", dobj.contains_desc)
             for key in dobj.contains:
                 if key not in game.me.knows_about:
                     game.me.knows_about.append(key)
             return True
         else:
-            game.app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+            game.addTextToEvent("turn", dobj.capNameArticle(True) + " is empty. ")
             return True
     else:
-        game.app.printToGUI(
-            "You cannot look inside " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot look inside "
+            + dobj.getArticle(True)
+            + dobj.verbose_name
+            + ". ",
         )
         return False
 
@@ -1227,34 +1266,36 @@ def lookUnderVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, UnderSpace):
         dobj.revealUnder()
         list_version = list(dobj.contains.keys())
         if len(list_version) > 0:
-            game.app.printToGUI(dobj.contains_desc)
+            game.addTextToEvent("turn", dobj.contains_desc)
             return True
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "There is nothing "
                 + dobj.contains_preposition
                 + " "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + ". "
+                + ". ",
             )
             return True
     elif dobj.invItem:
         getVerbFunc(game, dobj)
-        game.app.printToGUI("You find nothing underneath. ")
+        game.addTextToEvent("turn", "You find nothing underneath. ")
         return False
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "There's no reason to look under "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + ". "
+            + ". ",
         )
         return False
 
@@ -1281,7 +1322,7 @@ def readVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Book):
         if not dobj.is_open:
@@ -1291,7 +1332,7 @@ def readVerbFunc(game, dobj, skip=False):
         dobj.readText(game)
         return True
     else:
-        game.app.printToGUI("There's nothing written there. ")
+        game.addTextToEvent("turn", "There's nothing written there. ")
         return False
 
 
@@ -1364,7 +1405,7 @@ def talkToVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Actor):
         if dobj.hermit_topic:
@@ -1379,7 +1420,7 @@ def talkToVerbFunc(game, dobj, skip=False):
         else:
             dobj.defaultTopic(game)
     else:
-        game.app.printToGUI("You cannot talk to that. ")
+        game.addTextToEvent("turn", "You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1427,7 +1468,7 @@ def askVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Actor):
         # try to find the ask topic for iobj
@@ -1449,7 +1490,7 @@ def askVerbFunc(game, dobj, iobj, skip=False):
         else:
             dobj.defaultTopic(game)
     else:
-        game.app.printToGUI("You cannot talk to that. ")
+        game.addTextToEvent("turn", "You cannot talk to that. ")
 
 
 # replace the default verbFunc method
@@ -1492,7 +1533,7 @@ def tellVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Actor):
         if dobj.hi_topic and not dobj.said_hi:
@@ -1512,7 +1553,7 @@ def tellVerbFunc(game, dobj, iobj, skip=False):
         else:
             dobj.defaultTopic(game)
     else:
-        game.app.printToGUI("You cannot talk to that. ")
+        game.addTextToEvent("turn", "You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1551,20 +1592,20 @@ def giveVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Actor):
         if dobj.hermit_topic:
             dobj.hermit_topic.func(game, False)
             return True
     if iobj is game.me:
-        game.app.printToGUI("You cannot give yourself away. ")
+        game.addTextToEvent("turn", "You cannot give yourself away. ")
         return False
     elif isinstance(iobj, Actor):
-        game.app.printToGUI("You cannot give a person away. ")
+        game.addTextToEvent("turn", "You cannot give a person away. ")
         return False
     if isinstance(dobj, Actor):
         if dobj.hi_topic and not dobj.said_hi:
@@ -1587,7 +1628,7 @@ def giveVerbFunc(game, dobj, iobj, skip=False):
             dobj.defaultTopic(game)
             return True
     else:
-        game.app.printToGUI("You cannot talk to that. ")
+        game.addTextToEvent("turn", "You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1629,10 +1670,10 @@ def showVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Actor):
         if dobj.hi_topic and not dobj.said_hi:
@@ -1651,7 +1692,7 @@ def showVerbFunc(game, dobj, iobj, skip=False):
             dobj.defaultTopic(game)
 
     else:
-        game.app.printToGUI("You cannot talk to that. ")
+        game.addTextToEvent("turn", "You cannot talk to that. ")
 
 
 # replace default verbFunc method
@@ -1686,11 +1727,11 @@ def wearVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Clothing):
-        game.app.printToGUI(
-            "You wear " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You wear " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         # game.me.contains.remove(dobj)
         game.me.contains[dobj.ix].remove(dobj)
@@ -1702,7 +1743,7 @@ def wearVerbFunc(game, dobj, skip=False):
         else:
             game.me.wearing[dobj.ix] = [dobj]
     else:
-        game.app.printToGUI("You cannot wear that. ")
+        game.addTextToEvent("turn", "You cannot wear that. ")
 
 
 # replace default verbFunc method
@@ -1736,8 +1777,8 @@ def doffVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
 
-    game.app.printToGUI(
-        "You take off " + dobj.getArticle(True) + dobj.verbose_name + ". "
+    game.addTextToEvent(
+        "turn", "You take off " + dobj.getArticle(True) + dobj.verbose_name + ". "
     )
     # game.me.contains.append(dobj)
     if dobj.ix in game.me.contains:
@@ -1767,21 +1808,22 @@ def lieDownVerbFunc(game):
     if game.me.position != "lying":
         if isinstance(game.me.location, Thing):
             if not game.me.location.canLie:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "(First getting "
                     + game.me.location.contains_preposition_inverse
                     + " of "
                     + game.me.location.getArticle(True)
                     + game.me.location.verbose_name
-                    + ")"
+                    + ")",
                 )
                 outer_loc = game.me.getOutermostLocation()
                 game.me.location.removeThing(game.me)
                 outer_loc.addThing(game.me)
-        game.app.printToGUI("You lie down. ")
+        game.addTextToEvent("turn", "You lie down. ")
         game.me.makeLying()
     else:
-        game.app.printToGUI("You are already lying down. ")
+        game.addTextToEvent("turn", "You are already lying down. ")
 
 
 # replace default verbFunc method
@@ -1801,21 +1843,22 @@ def standUpVerbFunc(game):
     if game.me.position != "standing":
         if isinstance(game.me.location, Thing):
             if not game.me.location.canStand:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "(First getting "
                     + game.me.location.contains_preposition_inverse
                     + " of "
                     + game.me.location.getArticle(True)
                     + game.me.location.verbose_name
-                    + ")"
+                    + ")",
                 )
                 outer_loc = game.me.getOutermostLocation()
                 game.me.location.removeThing(game.me)
                 outer_loc.addThing(game.me)
-        game.app.printToGUI("You stand up. ")
+        game.addTextToEvent("turn", "You stand up. ")
         game.me.makeStanding()
     else:
-        game.app.printToGUI("You are already standing. ")
+        game.addTextToEvent("turn", "You are already standing. ")
 
 
 # replace default verbFunc method
@@ -1834,21 +1877,22 @@ def sitDownVerbFunc(game):
     if game.me.position != "sitting":
         if isinstance(game.me.location, Thing):
             if not game.me.location.canSit:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "(First getting "
                     + game.me.location.contains_preposition_inverse
                     + " of "
                     + game.me.location.getArticle(True)
                     + game.me.location.verbose_name
-                    + ")"
+                    + ")",
                 )
                 outer_loc = game.me.getOutermostLocation()
                 game.me.location.removeThing(game.me)
                 outer_loc.addThing(game.me)
-        game.app.printToGUI("You sit down. ")
+        game.addTextToEvent("turn", "You sit down. ")
         game.me.makeSitting()
     else:
-        game.app.printToGUI("You are already sitting. ")
+        game.addTextToEvent("turn", "You are already sitting. ")
 
 
 # replace default verbFunc method
@@ -1876,27 +1920,30 @@ def standOnVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     outer_loc = game.me.getOutermostLocation()
     if dobj == outer_loc.floor:
         if game.me.location == outer_loc and game.me.position == "standing":
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You are already standing on "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + ". "
+                + ". ",
             )
         elif game.me.location == outer_loc:
-            game.app.printToGUI(
-                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+            game.addTextToEvent(
+                "turn",
+                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". ",
             )
             game.me.makeStanding()
         else:
             game.me.location.removeThing(game.me)
             outer_loc.addThing(game.me)
-            game.app.printToGUI(
-                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+            game.addTextToEvent(
+                "turn",
+                "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". ",
             )
             game.me.makeStanding()
         return True
@@ -1905,15 +1952,16 @@ def standOnVerbFunc(game, dobj, skip=False):
         and game.me.position == "standing"
         and isinstance(dobj, Surface)
     ):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You are already standing on "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + ". "
+            + ". ",
         )
     elif isinstance(dobj, Surface) and dobj.canStand:
-        game.app.printToGUI(
-            "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
@@ -1922,8 +1970,9 @@ def standOnVerbFunc(game, dobj, skip=False):
         dobj.addThing(game.me)
         game.me.makeStanding()
     else:
-        game.app.printToGUI(
-            "You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot stand on " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
 
@@ -1953,27 +2002,28 @@ def sitOnVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     outer_loc = game.me.getOutermostLocation()
     if dobj == outer_loc.floor:
         if game.me.location == outer_loc and game.me.position == "sitting":
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You are already sitting on "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + ". "
+                + ". ",
             )
         elif game.me.location == outer_loc:
-            game.app.printToGUI(
-                "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+            game.addTextToEvent(
+                "turn", "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             game.me.makeSitting()
         else:
             game.me.location.removeThing(game.me)
             outer_loc.addThing(game.me)
-            game.app.printToGUI(
-                "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+            game.addTextToEvent(
+                "turn", "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             game.me.makeSitting()
         return True
@@ -1982,15 +2032,16 @@ def sitOnVerbFunc(game, dobj, skip=False):
         and game.me.position == "sitting"
         and isinstance(dobj, Surface)
     ):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You are already sitting on "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + ". "
+            + ". ",
         )
     elif isinstance(dobj, Surface) and dobj.canSit:
-        game.app.printToGUI(
-            "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
@@ -1999,8 +2050,9 @@ def sitOnVerbFunc(game, dobj, skip=False):
         dobj.addThing(game.me)
         game.me.makeSitting()
     else:
-        game.app.printToGUI(
-            "You cannot sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot sit on " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
 
 
@@ -2034,27 +2086,29 @@ def lieOnVerbFunc(game, dobj):
     if not runfunc:
         return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     outer_loc = game.me.getOutermostLocation()
     if dobj == outer_loc.floor:
         if game.me.location == outer_loc and game.me.position == "lying":
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You are already lying "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + ". "
+                + ". ",
             )
         elif game.me.location == outer_loc:
-            game.app.printToGUI(
-                "You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+            game.addTextToEvent(
+                "turn", "You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
             )
             game.me.makeLying()
         else:
             game.me.location.removeThing(game.me)
             outer_loc.addThing(game.me)
-            game.app.printToGUI(
-                "You lie on the " + dobj.getArticle(True) + dobj.verbose_name + ". "
+            game.addTextToEvent(
+                "turn",
+                "You lie on the " + dobj.getArticle(True) + dobj.verbose_name + ". ",
             )
             game.me.makeLying()
         return True
@@ -2063,15 +2117,16 @@ def lieOnVerbFunc(game, dobj):
         and game.me.position == "lying"
         and isinstance(dobj, Surface)
     ):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You are already lying on "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + ". "
+            + ". ",
         )
     elif isinstance(dobj, Surface) and dobj.canLie:
-        game.app.printToGUI(
-            "You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
@@ -2081,8 +2136,9 @@ def lieOnVerbFunc(game, dobj):
         game.me.makeLying()
         return True
     else:
-        game.app.printToGUI(
-            "You cannot lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot lie on " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
 
 
@@ -2111,23 +2167,24 @@ def sitInVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if (
         game.me.location == dobj
         and game.me.position == "sitting"
         and isinstance(dobj, Container)
     ):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You are already sitting in "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + ". "
+            + ". ",
         )
         return True
     elif isinstance(dobj, Container) and dobj.canSit:
-        game.app.printToGUI(
-            "You sit in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You sit in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
@@ -2136,8 +2193,9 @@ def sitInVerbFunc(game, dobj, skip=False):
         dobj.addThing(game.me)
         game.me.makeSitting()
     else:
-        game.app.printToGUI(
-            "You cannot sit in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot sit in " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
 
@@ -2167,23 +2225,24 @@ def standInVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if (
         game.me.location == dobj
         and game.me.position == "standing"
         and isinstance(dobj, Container)
     ):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You are already standing in "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + ". "
+            + ". ",
         )
         return True
     elif isinstance(dobj, Container) and dobj.canStand:
-        game.app.printToGUI(
-            "You stand in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You stand in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
@@ -2193,8 +2252,9 @@ def standInVerbFunc(game, dobj, skip=False):
         game.me.makeStanding()
         return True
     else:
-        game.app.printToGUI(
-            "You cannot stand in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot stand in " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
 
@@ -2230,23 +2290,24 @@ def lieInVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if (
         game.me.location == dobj
         and game.me.position == "lying"
         and isinstance(dobj, Container)
     ):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You are already lying in "
             + dobj.getArticle(True)
             + dobj.verbose_name
-            + ". "
+            + ". ",
         )
         return True
     elif isinstance(dobj, Container) and dobj.canLie:
-        game.app.printToGUI(
-            "You lie in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You lie in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         if game.me in game.me.location.contains[game.me.ix]:
             game.me.location.contains[game.me.ix].remove(game.me)
@@ -2256,8 +2317,9 @@ def lieInVerbFunc(game, dobj, skip=False):
         game.me.makeLying()
         return True
     else:
-        game.app.printToGUI(
-            "You cannot lie in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot lie in " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
 
@@ -2295,13 +2357,13 @@ def climbOnVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if dobj.connection:
         if dobj.direction == "u":
             dobj.connection.travel(game)
         else:
-            game.app.printToGUI("You can't climb up that. ")
+            game.addTextToEvent("turn", "You can't climb up that. ")
             return False
     elif isinstance(dobj, Surface) and dobj.canStand:
         standOnVerb.verbFunc(game, dobj)
@@ -2313,8 +2375,9 @@ def climbOnVerbFunc(game, dobj, skip=False):
         lieOnVerb.verbFunc(game, dobj)
         return True
     else:
-        game.app.printToGUI(
-            "You cannot climb on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot climb on " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
 
@@ -2338,7 +2401,7 @@ def climbUpVerbFunc(game):
     if cur_loc.up:
         travel.travelU(game)
     else:
-        game.app.printToGUI("You cannot climb up from here. ")
+        game.addTextToEvent("turn", "You cannot climb up from here. ")
 
 
 # replace default verbFunc method
@@ -2367,17 +2430,18 @@ def climbDownVerbFunc(game):
     if cur_loc.down:
         travel.travelD(game)
     elif isinstance(game.me.location, Surface):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You climb down from "
             + game.me.location.getArticle(True)
             + game.me.location.verbose_name
-            + ". "
+            + ". ",
         )
         outer_loc = game.me.location.location
         game.me.location.removeThing(game.me)
         outer_loc.addThing(game.me)
     else:
-        game.app.printToGUI("You cannot climb down from here. ")
+        game.addTextToEvent("turn", "You cannot climb down from here. ")
 
 
 # replace default verbFunc method
@@ -2413,32 +2477,33 @@ def climbDownFromVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if dobj.connection:
         if dobj.direction == "d":
             dobj.connection.travel(game)
             return True
         else:
-            game.app.printToGUI("You can't climb down from that. ")
+            game.addTextToEvent("turn", "You can't climb down from that. ")
             return False
     elif game.me.location == dobj:
         if isinstance(game.me.location, Surface):
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You climb down from "
                 + game.me.location.getArticle(True)
                 + game.me.location.verbose_name
-                + ". "
+                + ". ",
             )
             outer_loc = game.me.location.location
             game.me.location.removeThing(game.me)
             outer_loc.addThing(game.me)
         else:
-            game.app.printToGUI("You cannot climb down from here. ")
+            game.addTextToEvent("turn", "You cannot climb down from here. ")
             return False
     else:
-        game.app.printToGUI(
-            "You are not on " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You are not on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2457,15 +2522,19 @@ goThroughVerb.preposition = ["through"]
 
 def goThroughVerbFunc(game, dobj, skip=False):
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, AbstractClimbable):
-        game.app.printToGUI("You cannot go through " + dobj.lowNameArticle(True) + ". ")
+        game.addTextToEvent(
+            "turn", "You cannot go through " + dobj.lowNameArticle(True) + ". "
+        )
         return False
     elif dobj.connection:
         return dobj.connection.travel(game)
     else:
-        game.app.printToGUI("You cannot go through " + dobj.lowNameArticle(True) + ". ")
+        game.addTextToEvent(
+            "turn", "You cannot go through " + dobj.lowNameArticle(True) + ". "
+        )
         return False
 
 
@@ -2503,7 +2572,7 @@ def climbInVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if dobj.connection:
         dobj.connection.travel(game)
@@ -2511,11 +2580,12 @@ def climbInVerbFunc(game, dobj, skip=False):
     if isinstance(dobj, Container) and dobj.canStand:
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You cannot climb into "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + ", since it is closed. "
+                    + ", since it is closed. ",
                 )
                 return False
         standInVerb.verbFunc(game, dobj)
@@ -2523,11 +2593,12 @@ def climbInVerbFunc(game, dobj, skip=False):
     elif isinstance(dobj, Container) and dobj.canSit:
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You cannot climb into "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + ", since it is closed. "
+                    + ", since it is closed. ",
                 )
                 return False
         sitInVerb.verbFunc(game, dobj)
@@ -2535,18 +2606,20 @@ def climbInVerbFunc(game, dobj, skip=False):
     elif isinstance(dobj, Container) and dobj.canLie:
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You cannot climb into "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + ", since it is closed. "
+                    + ", since it is closed. ",
                 )
                 return False
         lieInVerb.verbFunc(game, dobj)
         return True
     else:
-        game.app.printToGUI(
-            "You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot climb into " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
 
@@ -2566,17 +2639,18 @@ def climbOutVerbFunc(game):
     """Climb out of a Container you currently occupy
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
     if isinstance(game.me.location, Container):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You climb out of "
             + game.me.location.getArticle(True)
             + game.me.location.verbose_name
-            + ". "
+            + ". ",
         )
         outer_loc = game.me.location.location
         game.me.location.removeThing(game.me)
         outer_loc.addThing(game.me)
     else:
-        game.app.printToGUI("You cannot climb out of here. ")
+        game.addTextToEvent("turn", "You cannot climb out of here. ")
 
 
 # replace default verbFunc method
@@ -2612,22 +2686,23 @@ def climbOutOfVerbFunc(game, dobj, skip=False):
 
     if game.me.location == dobj:
         if isinstance(game.me.location, Container):
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You climb out of "
                 + game.me.location.getArticle(True)
                 + game.me.location.verbose_name
-                + ". "
+                + ". ",
             )
             outer_loc = game.me.location.location
             game.me.location.removeThing(game.me)
             outer_loc.addThing(game.me)
             return True
         else:
-            game.app.printToGUI("You cannot climb out of here. ")
+            game.addTextToEvent("turn", "You cannot climb out of here. ")
             return False
     else:
-        game.app.printToGUI(
-            "You are not in " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You are not in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         return False
 
@@ -2653,11 +2728,12 @@ def openVerbFunc(game, dobj, skip=False):
     if lock:
         if dobj.lock_obj.is_locked:
             try:
-                game.app.printToGUI(dobj.cannotOpenLockedMsg)
+                game.addTextToEvent("turn", dobj.cannotOpenLockedMsg)
             except:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                    + " is locked. "
+                    + " is locked. ",
                 )
             return False
     runfunc = True
@@ -2670,27 +2746,29 @@ def openVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     try:
         state = dobj.is_open
     except AttributeError:
-        game.app.printToGUI(
-            "You cannot open " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot open " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
     if state == False:
-        game.app.printToGUI(
-            "You open " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You open " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         dobj.makeOpen()
         if isinstance(dobj, Container):
             lookInVerb.verbFunc(game, dobj)
         return True
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " is already open. "
+            + " is already open. ",
         )
     return True
 
@@ -2714,11 +2792,12 @@ def closeVerbFunc(game, dobj, skip=False):
     if isinstance(dobj, Container):
         if dobj.has_lid:
             if game.me.ix in dobj.contains or game.me.ix in dobj.sub_contains:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You cannot close "
                     + dobj.getArticle(True)
                     + dobj.verbose_name
-                    + " while you are inside it. "
+                    + " while you are inside it. ",
                 )
                 return False
 
@@ -2731,25 +2810,27 @@ def closeVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     try:
         state = dobj.is_open
     except AttributeError:
-        game.app.printToGUI(
-            "You cannot close " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn",
+            "You cannot close " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
         return False
     if state == True:
-        game.app.printToGUI(
-            "You close " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        game.addTextToEvent(
+            "turn", "You close " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
         dobj.makeClosed()
         return True
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " is already closed. "
+            + " is already closed. ",
         )
     return True
 
@@ -2774,7 +2855,7 @@ def exitVerbFunc(game):
     elif out_loc.exit:
         travel.travelOut(game)
     else:
-        game.app.printToGUI("There is no obvious exit. ")
+        game.addTextToEvent("turn", "There is no obvious exit. ")
 
 
 # replace default verbFunc method
@@ -2795,7 +2876,7 @@ def enterVerbFunc(game):
     if out_loc.entrance:
         travel.travelIn(game)
     else:
-        game.app.printToGUI("There is no obvious entrance. ")
+        game.addTextToEvent("turn", "There is no obvious entrance. ")
 
 
 # replace default verbFunc method
@@ -2823,26 +2904,28 @@ def unlockVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container) or isinstance(dobj, Door):
         if dobj.lock_obj:
             if dobj.lock_obj.is_locked:
                 if dobj.lock_obj.key_obj:
                     if game.me.containsItem(dobj.lock_obj.key_obj):
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "(Using "
                             + dobj.lock_obj.key_obj.getArticle(True)
                             + dobj.lock_obj.key_obj.verbose_name
-                            + ")"
+                            + ")",
                         )
                         if dobj.lock_obj.key_obj.location != game.me:
-                            game.app.printToGUI(
+                            game.addTextToEvent(
+                                "turn",
                                 "(First removing "
                                 + dobj.lock_obj.key_obj.lowNameArticle(True)
                                 + " from "
                                 + dobj.lock_obj.key_obj.location.lowNameArticle(True)
-                                + ".)"
+                                + ".)",
                             )
                             # dobj.lock_obj.key_obj.location.removeThing(dobj.lock_obj.key_obj)
                             # game.me.addThing(dobj.lock_obj.key_obj)
@@ -2852,76 +2935,87 @@ def unlockVerbFunc(game, dobj, skip=False):
                                 dobj.lock_obj.key_obj,
                                 dobj.lock_obj.key_obj.location,
                             )
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "You unlock "
                             + dobj.getArticle(True)
                             + dobj.verbose_name
-                            + ". "
+                            + ". ",
                         )
                         dobj.lock_obj.makeUnlocked()
                         return True
                     else:
-                        game.app.printToGUI("You do not have the correct key. ")
+                        game.addTextToEvent("turn", "You do not have the correct key. ")
                         return False
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                    + " is already unlocked. "
+                    + " is already unlocked. ",
                 )
                 return True
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " does not have a lock. "
+                + " does not have a lock. ",
             )
             return True
     elif isinstance(dobj, Lock):
         if dobj.is_locked:
             if dobj.key_obj:
                 if game.me.containsItem(dobj.key_obj):
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "(Using "
                         + dobj.key_obj.getArticle(True)
                         + dobj.key_obj.verbose_name
-                        + ")"
+                        + ")",
                     )
                     if dobj.key_obj.location != game.me:
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "(First removing "
                             + dobj.key_obj.lowNameArticle(True)
                             + " from "
                             + dobj.key_obj.location.lowNameArticle(True)
-                            + ".)"
+                            + ".)",
                         )
                         # dobj.key_obj.location.removeThing(dobj.key_obj)
                         # game.me.addThing(dobj.key_obj)
                         removeFromVerb.verbFunc(
                             game, dobj.key_obj, dobj.key_obj.location
                         )
-                    game.app.printToGUI(
-                        "You unlock " + dobj.getArticle(True) + dobj.verbose_name + ". "
+                    game.addTextToEvent(
+                        "turn",
+                        "You unlock "
+                        + dobj.getArticle(True)
+                        + dobj.verbose_name
+                        + ". ",
                     )
                     dobj.makeUnlocked()
                     return True
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI("You do not have the correct key. ")
+                game.addTextToEvent("turn", "You do not have the correct key. ")
                 return False
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is already unlocked. "
+                + " is already unlocked. ",
             )
             return True
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " does not have a lock. "
+            + " does not have a lock. ",
         )
         return True
 
@@ -2951,30 +3045,34 @@ def lockVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container) or isinstance(dobj, Door):
         if dobj.is_open:
             if not closeVerb.verbFunc(game, dobj):
-                game.app.printToGUI("Could not close " + dobj.verbose_name + ". ")
+                game.addTextToEvent(
+                    "turn", "Could not close " + dobj.verbose_name + ". "
+                )
                 return False
         if dobj.lock_obj:
             if not dobj.lock_obj.is_locked:
                 if dobj.lock_obj.key_obj:
                     if game.me.containsItem(dobj.lock_obj.key_obj):
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "(Using "
                             + dobj.lock_obj.key_obj.getArticle(True)
                             + dobj.lock_obj.key_obj.verbose_name
-                            + ")"
+                            + ")",
                         )
                         if dobj.lock_obj.key_obj.location != game.me:
-                            game.app.printToGUI(
+                            game.addTextToEvent(
+                                "turn",
                                 "(First removing "
                                 + dobj.lock_obj.key_obj.lowNameArticle(True)
                                 + " from "
                                 + dobj.lock_obj.key_obj.location.lowNameArticle(True)
-                                + ".)"
+                                + ".)",
                             )
                             # dobj.lock_obj.key_obj.location.removeThing(dobj.lock_obj.key_obj)
                             # game.me.addThing(dobj.lock_obj.key_obj)
@@ -2984,82 +3082,90 @@ def lockVerbFunc(game, dobj, skip=False):
                                 dobj.lock_obj.key_obj,
                                 dobj.lock_obj.key_obj.location,
                             )
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "You lock "
                             + dobj.getArticle(True)
                             + dobj.verbose_name
-                            + ". "
+                            + ". ",
                         )
                         dobj.lock_obj.makeLocked()
                         return True
                     else:
-                        game.app.printToGUI("You do not have the correct key. ")
+                        game.addTextToEvent("turn", "You do not have the correct key. ")
                         return False
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                    + " is already locked. "
+                    + " is already locked. ",
                 )
                 return True
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " does not have a lock. "
+                + " does not have a lock. ",
             )
             return False
     elif isinstance(dobj, Lock):
         if dobj.parent_obj.is_open:
             if not closeVerb.verbFunc(game, dobj.parent_obj):
-                game.app.printToGUI(
-                    "Could not close " + dobj.parent_obj.verbose_name + ". "
+                game.addTextToEvent(
+                    "turn", "Could not close " + dobj.parent_obj.verbose_name + ". "
                 )
                 return False
         if not dobj.is_locked:
             if dobj.key_obj:
                 if game.me.containsItem(dobj.key_obj):
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "(Using "
                         + dobj.key_obj.getArticle(True)
                         + dobj.key_obj.verbose_name
-                        + ")"
+                        + ")",
                     )
                     if dobj.key_obj.location != game.me:
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "(First removing "
                             + dobj.key_obj.lowNameArticle(True)
                             + " from "
                             + dobj.key_obj.location.lowNameArticle(True)
-                            + ".)"
+                            + ".)",
                         )
                         # dobj.key_obj.location.removeThing(dobj.key_obj)
                         # game.me.addThing(dobj.key_obj)
                         removeFromVerb.verbFunc(
                             game, dobj.key_obj, dobj.key_obj.location
                         )
-                    game.app.printToGUI(
-                        "You lock " + dobj.getArticle(True) + dobj.verbose_name + ". "
+                    game.addTextToEvent(
+                        "turn",
+                        "You lock " + dobj.getArticle(True) + dobj.verbose_name + ". ",
                     )
                     dobj.makeLocked()
                     return True
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI("You do not have the correct key. ")
+                game.addTextToEvent("turn", "You do not have the correct key. ")
                 return False
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is already locked. "
+                + " is already locked. ",
             )
             return True
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " does not have a lock. "
+            + " does not have a lock. ",
         )
         return True
 
@@ -3104,91 +3210,99 @@ def unlockWithVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(iobj.cannot_interact_msg)
+        game.addTextToEvent("turn", iobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container) or isinstance(dobj, Door):
         if dobj.lock_obj:
             if dobj.lock_obj.is_locked:
                 if iobj is game.me:
-                    game.app.printToGUI("You are not a key. ")
+                    game.addTextToEvent("turn", "You are not a key. ")
                     return False
                 elif not isinstance(iobj, Key):
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         (iobj.getArticle(True) + iobj.verbose_name).capitalize()
-                        + " is not a key. "
+                        + " is not a key. ",
                     )
                     return False
                 elif dobj.lock_obj.key_obj:
                     if iobj == dobj.lock_obj.key_obj:
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "You unlock "
                             + dobj.getArticle(True)
                             + dobj.verbose_name
                             + " using "
                             + dobj.lock_obj.key_obj.getArticle(True)
                             + dobj.lock_obj.key_obj.verbose_name
-                            + ". "
+                            + ". ",
                         )
                         dobj.lock_obj.makeUnlocked()
                         return True
                     else:
-                        game.app.printToGUI("You do not have the correct key. ")
+                        game.addTextToEvent("turn", "You do not have the correct key. ")
                         return False
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                    + " is already unlocked. "
+                    + " is already unlocked. ",
                 )
                 return True
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " does not have a lock. "
+                + " does not have a lock. ",
             )
             return True
 
     elif isinstance(dobj, Lock):
         if dobj.is_locked:
             if not isinstance(iobj, Key):
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     (iobj.getArticle(True) + iobj.verbose_name).capitalize()
-                    + " is not a key. "
+                    + " is not a key. ",
                 )
             elif dobj.key_obj:
                 if iobj == dobj.key_obj.ix:
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "You unlock "
                         + dobj.getArticle(True)
                         + dobj.verbose_name
                         + " using "
                         + dobj.lock_obj.key_obj.getArticle(True)
                         + dobj.lock_obj.key_obj.verbose_name
-                        + ". "
+                        + ". ",
                     )
                     dobj.makeUnlocked()
                     return True
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI("You do not have the correct key. ")
+                game.addTextToEvent("turn", "You do not have the correct key. ")
                 return False
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is already unlocked. "
+                + " is already unlocked. ",
             )
             return True
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " does not have a lock. "
+            + " does not have a lock. ",
         )
         return True
 
@@ -3232,101 +3346,111 @@ def lockWithVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container) or isinstance(dobj, Door):
         if dobj.is_open:
             if not closeVerb.verbFunc(game, dobj):
-                game.app.printToGUI("Could not close " + dobj.verbose_name + ". ")
+                game.addTextToEvent(
+                    "turn", "Could not close " + dobj.verbose_name + ". "
+                )
                 return False
         if dobj.lock_obj:
             if not dobj.lock_obj.is_locked:
                 if iobj is game.me:
-                    game.app.printToGUI("You are not a key. ")
+                    game.addTextToEvent("turn", "You are not a key. ")
                     return False
                 elif not isinstance(iobj, Key):
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         (iobj.getArticle(True) + iobj.verbose_name).capitalize()
-                        + " is not a key. "
+                        + " is not a key. ",
                     )
                     return False
                 elif dobj.lock_obj.key_obj:
                     if iobj == dobj.lock_obj.key_obj:
-                        game.app.printToGUI(
+                        game.addTextToEvent(
+                            "turn",
                             "You lock "
                             + dobj.getArticle(True)
                             + dobj.verbose_name
                             + " using "
                             + dobj.lock_obj.key_obj.getArticle(True)
                             + dobj.lock_obj.key_obj.verbose_name
-                            + ". "
+                            + ". ",
                         )
                         dobj.lock_obj.makeLocked()
                         return True
                     else:
-                        game.app.printToGUI("You do not have the correct key. ")
+                        game.addTextToEvent("turn", "You do not have the correct key. ")
                         return False
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                    + " is already locked. "
+                    + " is already locked. ",
                 )
                 return True
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " does not have a lock. "
+                + " does not have a lock. ",
             )
             return False
 
     elif isinstance(dobj, Lock):
         if dobj.parent_obj.is_open:
             if not closeVerb.verbFunc(game, dobj.parent_obj):
-                game.app.printToGUI(
-                    "Could not close " + dobj.parent_obj.verbose_name + ". "
+                game.addTextToEvent(
+                    "turn", "Could not close " + dobj.parent_obj.verbose_name + ". "
                 )
                 return False
         if not dobj.is_locked:
             if not isinstance(iobj, Key):
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     (iobj.getArticle(True) + iobj.verbose_name).capitalize()
-                    + " is not a key. "
+                    + " is not a key. ",
                 )
             elif dobj.key_obj:
                 if iobj == dobj.key_obj.ix:
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "You lock "
                         + dobj.getArticle(True)
                         + dobj.verbose_name
                         + " using "
                         + dobj.lock_obj.key_obj.getArticle(True)
                         + dobj.lock_obj.key_obj.verbose_name
-                        + ". "
+                        + ". ",
                     )
                     dobj.makeLocked()
                     return True
                 else:
-                    game.app.printToGUI("You do not have the correct key. ")
+                    game.addTextToEvent("turn", "You do not have the correct key. ")
                     return False
             else:
-                game.app.printToGUI("You do not have the correct key. ")
+                game.addTextToEvent("turn", "You do not have the correct key. ")
                 return False
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is already locked. "
+                + " is already locked. ",
             )
             return True
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " does not have a lock. "
+            + " does not have a lock. ",
         )
         return False
 
@@ -3372,21 +3496,22 @@ def lightVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, LightSource):
         if dobj.player_can_light:
             light = dobj.light(game)
             if light:
-                game.app.printToGUI(dobj.light_msg)
+                game.addTextToEvent("turn", dobj.light_msg)
             return light
         else:
-            game.app.printToGUI(dobj.cannot_light_msg)
+            game.addTextToEvent("turn", dobj.cannot_light_msg)
             return False
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " is not a light source. "
+            + " is not a light source. ",
         )
         return False
 
@@ -3421,21 +3546,22 @@ def extinguishVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, LightSource):
         if dobj.player_can_extinguish:
             extinguish = dobj.extinguish(game)
             if extinguish:
-                game.app.printToGUI(dobj.extinguish_msg)
+                game.addTextToEvent("turn", dobj.extinguish_msg)
             return extinguish
         else:
-            game.app.printToGUI(dobj.cannot_extinguish_msg)
+            game.addTextToEvent("turn", dobj.cannot_extinguish_msg)
             return False
     else:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-            + " is not a light source. "
+            + " is not a light source. ",
         )
         return False
 
@@ -3454,7 +3580,7 @@ waitVerb.hasDobj = False
 def waitVerbFunc(game):
     """Wait a turn
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
-    game.app.printToGUI("You wait a turn. ")
+    game.addTextToEvent("turn", "You wait a turn. ")
     return True
 
 
@@ -3481,14 +3607,15 @@ def useVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
         if isinstance(dobj, LightSource):
             return lightVerb.verbFunc(game, dobj)
         elif isinstance(dobj, Key):
 
-            game.app.printToGUI(
-                "What would you like to unlock with " + dobj.lowNameArticle(True) + "?"
+            game.addTextToEvent(
+                "turn",
+                "What would you like to unlock with " + dobj.lowNameArticle(True) + "?",
             )
             game.lastTurn.verb = unlockWithVerb
             game.lastTurn.iobj = dobj
@@ -3499,13 +3626,14 @@ def useVerbFunc(game, dobj, skip=False):
         elif dobj.connection:
             dobj.connection.travel(game)
         elif isinstance(dobj, Actor):
-            game.app.printToGUI("You cannot use people. ")
+            game.addTextToEvent("turn", "You cannot use people. ")
             return False
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You'll have to be more specific about what you want to do with "
                 + dobj.lowNameArticle(True)
-                + ". "
+                + ". ",
             )
             return False
 
@@ -3545,33 +3673,34 @@ def buyFromVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if not isinstance(iobj, Actor):
-        game.app.printToGUI(
-            "You cannot buy anything from " + iobj.lowNameArticle(False) + ". "
+        game.addTextToEvent(
+            "turn", "You cannot buy anything from " + iobj.lowNameArticle(False) + ". "
         )
         return False
     elif iobj == game.me:
-        game.app.printToGUI("You cannot buy anything from yourself. ")
+        game.addTextToEvent("turn", "You cannot buy anything from yourself. ")
         return False
     elif isinstance(dobj, Actor):
         if not dobj.commodity:
-            game.app.printToGUI("You cannot buy or sell a person. ")
+            game.addTextToEvent("turn", "You cannot buy or sell a person. ")
             return False
     if dobj.known_ix not in iobj.for_sale:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             iobj.capNameArticle(True)
             + " doesn't sell "
             + dobj.lowNameArticle(False)
-            + ". "
+            + ". ",
         )
         return False
     elif not iobj.for_sale[dobj.known_ix].number:
-        game.app.printToGUI(iobj.for_sale[dobj.known_ix].out_stock_msg)
+        game.addTextToEvent("turn", iobj.for_sale[dobj.known_ix].out_stock_msg)
         return False
     else:
         currency = iobj.for_sale[dobj.known_ix].currency
@@ -3582,18 +3711,19 @@ def buyFromVerbFunc(game, dobj, iobj, skip=False):
         if currency_ix in game.me.sub_contains:
             mycurrency = mycurrency + len(game.me.sub_contains[currency_ix])
         if mycurrency < iobj.for_sale[dobj.known_ix].price:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You don't have enough "
                 + currency.getPlural()
                 + " to purchase "
                 + dobj.lowNameArticle(False)
                 + ". <br> (requires "
                 + str(iobj.for_sale[dobj.known_ix].price)
-                + ") "
+                + ") ",
             )
             return False
         else:
-            game.app.printToGUI(iobj.for_sale[dobj.known_ix].purchase_msg)
+            game.addTextToEvent("turn", iobj.for_sale[dobj.known_ix].purchase_msg)
             iobj.for_sale[dobj.known_ix].beforeBuy(game)
             iobj.for_sale[dobj.known_ix].buyUnit(game)
             iobj.for_sale[dobj.known_ix].afterBuy(game)
@@ -3668,40 +3798,42 @@ def sellToVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if not isinstance(iobj, Actor):
-        game.app.printToGUI(
-            "You cannot sell anything to " + iobj.lowNameArticle(False) + ". "
+        game.addTextToEvent(
+            "turn", "You cannot sell anything to " + iobj.lowNameArticle(False) + ". "
         )
         return False
     elif iobj == game.me:
-        game.app.printToGUI("You cannot sell anything to yourself. ")
+        game.addTextToEvent("turn", "You cannot sell anything to yourself. ")
         return False
     if dobj.ix not in iobj.will_buy:
         if dobj is game.me:
-            game.app.printToGUI("You cannot sell yourself. ")
+            game.addTextToEvent("turn", "You cannot sell yourself. ")
             return False
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             iobj.capNameArticle(True)
             + " doesn't want to buy "
             + dobj.lowNameArticle(True)
-            + ". "
+            + ". ",
         )
         return False
     elif not iobj.will_buy[dobj.known_ix].number:
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             iobj.capNameArticle(True)
             + " will not buy any more "
             + dobj.getPlural()
-            + ". "
+            + ". ",
         )
         return False
     else:
-        game.app.printToGUI(iobj.will_buy[dobj.known_ix].sell_msg)
+        game.addTextToEvent("turn", iobj.will_buy[dobj.known_ix].sell_msg)
         iobj.will_buy[dobj.known_ix].beforeSell(game)
         iobj.will_buy[dobj.known_ix].sellUnit(game)
         iobj.will_buy[dobj.known_ix].afterSell(game)
@@ -3761,9 +3893,9 @@ def recordOnVerbFunc(game):
     f = game.app.saveFilePrompt(".txt", "Text files", "Enter a file to record to")
     success = game.lastTurn.recordOn(f)
     if success:
-        game.app.printToGUI("**RECORDING ON**")
+        game.addTextToEvent("turn", "**RECORDING ON**")
     else:
-        game.app.printToGUI("Could not open file for recording.")
+        game.addTextToEvent("turn", "Could not open file for recording.")
     return success
 
 
@@ -3780,7 +3912,7 @@ recordOffVerb.preposition = ["off"]
 
 def recordOffVerbFunc(game):
     game.lastTurn.recordOff()
-    game.app.printToGUI("**RECORDING OFF**")
+    game.addTextToEvent("turn", "**RECORDING OFF**")
 
 
 # replace the default verb function
@@ -3797,20 +3929,19 @@ def playBackVerbFunc(game):
         ".txt", "Text files", "Enter a filename for the new recording"
     )
     if not f:
-        game.app.printToGUI("No file selected. ")
+        game.addTextToEvent("turn", "No file selected. ")
         return False
     play = open(f, "r")
     lines = play.readlines()
-    game.app.printToGUI("**STARTING PLAYBACK** ")
+    game.addTextToEvent("turn", "**STARTING PLAYBACK** ")
     for line in lines:
-        game.app.newBox(game.app.box_style2)
-        game.app.printToGUI("> " + line)
-        game.app.newBox(game.app.box_style1)
+        game.addTextToEvent("turn", "> " + line)
+        game.runTurnEvents()
         if (not game.lastTurn.ambiguous) and (not game.lastTurn.err):
             game.daemons.runAll(game)
         game.parseInput(line)
     play.close()
-    game.app.printToGUI("**PLAYBACK COMPLETE** ")
+    game.addTextToEvent("turn", "**PLAYBACK COMPLETE** ")
     return True
 
 
@@ -3838,9 +3969,9 @@ def saveVerbFunc(game):
 
     if f:
         SaveGame(f)
-        game.app.printToGUI("Game saved.")
+        game.addTextToEvent("turn", "Game saved.")
         return True
-    game.app.printToGUI("Could not save game.")
+    game.addTextToEvent("turn", "Could not save game.")
     return False
 
 
@@ -3856,16 +3987,16 @@ def loadVerbFunc(game):
     f = game.app.openFilePrompt(".sav", "Save files", "Enter a file to load")
 
     if not f:
-        game.app.printToGUI("Choose a valid save file to load a game.")
+        game.addTextToEvent("turn", "Choose a valid save file to load a game.")
         return False
 
     l = LoadGame(f)
     if not l.is_valid():
-        game.app.printToGUI("Cannot load game file.")
+        game.addTextToEvent("turn", "Cannot load game file.")
         return False
 
     l.load()
-    game.app.printToGUI("Game loaded.")
+    game.addTextToEvent("turn", "Game loaded.")
     return True
 
 
@@ -3886,23 +4017,23 @@ def leadDirVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if not isinstance(dobj, Actor):
-        game.app.printToGUI("You cannot lead that. ")
+        game.addTextToEvent("turn", "You cannot lead that. ")
         return False
     elif dobj.can_lead:
         from .travel import getDirectionFromString, directionDict
 
         destination = getDirectionFromString(dobj.getOutermostLocation(), iobj)
         if not destination:
-            game.app.printToGUI(
-                "You cannot lead " + dobj.lowNameArticle(True) + " that way. "
+            game.addTextToEvent(
+                "turn", "You cannot lead " + dobj.lowNameArticle(True) + " that way. "
             )
             return False
         if isinstance(destination, TravelConnector):
             if not destination.can_pass:
-                game.app.printToGUI(destination.cannot_pass_msg)
+                game.addTextToEvent("turn", destination.cannot_pass_msg)
                 return False
             elif dobj.getOutermostLocation() == destination.pointA:
                 destination = destination.pointB
@@ -3912,7 +4043,9 @@ def leadDirVerbFunc(game, dobj, iobj, skip=False):
         destination.addThing(dobj)
         directionDict[iobj](game)
     else:
-        game.app.printToGUI(dobj.capNameArticle(True) + " doesn't want to be led. ")
+        game.addTextToEvent(
+            "turn", dobj.capNameArticle(True) + " doesn't want to be led. "
+        )
 
 
 # replace the default verbFunc method
@@ -3937,9 +4070,9 @@ def breakVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
-    game.app.printToGUI("Violence isn't the answer to this one. ")
+    game.addTextToEvent("turn", "Violence isn't the answer to this one. ")
 
 
 # replace default verbFunc method
@@ -3964,9 +4097,9 @@ def kickVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
-    game.app.printToGUI("Violence isn't the answer to this one. ")
+    game.addTextToEvent("turn", "Violence isn't the answer to this one. ")
 
 
 # replace default verbFunc method
@@ -3991,13 +4124,14 @@ def killVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Actor):
-        game.app.printToGUI("Violence isn't the answer to this one. ")
+        game.addTextToEvent("turn", "Violence isn't the answer to this one. ")
     else:
-        game.app.printToGUI(
-            dobj.capNameArticle(True) + " cannot be killed, as it is not alive. "
+        game.addTextToEvent(
+            "turn",
+            dobj.capNameArticle(True) + " cannot be killed, as it is not alive. ",
         )
 
 
@@ -4013,7 +4147,7 @@ jumpVerb.syntax = [["jump"]]
 def jumpVerbFunc(game):
     """Jump in place
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
-    game.app.printToGUI("You jump in place. ")
+    game.addTextToEvent("turn", "You jump in place. ")
 
 
 # replace default verbFunc method
@@ -4040,14 +4174,16 @@ def jumpOverVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if dobj == game.me:
-        game.app.printToGUI("You cannot jump over yourself. ")
+        game.addTextToEvent("turn", "You cannot jump over yourself. ")
     elif dobj.size < 70:
-        game.app.printToGUI("There's no reason to jump over that. ")
+        game.addTextToEvent("turn", "There's no reason to jump over that. ")
     else:
-        game.app.printToGUI(dobj.capNameArticle(True) + " is too big to jump over. ")
+        game.addTextToEvent(
+            "turn", dobj.capNameArticle(True) + " is too big to jump over. "
+        )
     return False
 
 
@@ -4075,9 +4211,9 @@ def jumpInVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
-    game.app.printToGUI("You cannot jump into that. ")
+    game.addTextToEvent("turn", "You cannot jump into that. ")
     return False
 
 
@@ -4105,9 +4241,9 @@ def jumpOnVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
-    game.app.printToGUI("You cannot jump onto that. ")
+    game.addTextToEvent("turn", "You cannot jump onto that. ")
     return False
 
 
@@ -4140,14 +4276,14 @@ def pressVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Pressable):
-        game.app.printToGUI("You press " + dobj.lowNameArticle(True) + ". ")
+        game.addTextToEvent("turn", "You press " + dobj.lowNameArticle(True) + ". ")
         dobj.pressThing(game)
     else:
-        game.app.printToGUI(
-            "Pressing " + dobj.lowNameArticle(True) + " has no effect. "
+        game.addTextToEvent(
+            "turn", "Pressing " + dobj.lowNameArticle(True) + " has no effect. "
         )
         return False
 
@@ -4175,13 +4311,14 @@ def pushVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Pressable):
         pressVerb.verbFunc(game, dobj)
     else:
-        game.app.printToGUI(
-            "You push on " + dobj.lowNameArticle(True) + ", to no productive end. "
+        game.addTextToEvent(
+            "turn",
+            "You push on " + dobj.lowNameArticle(True) + ", to no productive end. ",
         )
         return False
 
@@ -4217,23 +4354,24 @@ def pourOutVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container):
         loc = game.me.getOutermostLocation()
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+                game.addTextToEvent("turn", dobj.capNameArticle(True) + " is closed. ")
                 return False
         if dobj.contains == {}:
-            game.app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+            game.addTextToEvent("turn", dobj.capNameArticle(True) + " is empty. ")
             return True
         liquid = dobj.containsLiquid()
         if not liquid:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You dump the contents of "
                 + dobj.lowNameArticle(True)
-                + " onto the ground. "
+                + " onto the ground. ",
             )
             containslist = []
             for key in dobj.contains:
@@ -4247,15 +4385,17 @@ def pourOutVerbFunc(game, dobj, skip=False):
             dobj = liquid
     if isinstance(dobj, Liquid):
         if not dobj.getContainer:
-            game.app.printToGUI("It isn't in a container you can dump it from. ")
+            game.addTextToEvent(
+                "turn", "It isn't in a container you can dump it from. "
+            )
             return False
         elif not dobj.can_pour_out:
-            game.app.printToGUI(dobj.cannot_pour_out_msg)
+            game.addTextToEvent("turn", dobj.cannot_pour_out_msg)
             return False
-        game.app.printToGUI("You dump out " + dobj.lowNameArticle(True) + ". ")
+        game.addTextToEvent("turn", "You dump out " + dobj.lowNameArticle(True) + ". ")
         dobj.dumpLiquid()
         return True
-    game.app.printToGUI("You can't dump that out. ")
+    game.addTextToEvent("turn", "You can't dump that out. ")
     return False
 
 
@@ -4287,21 +4427,22 @@ def drinkVerbFunc(game, dobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container):
         loc = game.me.getOutermostLocation()
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+                game.addTextToEvent("turn", dobj.capNameArticle(True) + " is closed. ")
                 return False
         if dobj.contains == {}:
-            game.app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+            game.addTextToEvent("turn", dobj.capNameArticle(True) + " is empty. ")
             return True
         liquid = dobj.containsLiquid()
         if not liquid:
-            game.app.printToGUI(
-                "There is nothing you can drink in " + dobj.lowNameArticle(True) + ". "
+            game.addTextToEvent(
+                "turn",
+                "There is nothing you can drink in " + dobj.lowNameArticle(True) + ". ",
             )
             return False
         else:
@@ -4309,12 +4450,12 @@ def drinkVerbFunc(game, dobj, skip=False):
     if isinstance(dobj, Liquid):
         container = dobj.getContainer()
         if not dobj.can_drink:
-            game.app.printToGUI(dobj.cannot_drink_msg)
+            game.addTextToEvent("turn", dobj.cannot_drink_msg)
             return False
-        game.app.printToGUI("You drink " + dobj.lowNameArticle(True) + ". ")
+        game.addTextToEvent("turn", "You drink " + dobj.lowNameArticle(True) + ". ")
         dobj.drinkLiquid(game)
         return True
-    game.app.printToGUI("You cannot drink that. ")
+    game.addTextToEvent("turn", "You cannot drink that. ")
     return False
 
 
@@ -4353,31 +4494,34 @@ def pourIntoVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(dobj, Container):
         loc = game.me.getOutermostLocation()
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+                game.addTextToEvent("turn", dobj.capNameArticle(True) + " is closed. ")
                 return False
         if dobj.contains == {}:
-            game.app.printToGUI(dobj.capNameArticle(True) + " is empty. ")
+            game.addTextToEvent("turn", dobj.capNameArticle(True) + " is empty. ")
             return True
         liquid = dobj.containsLiquid()
         if not liquid:
             if not isinstance(iobj, Container):
-                game.app.printToGUI(iobj.capNameArticle(True) + " is not a container. ")
+                game.addTextToEvent(
+                    "turn", iobj.capNameArticle(True) + " is not a container. "
+                )
                 return False
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You dump the contents of "
                 + dobj.lowNameArticle(True)
                 + " into "
                 + iobj.lowNameArticle(True)
-                + ". "
+                + ". ",
             )
             containslist = []
             for key in dobj.contains:
@@ -4388,9 +4532,10 @@ def pourIntoVerbFunc(game, dobj, iobj, skip=False):
                 if item.size < iobj.size:
                     iobj.addThing(item)
                 else:
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         item.capNameArticle(True)
-                        + " is too large to fit inside. It falls to the ground. "
+                        + " is too large to fit inside. It falls to the ground. ",
                     )
                     loc.addThing(item)
             return True
@@ -4398,20 +4543,24 @@ def pourIntoVerbFunc(game, dobj, iobj, skip=False):
             dobj = liquid
     if isinstance(dobj, Liquid):
         if not dobj.getContainer:
-            game.app.printToGUI("It isn't in a container you can dump it from. ")
+            game.addTextToEvent(
+                "turn", "It isn't in a container you can dump it from. "
+            )
             return False
         elif not iobj.holds_liquid:
-            game.app.printToGUI(iobj.capNameArticle(True) + " cannot hold a liquid. ")
+            game.addTextToEvent(
+                "turn", iobj.capNameArticle(True) + " cannot hold a liquid. "
+            )
             return False
         spaceleft = iobj.liquidRoomLeft()
         liquid_contents = iobj.containsLiquid()
         if iobj.has_lid:
             if not iobj.is_open:
-                game.app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+                game.addTextToEvent("turn", dobj.capNameArticle(True) + " is closed. ")
                 return False
         if iobj.contains != {} and not liquid_contents:
-            game.app.printToGUI(
-                "(First attempting to empty " + iobj.lowNameArticle(True) + ")"
+            game.addTextToEvent(
+                "turn", "(First attempting to empty " + iobj.lowNameArticle(True) + ")"
             )
             success = pourOutVerb.verbFunc(game, iobj)
             if not success:
@@ -4419,43 +4568,47 @@ def pourIntoVerbFunc(game, dobj, iobj, skip=False):
         if liquid_contents and liquid_contents.liquid_type != dobj.liquid_type:
             success = liquid_contents.mixWith(game, liquid_contents, dobj)
             if not success:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     iobj.capNameArticle(True)
                     + " is already full of "
                     + liquid_contents.lowNameArticle()
-                    + ". "
+                    + ". ",
                 )
                 return False
             else:
                 return True
         elif liquid_contents:
             if liquid_contents.infinite_well:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You pour "
                     + dobj.lowNameArticle(True)
                     + " into "
                     + iobj.lowNameArticle(True)
-                    + ". "
+                    + ". ",
                 )
                 dobj.location.removeThing(dobj)
                 return True
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 iobj.capNameArticle(True)
                 + " already has "
                 + liquid_contents.lowNameArticle()
-                + " in it. "
+                + " in it. ",
             )
             return False
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You pour "
                 + dobj.lowNameArticle(True)
                 + " into "
                 + iobj.lowNameArticle(True)
-                + ". "
+                + ". ",
             )
             return dobj.fillVessel(iobj)
-    game.app.printToGUI("You can't dump that out. ")
+    game.addTextToEvent("turn", "You can't dump that out. ")
     return False
 
 
@@ -4491,85 +4644,91 @@ def fillFromVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     if isinstance(iobj, Container):
         loc = game.me.getOutermostLocation()
         if iobj.has_lid:
             if not iobj.is_open:
-                game.app.printToGUI(iobj.capNameArticle(True) + " is closed. ")
+                game.addTextToEvent("turn", iobj.capNameArticle(True) + " is closed. ")
                 return False
         if iobj.contains == {}:
-            game.app.printToGUI(iobj.capNameArticle(True) + " is empty. ")
+            game.addTextToEvent("turn", iobj.capNameArticle(True) + " is empty. ")
             return True
         liquid = iobj.containsLiquid()
         if not liquid:
             if iobj is game.me:
-                game.app.printToGUI("You cannot fill anything from yourself. ")
+                game.addTextToEvent("turn", "You cannot fill anything from yourself. ")
             else:
-                game.app.printToGUI(
-                    "There is no liquid in " + dobj.lowNameArticle(True) + ". "
+                game.addTextToEvent(
+                    "turn", "There is no liquid in " + dobj.lowNameArticle(True) + ". "
                 )
             return False
         else:
             if not dobj.holds_liquid:
-                game.app.printToGUI(
-                    dobj.capNameArticle(True) + " cannot hold a liquid. "
+                game.addTextToEvent(
+                    "turn", dobj.capNameArticle(True) + " cannot hold a liquid. "
                 )
                 return False
             if dobj.has_lid:
                 if not dobj.is_open:
-                    game.app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+                    game.addTextToEvent(
+                        "turn", dobj.capNameArticle(True) + " is closed. "
+                    )
                     return False
             spaceleft = dobj.liquidRoomLeft()
             liquid_contents = dobj.containsLiquid()
             if dobj.contains != {} and not liquid_contents:
-                game.app.printToGUI(
-                    "(First attempting to empty " + iobj.lowNameArticle(True) + ")"
+                game.addTextToEvent(
+                    "turn",
+                    "(First attempting to empty " + iobj.lowNameArticle(True) + ")",
                 )
                 success = pourOutVerb.verbFunc(game, iobj)
                 if not success:
                     return False
             if not liquid.can_fill_from:
-                game.app.printToGUI(liquid.cannot_fill_from_msg)
+                game.addTextToEvent("turn", liquid.cannot_fill_from_msg)
                 return False
             if liquid_contents and liquid_contents.liquid_type != liquid.liquid_type:
                 success = liquid_contents.mixWith(game, liquid_contents, dobj)
                 if not success:
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "There is already "
                         + liquid_contents.lowNameArticle()
                         + " in "
                         + dobj.lowNameArticle(True)
-                        + ". "
+                        + ". ",
                     )
                     return False
                 else:
                     return True
 
             elif liquid.infinite_well:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You fill "
                     + dobj.lowNameArticle(True)
                     + " with "
                     + liquid.lowNameArticle()
                     + " from "
                     + iobj.lowNameArticle(True)
-                    + ". "
+                    + ". ",
                 )
             else:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You fill "
                     + dobj.lowNameArticle(True)
                     + " with "
                     + liquid.lowNameArticle()
-                    + ", taking all of it. "
+                    + ", taking all of it. ",
                 )
             return liquid.fillVessel(dobj)
-    game.app.printToGUI("You can't fill that. ")
+    game.addTextToEvent("turn", "You can't fill that. ")
     return False
 
 
@@ -4602,65 +4761,74 @@ def fillWithVerbFunc(game, dobj, iobj, skip=False):
         if not runfunc:
             return True
     if dobj.cannot_interact_msg:
-        game.app.printToGUI(dobj.cannot_interact_msg)
+        game.addTextToEvent("turn", dobj.cannot_interact_msg)
         return False
     elif iobj.cannot_interact_msg:
-        game.app.printToGUI(iobj.cannot_interact_msg)
+        game.addTextToEvent("turn", iobj.cannot_interact_msg)
     if not isinstance(dobj, Container):
-        game.app.printToGUI("You cannot fill " + dobj.lowNameArticle(True) + ". ")
+        game.addTextToEvent(
+            "turn", "You cannot fill " + dobj.lowNameArticle(True) + ". "
+        )
         return False
     if isinstance(iobj, Liquid):
         if not dobj.holds_liquid:
-            game.app.printToGUI(dobj.capNameArticle(True) + " cannot hold a liquid. ")
+            game.addTextToEvent(
+                "turn", dobj.capNameArticle(True) + " cannot hold a liquid. "
+            )
             return False
         if dobj.has_lid:
             if not dobj.is_open:
-                game.app.printToGUI(dobj.capNameArticle(True) + " is closed. ")
+                game.addTextToEvent("turn", dobj.capNameArticle(True) + " is closed. ")
                 return False
         spaceleft = dobj.liquidRoomLeft()
         liquid_contents = dobj.containsLiquid()
         if dobj.contains != {} and not liquid_contents:
-            game.app.printToGUI(
-                "(First attempting to empty " + iobj.lowNameArticle(True) + ")"
+            game.addTextToEvent(
+                "turn", "(First attempting to empty " + iobj.lowNameArticle(True) + ")"
             )
             success = pourOutVerb.verbFunc(game, iobj)
             if not success:
                 return False
         if not iobj.can_fill_from:
-            game.app.printToGUI(iobj.cannot_fill_from_msg)
+            game.addTextToEvent("turn", iobj.cannot_fill_from_msg)
             return False
         if liquid_contents and liquid_contents.liquid_type != iobj.liquid_type:
             success = liquid_contents.mixWith(game, liquid_contents, dobj)
             if not success:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "There is already "
                     + liquid_contents.lowNameArticle()
                     + " in "
                     + dobj.lowNameArticle(True)
-                    + ". "
+                    + ". ",
                 )
                 return False
             else:
                 return True
         container = iobj.getContainer()
         if iobj.infinite_well:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You fill "
                 + dobj.lowNameArticle(True)
                 + " with "
                 + iobj.lowNameArticle()
-                + ". "
+                + ". ",
             )
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "You fill "
                 + dobj.lowNameArticle(True)
                 + " with "
                 + iobj.lowNameArticle()
-                + ", taking all of it. "
+                + ", taking all of it. ",
             )
         return iobj.fillVessel(dobj)
-    game.app.printToGUI("You can't fill " + dobj.lowNameArticle(True) + " with that. ")
+    game.addTextToEvent(
+        "turn", "You can't fill " + dobj.lowNameArticle(True) + " with that. "
+    )
     return False
 
 

@@ -503,10 +503,10 @@ class LightSource(Thing):
 
     def light(self, game):
         if self.is_lit:
-            game.app.printToGUI(self.already_lit_msg)
+            game.addTextToEvent("turn", self.already_lit_msg)
             return True
         elif self.consumable and not self.turns_left:
-            game.app.printToGUI(self.cannot_light_expired_msg)
+            game.addTextToEvent("turn", self.cannot_light_expired_msg)
             return False
         else:
             if self.consumable:
@@ -518,7 +518,7 @@ class LightSource(Thing):
 
     def extinguish(self, game):
         if not self.is_lit:
-            game.app.printToGUI(self.already_extinguished_msg)
+            game.addTextToEvent("turn", self.already_extinguished_msg)
             return True
         else:
             if self.consumable and self.consumeLightSourceDaemon in game.daemons.active:
@@ -541,7 +541,7 @@ class LightSource(Thing):
             self.turns_left = self.turns_left - 1
             if self.turns_left == 0:
                 if game.me.getOutermostLocation() == self.getOutermostLocation():
-                    game.app.printToGUI(self.extinguishing_expired_msg)
+                    game.addTextToEvent("turn", self.extinguishing_expired_msg)
                 self.is_lit = False
                 self.desc = self.base_desc + self.expired_desc
                 self.xdesc = self.base_xdesc + self.expired_desc
@@ -549,12 +549,14 @@ class LightSource(Thing):
                     game.daemons.remove(self.consumeLightSourceDaemon)
             elif game.me.getOutermostLocation() == self.getOutermostLocation():
                 if self.turns_left < 5:
-                    game.app.printToGUI(
-                        self.expiry_warning + str(self.turns_left) + " turns left. "
+                    game.addTextToEvent(
+                        "turn",
+                        self.expiry_warning + str(self.turns_left) + " turns left. ",
                     )
                 elif (self.turns_left % 5) == 0:
-                    game.app.printToGUI(
-                        self.expiry_warning + str(self.turns_left) + " turns left. "
+                    game.addTextToEvent(
+                        "turn",
+                        self.expiry_warning + str(self.turns_left) + " turns left. ",
                     )
 
 
@@ -947,7 +949,7 @@ class Transparent(Thing):
     def lookThrough(self, game):
         """Called when the Transparent instance is dobj for verb look through
 		Creators should overwrite for more complex behaviour """
-        game.app.printToGUI(self.look_through_desc)
+        game.addTextToEvent("turn", self.look_through_desc)
 
 
 class Readable(Thing):
@@ -968,7 +970,7 @@ class Readable(Thing):
     def readText(self, game):
         """Called when the Transparent instance is dobj for verb look through
 		Creators should overwrite for more complex behaviour """
-        game.app.printToGUI(self.read_desc)
+        game.addTextToEvent("turn", self.read_desc)
 
 
 class Book(Readable):
@@ -1003,7 +1005,7 @@ class Pressable(Thing):
 
     def pressThing(self, game):
         """Game creators should redefine this method for their Pressable instances """
-        game.app.printToGUI(self.capNameArticle(True) + " has been pressed. ")
+        game.addTextToEvent("turn", self.capNameArticle(True) + " has been pressed. ")
 
 
 class Liquid(Thing):

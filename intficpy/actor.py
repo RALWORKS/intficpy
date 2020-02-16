@@ -257,7 +257,7 @@ class Actor(Thing):
         if self.special_topics != {}:
             game.lastTurn.convNode = True
             for suggestion in self.special_topics:
-                game.app.printToGUI("(You could " + suggestion + ")")
+                game.addTextToEvent("turn", "(You could " + suggestion + ")")
                 game.lastTurn.specialTopics[suggestion] = self.special_topics[
                     suggestion
                 ]
@@ -270,7 +270,7 @@ class Actor(Thing):
         """The default function for an Actor's default topic
 		Should be overwritten by the game creator for an instance to create special responses
 		Takes argument game.app, pointing to the PyQt5 GUI"""
-        game.app.printToGUI(self.default_topic)
+        game.addTextToEvent("turn", self.default_topic)
         self.printSuggestions(game)
 
     def addSelling(self, item, currency, price, stock):
@@ -366,7 +366,7 @@ class Topic(IFPObject):
         self.owner = None
 
     def func(self, game, suggest=True):
-        game.app.printToGUI(self.text)
+        game.addTextToEvent("turn", self.text)
         if self.owner and suggest:
             if not self.owner.manual_suggest:
                 self.owner.printSuggestions(game)
@@ -383,7 +383,7 @@ class SpecialTopic(IFPObject):
         self.owner = None
 
     def func(self, game, suggest=True):
-        game.app.printToGUI(self.text)
+        game.addTextToEvent("turn", self.text)
         if suggest and self.owner:
             if not self.owner.manual_suggest:
                 self.owner.printSuggestions(game)
@@ -412,12 +412,14 @@ class SaleItem(IFPObject):
             elif self.currency.ix in game.me.sub_contains:
                 game.me.removeThing(game.me.sub_contains[self.currency.ix][0])
         if self.price > 1:
-            game.app.printToGUI(
-                "(Lost: " + str(self.price) + " " + self.currency.getPlural() + ")"
+            game.addTextToEvent(
+                "turn",
+                "(Lost: " + str(self.price) + " " + self.currency.getPlural() + ")",
             )
         else:
-            game.app.printToGUI(
-                "(Lost: " + str(self.price) + " " + self.currency.verbose_name + ")"
+            game.addTextToEvent(
+                "turn",
+                "(Lost: " + str(self.price) + " " + self.currency.verbose_name + ")",
             )
         if self.number is True:
             obj = self.thing.copyThing()
@@ -430,7 +432,7 @@ class SaleItem(IFPObject):
         game.me.addThing(obj)
         if not self.number is True:
             self.number = self.number - 1
-        game.app.printToGUI("(Received: " + obj.verbose_name + ") ")
+        game.addTextToEvent("turn", "(Received: " + obj.verbose_name + ") ")
 
     def afterBuy(self, game):
         pass
@@ -443,22 +445,28 @@ class SaleItem(IFPObject):
 
     def sellUnit(self, game):
         game.me.removeThing(self.thing)
-        game.app.printToGUI("(Lost: " + self.thing.verbose_name + ")")
+        game.addTextToEvent("turn", "(Lost: " + self.thing.verbose_name + ")")
         for i in range(0, self.price):
             game.me.addThing(self.currency)
         if not self.number is True:
             self.number = self.number - 1
         if self.price > 1:
-            game.app.printToGUI(
-                "(Received: " + str(self.price) + " " + self.currency.getPlural() + ") "
+            game.addTextToEvent(
+                "turn",
+                "(Received: "
+                + str(self.price)
+                + " "
+                + self.currency.getPlural()
+                + ") ",
             )
         else:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "(Received: "
                 + str(self.price)
                 + " "
                 + self.currency.verbose_name
-                + ") "
+                + ") ",
             )
 
     def afterSell(self, game):

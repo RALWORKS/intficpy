@@ -1,6 +1,7 @@
 from .parser import Parser
 from .daemons import DaemonManager
 from .vocab import verbDict
+from .events import IFPEvent
 
 
 class GameInfo:
@@ -45,55 +46,57 @@ class GameInfo:
 
     def printAbout(self, app):
         if self.customMsg:
-            app.printToGUI(self.customMsg)
+            addTextToEvent("turn", self.customMsg)
         else:
-            app.printToGUI("<b>" + self.title + "</b>")
-            app.printToGUI("<b>Created by " + self.author + "</b>")
+            addTextToEvent("turn", "<b>" + self.title + "</b>")
+            addTextToEvent("turn", "<b>Created by " + self.author + "</b>")
             if self.intFicPyCredit:
-                app.printToGUI("Built with JSMaika's IntFicPy parser")
+                addTextToEvent("turn", "Built with JSMaika's IntFicPy parser")
             if self.desc:
-                app.printToGUI(self.desc)
+                addTextToEvent("turn", self.desc)
             if self.betaTesterCredit:
-                app.printToGUI("<b>Beta Testing Credits</b>")
-                app.printToGUI(self.betaTesterCredit)
+                addTextToEvent("turn", "<b>Beta Testing Credits</b>")
+                addTextToEvent("turn", self.betaTesterCredit)
 
     def printInstructions(self, app):
-        app.printToGUI("<b>Basic Instructions</b>")
-        app.printToGUI(self.basic_instructions)
+        addTextToEvent("turn", "<b>Basic Instructions</b>")
+        addTextToEvent("turn", self.basic_instructions)
         if self.game_instructions:
-            app.printToGUI("<b>Game Instructions</b>")
-            app.printToGUI(self.game_instructions)
+            addTextToEvent("turn", "<b>Game Instructions</b>")
+            addTextToEvent("turn", self.game_instructions)
 
     def printHelp(self, app):
         if self.help_msg:
-            app.printToGUI(self.help_msg)
+            addTextToEvent("turn", self.help_msg)
         # self.printVerbs(app)
-        app.printToGUI(
-            "Type INSTRUCTIONS for game instructions, or VERBS for a full list of accepted verbs. "
+        addTextToEvent(
+            "turn",
+            "Type INSTRUCTIONS for game instructions, or VERBS for a full list of accepted verbs. ",
         )
 
     def printVerbs(self, app):
-        app.printToGUI("<b>This game accepts the following basic verbs: </b>")
+        addTextToEvent("turn", "<b>This game accepts the following basic verbs: </b>")
         verb_list = ""
         for verb in self.verbs:
             verb_list = verb_list + verb
             if verb != self.verbs[-1]:
                 verb_list = verb_list + ", "
-        app.printToGUI(verb_list)
+        addTextToEvent("turn", verb_list)
         if len(self.discovered_verbs) > 0:
-            app.printToGUI(
-                "<b>You have discovered the following additional verbs: </b>"
+            addTextToEvent(
+                "turn", "<b>You have discovered the following additional verbs: </b>"
             )
             d_verb_list = ""
             for verb in self.discovered_verbs:
                 verb_list = verb_list + verb
                 if verb != self.verbs[-1]:
                     d_verb_list = d_verb_list + ", "
-            app.printToGUI(d_verb_list)
-        app.printToGUI(
+            addTextToEvent("turn", d_verb_list)
+        addTextToEvent(
+            "turn",
             'For help with phrasing, type "verb help" followed by a verb for a '
             "complete list of acceptable sentence structures for that verb. This will "
-            "work for any verb, regardless of whether it has been discovered. "
+            "work for any verb, regardless of whether it has been discovered. ",
         )
 
 
@@ -140,11 +143,49 @@ class IFPGame:
         self.lastTurn = TurnInfo()
         self.aboutGame = GameInfo()
         self.daemons = DaemonManager()
+        self.next_events = {}
+
+    def runTurnEvents(self):
+        events = sorted(
+            [event for name, event in self.next_events.items()],
+            key=lambda x: x.priority,
+        )
+        for event in events:
+            self.app.printEventText(event)
+        self.next_events.clear()
+        self.addEvent("turn", 5)
 
     def initGame(self):
+        self.addEvent("turn", 5)
         if self.lastTurn.gameOpening:
             self.lastTurn.gameOpening(self)
-        else:
-            self.app.newBox(self.app.box_style1)
         self.parser.roomDescribe()
         self.daemons.runAll(self)
+        self.runTurnEvents()
+
+    def addEvent(self, name, priority, text_0=None):
+        """
+        Add an event to the current turn
+
+        Raises ValueError if an event of the specified name is already defined
+        for this turn
+        """
+        if name in self.next_events:
+            raise ValueError(
+                f"Cannot add event with name '{name}': "
+                "Name is already used for current turn."
+            )
+        self.next_events[name] = IFPEvent(self, priority, text_0)
+
+    def addTextToEvent(self, name, text):
+        """
+        Add text to an event in the current turn
+
+        Raises KeyError if the specified event name is not defined for this
+        turn
+        """
+        if not name in self.next_events:
+            raise KeyError(
+                f"Event with name '{name}' does not yet exist in current turn. "
+            )
+        self.next_events[name].text.append(text)

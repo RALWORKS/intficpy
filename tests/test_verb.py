@@ -62,7 +62,7 @@ class TestGetVerb(IFPTestCase):
         item.invItem = True
         self.start_room.addThing(item)
 
-        success = getVerb.verbFunc(self.game, item)
+        success = getVerb._runVerbFuncAndEvents(self.game, item)
         self.assertTrue(success)
 
         self.assertIn(item.ix, self.me.contains)
@@ -76,7 +76,7 @@ class TestGetVerb(IFPTestCase):
 
         self.assertFalse(item.ix in self.me.contains)
 
-        success = getVerb.verbFunc(self.game, item)
+        success = getVerb._runVerbFuncAndEvents(self.game, item)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, self.me.contains)
@@ -89,7 +89,7 @@ class TestGetVerb(IFPTestCase):
         self.assertEqual(len(self.me.contains[item.ix]), 1)
         self.assertIn(item, self.me.contains[item.ix])
 
-        success = getVerb.verbFunc(self.game, item)
+        success = getVerb._runVerbFuncAndEvents(self.game, item)
         self.assertFalse(success)
 
         self.assertEqual(len(self.me.contains[item.ix]), 1)
@@ -104,7 +104,7 @@ class TestDropVerb(IFPTestCase):
         self.assertEqual(len(self.me.contains[item.ix]), 1)
         self.assertIn(item, self.me.contains[item.ix])
 
-        success = dropVerb.verbFunc(self.game, item)
+        success = dropVerb._runVerbFuncAndEvents(self.game, item)
         self.assertTrue(success)
 
         self.assertNotIn(item.ix, self.me.contains)
@@ -115,7 +115,7 @@ class TestDropVerb(IFPTestCase):
         self.start_room.addThing(item)
         self.assertNotIn(item.ix, self.me.contains)
 
-        success = dropVerb.verbFunc(self.game, item)
+        success = dropVerb._runVerbFuncAndEvents(self.game, item)
         self.assertFalse(success)
 
 
@@ -129,7 +129,7 @@ class TestSetVerbs(IFPTestCase):
 
         self.assertNotIn(item.ix, container.contains)
 
-        success = setInVerb.verbFunc(self.game, item, container)
+        success = setInVerb._runVerbFuncAndEvents(self.game, item, container)
         self.assertTrue(success)
 
         self.assertIn(item.ix, container.contains)
@@ -144,7 +144,7 @@ class TestSetVerbs(IFPTestCase):
 
         self.assertNotIn(item.ix, surface.contains)
 
-        success = setOnVerb.verbFunc(self.game, item, surface)
+        success = setOnVerb._runVerbFuncAndEvents(self.game, item, surface)
         self.assertTrue(success)
 
         self.assertIn(item.ix, surface.contains)
@@ -159,7 +159,7 @@ class TestSetVerbs(IFPTestCase):
 
         self.assertNotIn(item.ix, underspace.contains)
 
-        success = setUnderVerb.verbFunc(self.game, item, underspace)
+        success = setUnderVerb._runVerbFuncAndEvents(self.game, item, underspace)
         self.assertTrue(success)
 
         self.assertIn(item.ix, underspace.contains)
@@ -174,7 +174,7 @@ class TestSetVerbs(IFPTestCase):
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
-        success = setInVerb.verbFunc(self.game, item, invalid_iobj)
+        success = setInVerb._runVerbFuncAndEvents(self.game, item, invalid_iobj)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
@@ -188,7 +188,7 @@ class TestSetVerbs(IFPTestCase):
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
-        success = setOnVerb.verbFunc(self.game, item, invalid_iobj)
+        success = setOnVerb._runVerbFuncAndEvents(self.game, item, invalid_iobj)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
@@ -202,7 +202,7 @@ class TestSetVerbs(IFPTestCase):
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
-        success = setUnderVerb.verbFunc(self.game, item, invalid_iobj)
+        success = setUnderVerb._runVerbFuncAndEvents(self.game, item, invalid_iobj)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
@@ -218,7 +218,7 @@ class TestLookVerbs(IFPTestCase):
         self.me.location.removeThing(self.me)
         room.addThing(self.me)
 
-        lookVerb.verbFunc(self.game)
+        lookVerb._runVerbFuncAndEvents(self.game)
         look_desc = self.app.print_stack.pop()
         look_title = self.app.print_stack.pop()
 
@@ -230,7 +230,7 @@ class TestLookVerbs(IFPTestCase):
         item = Thing("widget")
         item.xdescribeThing("It's a shiny little widget. ")
 
-        examineVerb.verbFunc(self.game, item)
+        examineVerb._runVerbFuncAndEvents(self.game, item)
 
         examine_desc = self.app.print_stack.pop()
 
@@ -245,7 +245,7 @@ class TestLookVerbs(IFPTestCase):
         child = Thing("penny")
         parent.addThing(child)
 
-        lookInVerb.verbFunc(self.game, parent)
+        lookInVerb._runVerbFuncAndEvents(self.game, parent)
 
         look_in_desc = self.app.print_stack.pop()
 
@@ -261,7 +261,7 @@ class TestLookVerbs(IFPTestCase):
         child = Thing("penny")
         parent.addThing(child)
 
-        lookUnderVerb.verbFunc(self.game, parent)
+        lookUnderVerb._runVerbFuncAndEvents(self.game, parent)
 
         look_under_desc = self.app.print_stack.pop()
 
@@ -275,7 +275,7 @@ class TestLookVerbs(IFPTestCase):
     def test_read(self):
         item = Readable("note", "I'm sorry, but I have to do this. ")
 
-        readVerb.verbFunc(self.game, item)
+        readVerb._runVerbFuncAndEvents(self.game, item)
 
         read_desc = self.app.print_stack.pop()
 
@@ -303,7 +303,7 @@ class TestInventoryVerbs(IFPTestCase):
         self.assertIn(item2.ix, self.me.contains)
         self.assertNotIn(item3, self.me.contains[item2.ix])
 
-        getAllVerb.verbFunc(self.game)
+        getAllVerb._runVerbFuncAndEvents(self.game)
         getall_msg = self.app.print_stack.pop()
 
         self.assertIn(
@@ -319,7 +319,7 @@ class TestInventoryVerbs(IFPTestCase):
         )
         self.assertIn(item2, self.me.contains[item2.ix])
 
-        getAllVerb.verbFunc(self.game)
+        getAllVerb._runVerbFuncAndEvents(self.game)
         getall_msg = self.app.print_stack.pop()
         self.assertEqual(getall_msg, "There are no obvious items here to take. ")
 
@@ -339,7 +339,7 @@ class TestInventoryVerbs(IFPTestCase):
             "This test needs the Player to be in the start room",
         )
 
-        dropAllVerb.verbFunc(self.game)
+        dropAllVerb._runVerbFuncAndEvents(self.game)
         dropall_msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -352,7 +352,7 @@ class TestInventoryVerbs(IFPTestCase):
         self.assertIn(item1, self.start_room.contains[item1.ix])
         self.assertIn(item2.ix, self.start_room.contains)
         self.assertIn(item2, self.start_room.contains[item2.ix])
-        dropAllVerb.verbFunc(self.game)
+        dropAllVerb._runVerbFuncAndEvents(self.game)
         dropall_msg = self.app.print_stack.pop()
         self.assertEqual(dropall_msg, "Your inventory is empty. ")
 
@@ -379,7 +379,7 @@ class TestDoorVerbs(IFPTestCase):
             "This test needs the door to be initially unlocked",
         )
 
-        openVerb.verbFunc(self.game, self.door.entranceA)
+        openVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertTrue(
             self.door.entranceA.is_open,
@@ -393,7 +393,7 @@ class TestDoorVerbs(IFPTestCase):
             self.door.entranceA.is_open, "This test needs the door to be initially open"
         )
 
-        closeVerb.verbFunc(self.game, self.door.entranceA)
+        closeVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertFalse(
             self.door.entranceA.is_open,
@@ -406,7 +406,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        lockVerb.verbFunc(self.game, self.door.entranceA)
+        lockVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertTrue(
             self.lock.is_locked,
@@ -419,7 +419,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        unlockVerb.verbFunc(self.game, self.door.entranceA)
+        unlockVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertFalse(
             self.lock.is_locked,
@@ -432,7 +432,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        lockWithVerb.verbFunc(self.game, self.door.entranceA, self.key)
+        lockWithVerb._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
 
         self.assertTrue(
             self.lock.is_locked,
@@ -445,7 +445,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        unlockWithVerb.verbFunc(self.game, self.door.entranceA, self.key)
+        unlockWithVerb._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
 
         self.assertFalse(
             self.lock.is_locked,
@@ -464,7 +464,7 @@ class TestDoorVerbs(IFPTestCase):
             "This test needs the door to be initially locked",
         )
 
-        openVerb.verbFunc(self.game, self.door.entranceA)
+        openVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertFalse(
             self.door.entranceA.is_open,
@@ -495,7 +495,7 @@ class TestLidVerbs(IFPTestCase):
             "This test needs the container to be initially unlocked",
         )
 
-        openVerb.verbFunc(self.game, self.container)
+        openVerb._runVerbFuncAndEvents(self.game, self.container)
 
         self.assertTrue(
             self.container.is_open,
@@ -509,7 +509,7 @@ class TestLidVerbs(IFPTestCase):
             self.container.is_open, "This test needs the container to be initially open"
         )
 
-        closeVerb.verbFunc(self.game, self.container)
+        closeVerb._runVerbFuncAndEvents(self.game, self.container)
 
         self.assertFalse(
             self.container.is_open,
@@ -528,7 +528,7 @@ class TestLidVerbs(IFPTestCase):
             "This test needs the container to be initially locked",
         )
 
-        openVerb.verbFunc(self.game, self.container)
+        openVerb._runVerbFuncAndEvents(self.game, self.container)
 
         self.assertFalse(
             self.container.is_open,
@@ -548,7 +548,7 @@ class TestConversationVerbs(IFPTestCase):
         self.topic = Topic('"Ah, yes," says Jenny mysteriously. ')
 
     def test_ask_inanimate(self):
-        askVerb.verbFunc(self.game, self.item, self.actor)
+        askVerb._runVerbFuncAndEvents(self.game, self.item, self.actor)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -558,7 +558,7 @@ class TestConversationVerbs(IFPTestCase):
         )
 
     def test_tell_inanimate(self):
-        tellVerb.verbFunc(self.game, self.item, self.actor)
+        tellVerb._runVerbFuncAndEvents(self.game, self.item, self.actor)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -568,7 +568,7 @@ class TestConversationVerbs(IFPTestCase):
         )
 
     def test_give_inanimate(self):
-        giveVerb.verbFunc(self.game, self.item, self.item)
+        giveVerb._runVerbFuncAndEvents(self.game, self.item, self.item)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -578,7 +578,7 @@ class TestConversationVerbs(IFPTestCase):
         )
 
     def test_show_inanimate(self):
-        showVerb.verbFunc(self.game, self.item, self.item)
+        showVerb._runVerbFuncAndEvents(self.game, self.item, self.item)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -589,13 +589,14 @@ class TestConversationVerbs(IFPTestCase):
 
     def test_ask_no_defined_topic(self):
         self.actor.defaultTopic(self.game)
+        self.game.runTurnEvents()
         default = self.app.print_stack.pop()
 
         self.assertNotIn(
             self.item.ix, self.actor.ask_topics,
         )
 
-        askVerb.verbFunc(self.game, self.actor, self.item)
+        askVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -607,13 +608,14 @@ class TestConversationVerbs(IFPTestCase):
 
     def test_tell_no_defined_topic(self):
         self.actor.defaultTopic(self.game)
+        self.game.runTurnEvents()
         default = self.app.print_stack.pop()
 
         self.assertNotIn(
             self.item.ix, self.actor.tell_topics,
         )
 
-        tellVerb.verbFunc(self.game, self.actor, self.item)
+        tellVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -625,13 +627,14 @@ class TestConversationVerbs(IFPTestCase):
 
     def test_give_no_defined_topic(self):
         self.actor.defaultTopic(self.game)
+        self.game.runTurnEvents()
         default = self.app.print_stack.pop()
 
         self.assertNotIn(
             self.item.ix, self.actor.give_topics,
         )
 
-        giveVerb.verbFunc(self.game, self.actor, self.item)
+        giveVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -643,13 +646,14 @@ class TestConversationVerbs(IFPTestCase):
 
     def test_show_no_defined_topic(self):
         self.actor.defaultTopic(self.game)
+        self.game.runTurnEvents()
         default = self.app.print_stack.pop()
 
         self.assertNotIn(
             self.item.ix, self.actor.show_topics,
         )
 
-        showVerb.verbFunc(self.game, self.actor, self.item)
+        showVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -662,7 +666,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_ask_with_topic(self):
         self.actor.addTopic("ask", self.topic, self.item)
 
-        askVerb.verbFunc(self.game, self.actor, self.item)
+        askVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -675,7 +679,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_tell_with_topic(self):
         self.actor.addTopic("tell", self.topic, self.item)
 
-        tellVerb.verbFunc(self.game, self.actor, self.item)
+        tellVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -688,7 +692,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_give_with_topic(self):
         self.actor.addTopic("give", self.topic, self.item)
 
-        giveVerb.verbFunc(self.game, self.actor, self.item)
+        giveVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -701,7 +705,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_show_with_topic(self):
         self.actor.addTopic("show", self.topic, self.item)
 
-        showVerb.verbFunc(self.game, self.actor, self.item)
+        showVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -714,14 +718,14 @@ class TestConversationVerbs(IFPTestCase):
 
 class TestEmptyInventory(IFPTestCase):
     def test_view_empty_inv(self):
-        dropAllVerb.verbFunc(self.game)
+        dropAllVerb._runVerbFuncAndEvents(self.game)
         self.assertEqual(
             len(self.me.contains), 0, "This test requires an empty player inventory"
         )
 
         EMPTY_INV_MSG = "You don't have anything with you. "
 
-        invVerb.verbFunc(self.game)
+        invVerb._runVerbFuncAndEvents(self.game)
         inv_msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -751,9 +755,9 @@ class TestFullInventory(IFPTestCase):
         self.me.addThing(self.clothing1)
         self.me.addThing(self.clothing2)
 
-        wearVerb.verbFunc(self.game, self.clothing)
-        wearVerb.verbFunc(self.game, self.clothing1)
-        wearVerb.verbFunc(self.game, self.clothing2)
+        wearVerb._runVerbFuncAndEvents(self.game, self.clothing)
+        wearVerb._runVerbFuncAndEvents(self.game, self.clothing1)
+        wearVerb._runVerbFuncAndEvents(self.game, self.clothing2)
 
     def strip_desc(self, desc):
         desc = desc.replace(". ", "").replace(",", "").replace("and", "")
@@ -762,7 +766,7 @@ class TestFullInventory(IFPTestCase):
     def test_inventory_items_desc(self):
         BASE_MSG = "You have"
 
-        invVerb.verbFunc(self.game)
+        invVerb._runVerbFuncAndEvents(self.game)
         self.app.print_stack.pop()
         inv_desc = self.app.print_stack.pop()
 
@@ -789,7 +793,7 @@ class TestFullInventory(IFPTestCase):
     def test_inventory_wearing_desc(self):
         BASE_MSG = "You are wearing"
 
-        invVerb.verbFunc(self.game)
+        invVerb._runVerbFuncAndEvents(self.game)
         wearing_desc = self.app.print_stack.pop()
 
         clothing_desc = self.clothing.lowNameArticle()
@@ -830,7 +834,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb.verbFunc(self.game, self.surface)
+        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -844,7 +848,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb.verbFunc(self.game, self.surface)
+        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
         msg = self.app.print_stack.pop()
@@ -858,7 +862,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb.verbFunc(self.game, self.surface)
+        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
         msg = self.app.print_stack.pop()
@@ -872,7 +876,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb.verbFunc(self.game, self.surface)
+        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
         msg = self.app.print_stack.pop()
@@ -885,13 +889,13 @@ class TestPlayerGetOff(IFPTestCase):
         self.surface = Surface("bench", self.game)
         self.surface.canStand = True
         self.start_room.addThing(self.surface)
-        climbOnVerb.verbFunc(self.game, self.surface)
+        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
     def test_climb_down_from(self):
         SUCCESS_MSG = f"You climb down from {self.surface.lowNameArticle(True)}. "
 
-        climbDownFromVerb.verbFunc(self.game, self.surface)
+        climbDownFromVerb._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -900,7 +904,7 @@ class TestPlayerGetOff(IFPTestCase):
     def test_climb_down(self):
         SUCCESS_MSG = f"You climb down from {self.surface.lowNameArticle(True)}. "
 
-        climbDownVerb.verbFunc(self.game)
+        climbDownVerb._runVerbFuncAndEvents(self.game)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -919,7 +923,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -933,7 +937,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -947,7 +951,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -961,7 +965,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -984,7 +988,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -998,7 +1002,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -1012,7 +1016,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -1038,7 +1042,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -1055,7 +1059,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -1072,7 +1076,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -1085,13 +1089,13 @@ class TestPlayerGetOut(IFPTestCase):
         self.container = Container("box", self.game)
         self.container.canStand = True
         self.start_room.addThing(self.container)
-        climbInVerb.verbFunc(self.game, self.container)
+        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
     def test_climb_out_of(self):
         SUCCESS_MSG = f"You climb out of {self.container.lowNameArticle(True)}. "
 
-        climbOutOfVerb.verbFunc(self.game, self.container)
+        climbOutOfVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -1100,7 +1104,7 @@ class TestPlayerGetOut(IFPTestCase):
     def test_climb_out(self):
         SUCCESS_MSG = f"You climb out of {self.container.lowNameArticle(True)}. "
 
-        climbOutVerb.verbFunc(self.game)
+        climbOutVerb._runVerbFuncAndEvents(self.game)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -1120,7 +1124,7 @@ class TestBuyFiniteStock(IFPTestCase):
         self.OUT_STOCK_MSG = "That item is out of stock. "
 
     def test_buy(self):
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1132,7 +1136,7 @@ class TestBuyFiniteStock(IFPTestCase):
             "Attempted to buy item. Received success message. ",
         )
 
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -1148,7 +1152,7 @@ class TestBuyFiniteStock(IFPTestCase):
         )
 
     def test_buy_from(self):
-        buyFromVerb.verbFunc(self.game, self.sale_item, self.actor)
+        buyFromVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1160,7 +1164,7 @@ class TestBuyFiniteStock(IFPTestCase):
             "Attempted to buy item. Received success message. ",
         )
 
-        buyFromVerb.verbFunc(self.game, self.sale_item, self.actor)
+        buyFromVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -1189,7 +1193,7 @@ class TestBuyInfiniteStock(IFPTestCase):
     def test_buy(self):
         stock_before = self.actor.for_sale[self.sale_item.ix].number
 
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1221,7 +1225,7 @@ class TestBuyNotEnoughMoney(IFPTestCase):
         self.start_room.addThing(self.actor)
 
     def test_buy(self):
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         BASE_FAILURE_MSG = "You don't have enough"
@@ -1249,7 +1253,7 @@ class TestBuyNotSelling(IFPTestCase):
         self.start_room.addThing(self.actor)
 
     def test_buy(self):
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         BASE_FAILURE_MSG = f"{self.actor.capNameArticle(True)} doesn't sell"
@@ -1274,7 +1278,7 @@ class TestBuyWithNoActorsInRoom(IFPTestCase):
         self.start_room.addThing(self.actor)
 
     def test_buy_from(self):
-        buyFromVerb.verbFunc(self.game, self.sale_item, self.actor)
+        buyFromVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
 
         msg = self.app.print_stack.pop()
         BASE_FAILURE_MSG = "You cannot buy anything from"
@@ -1289,7 +1293,7 @@ class TestBuyWithNoActorsInRoom(IFPTestCase):
         )
 
     def test_buy(self):
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         FAILURE_MSG = "There's no one obvious here to buy from. "
@@ -1317,7 +1321,7 @@ class TestBuyNotEnoughMoney(IFPTestCase):
         self.start_room.addThing(self.actor)
 
     def test_buy(self):
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         FAILURE_MSG = "You cannot buy or sell a person. "
@@ -1343,7 +1347,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
         self.start_room.addThing(self.actor2)
 
     def test_buy(self):
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         BASE_DISAMBIG_MSG = "Would you like to buy from"
@@ -1360,7 +1364,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
     def test_buy_with_lastTurn_dobj_actor(self):
         self.game.lastTurn.dobj = self.actor1
 
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1379,7 +1383,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
     def test_buy_with_lastTurn_iobj_actor(self):
         self.game.lastTurn.iobj = self.actor1
 
-        buyVerb.verbFunc(self.game, self.sale_item)
+        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1416,7 +1420,7 @@ class TestSell(IFPTestCase):
         )
         self.assertEqual(len(self.me.contains[self.sale_item.ix]), 2)
 
-        sellVerb.verbFunc(self.game, self.sale_item)
+        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1431,7 +1435,7 @@ class TestSell(IFPTestCase):
             "Attempted to sell item. Received success message. ",
         )
 
-        sellVerb.verbFunc(self.game, self.sale_item)
+        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
         msg = self.app.print_stack.pop()
 
         self.assertIn(
@@ -1455,7 +1459,7 @@ class TestSell(IFPTestCase):
         )
         self.assertEqual(len(self.me.contains[self.sale_item.ix]), 2)
 
-        sellToVerb.verbFunc(self.game, self.sale_item, self.actor)
+        sellToVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1470,7 +1474,7 @@ class TestSell(IFPTestCase):
             "Attempted to sell item. Received success message. ",
         )
 
-        sellToVerb.verbFunc(self.game, self.sale_item, self.actor)
+        sellToVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
         msg = self.app.print_stack.pop()
 
         self.assertIn(
@@ -1506,7 +1510,7 @@ class TestSellDoesNotWant(IFPTestCase):
             "This test needs a widget in the inventory. ",
         )
 
-        sellVerb.verbFunc(self.game, self.sale_item)
+        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         self.assertIn(
@@ -1528,7 +1532,7 @@ class TestSellDoesNotWant(IFPTestCase):
             "This test needs a widget in the inventory. ",
         )
 
-        sellToVerb.verbFunc(self.game, self.sale_item, self.actor)
+        sellToVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
 
         msg = self.app.print_stack.pop()
         self.assertIn(
@@ -1557,7 +1561,7 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
         self.start_room.addThing(self.actor2)
 
     def test_sell(self):
-        sellVerb.verbFunc(self.game, self.sale_item)
+        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         BASE_DISAMBIG_MSG = "Would you like to sell it to"
@@ -1574,7 +1578,7 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
     def test_sell_with_lastTurn_dobj_actor(self):
         self.game.lastTurn.dobj = self.actor1
 
-        sellVerb.verbFunc(self.game, self.sale_item)
+        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1600,7 +1604,7 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
     def test_sell_with_lastTurn_iobj_actor(self):
         self.game.lastTurn.iobj = self.actor1
 
-        sellVerb.verbFunc(self.game, self.sale_item)
+        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1632,7 +1636,7 @@ class TestSellInRoomWithNoActors(IFPTestCase):
         self.me.addThing(self.sale_item)
 
     def test_sell(self):
-        sellVerb.verbFunc(self.game, self.sale_item)
+        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         NOONE_HERE_MSG = "There's no one obvious here to sell to. "
@@ -1652,6 +1656,7 @@ class TestGetImpTalkToNobodyNear(IFPTestCase):
         objects = self.game.parser.checkObj(talkToVerb, None, None)
         self.assertIsNone(objects)
 
+        self.game.runTurnEvents()
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg, "There's no one obvious here to talk to. ",
@@ -1669,6 +1674,7 @@ class TestGetImpTalkToAmbiguous(IFPTestCase):
     def test_get_implicit(self):
         objects = self.game.parser.checkObj(talkToVerb, None, None)
         self.assertIsNone(objects)
+        self.game.runTurnEvents()
         msg = self.app.print_stack.pop()
         self.assertIn("Would you like to talk to ", msg)
 

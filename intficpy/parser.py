@@ -82,15 +82,16 @@ class Parser:
         else:
             verbs = None
             if self.game.lastTurn.convNode:
-                self.game.app.printToGUI(
+                self.game.addTextToEvent(
+                    "turn",
                     '"'
                     + " ".join(input_tokens).capitalize()
-                    + '" is not enough information to match a suggestion. '
+                    + '" is not enough information to match a suggestion. ',
                 )
                 self.game.lastTurn.err = True
             elif not self.game.lastTurn.ambiguous:
-                self.game.app.printToGUI(
-                    "I don't understand the verb: " + input_tokens[0]
+                self.game.addTextToEvent(
+                    "turn", "I don't understand the verb: " + input_tokens[0]
                 )
                 self.game.lastTurn.err = True
             return [None, False]
@@ -136,12 +137,13 @@ class Parser:
                     elif input_tokens[0] == term.name:
                         ambiguous_verb = True
             if not ambiguous_verb:
-                self.game.app.printToGUI(
+                self.game.addTextToEvent(
+                    "turn",
                     'I understood as far as "'
                     + input_tokens[0]
                     + '".<br>(Type VERB HELP '
                     + input_tokens[0].upper()
-                    + " for help with phrasing.) "
+                    + " for help with phrasing.) ",
                 )
             self.game.lastTurn.err = True
             return None
@@ -212,12 +214,13 @@ class Parser:
                         elif input_tokens[0] == term.name:
                             ambiguous_verb = True
                 if not ambiguous_verb:
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         'I understood as far as "'
                         + input_tokens[0]
                         + '".<br>(Type VERB HELP '
                         + input_tokens[0].upper()
-                        + " for help with phrasing.) "
+                        + " for help with phrasing.) ",
                     )
                 self.game.lastTurn.err = True
                 return None
@@ -234,12 +237,13 @@ class Parser:
                         elif input_tokens[0] == term.name:
                             ambiguous_verb = True
                 if not ambiguous_verb:
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         'I understood as far as "'
                         + input_tokens[0]
                         + '".<br>(Type VERB HELP '
                         + input_tokens[0].upper()
-                        + " for help with phrasing.) "
+                        + " for help with phrasing.) ",
                     )
                 self.game.lastTurn.err = True
                 return None
@@ -371,7 +375,7 @@ class Parser:
                     i = i - 1
             if i == 0:
                 return verb_form
-        self.game.app.printToGUI("I don't understand. Try rephrasing.")
+        self.game.addTextToEvent("turn", "I don't understand. Try rephrasing.")
         self.game.lastTurn.err = True
         return None
 
@@ -449,7 +453,7 @@ class Parser:
 
         if x == 0:  # thing follows string
             if not objs[-1] in nounDict:
-                # self.game.app.printToGUI("Please rephrase ")
+                # self.game.addTextToEvent("turn", "Please rephrase ")
                 return [None, None]
             things = nounDict[objs[-1]]
             i = len(objs) - 2
@@ -473,7 +477,7 @@ class Parser:
                     noun = word
                     break
             if not noun:
-                # self.game.app.printToGUI("Please rephrase ")
+                # self.game.addTextToEvent("turn", "Please rephrase ")
                 return [None, None]
             start_str = objs.index(noun) + 1
             end_str = len(objs) - 1
@@ -503,7 +507,9 @@ class Parser:
             obj_i = verb_form.index(tag)
         else:
             if print_verb_error:
-                self.game.app.printToGUI("ERROR: Inconsistent verb definitition.")
+                self.game.addTextToEvent(
+                    "turn", "ERROR: Inconsistent verb definitition."
+                )
             return None
         before = verb_form[obj_i - 1]
         if obj_i + 1 < len(verb_form):
@@ -532,7 +538,7 @@ class Parser:
                     # dobj = [dobj.verbose_name]
                     pass
             else:
-                self.game.app.printToGUI("Please be more specific")
+                self.game.addTextToEvent("turn", "Please be more specific")
                 self.game.lastTurn.err = True
                 return None
         if cur_verb.hasIobj and not iobj:
@@ -544,7 +550,7 @@ class Parser:
                     # iobj = [iobj.verbose_name]
                     pass
             else:
-                self.game.app.printToGUI("Please be more specific")
+                self.game.addTextToEvent("turn", "Please be more specific")
                 self.game.lastTurn.err = True
                 missing = True
         self.game.lastTurn.dobj = dobj
@@ -821,28 +827,28 @@ class Parser:
         """
         noun = " ".join(noun_adj_arr)
         if scope == "wearing":
-            self.game.app.printToGUI("You aren't wearing any " + noun + ".")
+            self.game.addTextToEvent("turn", "You aren't wearing any " + noun + ".")
             self.game.lastTurn.err = True
             return None
         elif scope == "room" or scope == "near" or scope == "roomflex":
             out_loc = self.game.me.getOutermostLocation()
             if not out_loc.resolveDarkness(self.game):
-                self.game.app.printToGUI("It's too dark to see anything. ")
+                self.game.addTextToEvent("turn", "It's too dark to see anything. ")
             else:
-                self.game.app.printToGUI("I don't see any " + noun + " here.")
+                self.game.addTextToEvent("turn", "I don't see any " + noun + " here.")
             self.game.lastTurn.err = True
             return None
         elif scope == "knows":
-            self.game.app.printToGUI("You don't know of any " + noun + ".")
+            self.game.addTextToEvent("turn", "You don't know of any " + noun + ".")
             self.game.lastTurn.err = True
             return None
         elif scope == "direction":
-            self.game.app.printToGUI(
-                noun.capitalize() + " is not a direction I recognize. "
+            self.game.addTextToEvent(
+                "turn", noun.capitalize() + " is not a direction I recognize. "
             )
         else:
             # assuming scope = "inv"/"invflex"
-            self.game.app.printToGUI("You don't have any " + noun + ".")
+            self.game.addTextToEvent("turn", "You don't have any " + noun + ".")
             self.game.lastTurn.err = True
             return None
 
@@ -967,9 +973,10 @@ class Parser:
             adj_i = adj_i - 1
         things = self.checkRange(things, scope)
         if len(things) == 1 and things[0].far_away and not far_obj:
-            self.game.app.printToGUI(
+            self.game.addTextToEvent(
+                "turn",
                 (things[0].getArticle(True) + things[0].verbose_name).capitalize()
-                + " is too far away. "
+                + " is too far away. ",
             )
             return False
         elif len(things) > 1 and not far_obj:
@@ -1132,7 +1139,7 @@ class Parser:
                         msg = msg + ", or "
                     else:
                         msg = msg + ", "
-            self.game.app.printToGUI(msg)
+            self.game.addTextToEvent("turn", msg)
             # turn ON self.disambiguation mode for next turn
             self.game.lastTurn.ambiguous = True
             self.game.lastTurn.ambig_noun = noun
@@ -1214,11 +1221,12 @@ class Parser:
                 )
                 self.game.lastTurn.iobj = None
                 if cur_iobj:
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         "(Assuming "
                         + cur_iobj.getArticle(True)
                         + cur_iobj.verbose_name
-                        + ".)"
+                        + ".)",
                     )
                     self.game.lastTurn.iobj = cur_iobj
         elif (
@@ -1240,11 +1248,12 @@ class Parser:
                 )
                 self.game.lastTurn.iobj = None
                 if cur_iobj:
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         "(Assuming "
                         + cur_iobj.getArticle(True)
                         + cur_iobj.verbose_name
-                        + ".)"
+                        + ".)",
                     )
                     self.game.lastTurn.iobj = cur_iobj
         elif (
@@ -1264,7 +1273,7 @@ class Parser:
                 )
                 self.game.lastTurn.iobj = None
                 if cur_iobj:
-                    # self.game.app.printToGUI("(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
+                    # self.game.addTextToEvent("turn", "(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
                     self.game.lastTurn.iobj = cur_iobj
         if cur_verb.dscope == "text" or cur_verb.dscope == "direction":
             pass
@@ -1287,11 +1296,12 @@ class Parser:
                 )
                 self.game.lastTurn.dobj = None
                 if cur_dobj:
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         "(Assuming "
                         + cur_dobj.getArticle(True)
                         + cur_dobj.verbose_name
-                        + ".)"
+                        + ".)",
                     )
                     self.game.lastTurn.iobj = cur_dobj
         elif (
@@ -1311,11 +1321,12 @@ class Parser:
                 )
                 self.game.lastTurn.dobj = False
                 if cur_dobj:
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         "(Assuming "
                         + cur_dobj.getArticle(True)
                         + cur_dobj.verbose_name
-                        + ".)"
+                        + ".)",
                     )
                     self.game.lastTurn.iobj = cur_dobj
         elif (
@@ -1335,7 +1346,7 @@ class Parser:
                 )
                 self.game.lastTurn.dobj = False
                 if cur_dobj:
-                    # self.game.app.printToGUI("(Assuming " + cur_dobj.getArticle(True) +
+                    # self.game.addTextToEvent("turn", "(Assuming " + cur_dobj.getArticle(True) +
                     # cur_dobj.verbose_name + ".)")
                     self.game.lastTurn.iobj = cur_dobj
         # apparent duplicate checking of objects is to allow last.iobj to be set before the
@@ -1349,14 +1360,15 @@ class Parser:
         ):
             cur_dobj = cur_dobj.getContainer()
         elif cur_dobj.location.location == self.game.me and cur_verb.dscope == "inv":
-            self.game.app.printToGUI(
+            self.game.addTextToEvent(
+                "turn",
                 "(First removing "
                 + cur_dobj.getArticle(True)
                 + cur_dobj.verbose_name
                 + " from "
                 + cur_dobj.location.getArticle(True)
                 + cur_dobj.location.verbose_name
-                + ")"
+                + ")",
             )
             success = verb.removeFromVerb.verbFunc(
                 self.game, cur_dobj, cur_dobj.location
@@ -1372,14 +1384,15 @@ class Parser:
         ):
             cur_iobj = cur_iobj.getContainer()
         elif cur_iobj.location.location == self.game.me and cur_verb.iscope == "inv":
-            self.game.app.printToGUI(
+            self.game.addTextToEvent(
+                "turn",
                 "(First removing "
                 + cur_iobj.getArticle(True)
                 + cur_iobj.verbose_name
                 + " from "
                 + cur_iobj.location.getArticle(True)
                 + cur_iobj.location.verbose_name
-                + ")"
+                + ")",
             )
             success = verb.removeFromVerb.verbFunc(
                 self.game, cur_iobj, cur_iobj.location
@@ -1398,21 +1411,23 @@ class Parser:
                 cur_verb.iscope == "inv"
                 or (cur_verb.iscope == "invflex" and cur_iobj is not self.game.me)
             ) and self.roomRangeCheck(cur_iobj):
-                self.game.app.printToGUI(
+                self.game.addTextToEvent(
+                    "turn",
                     "(First attempting to take "
                     + cur_iobj.getArticle(True)
                     + cur_iobj.verbose_name
-                    + ") "
+                    + ") ",
                 )
                 success = getVerb.verbFunc(self.game, cur_iobj)
                 if not success:
                     return False
                 if not cur_iobj.invItem:
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         "You cannot take "
                         + cur_iobj.getArticle(True)
                         + cur_iobj.verbose_name
-                        + "."
+                        + ".",
                     )
                     return False
             elif cur_verb.iscope == "inv" and self.wearRangeCheck(cur_iobj):
@@ -1425,11 +1440,12 @@ class Parser:
                     cur_verb.dscope == "inv"
                     or (cur_verb.dscope == "invflex" and cur_dobj is not self.game.me)
                 ) and self.roomRangeCheck(cur_dobj):
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         "(First attempting to take "
                         + cur_dobj.getArticle(True)
                         + cur_dobj.verbose_name
-                        + ") "
+                        + ") ",
                     )
                     success = getVerb.verbFunc(self.game, cur_dobj)
                     if not success:
@@ -1446,11 +1462,12 @@ class Parser:
                     cur_verb.dscope == "inv"
                     or (cur_verb.dscope == "invflex" and cur_dobj is not self.game.me)
                 ) and self.roomRangeCheck(cur_dobj):
-                    self.game.app.printToGUI(
+                    self.game.addTextToEvent(
+                        "turn",
                         "(First attempting to take "
                         + cur_dobj.getArticle(True)
                         + cur_dobj.verbose_name
-                        + ") "
+                        + ") ",
                     )
                     success = getVerb.verbFunc(self.game, cur_dobj)
                     if not success:
@@ -1465,8 +1482,9 @@ class Parser:
                     cur_dobj = " ".join(cur_dobj)
                     correct = self.directionRangeCheck(cur_dobj)
                     if not correct:
-                        self.game.app.printToGUI(
-                            cur_dobj.capitalize() + " is not a direction I recognize. "
+                        self.game.addTextToEvent(
+                            "turn",
+                            cur_dobj.capitalize() + " is not a direction I recognize. ",
                         )
                         return False
         if cur_verb.iscope == "text":
@@ -1477,16 +1495,16 @@ class Parser:
             cur_iobj = " ".join(cur_iobj)
             correct = self.directionRangeCheck(cur_iobj)
             if not correct:
-                self.game.app.printToGUI(
-                    cur_iobj.capitalize() + " is not a direction I recognize. "
+                self.game.addTextToEvent(
+                    "turn", cur_iobj.capitalize() + " is not a direction I recognize. "
                 )
                 return False
         elif cur_verb.dscope == "direction":
             cur_dobj = " ".join(cur_dobj)
             correct = self.directionRangeCheck(cur_dobj)
             if not correct:
-                self.game.app.printToGUI(
-                    cur_iobj.capitalize() + " is not a direction I recognize. "
+                self.game.addTextToEvent(
+                    "turn", cur_iobj.capitalize() + " is not a direction I recognize. "
                 )
                 return False
 
@@ -1593,7 +1611,7 @@ class Parser:
         input_tokens = self.getTokens(input_string)
         if not self.game.lastTurn.gameEnding:
             if len(input_tokens) == 0:
-                # self.game.app.printToGUI("I don't understand.")
+                # self.game.addTextToEvent("turn", "I don't understand.")
                 self.game.lastTurn.err = True
                 return 0
             if (
@@ -1606,7 +1624,7 @@ class Parser:
                 "verb",
                 "help",
             ]:
-                self.game.app.printToGUI("Please specify a verb for help. ")
+                self.game.addTextToEvent("turn", "Please specify a verb for help. ")
                 return 0
             # if input is a travel command, move player
             d = self.getDirection(input_tokens)
@@ -1648,8 +1666,9 @@ class Parser:
             self.callVerb(cur_verb, obj_words)
             return 0
         else:
-            if input_tokens in [["save"], ["load"]]:
-                self.game.app.newBox(self.game.app.box_style1)
+            # TODO: this was a hack. make sure it's fixed with Events
+            #            if input_tokens in [["save"], ["load"]]:
+            #                self.game.app.newBox(self.game.app.box_style1)
             if input_tokens == ["full", "score"]:
                 fullScoreVerb.verbFunc(self.game)
             elif input_tokens == ["score"]:
@@ -1659,6 +1678,7 @@ class Parser:
             elif input_tokens == ["about"]:
                 self.game.aboutGame.printAbout(self.game)
             else:
-                self.game.app.printToGUI(
-                    "The game has ended. Commands are SCORE, FULLSCORE, and ABOUT."
+                self.game.addTextToEvent(
+                    "turn",
+                    "The game has ended. Commands are SCORE, FULLSCORE, and ABOUT.",
                 )

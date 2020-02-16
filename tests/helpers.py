@@ -11,8 +11,9 @@ class TestApp:
     def __init__(self):
         self.print_stack = []
 
-    def printToGUI(self, msg, *args):
-        self.print_stack.append(msg)
+    def printEventText(self, event):
+        for t in event.text:
+            self.print_stack.append(t)
 
 
 class IFPTestCase(TestCase):
@@ -23,6 +24,7 @@ class IFPTestCase(TestCase):
         self.start_room = Room("room", "desc")
         self.start_room.addThing(self.me)
         self.me.setPlayer()
+        self.game.initGame()
 
     def _insert_dobj_into_phrase(self, phrase, dobj):
         ix = phrase.index("<dobj>")

@@ -20,11 +20,12 @@ class Achievement(IFPObject):
         # add self to fullscore
         print("AWARD")
         if not self in score.achievements:
-            game.app.printToGUI(
+            game.addTextToEvent(
+                "turn",
                 "<b>ACHIEVEMENT:</b><br>"
                 + str(self.points)
                 + " points for "
-                + self.desc
+                + self.desc,
             )
             score.achievements.append(self)
             score.total = score.total + self.points
@@ -38,25 +39,27 @@ class AbstractScore(IFPObject):
         self.achievements = []
 
     def score(self, game):
-        game.app.printToGUI(
+        game.addTextToEvent(
+            "turn",
             "You have scored <b>"
             + str(self.total)
             + " points</b> out of a possible "
             + str(self.possible)
-            + ". "
+            + ". ",
         )
 
     def fullscore(self, game):
         if len(self.achievements) == 0:
-            game.app.printToGUI("You haven't scored any points so far. ")
+            game.addTextToEvent("turn", "You haven't scored any points so far. ")
         else:
-            game.app.printToGUI("You have scored: ")
+            game.addTextToEvent("turn", "You have scored: ")
             for achievement in self.achievements:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "<b>"
                     + str(achievement.points)
                     + " points</b> for "
-                    + achievement.desc
+                    + achievement.desc,
                 )
 
 
@@ -71,8 +74,8 @@ class Ending(IFPObject):
         self.desc = desc
 
     def endGame(self, game):
-        game.app.printToGUI("<b>" + self.title + "</b>")
-        game.app.printToGUI(self.desc)
+        game.addTextToEvent("turn", "<b>" + self.title + "</b>")
+        game.addTextToEvent("turn", self.desc)
         game.lastTurn.gameEnding = True
 
 
@@ -165,7 +168,7 @@ class Hint(IFPObject):
         self.shown = False
 
     def giveHint(self, game):
-        game.app.printToGUI(self.text)
+        game.addTextToEvent("turn", self.text)
         if (
             isinstance(self.achievement, Achievement)
             and self.cost > 0
@@ -234,19 +237,20 @@ class HintNode(IFPObject):
             t += ")"
         else:
             t += " - type hint now to show next)"
-        game.app.printToGUI(t)
+        game.addTextToEvent("turn", t)
         if self.cur_hint < (len(self.hints) - 1):
             if (
                 not self.hints[self.cur_hint + 1].shown
                 and self.hints[self.cur_hint + 1].achievement
             ):
                 if self.hints[self.cur_hint + 1].cost == 1:
-                    game.app.printToGUI("(Next tier costs 1 point)")
+                    game.addTextToEvent("turn", "(Next tier costs 1 point)")
                 else:
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "(Next tier costs "
                         + str(self.hints[self.cur_hint + 1].cost)
-                        + " points)"
+                        + " points)",
                     )
         return True
 

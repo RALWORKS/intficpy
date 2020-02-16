@@ -99,6 +99,7 @@ class TestAddRemoveThing(IFPTestCase):
     def _get_full_desc(self, subject):
         if hasattr(subject, "describe"):
             subject.describe(self.game)
+            self.game.runTurnEvents()
             return self.app.print_stack.pop()
         return subject.xdesc
 

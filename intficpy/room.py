@@ -202,9 +202,9 @@ class Room(PhysicalEntity):
                             lightsource = item
                             break
             if lightsource:
-                game.app.printToGUI(lightsource.room_lit_msg)
+                game.addTextToEvent("turn", lightsource.room_lit_msg)
             else:
-                game.app.printToGUI(self.dark_desc)
+                game.addTextToEvent("turn", self.dark_desc)
                 return False
         self.updateDiscovered(game)
         self.arriveFunc(game)
@@ -282,8 +282,8 @@ class Room(PhysicalEntity):
                     + ". "
                 )
                 self.getLocContents(game)
-        game.app.printToGUI("<b>" + self.name + "</b>")
-        game.app.printToGUI(self.fulldesc)
+        game.addTextToEvent("turn", "<b>" + self.name + "</b>")
+        game.addTextToEvent("turn", self.fulldesc)
         self.descFunc(game)
         return True
 

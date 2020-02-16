@@ -203,13 +203,13 @@ class TravelConnector(IFPObject):
             return False
         outer_loc = game.me.getOutermostLocation()
         if not self.can_pass:
-            game.app.printToGUI(self.cannot_pass_msg)
+            game.addTextToEvent("turn", self.cannot_pass_msg)
             return False
         if outer_loc == self.pointA:
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
             preRemovePlayer(game)
             if game.me.location:
@@ -217,7 +217,7 @@ class TravelConnector(IFPObject):
                 game.me.location = self.pointB
                 game.me.location.addThing(game.me)
                 if self.entranceA_msg:
-                    game.app.printToGUI(self.entranceA_msg)
+                    game.addTextToEvent("turn", self.entranceA_msg)
                 else:
                     if self.prep == 0:
                         x = "through "
@@ -225,12 +225,13 @@ class TravelConnector(IFPObject):
                         x = "into "
                     else:
                         x = "up "
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "You go "
                         + x
                         + self.entranceA.getArticle(True)
                         + self.entranceA.name
-                        + "."
+                        + ".",
                     )
                 game.me.location.describe(game)
                 return True
@@ -238,7 +239,7 @@ class TravelConnector(IFPObject):
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
             preRemovePlayer(game)
             if game.me.location:
@@ -246,7 +247,7 @@ class TravelConnector(IFPObject):
                 game.me.location = self.pointA
                 game.me.location.addThing(game.me)
                 if self.entranceB_msg:
-                    game.app.printToGUI(self.entranceB_msg)
+                    game.addTextToEvent("turn", self.entranceB_msg)
                 else:
                     if self.prep == 0:
                         x = "through "
@@ -254,17 +255,18 @@ class TravelConnector(IFPObject):
                         x = "out of "
                     else:
                         x = "down "
-                    game.app.printToGUI(
+                    game.addTextToEvent(
+                        "turn",
                         "You go "
                         + x
                         + self.entranceB.getArticle(True)
                         + self.entranceB.name
-                        + "."
+                        + ".",
                     )
                 game.me.location.describe(game)
                 return True
         else:
-            game.app.printToGUI("You cannot go that way. ")
+            game.addTextToEvent("turn", "You cannot go that way. ")
             return False
 
 
@@ -417,17 +419,17 @@ class DoorConnector(TravelConnector):
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
         else:
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
 
         if not self.can_pass:
-            game.app.printToGUI(self.cannot_pass_msg)
+            game.addTextToEvent("turn", self.cannot_pass_msg)
             return False
         elif outer_loc == self.pointA:
             if not self.entranceA.is_open:
@@ -446,13 +448,14 @@ class DoorConnector(TravelConnector):
             game.me.location = self.pointB
             game.me.location.addThing(game.me)
             if self.entranceA_msg:
-                game.app.printToGUI(self.entranceA_msg)
+                game.addTextToEvent("turn", self.entranceA_msg)
             else:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You go through "
                     + self.entranceA.getArticle(True)
                     + self.entranceA.verbose_name
-                    + ". "
+                    + ". ",
                 )
             game.me.location.describe(game)
             return True
@@ -473,19 +476,20 @@ class DoorConnector(TravelConnector):
             game.me.location = self.pointA
             game.me.location.addThing(game.me)
             if self.entranceB_msg:
-                game.app.printToGUI(self.entranceB_msg)
+                game.addTextToEvent("turn", self.entranceB_msg)
             else:
-                game.app.printToGUI(
+                game.addTextToEvent(
+                    "turn",
                     "You go through "
                     + self.entranceB.getArticle(True)
                     + self.entranceB.verbose_name
-                    + ". "
+                    + ". ",
                 )
 
             game.me.location.describe(game)
             return True
         else:
-            game.app.printToGUI("You cannot go that way. ")
+            game.addTextToEvent("turn", "You cannot go that way. ")
             return False
 
 
@@ -545,7 +549,7 @@ class LadderConnector(TravelConnector):
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
             preRemovePlayer(game)
             if game.me.location:
@@ -553,9 +557,9 @@ class LadderConnector(TravelConnector):
             game.me.location = self.pointB
             game.me.location.addThing(game.me)
             if self.entranceA_msg:
-                game.app.printToGUI(self.entranceA_msg)
+                game.addTextToEvent("turn", self.entranceA_msg)
             else:
-                game.app.printToGUI("You climb the ladder. ")
+                game.addTextToEvent("turn", "You climb the ladder. ")
 
             game.me.location.describe(game)
             return True
@@ -563,7 +567,7 @@ class LadderConnector(TravelConnector):
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
             preRemovePlayer(game)
             if game.me.location:
@@ -571,14 +575,14 @@ class LadderConnector(TravelConnector):
             game.me.location = self.pointA
             game.me.location.addThing(game.me)
             if self.entranceB_msg:
-                game.app.printToGUI(self.entranceB_msg)
+                game.addTextToEvent("turn", self.entranceB_msg)
             else:
-                game.app.printToGUI("You climb the ladder. ")
+                game.addTextToEvent("turn", "You climb the ladder. ")
 
             game.me.location.describe(game)
             return True
         else:
-            game.app.printToGUI("You cannot go that way. ")
+            game.addTextToEvent("turn", "You cannot go that way. ")
             return False
 
 
@@ -640,13 +644,13 @@ class StaircaseConnector(TravelConnector):
             return False
         outer_loc = game.me.getOutermostLocation()
         if not self.can_pass:
-            game.app.printToGUI(self.cannot_pass_msg)
+            game.addTextToEvent("turn", self.cannot_pass_msg)
             return False
         elif outer_loc == self.pointA:
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
             preRemovePlayer(game)
             if game.me.location:
@@ -654,9 +658,9 @@ class StaircaseConnector(TravelConnector):
             game.me.location = self.pointB
             game.me.location.addThing(game.me)
             if self.entranceA_msg:
-                game.app.printToGUI(self.entranceA_msg)
+                game.addTextToEvent("turn", self.entranceA_msg)
             else:
-                game.app.printToGUI("You climb the staircase. ")
+                game.addTextToEvent("turn", "You climb the staircase. ")
 
             game.me.location.describe(game)
             return True
@@ -664,7 +668,7 @@ class StaircaseConnector(TravelConnector):
             if not outer_loc.resolveDarkness(game.me) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
-                game.app.printToGUI(outer_loc.dark_msg)
+                game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
             preRemovePlayer(game)
             if game.me.location:
@@ -672,14 +676,14 @@ class StaircaseConnector(TravelConnector):
             game.me.location = self.pointA
             game.me.location.addThing(game.me)
             if self.entranceB_msg:
-                game.app.printToGUI(self.entranceB_msg)
+                game.addTextToEvent("turn", self.entranceB_msg)
             else:
-                game.app.printToGUI("You climb the staircase. ")
+                game.addTextToEvent("turn", "You climb the staircase. ")
 
             game.me.location.describe(game)
             return True
         else:
-            game.app.printToGUI("You cannot go that way. ")
+            game.addTextToEvent("turn", "You cannot go that way. ")
             return False
 
 
@@ -693,12 +697,12 @@ def preRemovePlayer(game):
         x.removeThing(game.me)
         x.containsListUpdate()
         if isinstance(x, Surface):
-            game.app.printToGUI(
-                "You get off of " + x.getArticle(True) + x.verbose_name + "."
+            game.addTextToEvent(
+                "turn", "You get off of " + x.getArticle(True) + x.verbose_name + "."
             )
         else:
-            game.app.printToGUI(
-                "You get out of " + x.getArticle(True) + x.verbose_name + "."
+            game.addTextToEvent(
+                "turn", "You get out of " + x.getArticle(True) + x.verbose_name + "."
             )
         x = x.location
         while not isinstance(x, Room):
@@ -745,9 +749,9 @@ def travelN(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("n" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.north:
-        game.app.printToGUI(loc.n_false_msg)
+        game.addTextToEvent("turn", loc.n_false_msg)
     elif isinstance(loc.north, TravelConnector):
         loc.north.travel(game)
     else:
@@ -756,7 +760,7 @@ def travelN(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.north
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.n_msg)
+        game.addTextToEvent("turn", loc.n_msg)
 
         game.me.location.describe(game)
 
@@ -768,9 +772,9 @@ def travelNE(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("ne" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.northeast:
-        game.app.printToGUI(loc.ne_false_msg)
+        game.addTextToEvent("turn", loc.ne_false_msg)
     elif isinstance(loc.northeast, TravelConnector):
         loc.northeast.travel(game)
     else:
@@ -779,7 +783,7 @@ def travelNE(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.northeast
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.ne_msg)
+        game.addTextToEvent("turn", loc.ne_msg)
 
         game.me.location.describe(game)
 
@@ -791,9 +795,9 @@ def travelE(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("e" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.east:
-        game.app.printToGUI(loc.e_false_msg)
+        game.addTextToEvent("turn", loc.e_false_msg)
     elif isinstance(loc.east, TravelConnector):
         loc.east.travel(game)
     else:
@@ -802,7 +806,7 @@ def travelE(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.east
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.e_msg)
+        game.addTextToEvent("turn", loc.e_msg)
 
         game.me.location.describe(game)
 
@@ -814,9 +818,9 @@ def travelSE(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("se" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.southeast:
-        game.app.printToGUI(loc.se_false_msg)
+        game.addTextToEvent("turn", loc.se_false_msg)
     elif isinstance(loc.southeast, TravelConnector):
         loc.southeast.travel(game)
     else:
@@ -825,7 +829,7 @@ def travelSE(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.southeast
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.se_msg)
+        game.addTextToEvent("turn", loc.se_msg)
 
         game.me.location.describe(game)
 
@@ -837,9 +841,9 @@ def travelS(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("s" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.south:
-        game.app.printToGUI(loc.s_false_msg)
+        game.addTextToEvent("turn", loc.s_false_msg)
     elif isinstance(loc.south, TravelConnector):
         loc.south.travel(game)
     else:
@@ -848,7 +852,7 @@ def travelS(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.south
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.s_msg)
+        game.addTextToEvent("turn", loc.s_msg)
 
         game.me.location.describe(game)
 
@@ -860,9 +864,9 @@ def travelSW(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("sw" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.southwest:
-        game.app.printToGUI(loc.sw_false_msg)
+        game.addTextToEvent("turn", loc.sw_false_msg)
     elif isinstance(loc.southwest, TravelConnector):
         loc.southwest.travel(game)
     else:
@@ -871,7 +875,7 @@ def travelSW(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.southwest
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.sw_msg)
+        game.addTextToEvent("turn", loc.sw_msg)
 
         game.me.location.describe(game)
 
@@ -883,9 +887,9 @@ def travelW(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("w" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.west:
-        game.app.printToGUI(loc.w_false_msg)
+        game.addTextToEvent("turn", loc.w_false_msg)
     elif isinstance(loc.west, TravelConnector):
         loc.west.travel(game)
     else:
@@ -894,7 +898,7 @@ def travelW(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.west
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.w_msg)
+        game.addTextToEvent("turn", loc.w_msg)
 
         game.me.location.describe(game)
 
@@ -907,9 +911,9 @@ def travelNW(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("nw" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.northwest:
-        game.app.printToGUI(loc.nw_false_msg)
+        game.addTextToEvent("turn", loc.nw_false_msg)
     elif isinstance(loc.northwest, TravelConnector):
         loc.northwest.travel(game)
     else:
@@ -918,7 +922,7 @@ def travelNW(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.northwest
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.nw_msg)
+        game.addTextToEvent("turn", loc.nw_msg)
 
         game.me.location.describe(game)
 
@@ -931,9 +935,9 @@ def travelU(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("u" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.up:
-        game.app.printToGUI(loc.u_false_msg)
+        game.addTextToEvent("turn", loc.u_false_msg)
     elif isinstance(loc.up, TravelConnector):
         loc.up.travel(game)
     else:
@@ -942,7 +946,7 @@ def travelU(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.up
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.u_msg)
+        game.addTextToEvent("turn", loc.u_msg)
 
         game.me.location.describe(game)
 
@@ -955,9 +959,9 @@ def travelD(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("d" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.down:
-        game.app.printToGUI(loc.d_false_msg)
+        game.addTextToEvent("turn", loc.d_false_msg)
     elif isinstance(loc.down, TravelConnector):
         loc.down.travel(game)
     else:
@@ -966,7 +970,7 @@ def travelD(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.down
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.d_msg)
+        game.addTextToEvent("turn", loc.d_msg)
 
         game.me.location.describe(game)
 
@@ -980,9 +984,9 @@ def travelOut(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("exit" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.exit:
-        game.app.printToGUI(loc.exit_false_msg)
+        game.addTextToEvent("turn", loc.exit_false_msg)
     elif isinstance(loc.exit, TravelConnector):
         loc.exit.travel(game)
     else:
@@ -991,7 +995,7 @@ def travelOut(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.exit
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.exit_msg)
+        game.addTextToEvent("turn", loc.exit_msg)
 
         game.me.location.describe(game)
 
@@ -1005,9 +1009,9 @@ def travelIn(game):
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
     if not loc.resolveDarkness(game.me) and ("entrance" not in loc.dark_visible_exits):
-        game.app.printToGUI(loc.dark_msg)
+        game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.entrance:
-        game.app.printToGUI(loc.entrance_false_msg)
+        game.addTextToEvent("turn", loc.entrance_false_msg)
     elif isinstance(loc.entrance, TravelConnector):
         loc.entrance.travel(game)
     else:
@@ -1016,7 +1020,7 @@ def travelIn(game):
             game.me.location.removeThing(game.me)
         game.me.location = loc.entrance
         game.me.location.addThing(game.me)
-        game.app.printToGUI(loc.entrance_msg)
+        game.addTextToEvent("turn", loc.entrance_msg)
 
         game.me.location.describe(game)
 
