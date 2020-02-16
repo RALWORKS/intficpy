@@ -250,7 +250,6 @@ class App(QMainWindow):
         if len(fname) == 0:
             return None
         # add .sav extension if necessary
-        #self.newBox(self.box_style1)
         if not "." in fname:
             fname = fname + ".sav"
         elif (fname.index(".") - len(fname)) != -4:
