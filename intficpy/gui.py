@@ -31,8 +31,6 @@ from .things import reflexive
 tBold = QFont()
 tBold.setBold(True)
 
-main_file = ""
-
 scroll_style = """
         /* VERTICAL */
         QWidget {
@@ -75,12 +73,6 @@ scroll_style = """
             background: none;
         }
     """
-
-
-class Prelim:
-    def __init__(self, main_name):
-        global main_file
-        main_file = main_name
 
 
 class App(QMainWindow):
