@@ -112,12 +112,6 @@ class App(QMainWindow):
         # populated by enterForMore()
         self.game = None
 
-    def closeEvent(self, event):
-        """Trigger program close. Close the recording file first, if open. """
-        if self.game.lastTurn.recfile:
-            self.game.lastTurn.recfile.close()
-        event.accept()
-
     def initUI(self):
         """Build the basic user interface
 		called by __init__ """

@@ -3931,16 +3931,13 @@ def playBackVerbFunc(game):
     if not f:
         game.addTextToEvent("turn", "No file selected. ")
         return False
-    play = open(f, "r")
-    lines = play.readlines()
-    game.addTextToEvent("turn", "**STARTING PLAYBACK** ")
-    for line in lines:
-        game.addTextToEvent("turn", "> " + line)
+    with open(f, "r") as play:
+        lines = play.readlines()
+        game.addTextToEvent("turn", "**STARTING PLAYBACK** ")
         game.runTurnEvents()
-        if (not game.lastTurn.ambiguous) and (not game.lastTurn.err):
-            game.daemons.runAll(game)
-        game.parseInput(line)
-    play.close()
+        for line in lines:
+            game.turnMain(line[:-1])
+
     game.addTextToEvent("turn", "**PLAYBACK COMPLETE** ")
     return True
 

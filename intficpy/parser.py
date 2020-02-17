@@ -35,10 +35,12 @@ class Parser:
         return removeArticles(tokenize(input_string))
 
     def recordInput(self, input_string):
-        self.game.lastTurn.turn_list.append(input_string)
-        if self.game.lastTurn.recfile:
-            self.game.lastTurn.recfile.write(input_string + "\n")
-            self.game.lastTurn.recfile.flush()
+        self.game.turn_list.append(input_string)
+
+        if self.game.recfile:
+            with open(self.game.recfile, "a") as recfile:
+                recfile.write(input_string + "\n")
+
         return input_string
 
     def getDirection(self, input_tokens):
