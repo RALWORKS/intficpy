@@ -166,6 +166,20 @@ class IFPGame:
         self.daemons.runAll(self)
         self.runTurnEvents()
 
+    def turnMain(self, input_string):
+        """
+        Sends user input to the parser each turn
+        Runs daemons
+        Runs turn events
+        Takes argument input_string, the cleaned user input string
+        """
+        if len(input_string) == 0:
+            return 0
+        # parse string
+        self.parser.parseInput(input_string)
+        self.daemons.runAll(self)
+        self.runTurnEvents()
+
     def addEvent(self, name, priority, text=None, style=None):
         """
         Add an event to the current turn

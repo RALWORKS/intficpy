@@ -165,24 +165,12 @@ class App(QMainWindow):
         self.cutscene = []
         self.anykeyformore = False
 
-    def turnMain(self, input_string):
-        """Sends user input to the parser each turn
-		Takes argument input_string, the cleaned user input string """
-        quit = False
-        if len(input_string) == 0:
-            return 0
-        else:
-            # parse string
-            self.game.parser.parseInput(input_string)
-            self.game.daemons.runAll(self.game)
-            self.game.runTurnEvents()
-
     def on_click(self):
         """Echos input, cleans input, and sends input to turnMain
 		Called when the user presses return """
         textboxValue = self.textbox.text()
         self.textbox.setText("")
-        self.turnMain(textboxValue)
+        self.game.turnMain(textboxValue)
 
     def keyPressEvent(self, event):
         """Maps on_click to the enter key """
