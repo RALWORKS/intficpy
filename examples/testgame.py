@@ -27,7 +27,6 @@ from intficpy.ifp_game import IFPGame
 import intficpy.gui as gui
 
 app = QApplication(sys.argv)
-gui.Prelim(__name__)
 
 me = Player("boy")
 ex = gui.App(me)
