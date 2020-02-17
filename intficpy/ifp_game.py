@@ -101,7 +101,10 @@ class GameInfo:
 
 
 class TurnInfo:
-    """Class of lastTurn, used for disambiguation mode """
+    """
+    Information about a turn
+    Used mainly to store disambiguation information about the last turn
+    """
 
     def __init__(self):
         self.things = []
@@ -112,26 +115,10 @@ class TurnInfo:
         self.iobj = False
         self.ambig_noun = None
         self.find_by_loc = False
-        self.turn_list = []
-        self.back = 0
         self.gameOpening = False
         self.gameEnding = False
         self.convNode = False
         self.specialTopics = {}
-        self.recfile = None
-        self.turn_list = []
-
-    def recordOn(self, f):
-        try:
-            self.recfile = open(f, "w+")
-            return True
-        except:
-            return False
-
-    def recordOff(self):
-        if not self.recfile:
-            return
-        self.recfile.close()
 
 
 class IFPGame:
@@ -147,6 +134,10 @@ class IFPGame:
 
         self.turn_event_style = None
         self.command_event_style = None
+
+        self.recfile = None
+        self.turn_list = []
+        self.back = 0
 
     def runTurnEvents(self):
         events = sorted(
@@ -206,3 +197,19 @@ class IFPGame:
                 f"Event with name '{name}' does not yet exist in current turn. "
             )
         self.next_events[name].text.append(text)
+
+    def recordOn(self, f):
+        """
+        Try opening the specified file for recording,
+        creating it if it doesn't exist.
+        """
+        try:
+            recfile = open(f, "w+")
+            recfile.close()
+            self.recfile = f
+            return True
+        except:
+            return False
+
+    def recordOff(self):
+        self.recfile = None

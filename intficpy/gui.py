@@ -176,20 +176,20 @@ class App(QMainWindow):
         """Maps on_click to the enter key """
         if self.anykeyformore and self.cutscene != []:
             self.cutsceneNext()
-        elif event.key() == QtCore.Qt.Key_Up and len(self.game.lastTurn.turn_list) > 0:
-            self.game.lastTurn.back = self.game.lastTurn.back - 1
-            if -self.game.lastTurn.back >= len(self.game.lastTurn.turn_list):
-                self.game.lastTurn.back = 0
-            self.textbox.setText(self.game.lastTurn.turn_list[self.game.lastTurn.back])
+        elif event.key() == QtCore.Qt.Key_Up and len(self.game.turn_list) > 0:
+            self.game.back = self.game.back - 1
+            if -self.game.back >= len(self.game.turn_list):
+                self.game.back = 0
+            self.textbox.setText(self.game.turn_list[self.game.back])
         elif (
             event.key() == QtCore.Qt.Key_Down
-            and len(self.game.lastTurn.turn_list) > 0
-            and self.game.lastTurn.back < 0
+            and len(self.game.turn_list) > 0
+            and self.game.back < 0
         ):
-            self.game.lastTurn.back = self.game.lastTurn.back + 1
-            self.textbox.setText(self.game.lastTurn.turn_list[self.game.lastTurn.back])
+            self.game.back = self.game.back + 1
+            self.textbox.setText(self.game.turn_list[self.game.back])
         elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text()) > 0:
-            self.game.lastTurn.back = 0
+            self.game.back = 0
             self.on_click()
 
     def printEventText(self, event):

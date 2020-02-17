@@ -3891,7 +3891,7 @@ recordOnVerb.preposition = ["on"]
 
 def recordOnVerbFunc(game):
     f = game.app.saveFilePrompt(".txt", "Text files", "Enter a file to record to")
-    success = game.lastTurn.recordOn(f)
+    success = game.recordOn(f)
     if success:
         game.addTextToEvent("turn", "**RECORDING ON**")
     else:
@@ -3911,7 +3911,7 @@ recordOffVerb.preposition = ["off"]
 
 
 def recordOffVerbFunc(game):
-    game.lastTurn.recordOff()
+    game.recordOff()
     game.addTextToEvent("turn", "**RECORDING OFF**")
 
 

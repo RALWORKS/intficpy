@@ -256,6 +256,6 @@ class HintNode(IFPObject):
 
     def previousTurnHint(self, game):
 
-        if len(game.lastTurn.turn_list) < 2:
+        if len(game.turn_list) < 2:
             return False
-        return game.lastTurn.turn_list[-2] == "hint"
+        return game.turn_list[-2] == "hint"
