@@ -1,3 +1,30 @@
+"""
+GUI.PY - a simple Qt GUI for IntFicPy games
+
+To use this GUI, create a QApplication in your game file, and
+create an instance of the App class defined here, then
+pass it into your IFPGame instance
+
+    from PyQt5.QtWidgets import QApplication
+    from ifp_qt_gui.gui import Player
+    from intficpy.ifp_game import IFPGame
+
+    me = Player("yourself")
+
+    q_application = QApplication(sys.argv)
+    app = App(me)
+    game = IFPGame(me, ex)
+
+After the content of your game, show the Qt GUI
+
+    game.initGame()
+    app.show()
+    sys.exit(q_application.exec_())
+
+"""
+
+# TODO: display game title in the window title
+
 import sys, os, re, time
 import PyQt5.QtCore as QtCore
 from PyQt5.QtWidgets import (
@@ -19,13 +46,6 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon, QFont, QIcon
 from .things import reflexive
 
-##############################################################
-# GUI.PY - the GUI for IntFicPy
-# Defines the default GUI application for .
-##############################################################
-# TODO: modify App.__init__ to allow for insertion of a custom stylesheet directly from the main game file when the GUI is created
-# TODO: display game title in the window title
-# TODO: disallow ".sav" as a complete filename for saving
 
 # defines the bold font for game output text
 tBold = QFont()
