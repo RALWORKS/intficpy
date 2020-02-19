@@ -29,7 +29,7 @@ import intficpy.gui as gui
 app = QApplication(sys.argv)
 
 me = Player("boy")
-ex = gui.App(me)
+ex = gui.App()
 game = IFPGame(me, ex)
 game.turn_event_style = ex.box_style1
 game.command_event_style = ex.box_style2

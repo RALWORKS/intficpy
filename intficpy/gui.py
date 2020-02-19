@@ -15,8 +15,8 @@ pass it into your IFPGame instance
     me = Player("yourself")
 
     q_application = QApplication(sys.argv)
-    app = App(me)
-    game = IFPGame(me, ex)
+    app = App()
+    game = IFPGame(me, app)
 
 After the content of your game, show the Qt GUI
 
@@ -48,28 +48,22 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtGui import QIcon, QFont, QIcon
 
 
-# defines the bold font for game output text
-tBold = QFont()
-tBold.setBold(True)
-
-
 class App(QMainWindow):
     """
     The UI App class
     Pass an instance into your IFPGame object
     """
 
-    def __init__(self, me):
+    def __init__(self):
         """
         Initialize the GUI
-        Takes argument me, pointing to the Player
 
         Styling for the Qt GUI is also defined in here.
         Feel free to change and adapt it as you see fit.
         """
         super().__init__()
 
-        self.icon = None
+        # self.icon = None
         # self.setWindowIcon(QIcon(self.icon))
 
         self.setObjectName("MainWindow")
@@ -138,7 +132,6 @@ class App(QMainWindow):
         """
         self.initUI()
         self.showMaximized()
-        self.me = me
         self.game = None
 
     def initUI(self):
@@ -202,8 +195,8 @@ class App(QMainWindow):
         Handle key press events
         
         Enter - send turn input
-        Up - move backward through history
-        Down - move forward through history
+        Up - move backward through command history
+        Down - move forward through command history
         """
         if event.key() == QtCore.Qt.Key_Up:
             self.textbox.setText(self.game.getCommandUp())
