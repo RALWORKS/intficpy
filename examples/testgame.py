@@ -79,8 +79,9 @@ me.setPlayer()
 
 
 def opening(game):
-    game.addTextToEvent("turn", 
-        "<b>WIND AND OCEAN: by JSMaika</b><br> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area."
+    game.addTextToEvent(
+        "turn",
+        "<b>WIND AND OCEAN: by JSMaika</b><br> You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area.",
     )
 
 
@@ -114,8 +115,9 @@ me.opaltaken = False
 def takeOpalFunc(game):
     print("TAKE")
     if not me.opaltaken:
-        game.addTextToEvent("turn", 
-            "As you hold the opal in your hand, you're half-sure you can feel the air cooling around you. A shiver runs down your spine. Something is not right here."
+        game.addTextToEvent(
+            "turn",
+            "As you hold the opal in your hand, you're half-sure you can feel the air cooling around you. A shiver runs down your spine. Something is not right here.",
         )
         me.opaltaken = True
         opalAchievement.award(game)
@@ -191,8 +193,9 @@ cabinlock = Lock(True, rustykey)
 
 def sarahOpalFunc(game, dobj):
     if not sarah.threwkey and dobj == sarah:
-        game.addTextToEvent("turn", 
-            '"Fine!" she cries. "Fine! Take the key and leave! Just get that thing away from me!" '
+        game.addTextToEvent(
+            "turn",
+            '"Fine!" she cries. "Fine! Take the key and leave! Just get that thing away from me!" ',
         )
         game.addTextToEvent("turn", "Sarah flings a rusty key at you. You catch it.")
         me.addThing(rustykey)
@@ -272,8 +275,7 @@ cave_concept = Abstract("cave")
 caveTopic = Topic('Sarah narrows her eyes. "You don\'t want to know," she says.')
 sarah.addTopic("ask", caveTopic, cave_concept)
 
-screen = app.primaryScreen()
-screen = screen.size()
+
 game.initGame()
 ex.show()
 sys.exit(app.exec_())
