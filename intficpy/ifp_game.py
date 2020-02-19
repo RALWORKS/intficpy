@@ -2,6 +2,7 @@ from .parser import Parser
 from .daemons import DaemonManager
 from .vocab import verbDict
 from .event import IFPEvent
+from .things import reflexive
 
 
 class GameInfo:
@@ -150,6 +151,7 @@ class IFPGame:
         self.addEvent("turn", 5, style=self.turn_event_style)
 
     def initGame(self):
+        reflexive.makeKnown(self.me)
         self.addEvent("turn", 5, style=self.turn_event_style)
         if self.lastTurn.gameOpening:
             self.lastTurn.gameOpening(self)
@@ -213,3 +215,27 @@ class IFPGame:
 
     def recordOff(self):
         self.recfile = None
+
+    def getCommandUp(self):
+        """
+        Move backward by 1 through the list of previous commands
+        Analogous to pressing the Up key in most terminals
+        """
+        if len(self.turn_list) < 1:
+            return ""
+        self.back -= 1
+        if -self.back >= len(self.turn_list):
+            self.back = 0
+        return self.turn_list[self.back]
+
+    def getCommandDown(self):
+        """
+        Move forward by 1 through the list of previous commands
+        Analogous to pressing the Down key in most terminals
+        """
+        if len(self.turn_list) < 1:
+            return ""
+        self.back += 1
+        if self.back >= len(self.turn_list):
+            self.back = 0
+        return self.turn_list[self.back]
