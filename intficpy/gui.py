@@ -1,6 +1,9 @@
 """
 GUI.PY - a simple Qt GUI for IntFicPy games
 
+This module is provided with a GPL license.
+Please feel free to adapt and change this code however you see fit.
+
 To use this GUI, create a QApplication in your game file, and
 create an instance of the App class defined here, then
 pass it into your IFPGame instance
@@ -23,9 +26,8 @@ After the content of your game, show the Qt GUI
 
 """
 
-# TODO: display game title in the window title
+import os
 
-import sys, os, re, time
 import PyQt5.QtCore as QtCore
 from PyQt5.QtWidgets import (
     QMainWindow,
@@ -44,97 +46,105 @@ from PyQt5.QtWidgets import (
     QFileDialog,
 )
 from PyQt5.QtGui import QIcon, QFont, QIcon
-from .things import reflexive
 
 
 # defines the bold font for game output text
 tBold = QFont()
 tBold.setBold(True)
 
-scroll_style = """
-        /* VERTICAL */
-        QWidget {
-        	background: #efefef; 
-        }
-        QScrollBar:vertical {
-            border: none;
-            background: #a3a3a3;
-            border-radius: 6px;
-            width: 30px;
-            margin: 10px 8px 10px 8px;
-        }
-
-        QScrollBar::handle:vertical {
-            background: #d0d0d0;
-            border-radius: 6px;
-            min-height: 15px;
-        }
-
-        QScrollBar::add-line:vertical {
-            background: none;
-            height: 10px;
-            subcontrol-position: bottom;
-            subcontrol-origin: margin;
-        }
-
-        QScrollBar::sub-line:vertical {
-            background: none;
-            height: 10px;
-            subcontrol-position: top left;
-            subcontrol-origin: margin;
-            position: absolute;
-        }
-
-        QScrollBar:up-arrow:vertical, QScrollBar::down-arrow:vertical {
-            background: none;
-        }
-
-        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-            background: none;
-        }
-    """
-
 
 class App(QMainWindow):
-    """The App class, of which the GUI app will be an instance, creates the GUI's widgets and defines its methods """
+    """
+    The UI App class
+    Pass an instance into your IFPGame object
+    """
 
-    def __init__(
-        self,
-        me,
-        style1="color: black; background-color: #d3e56b; border: none; border-radius:20px; margin-bottom: 15px",
-        style2="color: black; background-color: #6be5cb; border: none; border-radius:20px; margin-bottom: 15px",
-        scroll_style=scroll_style,
-        app_style="QFrame { border:none;}",
-        icon=None,
-    ):
-        """Initialize the GUI
-		Takes argument me, pointing to the Player """
-        import __main__
+    def __init__(self, me):
+        """
+        Initialize the GUI
+        Takes argument me, pointing to the Player
 
+        Styling for the Qt GUI is also defined in here.
+        Feel free to change and adapt it as you see fit.
+        """
         super().__init__()
-        if icon:
-            self.setWindowIcon(QIcon(icon))
-        reflexive.makeKnown(me)
+
+        self.icon = None
+        # self.setWindowIcon(QIcon(self.icon))
+
         self.setObjectName("MainWindow")
+
         self.title = "IntFicPy"
         self.left = 10
         self.top = 10
         self.width = 640
         self.height = 480
-        self.box_style1 = style1
-        self.box_style2 = style2
-        self.scroll_style = scroll_style
+
+        self.box_style1 = (
+            "color: black; "
+            "background-color: #d3e56b; "
+            "border: none; "
+            "border-radius:20px; "
+            "margin-bottom: 15px"
+        )
+        self.box_style2 = (
+            "color: black; "
+            "background-color: #6be5cb; "
+            "border: none; "
+            "border-radius:20px; "
+            "margin-bottom: 15px"
+        )
+        self.scroll_style = """
+            /* VERTICAL */
+            QWidget {
+            	background: #efefef; 
+            }
+            QScrollBar:vertical {
+                border: none;
+                background: #a3a3a3;
+                border-radius: 6px;
+                width: 30px;
+                margin: 10px 8px 10px 8px;
+            }
+
+            QScrollBar::handle:vertical {
+                background: #d0d0d0;
+                border-radius: 6px;
+                min-height: 15px;
+            }
+
+            QScrollBar::add-line:vertical {
+                background: none;
+                height: 10px;
+                subcontrol-position: bottom;
+                subcontrol-origin: margin;
+            }
+
+            QScrollBar::sub-line:vertical {
+                background: none;
+                height: 10px;
+                subcontrol-position: top left;
+                subcontrol-origin: margin;
+                position: absolute;
+            }
+
+            QScrollBar:up-arrow:vertical, QScrollBar::down-arrow:vertical {
+                background: none;
+            }
+
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
+            }
+        """
         self.initUI()
         self.showMaximized()
         self.me = me
-
-        # used for game-interrupting cutscenes
-        # populated by enterForMore()
         self.game = None
 
     def initUI(self):
-        """Build the basic user interface
-		called by __init__ """
+        """
+        Build the basic user interface
+        """
         self.setWindowTitle(self.title)
         self.setGeometry(self.left, self.top, self.width, self.height)
 
@@ -179,37 +189,36 @@ class App(QMainWindow):
         self.cutscene = []
         self.anykeyformore = False
 
-    def on_click(self):
-        """Echos input, cleans input, and sends input to turnMain
-		Called when the user presses return """
+    def send_turn_input(self):
+        """
+        Send player input to the game, and clear the input field
+        """
         textboxValue = self.textbox.text()
         self.textbox.setText("")
         self.game.turnMain(textboxValue)
 
     def keyPressEvent(self, event):
-        """Maps on_click to the enter key """
-        if self.anykeyformore and self.cutscene != []:
-            self.cutsceneNext()
-        elif event.key() == QtCore.Qt.Key_Up and len(self.game.turn_list) > 0:
-            self.game.back = self.game.back - 1
-            if -self.game.back >= len(self.game.turn_list):
-                self.game.back = 0
-            self.textbox.setText(self.game.turn_list[self.game.back])
-        elif (
-            event.key() == QtCore.Qt.Key_Down
-            and len(self.game.turn_list) > 0
-            and self.game.back < 0
-        ):
-            self.game.back = self.game.back + 1
-            self.textbox.setText(self.game.turn_list[self.game.back])
+        """
+        Handle key press events
+        
+        Enter - send turn input
+        Up - move backward through history
+        Down - move forward through history
+        """
+        if event.key() == QtCore.Qt.Key_Up:
+            self.textbox.setText(self.game.getCommandUp())
+
+        elif event.key() == QtCore.Qt.Key_Down:
+            self.textbox.setText(self.game.getCommandDown())
+
         elif event.key() == QtCore.Qt.Key_Return and len(self.textbox.text()) > 0:
-            self.game.back = 0
-            self.on_click()
+            self.send_turn_input()
 
     def printEventText(self, event):
-        """Prints game output to the GUI, and scrolls down
-		Takes arguments out_string, the string to print, and bold, a Boolean which defaults to False
-		Returns True on success """
+        """
+        Prints game output to the GUI, and scrolls down
+        Takes a single argument event, the event to print
+        """
         self.obox = QFrame()
         self.obox.setFrameStyle(QFrame.StyledPanel)
         self.obox.setStyleSheet(event.style)
@@ -231,31 +240,12 @@ class App(QMainWindow):
         self.obox.setMinimumSize(self.obox.sizeHint())
         vbar = self.scroll.verticalScrollBar()
         vbar.rangeChanged.connect(lambda: vbar.setValue(vbar.maximum()))
-        return True
-
-    def getSaveFileGUI(self):
-        """Creates a QFileDialog when the user types save, and validates the selected file name
-		Returns the file name or None"""
-        cwd = os.getcwd()
-        fname = QFileDialog.getSaveFileName(
-            self, "New save file", cwd, "Save files (*.sav)"
-        )
-        fname = fname[0]
-        if len(fname) == 0:
-            return None
-        # add .sav extension if necessary
-        if not "." in fname:
-            fname = fname + ".sav"
-        elif (fname.index(".") - len(fname)) != -4:
-            ex_start = fname.index(".")
-            fname = fname[0:ex_start]
-            fname = fname + ".sav"
-        elif fname[-4:] != ".sav":
-            fname = fname[0:-4]
-            fname = fname + ".sav"
-        return fname
 
     def saveFilePrompt(self, extension, filetype_desc, msg):
+        """
+        Create a prompt to save a file
+        Used for saving the game, and creating recordings
+        """
         cwd = os.getcwd()
         fname = QFileDialog.getSaveFileName(
             self, msg, cwd, f"{filetype_desc} (*{extension})"
@@ -273,6 +263,10 @@ class App(QMainWindow):
         return fname + extension
 
     def openFilePrompt(self, extension, filetype_desc, msg):
+        """
+        Create a prompt to open a file
+        Used for loading save files and playing back recordings
+        """
         cwd = os.getcwd()
         fname = QFileDialog.getOpenFileName(
             self, msg, cwd, f"{filetype_desc} (*{extension})"
