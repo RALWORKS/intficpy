@@ -16,6 +16,12 @@ from .things import Container, Surface, UnderSpace, Liquid
 from .room import Room
 from .travel import directionDict
 from .tokenizer import cleanInput, tokenize, removeArticles
+from .exceptions import (
+    VerbDefinitionError,
+    VerbMatchError,
+    ObjectMatchError,
+    ParserError,
+)
 
 
 ##############################################################
@@ -934,6 +940,92 @@ class Parser:
         locs = [item.location for item in things]
         return not locs.count(locs[1]) == len(locs)
 
+    def _disambig_msg_next_joiner(self, item, name_dict, name, unscanned):
+        if item is name_dict[name][-1] and not len(unscanned):
+            return "?"
+        if (
+            item is name_dict[name][-1]
+            and len(unscanned) == 1
+            and len(name_dict[unscanned[0]]) == 1
+        ):
+            return ", or "
+        if len(name_dict[name]) == 1:
+            return ", "
+        if item is name_dict[name][-2] and not len(unscanned):
+            return ", or "
+        return ", "
+
+    def _item_with_disambig_index(self, item, ix, location=None):
+        msg = item.lowNameArticle(True)
+        if isinstance(location, Room):
+            location = location.floor
+        if location == self.game.me:
+            msg += " in your inventory"
+        elif location:
+            msg += f" {location.contains_preposition} {location.lowNameArticle(True)}"
+        return msg + f" ({ix + 1})"
+
+    def _disambig_msg_next_item(
+        self, item, name_dict, name, unscanned, ix, location=None
+    ):
+        return self._item_with_disambig_index(
+            item, ix, location
+        ) + self._disambig_msg_next_joiner(item, name_dict, name, unscanned)
+
+    def generate_disambiguation_message(self, things):
+        """
+        Generate the disambiguation message for a list of things
+        """
+        name_match = self.verboseNamesMatch(things)
+        # dictionary of verbose_names from the current set of things
+        name_dict = name_match[1]
+        msg = "Do you mean "
+        scanned_keys = []
+
+        if not name_match[0]:
+            for thing in things:
+                msg += self._item_with_disambig_index(thing, things.index(thing))
+                if thing is things[-1]:
+                    msg += "?"
+                elif len(things) > -2 and thing is things[-2]:
+                    msg += ", or"
+                else:
+                    msg += ", "
+            return msg
+
+        things = []
+        # empty things to reorder elements according to the order printed,
+        # since we are using name_dict
+        for name in name_dict:
+            # use name_dict for self.disambiguation message composition rather than things
+            scanned_keys.append(name)
+            unscanned = list(set(name_dict.keys()) - set(scanned_keys))
+            if len(name_dict[name]) > 1:
+                if self.locationsDistinct(name_dict[name]):
+                    for item in name_dict[name]:
+                        things.append(item)
+                        loc = item.location
+                        if not loc:
+                            pass
+                        msg += self._disambig_msg_next_item(
+                            item, name_dict, name, unscanned, things.index(item), loc
+                        )
+                    return msg
+
+                for item in name_dict[name]:
+                    things.append(item)
+                    msg += self._disambig_msg_next_item(
+                        item, name_dict, name, unscanned, things.index(item)
+                    )
+                return msg
+
+            for item in name_dict[name]:
+                things.append(item)
+                msg += self._disambig_msg_next_item(
+                    item, name_dict, name, unscanned, things.index(item)
+                )
+            return msg
+
     def checkAdjectives(
         self, noun_adj_arr, noun, things, scope, far_obj, obj_direction
     ):
@@ -1013,134 +1105,7 @@ class Parser:
         if len(things) == 1:
             return things[0]
         elif len(things) > 1:
-            name_match = self.verboseNamesMatch(things)
-            name_dict = name_match[
-                1
-            ]  # dictionary of verbose_names from the current set of things
-            msg = "Do you mean "
-            scanned_keys = []
-            if name_match[0]:  # there is at least one set of duplicate verbose_names
-                things = (
-                    []
-                )  # empty things to reorder elements according to the order printed, since we are using name_dict
-                for (
-                    name
-                ) in (
-                    name_dict
-                ):  # use name_dict for self.disambiguation message composition rather than things
-                    scanned_keys.append(name)
-                    unscanned = list(set(name_dict.keys()) - set(scanned_keys))
-                    if len(name_dict[name]) > 1:
-                        if self.locationsDistinct(name_dict[name]):
-                            for item in name_dict[name]:
-                                things.append(item)
-                                loc = item.location
-                                if not loc:
-                                    pass
-                                elif isinstance(loc, Room):
-                                    msg += (
-                                        item.lowNameArticle(True)
-                                        + " on "
-                                        + loc.floor.lowNameArticle(True)
-                                        + " ("
-                                        + str(things.index(item) + 1)
-                                        + ")"
-                                    )
-                                elif loc == self.game.me:
-                                    msg += (
-                                        item.lowNameArticle(True)
-                                        + " in your inventory ("
-                                        + str(things.index(item) + 1)
-                                        + ")"
-                                    )
-                                else:
-                                    msg += (
-                                        item.lowNameArticle(True)
-                                        + " "
-                                        + loc.contains_preposition
-                                        + " "
-                                        + loc.lowNameArticle(True)
-                                        + " ("
-                                        + str(things.index(item) + 1)
-                                        + ")"
-                                    )
-                                if item is name_dict[name][-1] and not len(unscanned):
-                                    msg += "?"
-                                elif (
-                                    item is name_dict[name][-1]
-                                    and len(unscanned) == 1
-                                    and len(name_dict[unscanned[0]]) == 1
-                                ):
-                                    msg += ", or "
-                                elif len(name_dict[name]) == 1:
-                                    msg += ", "
-                                elif item is name_dict[name][-2] and not len(unscanned):
-                                    msg += ", or "
-                                else:
-                                    msg += ", "
-                        else:
-                            for item in name_dict[name]:
-                                things.append(item)
-                                msg += (
-                                    item.lowNameArticle(True)
-                                    + " ("
-                                    + str(things.index(item) + 1)
-                                    + ")"
-                                )
-                                if item is name_dict[name][-1] and not len(unscanned):
-                                    msg += "?"
-                                elif (
-                                    item is name_dict[name][-1]
-                                    and len(unscanned) == 1
-                                    and len(name_dict[unscanned[0]]) == 1
-                                ):
-                                    msg += ", or "
-                                elif len(name_dict[name]) == 1:
-                                    msg += ", "
-                                elif item is name_dict[name][-2] and not len(unscanned):
-                                    msg += ", or "
-                                else:
-                                    msg += ", "
-                    else:
-                        for item in name_dict[name]:
-                            things.append(item)
-                            msg += (
-                                item.lowNameArticle(True)
-                                + " ("
-                                + str(things.index(item) + 1)
-                                + ")"
-                            )
-                            if item is name_dict[name][-1] and not len(unscanned):
-                                msg += "?"
-                            elif (
-                                item is name_dict[name][-1]
-                                and len(unscanned) == 1
-                                and len(name_dict[unscanned[0]]) == 1
-                            ):
-                                msg += ", or "
-                            elif len(name_dict[name]) == 1:
-                                msg += ", "
-                            elif item is name_dict[name][-2] and not len(unscanned):
-                                msg += ", or "
-                            else:
-                                msg += ", "
-            else:
-                for thing in things:
-                    msg = (
-                        msg
-                        + thing.getArticle(True)
-                        + thing.verbose_name
-                        + " ("
-                        + str(things.index(thing) + 1)
-                        + ")"
-                    )
-                    # add appropriate punctuation and "or"
-                    if thing is things[-1]:
-                        msg = msg + "?"
-                    elif thing is things[-2]:
-                        msg = msg + ", or "
-                    else:
-                        msg = msg + ", "
+            msg = self.generate_disambiguation_message(things)
             self.game.addTextToEvent("turn", msg)
             # turn ON self.disambiguation mode for next turn
             self.game.lastTurn.ambiguous = True
