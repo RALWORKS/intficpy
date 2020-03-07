@@ -35,8 +35,8 @@ class Thing(PhysicalEntity):
         self.canLie = False
         # language
         # TODO: these should default to in/out (out of?) to eliminate the null check
-        self.contains_preposition = None
-        self.contains_preposition_inverse = None
+        self.contains_preposition = "on"
+        self.contains_preposition_inverse = "off"
         self.revealed = False
         self.desc_reveal = True
         self.xdesc_reveal = True
