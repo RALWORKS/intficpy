@@ -135,7 +135,7 @@ startroom.addThing(bottle2)
 bench = Surface("bench", game)
 bench.canSit = True
 bench.canStand = True
-# bench.invItem = True
+bench.invItem = False
 bench.describeThing("A rough wooden bench sits against the wall.")
 bench.xdescribeThing(
     "The wooden bench is splintering, and faded grey. It looks very old."

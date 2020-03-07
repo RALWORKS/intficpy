@@ -4,20 +4,13 @@ import types
 
 from .vocab import nounDict
 from .ifp_object import IFPObject
+from .exceptions import DeserializationError, Unserializable
 
 ##############################################################
 # SERIALIZER.PY - the save/load system for IntFicPy
 # Defines the SaveState class, with methods for saving and loading games
 ##############################################################
 # TODO: do not load bad save files. create a back up of game state before attempting to load, and restore in the event of an error AT ANY POINT during loading
-
-
-class Unserializable(Exception):
-    pass
-
-
-class SerializerError(Exception):
-    pass
 
 
 class SaveGame:
@@ -148,7 +141,7 @@ class LoadGame:
                 for attr, value in obj.items():
                     try:
                         self.deserialize_attribute(value)
-                    except SerializerError:
+                    except DeserializationError:
                         return False
 
         self.validated_data = self.data
@@ -156,14 +149,14 @@ class LoadGame:
 
     def load(self):
         if not hasattr(self, "validated_data"):
-            raise SerializerError("Call is_valid before loading game.")
+            raise DeserializationError("Call is_valid before loading game.")
         self.load_ifp_objects()
         self.load_locations()
         return True
 
     def load_ifp_objects(self):
         if not hasattr(self, "validated_data"):
-            raise SerializerError("Call is_valid before loading game.")
+            raise DeserializationError("Call is_valid before loading game.")
 
         for ix, obj_data in self.validated_data["ifp_objects"].items():
             obj = IFPObject.instances[ix]
@@ -175,7 +168,7 @@ class LoadGame:
         self.placed_things = []
 
         if not hasattr(self, "validated_data"):
-            raise SerializerError("Call is_valid before loading game.")
+            raise DeserializationError("Call is_valid before loading game.")
 
         for ix, obj_data in self.validated_data["locations"].items():
             obj = IFPObject.instances[ix]
@@ -227,13 +220,13 @@ class LoadGame:
     def deserialize_attribute(self, value):
         """
         Recursively deserialize an attribute
-        Raises SerializerError in the event of an attribute
+        Raises DeserializationError in the event of an attribute
         that cannot be deseriliazed
         """
         if isinstance(value, str) and value[:5] == "<IFP>":
             ix = value[5:]
             if not ix in IFPObject.instances:
-                raise SerializerError
+                raise DeserializationError
             return IFPObject.instances[ix]
 
         elif isinstance(value, str):
@@ -256,12 +249,5 @@ class LoadGame:
 
         except TypeError:
             pass
-
-        if (
-            hasattr(value, "__dict__")
-            or isinstance(value, types.FunctionType)
-            or isinstance(value, types.MethodType)
-        ):
-            raise Unserializable("Cannot serialize attribute.")
 
         return value
