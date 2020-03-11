@@ -771,8 +771,7 @@ class Parser:
                 elif not self.invRangeCheck(thing):
                     out_range.append(thing)
         else:
-            print('ERROR: incorrect verb scope "' + scope + '".')
-            things = []
+            raise VerbDefinitionError(f"Unrecognized object scope {scope}")
         # remove items that require implicit actions in the event of ambiguity
         for thing in out_range:
             things.remove(thing)
@@ -1000,7 +999,6 @@ class Parser:
         Called by self.getThing
         Returns a single Thing object or None
         """
-        print(f"ca {noun_adj_arr}")
         if things == self.game.lastTurn.things:
             self.game.lastTurn.ambiguous = False
             self.game.lastTurn.things = []
@@ -1080,7 +1078,6 @@ class Parser:
             raise ObjectMatchError(msg)
 
     def prepareGrammarObjects(self, cur_verb, obj_words):
-        print(f"PGO! {obj_words}")
         (dobj, iobj) = self.getObjectThings(cur_verb, obj_words)
         (dobj, iobj) = self.checkComponentObjects(cur_verb, obj_words, dobj, iobj)
         self.resolveGrammarObjLocations(cur_verb, dobj, iobj)
@@ -1136,7 +1133,6 @@ class Parser:
         called by self.parseInput
         Returns a Boolean, True if self.disambiguation successful
         """
-        print(f"disambig! {input_tokens}")
         dobj = self.game.lastTurn.dobj
         iobj = self.game.lastTurn.iobj
         cur_verb = self.game.lastTurn.verb
@@ -1340,7 +1336,6 @@ class Parser:
         - cur_verb, the current verb
         - obj_words, array of words or IFPObjects for dobj, iobj
         """
-        print(f"got {obj_words}")
         if cur_verb.hasDobj:
             cur_dobj = self._getObjectThing(cur_verb, "dobj", obj_words[0])
         else:
