@@ -525,7 +525,7 @@ class Parser:
 
         if missing:
             self.game.lastTurn.err = True
-            raise ObjectMatchError("Please be more specific.")
+            raise AbortTurn(f"Missing object for verb {cur_verb}")
 
         return [dobj, iobj]
 
@@ -932,7 +932,7 @@ class Parser:
             item, ix, location
         ) + self._disambigMsgNextJoiner(item, name_dict, name, unscanned)
 
-    def _generatateDisambigMsg(self, things):
+    def _generateDisambigMsg(self, things):
         """
         Generate the disambiguation message for a list of things
         """
@@ -1070,7 +1070,7 @@ class Parser:
             raise OutOfRange(self.generateVerbScopeErrorMsg(scope, noun_adj_arr))
 
         if len(things) > 1:
-            msg = self._generatateDisambigMsg(things)
+            msg = self._generateDisambigMsg(things)
             # turn ON self.disambiguation mode for next turn
             self.game.lastTurn.ambiguous = True
             self.game.lastTurn.ambig_noun = noun

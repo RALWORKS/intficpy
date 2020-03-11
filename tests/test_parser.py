@@ -14,6 +14,7 @@ from intficpy.verb import (
     giveVerb,
     examineVerb,
 )
+from intficpy.exceptions import ObjectMatchError
 
 
 class TestGetCurVerb(IFPTestCase):
@@ -197,11 +198,8 @@ class TestCallVerb(IFPTestCase):
         item1.setAdjectives([adj1])
         item2.setAdjectives([adj2])
 
-        matched_item1 = self.game.parser.getThing([noun], "room", None, None)
-        self.assertIsNone(
-            matched_item1,
-            "Matched single item with input that should have been ambiguous",
-        )
+        with self.assertRaises(ObjectMatchError):
+            matched_item1 = self.game.parser.getThing([noun], "room", None, None)
 
         matched_item1 = self.game.parser.getThing([adj1, noun], "room", None, None)
         self.assertIs(
@@ -212,20 +210,14 @@ class TestCallVerb(IFPTestCase):
         )
 
     def test_call_verb_with_no_objects(self):
-        obj_words = [None, None]
-
-        success = self.game.parser.callVerb(lookVerb, obj_words)
+        success = self.game.parser.callVerb(lookVerb, None, None)
         self.assertTrue(success)
 
     def test_call_verb_with_dobj(self):
         dobj_item = Thing(self._get_unique_noun())
         self.start_room.addThing(dobj_item)
 
-        dobj = [dobj_item.name]
-
-        obj_words = [dobj, None]
-
-        success = self.game.parser.callVerb(examineVerb, obj_words)
+        success = self.game.parser.callVerb(examineVerb, dobj_item, None)
         self.assertTrue(success)
 
     def test_call_verb_with_dobj_and_iobj(self):
@@ -234,12 +226,7 @@ class TestCallVerb(IFPTestCase):
         iobj_item = Surface(self._get_unique_noun(), self.game)
         self.start_room.addThing(iobj_item)
 
-        dobj = [dobj_item.name]
-        iobj = [iobj_item.name]
-
-        obj_words = [dobj, iobj]
-
-        success = self.game.parser.callVerb(setOnVerb, obj_words)
+        success = self.game.parser.callVerb(setOnVerb, dobj_item, iobj_item)
         self.assertTrue(success)
 
 
