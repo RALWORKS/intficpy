@@ -45,3 +45,19 @@ class ObjectMatchError(ParserError):
     """
 
     pass
+
+
+class OutOfRange(ParserError):
+    """
+    The specified object is out of range for the current verb
+    """
+
+    pass
+
+
+class AbortTurn(Exception):
+    """
+    Abort the current turn. Error message will not be printed.
+    """
+
+    pass
