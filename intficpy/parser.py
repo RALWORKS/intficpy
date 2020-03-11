@@ -467,17 +467,15 @@ class Parser:
         else:
             return [tobj, strobj]
 
-    # NOTE: print_verb_error prevents the duplication of the error message in the event of improper Verb definition. A little bit hacky.
     def _analyzeSyntax(self, verb_form, tag, input_tokens):
         """
         Parse verb form (list of strings) to find the words directly preceding and 
         following object tags, and pass these to self.getObjWords find the objects in the 
         player's command
-        Takes arguments verb_form, the assumed syntax of the 
-        command (list of strings), tag (string, "<dobj>" or "<iobj>"),
-        input_tokens (list of strings) and print_verb_error (Boolean), False when called by 
-        self.verbByObjects
-        Called by self.getVerbSyntax and self.verbByObjects
+        Takes arguments:
+        - verb_form, the assumed syntax of the command (list of strings),
+        - tag (string, "<dobj>" or "<iobj>"),
+        - input_tokens (list of strings)
         Returns None or a list of strings
         """
         # get words before and after
@@ -498,10 +496,15 @@ class Parser:
         """
         Make sure that the player command contains the correct number of grammatical 
         objects, and get implied objects if applicable
-        Takes arguments cur_verb (Verb object, verb.py), dobj, the direct object 
-        of the command (list of strings or None), and iobj, the indirect object (list of 
-        strings or None)
-        Called by  getGrammarObj
+
+        Takes arguments:
+        - cur_verb (Verb object, verb.py),
+        - dobj, the direct object of the command (list of strings or None),
+        - iobj, the indirect object
+
+        Raises ObjectMatchError in the event of a missing direct or indirect
+        object.
+
         Returns None, or a list of two items, either lists of strings, or None
         """
         missing = False
@@ -531,10 +534,9 @@ class Parser:
         Create a list of all nouns and adjectives (strings) referring to a direct or 
         indirect object
         Takes arguments
-         - before, the word expected before the grammatical object (string), 
-         - after, the word expected after the grammatical object (string or None),
-         and
-          - input_tokens, the self.tokenized player command (list of strings)
+        - before, the word expected before the grammatical object (string), 
+        - after, the word expected after the grammatical object (string or None),
+        - input_tokens, the self.tokenized player command (list of strings)
         Called by self._analyzeSyntax
         Returns an array of strings or None
         """
