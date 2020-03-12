@@ -16,6 +16,7 @@ class Actor(Thing):
         """Intitializes the Actor instance and sets essential properties """
         super().__init__(name)
 
+        self.can_be_led = False
         self.for_sale = {}
         self.will_buy = {}
         self.ask_topics = {}

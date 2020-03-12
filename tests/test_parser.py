@@ -5,6 +5,7 @@ from .helpers import IFPTestCase
 from intficpy.thing_base import Thing
 from intficpy.things import Surface
 from intficpy.vocab import nounDict
+from intficpy.actor import Actor
 from intficpy.verb import (
     getVerb,
     lookVerb,
@@ -17,155 +18,73 @@ from intficpy.verb import (
 from intficpy.exceptions import ObjectMatchError
 
 
-class TestGetCurVerb(IFPTestCase):
-    def test_gets_correct_verb_with_no_objects(self):
-        tokens = lookVerb.syntax[0]
+class TestParser(IFPTestCase):
+    def test_verb_with_no_objects(self):
+        self.game.turnMain("look")
 
-        expected_verb_tokens = lookVerb.syntax[0]
+        self.assertIs(self.game.lastTurn.verb, lookVerb)
+        self.assertIsNone(self.game.lastTurn.dobj)
+        self.assertIsNone(self.game.lastTurn.iobj)
 
-        gcv = self.game.parser.getCurVerb(tokens)
-        found_verbs = gcv[1]
-        verb = gcv[0][0]
-        verb_tokens = gcv[0][1]
-
-        self.assertTrue(found_verbs)
-        self.assertEqual(verb_tokens, expected_verb_tokens)
-        self.assertIs(verb, lookVerb)
-
-    def test_gets_correct_verb_with_dobj_only(self):
-        tokens = self._insert_dobj_into_phrase(getVerb.syntax[0], ["yellow", "fish"])
-
-        expected_verb_tokens = getVerb.syntax[0]
-
-        gcv = self.game.parser.getCurVerb(tokens)
-        found_verbs = gcv[1]
-        verb = gcv[0][0]
-        verb_tokens = gcv[0][1]
-
-        self.assertTrue(found_verbs)
-        self.assertEqual(verb_tokens, expected_verb_tokens)
-        self.assertIs(verb, getVerb)
-
-    def test_gets_correct_verb_with_dobj_and_direction_iobj(self):
-
+    def test_verb_with_dobj_only(self):
         dobj = Thing(self._get_unique_noun())
         self.start_room.addThing(dobj)
 
-        tokens = self._insert_objects_into_phrase(
-            leadDirVerb.syntax[0], [dobj.name], ["north"]
-        )
+        self.game.turnMain(f"get {dobj.name}")
 
-        expected_verb_tokens = leadDirVerb.syntax[0]
+        self.assertIs(self.game.lastTurn.verb, getVerb)
+        self.assertIs(self.game.lastTurn.dobj, dobj)
+        self.assertIsNone(self.game.lastTurn.iobj)
 
-        gcv = self.game.parser.getCurVerb(tokens)
-        found_verbs = gcv[1]
-        verb = gcv[0][0]
-        verb_tokens = gcv[0][1]
+    def test_gets_correct_verb_with_dobj_and_direction_iobj(self):
+        dobj = Actor(self._get_unique_noun())
+        self.start_room.addThing(dobj)
+        iobj = "east"
+        self.start_room.east = self.start_room
 
-        self.assertTrue(found_verbs)
-        self.assertEqual(verb_tokens, expected_verb_tokens)
-        self.assertIs(verb, leadDirVerb)
+        self.game.turnMain(f"lead {dobj.name} {iobj}")
+
+        self.assertIs(self.game.lastTurn.verb, leadDirVerb)
+        self.assertIs(self.game.lastTurn.dobj, dobj)
+        self.assertEqual(self.game.lastTurn.iobj, [iobj])
 
     def test_gets_correct_verb_with_prepopsition_dobj_only(self):
-        tokens = self._insert_dobj_into_phrase(
-            jumpOverVerb.syntax[0], ["tall", "mountain"]
-        )
+        dobj = Thing(self._get_unique_noun())
+        self.start_room.addThing(dobj)
 
-        expected_verb_tokens = jumpOverVerb.syntax[0]
+        self.game.turnMain(f"jump over {dobj.name}")
 
-        gcv = self.game.parser.getCurVerb(tokens)
-        found_verbs = gcv[1]
-        verb = gcv[0][0]
-        verb_tokens = gcv[0][1]
-
-        self.assertTrue(found_verbs)
-        self.assertEqual(verb_tokens, expected_verb_tokens)
-        self.assertIs(verb, jumpOverVerb)
+        self.assertIs(self.game.lastTurn.verb, jumpOverVerb)
+        self.assertIs(self.game.lastTurn.dobj, dobj)
+        self.assertIsNone(self.game.lastTurn.iobj)
 
     def test_gets_correct_verb_with_preposition_dobj_and_iobj(self):
-        tokens = self._insert_objects_into_phrase(
-            setOnVerb.syntax[0], ["yellow", "fish"], ["red", "shelf"]
-        )
+        dobj = Thing(self._get_unique_noun())
+        self.start_room.addThing(dobj)
+        iobj = Surface(self._get_unique_noun(), self.game)
+        self.start_room.addThing(iobj)
 
-        expected_verb_tokens = setOnVerb.syntax[0]
+        self.game.turnMain(f"set {dobj.name} on {iobj.name}")
 
-        gcv = self.game.parser.getCurVerb(tokens)
-        found_verbs = gcv[1]
-        verb = gcv[0][0]
-        verb_tokens = gcv[0][1]
-
-        self.assertTrue(found_verbs)
-        self.assertEqual(verb_tokens, expected_verb_tokens)
-        self.assertIs(verb, setOnVerb)
+        self.assertIs(self.game.lastTurn.verb, setOnVerb)
+        self.assertIs(self.game.lastTurn.dobj, dobj)
+        self.assertIs(self.game.lastTurn.iobj, iobj)
 
 
 class TestGetGrammarObj(IFPTestCase):
-    def test_gets_correct_dobj(self):
-        expected_dobj = ["marvelous", "object"]
-
-        tokens = self._insert_dobj_into_phrase(getVerb.syntax[0], expected_dobj)
-        ggo = self.game.parser.getGrammarObj(getVerb, tokens, getVerb.syntax[0])
-
-        self.assertTrue(ggo)
-        (dobj, iobj) = ggo
-
-        self.assertEqual(dobj, expected_dobj)
-
-    def test_gets_correct_objects_with_preposition(self):
-        expected_dobj = ["marvelous", "object"]
-        expected_iobj = ["wonderful", "item"]
-
-        tokens = self._insert_objects_into_phrase(
-            setOnVerb.syntax[0], expected_dobj, expected_iobj
-        )
-        ggo = self.game.parser.getGrammarObj(setOnVerb, tokens, setOnVerb.syntax[0])
-
-        self.assertTrue(ggo)
-        (dobj, iobj) = ggo
-
-        self.assertEqual(dobj, expected_dobj)
-        self.assertEqual(iobj, expected_iobj)
-
     def test_gets_correct_objects_with_adjacent_dobj_iobj(self):
-        dobj_item = Thing(self._get_unique_noun())
+        dobj_item = Actor(self._get_unique_noun())
         self.start_room.addThing(dobj_item)
         iobj_item = Thing(self._get_unique_noun())
-        self.start_room.addThing(dobj_item)
+        self.start_room.addThing(iobj_item)
 
-        expected_dobj = [dobj_item.name]
-        expected_iobj = [iobj_item.name]
+        self.game.turnMain(f"give {dobj_item.name} {iobj_item.name}")
 
-        tokens = self._insert_objects_into_phrase(
-            giveVerb.syntax[1], expected_dobj, expected_iobj
-        )
-        ggo = self.game.parser.getGrammarObj(giveVerb, tokens, giveVerb.syntax[1])
-
-        self.assertTrue(ggo)
-        (dobj, iobj) = ggo
-
-        self.assertEqual(dobj, expected_dobj)
-        self.assertEqual(iobj, expected_iobj)
-
-    def test_gets_string_object(self):
-        dobj_item = Thing(self._get_unique_noun())
-        self.start_room.addThing(dobj_item)
-
-        expected_dobj = [dobj_item.name]
-        expected_iobj = ["west"]
-
-        tokens = self._insert_objects_into_phrase(
-            leadDirVerb.syntax[0], expected_dobj, expected_iobj
-        )
-        ggo = self.game.parser.getGrammarObj(leadDirVerb, tokens, leadDirVerb.syntax[0])
-
-        self.assertTrue(ggo)
-        (dobj, iobj) = ggo
-
-        self.assertEqual(dobj, expected_dobj)
-        self.assertEqual(iobj, expected_iobj)
+        self.assertEqual(self.game.lastTurn.dobj, dobj_item)
+        self.assertEqual(self.game.lastTurn.iobj, iobj_item)
 
 
-class TestCallVerb(IFPTestCase):
+class TestGetThing(IFPTestCase):
     def test_get_thing(self):
         noun = self._get_unique_noun()
         self.assertNotIn(
@@ -180,9 +99,9 @@ class TestCallVerb(IFPTestCase):
             noun in nounDict, "Name was not added to nounDict after Thing creation"
         )
 
-        matched_item1 = self.game.parser.getThing([noun], "room", None, None)
+        self.game.turnMain(f"examine {noun}")
         self.assertIs(
-            matched_item1, item1, "Failed to match item from unambiguous noun"
+            self.game.lastTurn.dobj, item1, "Failed to match item from unambiguous noun"
         )
 
         item2 = Thing(noun)
@@ -198,36 +117,17 @@ class TestCallVerb(IFPTestCase):
         item1.setAdjectives([adj1])
         item2.setAdjectives([adj2])
 
-        with self.assertRaises(ObjectMatchError):
-            matched_item1 = self.game.parser.getThing([noun], "room", None, None)
+        self.game.turnMain(f"examine {noun}")
 
-        matched_item1 = self.game.parser.getThing([adj1, noun], "room", None, None)
+        self.assertEqual(self.game.lastTurn.dobj, [noun])
+
+        self.game.turnMain(f"examine {adj1} {noun}")
         self.assertIs(
-            matched_item1,
+            self.game.lastTurn.dobj,
             item1,
             "Noun adjective array should have been unambiguous, but failed to match "
             "Thing",
         )
-
-    def test_call_verb_with_no_objects(self):
-        success = self.game.parser.callVerb(lookVerb, None, None)
-        self.assertTrue(success)
-
-    def test_call_verb_with_dobj(self):
-        dobj_item = Thing(self._get_unique_noun())
-        self.start_room.addThing(dobj_item)
-
-        success = self.game.parser.callVerb(examineVerb, dobj_item, None)
-        self.assertTrue(success)
-
-    def test_call_verb_with_dobj_and_iobj(self):
-        dobj_item = Thing(self._get_unique_noun())
-        self.start_room.addThing(dobj_item)
-        iobj_item = Surface(self._get_unique_noun(), self.game)
-        self.start_room.addThing(iobj_item)
-
-        success = self.game.parser.callVerb(setOnVerb, dobj_item, iobj_item)
-        self.assertTrue(success)
 
 
 if __name__ == "__main__":

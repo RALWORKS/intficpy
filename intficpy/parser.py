@@ -1315,8 +1315,8 @@ class Parser:
             self.game.addTextToEvent(
                 "turn",
                 "(First attempting to take "
-                + cur_dobj.getArticle(True)
-                + cur_dobj.verbose_name
+                + obj.getArticle(True)
+                + obj.verbose_name
                 + ") ",
             )
             success = getVerb.verbFunc(self.game, obj)
