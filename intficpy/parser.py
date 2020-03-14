@@ -21,6 +21,8 @@ from .exceptions import (
     VerbMatchError,
     ObjectMatchError,
     ParserError,
+    OutOfRange,
+    AbortTurn,
 )
 
 
@@ -87,29 +89,26 @@ class Parser:
         if input_tokens[0] in verbDict:
             verbs = list(verbDict[input_tokens[0]])
             verbs = self.matchPrepKeywords(verbs, input_tokens)
-        else:
-            verbs = None
-            if self.game.lastTurn.convNode:
-                self.game.addTextToEvent(
-                    "turn",
-                    '"'
-                    + " ".join(input_tokens).capitalize()
-                    + '" is not enough information to match a suggestion. ',
-                )
-                self.game.lastTurn.err = True
-            elif not self.game.lastTurn.ambiguous:
-                self.game.addTextToEvent(
-                    "turn", "I don't understand the verb: " + input_tokens[0]
-                )
-                self.game.lastTurn.err = True
-            return [None, False]
-        vbo = self.verbByObjects(input_tokens, verbs)
-        found_verbs = bool(verbs)
-        return [vbo, found_verbs]
+            vbo = self.verbByObjects(input_tokens, verbs)
+            found_verbs = bool(verbs)
+            return [vbo, found_verbs]
+
+        self.game.lastTurn.err = True
+        if self.game.lastTurn.convNode:
+            raise ParserError(
+                f"{' '.join(input_tokens).capitalize()} is not enough information "
+                "to match a suggestion. "
+            )
+
+        if self.game.lastTurn.ambiguous or self.game.lastTurn.convNode:
+            self.disambig(input_tokens)
+            return None
+
+        raise VerbMatchError(f"I don't understand the verb: {input_tokens[0]}")
 
     def verbByObjects(self, input_tokens, verbs):
         """
-        self.disambiguates verbs based on syntax used
+        Disambiguates verbs based on syntax used
         Takes arguments input_tokens, the self.tokenized 
         player command (list of strings), and verbs, a list of Verb objects (verb.py)
         Called by self.getCurVerb
@@ -118,7 +117,7 @@ class Parser:
         Returns a two item list of a Verb object and an associated verb form (list of 
         strings), or None
         """
-        nearMatch = []
+        near_match = []
         for cur_verb in verbs:
             for verb_form in cur_verb.syntax:
                 i = len(verb_form)
@@ -131,130 +130,93 @@ class Parser:
                     else:
                         i = i - 1
                 if i == 0:
-                    nearMatch.append([cur_verb, verb_form])
-        if len(nearMatch) == 0:
-            ambiguous_verb = False
+                    near_match.append([cur_verb, verb_form])
+        if not near_match:
+            ambiguous_noun = False
             if self.game.lastTurn.ambig_noun:
                 terms = nounDict[self.game.lastTurn.ambig_noun]
                 for term in terms:
                     if (
                         input_tokens[0] in term.adjectives
                         or input_tokens[0] in term.synonyms
+                        or input_tokens[0] == term.name
                     ):
-                        ambiguous_verb = True
-                    elif input_tokens[0] == term.name:
-                        ambiguous_verb = True
-            if not ambiguous_verb:
-                self.game.addTextToEvent(
-                    "turn",
+                        ambiguous_noun = True
+
+            self.game.lastTurn.err = True
+
+            if not ambiguous_noun:
+                raise ParserError(
                     'I understood as far as "'
                     + input_tokens[0]
                     + '".<br>(Type VERB HELP '
                     + input_tokens[0].upper()
                     + " for help with phrasing.) ",
                 )
-            self.game.lastTurn.err = True
+
             return None
-        else:
-            removeMatch = []
-            for pair in nearMatch:
-                verb = pair[0]
-                verb_form = pair[1]
-                # HERE!!!
-                # check if dobj and iobj are adjacent
-                objects = None
-                adjacent = False
-                if verb.hasDobj:
-                    d_ix = verb_form.index("<dobj>")
-                    if not "<dobj>" == verb_form[-1]:
-                        if verb_form[d_ix + 1] == "<iobj>":
-                            adjacent = True
-                    if verb_form[d_ix - 1] == "<iobj>":
+
+        removeMatch = []
+        for pair in near_match:
+            verb = pair[0]
+            verb_form = pair[1]
+            # HERE!!!
+            # check if dobj and iobj are adjacent
+            objects = None
+            adjacent = False
+            if verb.hasDobj:
+                d_ix = verb_form.index("<dobj>")
+                if not "<dobj>" == verb_form[-1]:
+                    if verb_form[d_ix + 1] == "<iobj>":
                         adjacent = True
-                iobj = False
-                dobj = False
-                # get Dobj
-                if adjacent and verb.dscope in ["text", "direction"]:
-                    objects = self.adjacentStrObj(verb_form, input_tokens, 0)
-                elif adjacent and verb.iscope in ["text", "direction"]:
-                    objects = self.adjacentStrObj(verb_form, input_tokens, 1)
-                else:
-                    dobj = self.analyzeSyntax(verb_form, "<dobj>", input_tokens, False)
-                    iobj = self.analyzeSyntax(verb_form, "<iobj>", input_tokens, False)
-                if objects:
-                    dobj = objects[0]
-                    iobj = objects[1]
-                extra = self.checkExtra(verb_form, dobj, iobj, input_tokens)
-                if dobj:
-                    dbool = len(dobj) != 0
-                else:
-                    dbool = False
-                if iobj:
-                    ibool = len(iobj) != 0
-                else:
-                    ibool = False
-                if len(extra) > 0:
-                    removeMatch.append(pair)
-                elif (not verb.impDobj) and (dbool != verb.hasDobj):
-                    removeMatch.append(pair)
-                elif (not verb.impIobj) and (ibool != verb.hasIobj):
-                    removeMatch.append(pair)
-                elif (
-                    verb.dscope == "direction" and not self.directionRangeCheck(dobj)
-                ) or (
-                    verb.iscope == "direction" and not self.directionRangeCheck(iobj)
-                ):
-                    removeMatch.append(pair)
-            for x in removeMatch:
-                nearMatch.remove(x)
-            if len(nearMatch) == 1:
-                return nearMatch[0]
-            elif len(nearMatch) > 1:
-                ambiguous_verb = False
-                if self.game.lastTurn.ambig_noun:
-                    terms = nounDict[self.game.lastTurn.ambig_noun]
-                    for term in terms:
-                        if (
-                            input_tokens[0] in term.adjectives
-                            or input_tokens[0] in term.synonyms
-                        ):
-                            ambiguous_verb = True
-                        elif input_tokens[0] == term.name:
-                            ambiguous_verb = True
-                if not ambiguous_verb:
-                    self.game.addTextToEvent(
-                        "turn",
-                        'I understood as far as "'
-                        + input_tokens[0]
-                        + '".<br>(Type VERB HELP '
-                        + input_tokens[0].upper()
-                        + " for help with phrasing.) ",
-                    )
-                self.game.lastTurn.err = True
-                return None
+                if verb_form[d_ix - 1] == "<iobj>":
+                    adjacent = True
+            iobj = False
+            dobj = False
+            # get Dobj
+            if adjacent and verb.dscope in ["text", "direction"]:
+                objects = self.adjacentStrObj(verb_form, input_tokens, 0)
+            elif adjacent and verb.iscope in ["text", "direction"]:
+                objects = self.adjacentStrObj(verb_form, input_tokens, 1)
             else:
-                ambiguous_verb = False
-                if self.game.lastTurn.ambig_noun:
-                    terms = nounDict[self.game.lastTurn.ambig_noun]
-                    for term in terms:
-                        if (
-                            input_tokens[0] in term.adjectives
-                            or input_tokens[0] in term.synonyms
-                        ):
-                            ambiguous_verb = True
-                        elif input_tokens[0] == term.name:
-                            ambiguous_verb = True
-                if not ambiguous_verb:
-                    self.game.addTextToEvent(
-                        "turn",
-                        'I understood as far as "'
-                        + input_tokens[0]
-                        + '".<br>(Type VERB HELP '
-                        + input_tokens[0].upper()
-                        + " for help with phrasing.) ",
-                    )
-                self.game.lastTurn.err = True
-                return None
+                dobj = self._analyzeSyntax(verb_form, "<dobj>", input_tokens)
+                iobj = self._analyzeSyntax(verb_form, "<iobj>", input_tokens)
+            if objects:
+                dobj = objects[0]
+                iobj = objects[1]
+            extra = self.checkExtra(verb_form, dobj, iobj, input_tokens)
+            if dobj:
+                dbool = len(dobj) != 0
+            else:
+                dbool = False
+            if iobj:
+                ibool = len(iobj) != 0
+            else:
+                ibool = False
+            if len(extra) > 0:
+                removeMatch.append(pair)
+            elif (not verb.impDobj) and (dbool != verb.hasDobj):
+                removeMatch.append(pair)
+            elif (not verb.impIobj) and (ibool != verb.hasIobj):
+                removeMatch.append(pair)
+            elif (
+                verb.dscope == "direction" and not self.directionRangeCheck(dobj)
+            ) or (verb.iscope == "direction" and not self.directionRangeCheck(iobj)):
+                removeMatch.append(pair)
+
+        for x in removeMatch:
+            near_match.remove(x)
+
+        if len(near_match) == 1:
+            return near_match[0]
+
+        raise ParserError(
+            'I understood as far as "'
+            + input_tokens[0]
+            + '".<br>(Type VERB HELP '
+            + input_tokens[0].upper()
+            + " for help with phrasing.) ",
+        )
 
     def checkExtra(self, verb_form, dobj, iobj, input_tokens):
         """
@@ -362,31 +324,6 @@ class Parser:
                 verbs.remove(verb)
         return verbs
 
-    def getVerbSyntax(self, cur_verb, input_tokens):
-        """
-        Match tokens in input with tokens in verb syntax verb_forms to choose which syntax 
-        to assume
-        Takes arguments cur_verb, the Verb object 
-        (verb.py) being anaylzed, and input_tokens, the self.tokenized player command (list of 
-        strings)
-        Returns the most probable verb_form (list of strings), or None
-        """
-        for verb_form in cur_verb.syntax:
-            i = len(verb_form)
-            for word in verb_form:
-                if word[0] != "<":
-                    if word not in input_tokens:
-                        break
-                    else:
-                        i = i - 1
-                else:
-                    i = i - 1
-            if i == 0:
-                return verb_form
-        self.game.addTextToEvent("turn", "I don't understand. Try rephrasing.")
-        self.game.lastTurn.err = True
-        return None
-
     def getGrammarObj(self, cur_verb, input_tokens, verb_form):
         """
         Analyze input using the chosen verb_form to find any objects
@@ -416,14 +353,22 @@ class Parser:
         elif adjacent and cur_verb.iscope in ["text", "direction"]:
             objects = self.adjacentStrObj(verb_form, input_tokens, 1)
         else:
+            dobj = None
+            iobj = None
             if cur_verb.hasDobj:
-                dobj = self.analyzeSyntax(verb_form, "<dobj>", input_tokens)
-            else:
-                dobj = None
+                dobj = self._analyzeSyntax(verb_form, "<dobj>", input_tokens)
+                if not dobj and not cur_verb.impDobj:
+                    raise VerbDefinitionError(
+                        f"<dobj> tag was not found in verb form {verb_form}, "
+                        f"but associated verb {cur_verb} has dobj=True"
+                    )
             if cur_verb.hasIobj:
-                iobj = self.analyzeSyntax(verb_form, "<iobj>", input_tokens)
-            else:
-                iobj = None
+                iobj = self._analyzeSyntax(verb_form, "<iobj>", input_tokens)
+                if not iobj and not cur_verb.imp_dobj:
+                    raise VerbDefinitionError(
+                        f"<iobj> tag was not found in verb form {verb_form}, "
+                        f"but associated verb {cur_verb} has iobj=True"
+                    )
         if objects:
             dobj = objects[0]
             iobj = objects[1]
@@ -497,28 +442,24 @@ class Parser:
         else:
             return [tobj, strobj]
 
-    # NOTE: print_verb_error prevents the duplication of the error message in the event of improper Verb definition. A little bit hacky.
-    def analyzeSyntax(self, verb_form, tag, input_tokens, print_verb_error=True):
+    def _analyzeSyntax(self, verb_form, tag, input_tokens):
         """
         Parse verb form (list of strings) to find the words directly preceding and 
         following object tags, and pass these to self.getObjWords find the objects in the 
         player's command
-        Takes arguments verb_form, the assumed syntax of the 
-        command (list of strings), tag (string, "<dobj>" or "<iobj>"),
-        input_tokens (list of strings) and print_verb_error (Boolean), False when called by 
-        self.verbByObjects
-        Called by self.getVerbSyntax and self.verbByObjects
+        Takes arguments:
+        - verb_form, the assumed syntax of the command (list of strings),
+        - tag (string, "<dobj>" or "<iobj>"),
+        - input_tokens (list of strings)
         Returns None or a list of strings
         """
         # get words before and after
         if tag in verb_form:
             obj_i = verb_form.index(tag)
+
         else:
-            if print_verb_error:
-                self.game.addTextToEvent(
-                    "turn", "ERROR: Inconsistent verb definitition."
-                )
             return None
+
         before = verb_form[obj_i - 1]
         if obj_i + 1 < len(verb_form):
             after = verb_form[obj_i + 1]
@@ -530,56 +471,53 @@ class Parser:
         """
         Make sure that the player command contains the correct number of grammatical 
         objects, and get implied objects if applicable
-        Takes arguments cur_verb (Verb object, verb.py), dobj, the direct object 
-        of the command (list of strings or None), and iobj, the indirect object (list of 
-        strings or None)
-        Called by  getGrammarObj
+
+        Takes arguments:
+        - cur_verb (Verb object, verb.py),
+        - dobj, the direct object of the command (list of strings or None),
+        - iobj, the indirect object
+
+        Raises AbortTurn in the event of a missing direct or indirect
+        object.
+
         Returns None, or a list of two items, either lists of strings, or None
         """
         missing = False
         if cur_verb.hasDobj and not dobj:
             if cur_verb.impDobj:
                 dobj = cur_verb.getImpDobj(self.game)
-                if not dobj:
-                    missing = True
-                else:
-                    # dobj = [dobj.verbose_name]
-                    pass
-            else:
-                self.game.addTextToEvent("turn", "Please be more specific")
-                self.game.lastTurn.err = True
-                return None
+            if not dobj:
+                missing = True
+
         if cur_verb.hasIobj and not iobj:
             if cur_verb.impIobj:
                 iobj = cur_verb.getImpIobj(self.game)
-                if not iobj:
-                    missing = True
-                else:
-                    # iobj = [iobj.verbose_name]
-                    pass
-            else:
-                self.game.addTextToEvent("turn", "Please be more specific")
-                self.game.lastTurn.err = True
+            if not iobj:
                 missing = True
+
         self.game.lastTurn.dobj = dobj
         self.game.lastTurn.iobj = iobj
+
         if missing:
-            return None
+            self.game.lastTurn.err = True
+            raise AbortTurn(f"Missing object for verb {cur_verb}")
+
         return [dobj, iobj]
 
     def getObjWords(self, game, before, after, input_tokens):
         """
         Create a list of all nouns and adjectives (strings) referring to a direct or 
         indirect object
-        Takes arguments self.game.app, pointing to the PyQt application, before, the word expected 
-        before the grammatical object (string), after,
-        the word expected after the grammatical object (string or None), and input_tokens, 
-        the self.tokenized player command (list of strings)
-        Called by self.analyzeSyntax
+        Takes arguments
+        - before, the word expected before the grammatical object (string), 
+        - after, the word expected after the grammatical object (string or None),
+        - input_tokens, the self.tokenized player command (list of strings)
+        Called by self._analyzeSyntax
         Returns an array of strings or None
         """
         if before[0] == "<":
-            # find the index of the first noun in the noun dict. if there is more than one, reject any that double as adjectives
+            # find the index of the first noun in the noun dict.
+            # if there is more than one, reject any that double as adjectives
             nounlist = []
             for word in input_tokens:
                 if word in nounDict:
@@ -597,12 +535,16 @@ class Parser:
                 for noun in delnoun:
                     nounlist.remove(delnoun)
             if len(nounlist) < 2:
+                # we have eliminated all adjectives
+                # if there are at least 2 words, we can assume that the first
+                # is part of the other object
                 return None
             # set before to the first noun
             before = nounlist[0]
         if after:
             if after[0] == "<":
-                # find the index of the first noun in the noun dict. if there is more than one, reject any that double as adjectives
+                # find the index of the first noun in the noun dict.
+                # if there is more than one, reject any that double as adjectives
                 nounlist = []
                 for word in input_tokens:
                     if word in nounDict:
@@ -804,8 +746,7 @@ class Parser:
                 elif not self.invRangeCheck(thing):
                     out_range.append(thing)
         else:
-            print('ERROR: incorrect verb scope "' + scope + '".')
-            things = []
+            raise VerbDefinitionError(f"Unrecognized object scope {scope}")
         # remove items that require implicit actions in the event of ambiguity
         for thing in out_range:
             things.remove(thing)
@@ -825,7 +766,7 @@ class Parser:
                 return things2
         return things
 
-    def verbScopeError(self, scope, noun_adj_arr):
+    def generateVerbScopeErrorMsg(self, scope, noun_adj_arr):
         """
         Prints the appropriate Thing out of scope message
         Takes arguments self.game.app, pointing to the PyQt self.game.app, scope, a string, and noun_adj_arr, a 
@@ -834,31 +775,27 @@ class Parser:
         Returns None
         """
         noun = " ".join(noun_adj_arr)
+
+        self.game.lastTurn.err = True
+
         if scope == "wearing":
-            self.game.addTextToEvent("turn", "You aren't wearing any " + noun + ".")
+            self.game.addTextToEvent("turn",)
             self.game.lastTurn.err = True
-            return None
-        elif scope == "room" or scope == "near" or scope == "roomflex":
+            return f"You aren't wearing any {noun}."
+
+        if scope == "room" or scope == "near" or scope == "roomflex":
             out_loc = self.game.me.getOutermostLocation()
             if not out_loc.resolveDarkness(self.game):
-                self.game.addTextToEvent("turn", "It's too dark to see anything. ")
-            else:
-                self.game.addTextToEvent("turn", "I don't see any " + noun + " here.")
-            self.game.lastTurn.err = True
-            return None
-        elif scope == "knows":
-            self.game.addTextToEvent("turn", "You don't know of any " + noun + ".")
-            self.game.lastTurn.err = True
-            return None
+                return "It's too dark to see anything."
+            return f"I don't see any {noun} here."
+
+        if scope == "knows":
+            return f"You don't know of any {noun}."
+
         elif scope == "direction":
-            self.game.addTextToEvent(
-                "turn", noun.capitalize() + " is not a direction I recognize. "
-            )
-        else:
-            # assuming scope = "inv"/"invflex"
-            self.game.addTextToEvent("turn", "You don't have any " + noun + ".")
-            self.game.lastTurn.err = True
-            return None
+            return f"{noun.capitalize()} is not a direction I recognize."
+
+        return f"You don't have any {noun}."
 
     def getThing(self, noun_adj_arr, scope, far_obj, obj_direction):
         """
@@ -876,9 +813,9 @@ class Parser:
                 endnoun = False
         try:
             t_ix = int(noun_adj_arr[-1])
-        except:
-            t_ix = -1
-        if self.game.lastTurn.things != [] and (
+        except ValueError:
+            t_ix = None
+        if self.game.lastTurn.things and (
             noun_adj_arr[-1] not in nounDict or not endnoun
         ):
             noun = self.game.lastTurn.ambig_noun
@@ -887,8 +824,8 @@ class Parser:
             things = self.game.lastTurn.things
         elif (
             self.game.lastTurn.ambiguous
+            and t_ix is not None
             and t_ix <= len(self.game.lastTurn.things)
-            and t_ix > 0
         ):
             self.game.lastTurn.ambiguous = False
             return self.game.lastTurn.things[t_ix - 1]
@@ -902,7 +839,7 @@ class Parser:
             else:
                 things = []
         if len(things) == 0:
-            return self.verbScopeError(scope, noun_adj_arr)
+            raise ObjectMatchError(self.generateVerbScopeErrorMsg(scope, noun_adj_arr))
         else:
             thing = self.checkAdjectives(
                 noun_adj_arr, noun, things, scope, far_obj, obj_direction
@@ -940,7 +877,7 @@ class Parser:
         locs = [item.location for item in things]
         return not locs.count(locs[1]) == len(locs)
 
-    def _disambig_msg_next_joiner(self, item, name_dict, name, unscanned):
+    def _disambigMsgNextJoiner(self, item, name_dict, name, unscanned):
         if item is name_dict[name][-1] and not len(unscanned):
             return "?"
         if (
@@ -955,7 +892,7 @@ class Parser:
             return ", or "
         return ", "
 
-    def _item_with_disambig_index(self, item, ix, location=None):
+    def _itemWithDisambigIndex(self, item, ix, location=None):
         msg = item.lowNameArticle(True)
         if isinstance(location, Room):
             location = location.floor
@@ -965,14 +902,12 @@ class Parser:
             msg += f" {location.contains_preposition} {location.lowNameArticle(True)}"
         return msg + f" ({ix + 1})"
 
-    def _disambig_msg_next_item(
-        self, item, name_dict, name, unscanned, ix, location=None
-    ):
-        return self._item_with_disambig_index(
+    def _disambigMsgNextItem(self, item, name_dict, name, unscanned, ix, location=None):
+        return self._itemWithDisambigIndex(
             item, ix, location
-        ) + self._disambig_msg_next_joiner(item, name_dict, name, unscanned)
+        ) + self._disambigMsgNextJoiner(item, name_dict, name, unscanned)
 
-    def generate_disambiguation_message(self, things):
+    def _generateDisambigMsg(self, things):
         """
         Generate the disambiguation message for a list of things
         """
@@ -984,11 +919,11 @@ class Parser:
 
         if not name_match[0]:
             for thing in things:
-                msg += self._item_with_disambig_index(thing, things.index(thing))
+                msg += self._itemWithDisambigIndex(thing, things.index(thing))
                 if thing is things[-1]:
                     msg += "?"
                 elif len(things) > -2 and thing is things[-2]:
-                    msg += ", or"
+                    msg += ", or "
                 else:
                     msg += ", "
             return msg
@@ -1007,23 +942,25 @@ class Parser:
                         loc = item.location
                         if not loc:
                             pass
-                        msg += self._disambig_msg_next_item(
+                        msg += self._disambigMsgNextItem(
                             item, name_dict, name, unscanned, things.index(item), loc
                         )
                     return msg
 
                 for item in name_dict[name]:
                     things.append(item)
-                    msg += self._disambig_msg_next_item(
+                    msg += self._disambigMsgNextItem(
                         item, name_dict, name, unscanned, things.index(item)
                     )
                 return msg
 
             for item in name_dict[name]:
                 things.append(item)
-                msg += self._disambig_msg_next_item(
+                msg += self._disambigMsgNextItem(
                     item, name_dict, name, unscanned, things.index(item)
                 )
+            return msg
+
             return msg
 
     def checkAdjectives(
@@ -1046,9 +983,9 @@ class Parser:
             self.game.lastTurn.ambig_noun = None
             try:
                 n_select = int(noun_adj_arr[0])
-            except:
-                n_select = -1
-            if n_select <= len(things) and n_select > 0:
+            except ValueError:
+                n_select = None
+            if n_select is not None and n_select <= len(things):
                 n_select = n_select - 1
                 return things[n_select]
         if noun:
@@ -1102,20 +1039,29 @@ class Parser:
                 for item in remove_child:
                     if item in things:
                         things.remove(item)
+
         if len(things) == 1:
             return things[0]
-        elif len(things) > 1:
-            msg = self.generate_disambiguation_message(things)
-            self.game.addTextToEvent("turn", msg)
+
+        if len(things) == 0:
+            raise OutOfRange(self.generateVerbScopeErrorMsg(scope, noun_adj_arr))
+
+        if len(things) > 1:
+            msg = self._generateDisambigMsg(things)
             # turn ON self.disambiguation mode for next turn
             self.game.lastTurn.ambiguous = True
             self.game.lastTurn.ambig_noun = noun
             self.game.lastTurn.things = things
-            return None
-        else:
-            return self.verbScopeError(scope, noun_adj_arr)
+            raise ObjectMatchError(msg)
 
-    def callVerb(self, cur_verb, obj_words):
+    def prepareGrammarObjects(self, cur_verb, obj_words):
+        (dobj, iobj) = self.getObjectThings(cur_verb, obj_words)
+        (dobj, iobj) = self.checkComponentObjects(cur_verb, obj_words, dobj, iobj)
+        self.resolveGrammarObjLocations(cur_verb, dobj, iobj)
+
+        return dobj, iobj
+
+    def callVerb(self, cur_verb, cur_dobj, cur_iobj):
         """
         Gets the Thing objects (if any) referred to in the player command, then calls
         the verb function
@@ -1126,354 +1072,6 @@ class Parser:
         Returns a Boolean, True if a verb function is successfully called, False 
         otherwise
         """
-        # FIRST, check if dobj and or iobj have already been found
-        # if not, set objs to None
-        # checking dobj
-        if cur_verb.hasDobj and not isinstance(obj_words[0], list):
-            cur_dobj = obj_words[0]
-        elif cur_verb.hasDobj and obj_words[0]:
-            if isinstance(obj_words[0], Thing):
-                cur_dobj = obj_words[0]
-            elif cur_verb.dscope == "text" or cur_verb.dscope == "direction":
-                cur_dobj = obj_words[0]
-            else:
-                cur_dobj = self.getThing(
-                    obj_words[0],
-                    cur_verb.dscope,
-                    cur_verb.far_dobj,
-                    cur_verb.dobj_direction,
-                )
-            self.game.lastTurn.dobj = cur_dobj
-        else:
-            cur_dobj = None
-            self.game.lastTurn.dobj = None
-        # checking iobj
-        if cur_verb.hasIobj and not isinstance(obj_words[1], list):
-            cur_iobj = obj_words[1]
-        elif cur_verb.hasIobj and obj_words[1]:
-            if isinstance(obj_words[1], Thing):
-                cur_iobj = obj_words[1]
-            elif cur_verb.iscope == "text" or cur_verb.iscope == "direction":
-                cur_iobj = obj_words[1]
-            else:
-                cur_iobj = self.getThing(
-                    obj_words[1],
-                    cur_verb.iscope,
-                    cur_verb.far_iobj,
-                    cur_verb.iobj_direction,
-                )
-            self.game.lastTurn.iobj = cur_iobj
-        else:
-            cur_iobj = None
-            self.game.lastTurn.iobj = None
-        # check if any of the item's component parts should be passed as dobj/iobj instead
-        if cur_verb.iscope == "text" or cur_verb.iscope == "direction":
-            pass
-        if not cur_iobj:
-            pass
-        elif (
-            not isinstance(cur_iobj, Container)
-            and cur_verb.itype == "Container"
-            and cur_iobj.is_composite
-            and not isinstance(obj_words[1], Thing)
-        ):
-            if cur_iobj.child_Containers != []:
-                cur_iobj = self.checkAdjectives(
-                    obj_words[1],
-                    False,
-                    cur_iobj.child_Containers,
-                    cur_verb.iscope,
-                    cur_verb.far_iobj,
-                    cur_verb.iobj_direction,
-                )
-                self.game.lastTurn.iobj = None
-                if cur_iobj:
-                    self.game.addTextToEvent(
-                        "turn",
-                        "(Assuming "
-                        + cur_iobj.getArticle(True)
-                        + cur_iobj.verbose_name
-                        + ".)",
-                    )
-                    self.game.lastTurn.iobj = cur_iobj
-        elif (
-            not isinstance(cur_iobj, Surface)
-            and cur_verb.itype == "Surface"
-            and cur_iobj.is_composite
-            and not isinstance(obj_words[1], Thing)
-        ):
-            if cur_iobj.child_Surfaces != []:
-                cur_iobj = self.checkAdjectives(
-                    self.game.app,
-                    self.game.me,
-                    obj_words[1],
-                    False,
-                    cur_iobj.child_Surfaces,
-                    cur_verb.iscope,
-                    cur_verb.far_iobj,
-                    cur_verb.iobj_direction,
-                )
-                self.game.lastTurn.iobj = None
-                if cur_iobj:
-                    self.game.addTextToEvent(
-                        "turn",
-                        "(Assuming "
-                        + cur_iobj.getArticle(True)
-                        + cur_iobj.verbose_name
-                        + ".)",
-                    )
-                    self.game.lastTurn.iobj = cur_iobj
-        elif (
-            not isinstance(cur_iobj, UnderSpace)
-            and cur_verb.itype == "UnderSpace"
-            and cur_iobj.is_composite
-            and not isinstance(obj_words[1], Thing)
-        ):
-            if cur_iobj.child_UnderSpaces != []:
-                cur_iobj = self.checkAdjectives(
-                    obj_words[1],
-                    False,
-                    cur_iobj.child_UnderSpaces,
-                    cur_verb.iscope,
-                    cur_verb.far_iobj,
-                    cur_verb.iobj_direction,
-                )
-                self.game.lastTurn.iobj = None
-                if cur_iobj:
-                    # self.game.addTextToEvent("turn", "(Assuming " + cur_iobj.getArticle(True) + cur_iobj.verbose_name + ".)")
-                    self.game.lastTurn.iobj = cur_iobj
-        if cur_verb.dscope == "text" or cur_verb.dscope == "direction":
-            pass
-        if not cur_dobj:
-            pass
-        elif (
-            not isinstance(cur_dobj, Container)
-            and cur_verb.dtype == "Container"
-            and cur_dobj.is_composite
-            and not isinstance(obj_words[0], Thing)
-        ):
-            if cur_dobj.child_Containers != []:
-                cur_dobj = self.checkAdjectives(
-                    obj_words[0],
-                    False,
-                    cur_dobj.child_Containers,
-                    cur_verb.dscope,
-                    cur_verb.far_dobj,
-                    cur_verb.dobj_direction,
-                )
-                self.game.lastTurn.dobj = None
-                if cur_dobj:
-                    self.game.addTextToEvent(
-                        "turn",
-                        "(Assuming "
-                        + cur_dobj.getArticle(True)
-                        + cur_dobj.verbose_name
-                        + ".)",
-                    )
-                    self.game.lastTurn.iobj = cur_dobj
-        elif (
-            not isinstance(cur_dobj, Surface)
-            and cur_verb.dtype == "Surface"
-            and cur_dobj.is_composite
-            and not isinstance(obj_words[0], Thing)
-        ):
-            if cur_dobj.child_Surfaces != []:
-                cur_dobj = self.checkAdjectives(
-                    obj_words[0],
-                    False,
-                    cur_dobj.child_Surfaces,
-                    cur_verb.dscope,
-                    cur_verb.far_dobj,
-                    cur_verb.dobj_direction,
-                )
-                self.game.lastTurn.dobj = False
-                if cur_dobj:
-                    self.game.addTextToEvent(
-                        "turn",
-                        "(Assuming "
-                        + cur_dobj.getArticle(True)
-                        + cur_dobj.verbose_name
-                        + ".)",
-                    )
-                    self.game.lastTurn.iobj = cur_dobj
-        elif (
-            not isinstance(cur_dobj, UnderSpace)
-            and cur_verb.dtype == "UnderSpace"
-            and cur_dobj.is_composite
-            and not isinstance(obj_words[0], Thing)
-        ):
-            if cur_dobj.child_UnderSpaces != []:
-                cur_dobj = self.checkAdjectives(
-                    obj_words[0],
-                    False,
-                    cur_dobj.child_UnderSpaces,
-                    cur_verb.dscope,
-                    cur_verb.far_dobj,
-                    cur_verb.dobj_direction,
-                )
-                self.game.lastTurn.dobj = False
-                if cur_dobj:
-                    # self.game.addTextToEvent("turn", "(Assuming " + cur_dobj.getArticle(True) +
-                    # cur_dobj.verbose_name + ".)")
-                    self.game.lastTurn.iobj = cur_dobj
-        # apparent duplicate checking of objects is to allow last.iobj to be set before the
-        # turn is aborted in event of incomplete input
-        if cur_verb.dscope == "text" or not cur_dobj or cur_verb.dscope == "direction":
-            pass
-        elif not cur_dobj.location:
-            pass
-        elif cur_dobj.location.location == self.game.me and isinstance(
-            cur_dobj, Liquid
-        ):
-            cur_dobj = cur_dobj.getContainer()
-        elif cur_dobj.location.location == self.game.me and cur_verb.dscope == "inv":
-            self.game.addTextToEvent(
-                "turn",
-                "(First removing "
-                + cur_dobj.getArticle(True)
-                + cur_dobj.verbose_name
-                + " from "
-                + cur_dobj.location.getArticle(True)
-                + cur_dobj.location.verbose_name
-                + ")",
-            )
-            success = verb.removeFromVerb.verbFunc(
-                self.game, cur_dobj, cur_dobj.location
-            )
-            if not success:
-                return False
-        if cur_verb.iscope == "text" or not cur_iobj or cur_verb.iscope == "direction":
-            pass
-        elif not cur_iobj.location:
-            pass
-        elif cur_iobj.location.location == self.game.me and isinstance(
-            cur_iobj, Liquid
-        ):
-            cur_iobj = cur_iobj.getContainer()
-        elif cur_iobj.location.location == self.game.me and cur_verb.iscope == "inv":
-            self.game.addTextToEvent(
-                "turn",
-                "(First removing "
-                + cur_iobj.getArticle(True)
-                + cur_iobj.verbose_name
-                + " from "
-                + cur_iobj.location.getArticle(True)
-                + cur_iobj.location.verbose_name
-                + ")",
-            )
-            success = verb.removeFromVerb.verbFunc(
-                self.game, cur_iobj, cur_iobj.location
-            )
-            if not success:
-                return False
-
-        if cur_verb.hasIobj:
-            if not cur_iobj:
-                return False
-            if cur_verb.iscope == "text" or cur_verb.iscope == "direction":
-                pass
-            elif cur_verb.iscope == "room" and self.invRangeCheck(cur_iobj):
-                dropVerb.verbFunc(self.game, cur_iobj)
-            elif (
-                cur_verb.iscope == "inv"
-                or (cur_verb.iscope == "invflex" and cur_iobj is not self.game.me)
-            ) and self.roomRangeCheck(cur_iobj):
-                self.game.addTextToEvent(
-                    "turn",
-                    "(First attempting to take "
-                    + cur_iobj.getArticle(True)
-                    + cur_iobj.verbose_name
-                    + ") ",
-                )
-                success = getVerb.verbFunc(self.game, cur_iobj)
-                if not success:
-                    return False
-                if not cur_iobj.invItem:
-                    self.game.addTextToEvent(
-                        "turn",
-                        "You cannot take "
-                        + cur_iobj.getArticle(True)
-                        + cur_iobj.verbose_name
-                        + ".",
-                    )
-                    return False
-            elif cur_verb.iscope == "inv" and self.wearRangeCheck(cur_iobj):
-                verb.doffVerb.verbFunc(self.game, cur_iobj)
-                if cur_verb.dscope == "text" or cur_verb.dscope == "direction":
-                    pass
-                elif cur_verb.dscope == "room" and self.invRangeCheck(cur_dobj):
-                    dropVerb.verbFunc(self.game, cur_dobj)
-                elif (
-                    cur_verb.dscope == "inv"
-                    or (cur_verb.dscope == "invflex" and cur_dobj is not self.game.me)
-                ) and self.roomRangeCheck(cur_dobj):
-                    self.game.addTextToEvent(
-                        "turn",
-                        "(First attempting to take "
-                        + cur_dobj.getArticle(True)
-                        + cur_dobj.verbose_name
-                        + ") ",
-                    )
-                    success = getVerb.verbFunc(self.game, cur_dobj)
-                    if not success:
-                        return False
-        if cur_verb.hasDobj:
-            if not cur_dobj:
-                return False
-            else:
-                if cur_verb.dscope == "text" or cur_verb.dscope == "direction":
-                    pass
-                elif cur_verb.dscope == "room" and self.invRangeCheck(cur_dobj):
-                    dropVerb.verbFunc(self.game, cur_dobj)
-                elif (
-                    cur_verb.dscope == "inv"
-                    or (cur_verb.dscope == "invflex" and cur_dobj is not self.game.me)
-                ) and self.roomRangeCheck(cur_dobj):
-                    self.game.addTextToEvent(
-                        "turn",
-                        "(First attempting to take "
-                        + cur_dobj.getArticle(True)
-                        + cur_dobj.verbose_name
-                        + ") ",
-                    )
-                    success = getVerb.verbFunc(self.game, cur_dobj)
-                    if not success:
-                        return False
-                elif cur_verb.dscope == "inv" and self.wearRangeCheck(cur_dobj):
-                    verb.doffVerb.verbFunc(self.game, cur_dobj)
-                self.game.lastTurn.convNode = False
-                self.game.lastTurn.specialTopics = {}
-                if cur_verb.dscope == "text":
-                    cur_dobj = " ".join(cur_dobj)
-                elif cur_verb.dscope == "direction":
-                    cur_dobj = " ".join(cur_dobj)
-                    correct = self.directionRangeCheck(cur_dobj)
-                    if not correct:
-                        self.game.addTextToEvent(
-                            "turn",
-                            cur_dobj.capitalize() + " is not a direction I recognize. ",
-                        )
-                        return False
-        if cur_verb.iscope == "text":
-            cur_iobj = " ".join(cur_iobj)
-        elif cur_verb.dscope == "text":
-            cur_dobj = " ".join(cur_dobj)
-        if cur_verb.iscope == "direction":
-            cur_iobj = " ".join(cur_iobj)
-            correct = self.directionRangeCheck(cur_iobj)
-            if not correct:
-                self.game.addTextToEvent(
-                    "turn", cur_iobj.capitalize() + " is not a direction I recognize. "
-                )
-                return False
-        elif cur_verb.dscope == "direction":
-            cur_dobj = " ".join(cur_dobj)
-            correct = self.directionRangeCheck(cur_dobj)
-            if not correct:
-                self.game.addTextToEvent(
-                    "turn", cur_iobj.capitalize() + " is not a direction I recognize. "
-                )
-                return False
 
         self.game.lastTurn.convNode = False
         self.game.lastTurn.specialTopics = {}
@@ -1515,15 +1113,236 @@ class Parser:
         dobj = self.game.lastTurn.dobj
         iobj = self.game.lastTurn.iobj
         cur_verb = self.game.lastTurn.verb
-        if not dobj and cur_verb.hasDobj:
+        if not isinstance(dobj, Thing) and cur_verb.hasDobj:
             dobj = input_tokens
-        elif not iobj and cur_verb.hasIobj:
+        elif not isinstance(iobj, Thing) and cur_verb.hasIobj:
             iobj = input_tokens
-        obj_words = [dobj, iobj]
-        if not obj_words:
-            return False
-        self.callVerb(cur_verb, obj_words)
+        (dobj, iobj) = self.prepareGrammarObjects(cur_verb, [dobj, iobj])
+        self.callVerb(cur_verb, dobj, iobj)
         return True
+
+    def checkComponentObjects(self, cur_verb, obj_words, initial_dobj, initial_iobj):
+        """
+        Check if any of the identified objects have subcomponents that are better
+        candidates as objects of the current verb.
+        """
+        dobj = self._checkComponentObject(obj_words[0], cur_verb, "dobj", initial_dobj)
+        self.game.lastTurn.dobj = dobj
+        iobj = self._checkComponentObject(obj_words[1], cur_verb, "iobj", initial_iobj)
+        self.game.lastTurn.iobj = iobj
+
+        if dobj != initial_dobj:
+            self.game.addTextToEvent(
+                "turn", "(Assuming " + dobj.lowNameArticle(True) + ".)",
+            )
+
+        if iobj != initial_iobj:
+            self.game.addTextToEvent(
+                "turn", "(Assuming " + iobj.lowNameArticle(True) + ".)",
+            )
+
+        return dobj, iobj
+
+    def _checkComponentObject(self, obj_words, cur_verb, which_obj, obj):
+        """
+        Check if the given object has a subcomponent that is a better candidate for
+        object of the current verb.
+        
+        Takes arguments
+        - obj_words, the words from the player comman that specify the object
+        - cur_verb, the current verb
+        - which_obj, a string "dobj" or "iobj" specifying whether this object is direc
+          or indirect
+        - obj, the Thing instance to examine
+
+        Raises TypeError if passed an invalid parameter for which_obj
+        """
+
+        COMPONENT_CLASSES = (
+            {"class": Container, "component_holder": "child_Containers"},
+            {"class": Surface, "component_holder": "child_Surfaces"},
+            {"class": UnderSpace, "component_holder": "child_UnderSpaces"},
+        )
+
+        if not which_obj in ("dobj", "iobj"):
+            raise TypeError(f'Invalid object specifier "{which_obj}".')
+
+        scope = getattr(cur_verb, f"{which_obj[:1]}scope")
+        far_obj = getattr(cur_verb, f"far_{which_obj}")
+        obj_direction = getattr(cur_verb, f"{which_obj}_direction")
+        obj_type = getattr(cur_verb, f"{which_obj[:1]}type")
+
+        if scope == "text" or scope == "direction" or not obj:
+            return obj
+
+        for section in COMPONENT_CLASSES:
+            if (
+                not isinstance(obj, section["class"])
+                and obj_type == section["class"].__name__
+            ):
+                composite_section = getattr(obj, section["component_holder"])
+                if not composite_section:
+                    continue
+                obj = self.checkAdjectives(
+                    obj_words, False, composite_section, scope, far_obj, obj_direction
+                )
+                return obj
+        return obj
+
+    def implicitRemoveNestedInventory(self, cur_verb, cur_dobj, cur_iobj):
+        cur_dobj = self._liquidContainerRedirect(cur_verb, "dobj", cur_dobj)
+        if (
+            cur_dobj
+            and cur_dobj.location
+            and cur_dobj.location.location == self.game.me
+            and cur_verb.dscope == "inv"
+        ):
+            self.game.addTextToEvent(
+                "turn",
+                "(First removing "
+                + cur_dobj.getArticle(True)
+                + cur_dobj.verbose_name
+                + " from "
+                + cur_dobj.location.getArticle(True)
+                + cur_dobj.location.verbose_name
+                + ")",
+            )
+            success = verb.removeFromVerb.verbFunc(
+                self.game, cur_dobj, cur_dobj.location
+            )
+            if not success:
+                raise AbortTurn(
+                    f"Implicit removal failed. Could not remove {cur_dobj} from "
+                    f"{cur_dobj.location}"
+                )
+
+        cur_iobj = self._liquidContainerRedirect(cur_verb, "iobj", cur_dobj)
+        if (
+            cur_iobj
+            and cur_iobj.location
+            and cur_iobj.location.location == self.game.me
+            and cur_verb.iscope == "inv"
+        ):
+            self.game.addTextToEvent(
+                "turn",
+                "(First removing "
+                + cur_iobj.getArticle(True)
+                + cur_iobj.verbose_name
+                + " from "
+                + cur_iobj.location.getArticle(True)
+                + cur_iobj.location.verbose_name
+                + ")",
+            )
+            success = verb.removeFromVerb.verbFunc(
+                self.game, cur_iobj, cur_iobj.location
+            )
+            if not success:
+                raise AbortTurn(
+                    f"Implicit removal failed. Could not remove {cur_dobj} from "
+                    f"{cur_dobj.location}"
+                )
+
+    def _liquidContainerRedirect(self, cur_verb, which_obj, obj):
+        scope = getattr(cur_verb, f"{which_obj[:1]}scope")
+
+        if scope in ("text", "direction") or not obj or not obj.location:
+            return obj
+
+        if isinstance(obj, Liquid):
+            return obj.getContainer()
+
+        return obj
+
+    def resolveGrammarObjLocations(self, cur_verb, dobj, iobj):
+        """
+        Perform implicit actions to bring the objects into verb range where possible.
+        """
+        self.implicitRemoveNestedInventory(cur_verb, dobj, iobj)
+
+        if cur_verb.hasIobj:
+            if not iobj:
+                raise ObjectMatchError("I don't understand.")
+            self._resolveGrammarObjLocation(cur_verb.iscope, iobj)
+
+        if cur_verb.hasDobj:
+            if not dobj:
+                return False
+            self._resolveGrammarObjLocation(cur_verb.dscope, dobj)
+
+    def _resolveGrammarObjLocation(self, scope, obj):
+        if scope == "text":
+            return " ".join(obj)
+
+        if scope == "direction":
+            obj = " ".join(obj)
+            correct = self.directionRangeCheck(obj)
+            if not correct:
+                raise ObjectMatchError(
+                    f"{obj.capitalize} is not a direction I recognize."
+                )
+            return obj
+
+        if scope == "room" and self.invRangeCheck(obj):
+            dropVerb.verbFunc(self.game, obj)
+        elif (
+            scope in ("inv", "invflex")
+            and obj is not self.game.me
+            and self.roomRangeCheck(obj)
+        ):
+            self.game.addTextToEvent(
+                "turn",
+                "(First attempting to take "
+                + obj.getArticle(True)
+                + obj.verbose_name
+                + ") ",
+            )
+            success = getVerb.verbFunc(self.game, obj)
+            if not success:
+                raise AbortTurn(f"Implicit take failed. Could not take {obj}")
+
+        elif scope == "inv" and self.wearRangeCheck(obj):
+            success = verb.doffVerb.verbFunc(self.game, obj)
+            if not success:
+                raise AbortTurn(f"Implicit doff failed. Could not doff {obj}")
+
+    def getObjectThings(self, cur_verb, obj_words):
+        """
+        Get the IFPObject instances for each of the grammar objects, if applicable
+
+        Arguments:
+        - cur_verb, the current verb
+        - obj_words, array of words or IFPObjects for dobj, iobj
+        """
+        if cur_verb.hasDobj:
+            cur_dobj = self._getObjectThing(cur_verb, "dobj", obj_words[0])
+        else:
+            cur_dobj = None
+        self.game.lastTurn.dobj = cur_dobj
+
+        if cur_verb.hasIobj:
+            cur_iobj = self._getObjectThing(cur_verb, "iobj", obj_words[1])
+        else:
+            cur_iobj = None
+        self.game.lastTurn.iobj = cur_iobj
+
+        return (cur_dobj, cur_iobj)
+
+    def _getObjectThing(self, cur_verb, which_obj, obj_words):
+        """
+        Get the target IFPObject for a list of words, if applicable
+        """
+        scope = getattr(cur_verb, f"{which_obj[:1]}scope")
+        far_obj = getattr(cur_verb, f"far_{which_obj}")
+        obj_direction = getattr(cur_verb, f"{which_obj}_direction")
+
+        if not isinstance(obj_words, list):
+            # assume that obj_words already contains the IFPObject
+            return obj_words
+
+        if scope in ("text", "direction"):
+            return obj_words
+
+        return self.getThing(obj_words, scope, far_obj, obj_direction,)
 
     def roomDescribe(self):
         """
@@ -1567,6 +1386,55 @@ class Parser:
             self.game.lastTurn.specialTopics[x].func(self.game)
             return True
 
+    def runTurnCommand(self, input_tokens):
+        if len(input_tokens) == 0:
+            self.game.lastTurn.err = True
+            return
+
+        if (
+            input_tokens[0:2] == ["help", "verb"]
+            or input_tokens[0:2] == ["verb", "help"]
+        ) and len(input_tokens) > 2:
+            helpVerbVerb.verbFunc(self.game, input_tokens[2:])
+            return
+        elif input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2] == [
+            "verb",
+            "help",
+        ]:
+            self.game.addTextToEvent("turn", "Please specify a verb for help. ")
+            return 0
+        # if input is a travel command, move player
+        d = self.getDirection(input_tokens)
+        if d:
+            self.game.lastTurn.convNode = False
+            self.game.lastTurn.specialTopics = {}
+            return
+        if self.game.lastTurn.convNode:
+            conv_command = self.getConvCommand(input_tokens)
+            if conv_command:
+                self.game.lastTurn.ambig_noun = None
+                self.game.lastTurn.ambig_verb = None
+                self.game.lastTurn.ambiguous = False
+                return
+            else:
+                pass
+
+        gv = self.getCurVerb(input_tokens)
+        if not gv:
+            # gv is None only for disambig mode
+            return
+        cur_verb = gv[0][0]
+
+        self.game.lastTurn.verb = cur_verb
+        obj_words = self.getGrammarObj(cur_verb, input_tokens, gv[0][1])
+        # turn OFF self.disambiguation mode for next turn
+        self.game.lastTurn.ambig_noun = None
+        self.game.lastTurn.ambig_verb = None
+        self.game.lastTurn.ambiguous = False
+        self.game.lastTurn.err = False
+        (dobj, iobj) = self.prepareGrammarObjects(cur_verb, obj_words)
+        self.callVerb(cur_verb, dobj, iobj)
+
     def parseInput(self, input_string):
         """
         Parse player input, and respond to commands each turn
@@ -1581,75 +1449,25 @@ class Parser:
         # clean and self.tokenize
         input_tokens = self.getTokens(input_string)
         if not self.game.lastTurn.gameEnding:
-            if len(input_tokens) == 0:
-                # self.game.addTextToEvent("turn", "I don't understand.")
-                self.game.lastTurn.err = True
-                return 0
-            if (
-                input_tokens[0:2] == ["help", "verb"]
-                or input_tokens[0:2] == ["verb", "help"]
-            ) and len(input_tokens) > 2:
-                helpVerbVerb.verbFunc(self.game, input_tokens[2:])
-                return 0
-            elif input_tokens[0:2] == ["help", "verb"] or input_tokens[0:2] == [
-                "verb",
-                "help",
-            ]:
-                self.game.addTextToEvent("turn", "Please specify a verb for help. ")
-                return 0
-            # if input is a travel command, move player
-            d = self.getDirection(input_tokens)
-            if d:
-                self.game.lastTurn.convNode = False
-                self.game.lastTurn.specialTopics = {}
-                return 0
-            if self.game.lastTurn.convNode:
-                conv_command = self.getConvCommand(input_tokens)
-                if conv_command:
-                    self.game.lastTurn.ambig_noun = None
-                    self.game.lastTurn.ambig_verb = None
-                    self.game.lastTurn.ambiguous = False
-                    return 0
-                else:
-                    pass
-            gv = self.getCurVerb(input_tokens)
-            if gv[0]:
-                cur_verb = gv[0][0]
-            else:
-                cur_verb = None
-            if not cur_verb:
-                if self.game.lastTurn.ambiguous and (
-                    not gv[1] or self.game.lastTurn.convNode
-                ):
-                    self.disambig(input_tokens)
-                    return 0
-                return 0
-            else:
-                self.game.lastTurn.verb = cur_verb
-            obj_words = self.getGrammarObj(cur_verb, input_tokens, gv[0][1])
-            if not obj_words:
-                return 0
-            # turn OFF self.disambiguation mode for next turn
-            self.game.lastTurn.ambig_noun = None
-            self.game.lastTurn.ambig_verb = None
-            self.game.lastTurn.ambiguous = False
-            self.game.lastTurn.err = False
-            self.callVerb(cur_verb, obj_words)
-            return 0
-        else:
-            # TODO: this was a hack. make sure it's fixed with Events
-            #            if input_tokens in [["save"], ["load"]]:
-            #                self.game.app.newBox(self.game.app.box_style1)
-            if input_tokens == ["full", "score"]:
-                fullScoreVerb.verbFunc(self.game)
-            elif input_tokens == ["score"]:
-                scoreVerb.verbFunc(self.game)
-            elif input_tokens == ["fullscore"]:
-                fullScoreVerb.verbFunc(self.game)
-            elif input_tokens == ["about"]:
-                self.game.aboutGame.printAbout(self.game)
-            else:
+            try:
+                self.runTurnCommand(input_tokens)
+            except ParserError as e:
                 self.game.addTextToEvent(
-                    "turn",
-                    "The game has ended. Commands are SCORE, FULLSCORE, and ABOUT.",
+                    "turn", e.__str__(),
                 )
+            except AbortTurn:
+                return
+            return
+
+        if input_tokens == ["full", "score"]:
+            fullScoreVerb.verbFunc(self.game)
+        elif input_tokens == ["score"]:
+            scoreVerb.verbFunc(self.game)
+        elif input_tokens == ["fullscore"]:
+            fullScoreVerb.verbFunc(self.game)
+        elif input_tokens == ["about"]:
+            self.game.aboutGame.printAbout(self.game)
+        else:
+            self.game.addTextToEvent(
+                "turn", "The game has ended. Commands are SCORE, FULLSCORE, and ABOUT.",
+            )

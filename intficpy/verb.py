@@ -4019,7 +4019,7 @@ def leadDirVerbFunc(game, dobj, iobj, skip=False):
     if not isinstance(dobj, Actor):
         game.addTextToEvent("turn", "You cannot lead that. ")
         return False
-    elif dobj.can_lead:
+    elif dobj.can_be_led:
         from .travel import getDirectionFromString, directionDict
 
         destination = getDirectionFromString(dobj.getOutermostLocation(), iobj)

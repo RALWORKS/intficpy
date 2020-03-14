@@ -13,6 +13,7 @@ from intficpy.things import (
     Clothing,
 )
 from intficpy.actor import Actor, Topic
+from intficpy.exceptions import AbortTurn, ObjectMatchError
 from intficpy.room import Room
 from intficpy.travel import DoorConnector
 from intficpy.verb import (
@@ -1653,8 +1654,8 @@ class TestSellInRoomWithNoActors(IFPTestCase):
 
 class TestGetImpTalkToNobodyNear(IFPTestCase):
     def test_get_implicit(self):
-        objects = self.game.parser.checkObj(talkToVerb, None, None)
-        self.assertIsNone(objects)
+        with self.assertRaises(AbortTurn):
+            self.game.parser.checkObj(talkToVerb, None, None)
 
         self.game.runTurnEvents()
         msg = self.app.print_stack.pop()
@@ -1672,8 +1673,9 @@ class TestGetImpTalkToAmbiguous(IFPTestCase):
         self.start_room.addThing(self.actor2)
 
     def test_get_implicit(self):
-        objects = self.game.parser.checkObj(talkToVerb, None, None)
-        self.assertIsNone(objects)
+        with self.assertRaises(AbortTurn):
+            self.game.parser.checkObj(talkToVerb, None, None)
+
         self.game.runTurnEvents()
         msg = self.app.print_stack.pop()
         self.assertIn("Would you like to talk to ", msg)
