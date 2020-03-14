@@ -3,7 +3,7 @@ import unittest
 from .helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
-from intficpy.things import Surface
+from intficpy.things import Surface, UnderSpace
 from intficpy.vocab import nounDict
 from intficpy.actor import Actor
 from intficpy.verb import (
@@ -127,6 +127,90 @@ class TestGetThing(IFPTestCase):
             item1,
             "Noun adjective array should have been unambiguous, but failed to match "
             "Thing",
+        )
+
+
+class TestParserError(IFPTestCase):
+    def test_verb_not_understood(self):
+        self.game.turnMain("thisverbwillnevereverbedefined")
+
+        msg = self.app.print_stack.pop()
+        expected = "I don't understand the verb:"
+
+        self.assertIn(expected, msg, "Unexpected response to unrecognized verb.")
+
+    def test_suggestion_not_understood(self):
+        self.game.lastTurn.convNode = True
+        self.game.turnMain("thisverbwillnevereverbedefined")
+
+        msg = self.app.print_stack.pop()
+        expected = "is not enough information to match a suggestion"
+
+        self.assertIn(expected, msg, "Unexpected response to unrecognized suggestion.")
+
+    def test_noun_not_understood(self):
+        self.game.turnMain("take thisnounwillnevereverbedefined")
+
+        msg = self.app.print_stack.pop()
+        expected = "I don't see any"
+
+        self.assertIn(expected, msg, "Unexpected response to unrecognized noun.")
+
+    def test_verb_by_objects_unrecognized_noun(self):
+        self.game.turnMain("lead sarah")
+
+        msg = self.app.print_stack.pop()
+        expected = "I understood as far as"
+
+        self.assertIn(
+            expected,
+            msg,
+            "Unexpected response attempting to disambiguate verb with unrecognized "
+            "noun.",
+        )
+
+    def test_verb_by_objects_no_near_matches_unrecognized_noun(self):
+        sarah1 = Actor("teacher")
+        sarah1.setAdjectives(["good"])
+        self.start_room.addThing(sarah1)
+
+        sarah2 = Actor("teacher")
+        sarah2.setAdjectives(["bad"])
+        self.start_room.addThing(sarah2)
+
+        self.game.turnMain("hi teacher")
+        self.assertTrue(self.game.lastTurn.ambig_noun)
+
+        self.game.turnMain("set green sarah")
+
+        msg = self.app.print_stack.pop()
+        expected = "I understood as far as"
+
+        self.assertIn(
+            expected,
+            msg,
+            "Unexpected response attempting to disambiguate verb with unrecognized "
+            "noun.",
+        )
+
+
+class TestCompositeObjectRedirection(IFPTestCase):
+    def test_composite_object_redirection(self):
+        bench = Surface("bench", self.game)
+        self.start_room.addThing(bench)
+        underbench = UnderSpace("space", self.game)
+        bench.addComposite(underbench)
+
+        widget = Thing("widget")
+        underbench.addThing(widget)
+
+        self.game.turnMain("look under bench")
+        msg = self.app.print_stack.pop()
+
+        self.assertIn(
+            widget.verbose_name,
+            msg,
+            "Unexpected response attempting to use a component redirection",
         )
 
 

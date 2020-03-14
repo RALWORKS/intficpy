@@ -117,7 +117,7 @@ class Parser:
         Returns a two item list of a Verb object and an associated verb form (list of 
         strings), or None
         """
-        nearMatch = []
+        near_match = []
         for cur_verb in verbs:
             for verb_form in cur_verb.syntax:
                 i = len(verb_form)
@@ -130,8 +130,8 @@ class Parser:
                     else:
                         i = i - 1
                 if i == 0:
-                    nearMatch.append([cur_verb, verb_form])
-        if len(nearMatch) == 0:
+                    near_match.append([cur_verb, verb_form])
+        if not near_match:
             ambiguous_noun = False
             if self.game.lastTurn.ambig_noun:
                 terms = nounDict[self.game.lastTurn.ambig_noun]
@@ -157,7 +157,7 @@ class Parser:
             return None
 
         removeMatch = []
-        for pair in nearMatch:
+        for pair in near_match:
             verb = pair[0]
             verb_form = pair[1]
             # HERE!!!
@@ -205,10 +205,10 @@ class Parser:
                 removeMatch.append(pair)
 
         for x in removeMatch:
-            nearMatch.remove(x)
+            near_match.remove(x)
 
-        if len(nearMatch) == 1:
-            return nearMatch[0]
+        if len(near_match) == 1:
+            return near_match[0]
 
         raise ParserError(
             'I understood as far as "'
@@ -323,31 +323,6 @@ class Parser:
             if verb in verbs:
                 verbs.remove(verb)
         return verbs
-
-    def getVerbSyntax(self, cur_verb, input_tokens):
-        """
-        Match tokens in input with tokens in verb syntax verb_forms to choose which syntax 
-        to assume
-        Takes arguments cur_verb, the Verb object 
-        (verb.py) being anaylzed, and input_tokens, the self.tokenized player command (list of 
-        strings)
-        Returns the most probable verb_form (list of strings), or None
-        """
-        for verb_form in cur_verb.syntax:
-            i = len(verb_form)
-            for word in verb_form:
-                if word[0] != "<":
-                    if word not in input_tokens:
-                        break
-                    else:
-                        i = i - 1
-                else:
-                    i = i - 1
-            if i == 0:
-                return verb_form
-
-        self.game.lastTurn.err = True
-        raise ParserError("I don't understand. Try rephrasing.")
 
     def getGrammarObj(self, cur_verb, input_tokens, verb_form):
         """
@@ -502,7 +477,7 @@ class Parser:
         - dobj, the direct object of the command (list of strings or None),
         - iobj, the indirect object
 
-        Raises ObjectMatchError in the event of a missing direct or indirect
+        Raises AbortTurn in the event of a missing direct or indirect
         object.
 
         Returns None, or a list of two items, either lists of strings, or None
@@ -864,7 +839,7 @@ class Parser:
             else:
                 things = []
         if len(things) == 0:
-            return self.generateVerbScopeErrorMsg(scope, noun_adj_arr)
+            raise ObjectMatchError(self.generateVerbScopeErrorMsg(scope, noun_adj_arr))
         else:
             thing = self.checkAdjectives(
                 noun_adj_arr, noun, things, scope, far_obj, obj_direction
@@ -1156,12 +1131,12 @@ class Parser:
 
         if dobj != initial_dobj:
             self.game.addTextToEvent(
-                "turn", "(Assuming " + cur_dobj.lowNameArticle(True) + ".)",
+                "turn", "(Assuming " + dobj.lowNameArticle(True) + ".)",
             )
 
         if iobj != initial_iobj:
             self.game.addTextToEvent(
-                "turn", "(Assuming " + cur_iobj.lowNameArticle(True) + ".)",
+                "turn", "(Assuming " + iobj.lowNameArticle(True) + ".)",
             )
 
         return dobj, iobj
