@@ -256,14 +256,13 @@ class Actor(Thing):
 
     def printSuggestions(self, game):
         if self.special_topics != {}:
-            game.lastTurn.convNode = True
             for suggestion in self.special_topics:
                 game.addTextToEvent("turn", "(You could " + suggestion + ")")
-                game.lastTurn.specialTopics[suggestion] = self.special_topics[
+                game.parser.previous_command.specialTopics[
                     suggestion
-                ]
+                ] = self.special_topics[suggestion]
             for phrasing in self.special_topics_alternate_keys:
-                game.lastTurn.specialTopics[
+                game.parser.previous_command.specialTopics[
                     phrasing
                 ] = self.special_topics_alternate_keys[phrasing]
 

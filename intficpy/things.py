@@ -532,11 +532,11 @@ class LightSource(Thing):
         from .verb import helpVerb, helpVerbVerb, aboutVerb
 
         if not (
-            game.lastTurn.verb == helpVerb
-            or game.lastTurn.verb == helpVerbVerb
-            or game.lastTurn.verb == aboutVerb
-            or game.lastTurn.ambiguous
-            or game.lastTurn.err
+            game.parser.previous_command.verb == helpVerb
+            or game.parser.previous_command.verb == helpVerbVerb
+            or game.parser.previous_command.verb == aboutVerb
+            or game.parser.previous_command.ambiguous
+            or game.parser.previous_command.err
         ):
             self.turns_left = self.turns_left - 1
             if self.turns_left == 0:

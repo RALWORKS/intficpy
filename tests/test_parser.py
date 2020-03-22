@@ -5,7 +5,7 @@ from .helpers import IFPTestCase
 from intficpy.thing_base import Thing
 from intficpy.things import Surface, UnderSpace
 from intficpy.vocab import nounDict
-from intficpy.actor import Actor
+from intficpy.actor import Actor, SpecialTopic
 from intficpy.verb import (
     getVerb,
     lookVerb,
@@ -22,9 +22,9 @@ class TestParser(IFPTestCase):
     def test_verb_with_no_objects(self):
         self.game.turnMain("look")
 
-        self.assertIs(self.game.lastTurn.verb, lookVerb)
-        self.assertIsNone(self.game.lastTurn.dobj)
-        self.assertIsNone(self.game.lastTurn.iobj)
+        self.assertIs(self.game.parser.previous_command.verb, lookVerb)
+        self.assertIsNone(self.game.parser.previous_command.dobj.target)
+        self.assertIsNone(self.game.parser.previous_command.iobj.target)
 
     def test_verb_with_dobj_only(self):
         dobj = Thing(self._get_unique_noun())
@@ -32,9 +32,9 @@ class TestParser(IFPTestCase):
 
         self.game.turnMain(f"get {dobj.name}")
 
-        self.assertIs(self.game.lastTurn.verb, getVerb)
-        self.assertIs(self.game.lastTurn.dobj, dobj)
-        self.assertIsNone(self.game.lastTurn.iobj)
+        self.assertIs(self.game.parser.previous_command.verb, getVerb)
+        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
+        self.assertIsNone(self.game.parser.previous_command.iobj.target)
 
     def test_gets_correct_verb_with_dobj_and_direction_iobj(self):
         dobj = Actor(self._get_unique_noun())
@@ -44,19 +44,19 @@ class TestParser(IFPTestCase):
 
         self.game.turnMain(f"lead {dobj.name} {iobj}")
 
-        self.assertIs(self.game.lastTurn.verb, leadDirVerb)
-        self.assertIs(self.game.lastTurn.dobj, dobj)
-        self.assertEqual(self.game.lastTurn.iobj, [iobj])
+        self.assertIs(self.game.parser.previous_command.verb, leadDirVerb)
+        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
+        self.assertEqual(self.game.parser.previous_command.iobj.target, [iobj])
 
-    def test_gets_correct_verb_with_prepopsition_dobj_only(self):
+    def test_gets_correct_verb_with_preposition_dobj_only(self):
         dobj = Thing(self._get_unique_noun())
         self.start_room.addThing(dobj)
 
         self.game.turnMain(f"jump over {dobj.name}")
 
-        self.assertIs(self.game.lastTurn.verb, jumpOverVerb)
-        self.assertIs(self.game.lastTurn.dobj, dobj)
-        self.assertIsNone(self.game.lastTurn.iobj)
+        self.assertIs(self.game.parser.previous_command.verb, jumpOverVerb)
+        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
+        self.assertIsNone(self.game.parser.previous_command.iobj.target)
 
     def test_gets_correct_verb_with_preposition_dobj_and_iobj(self):
         dobj = Thing(self._get_unique_noun())
@@ -66,9 +66,9 @@ class TestParser(IFPTestCase):
 
         self.game.turnMain(f"set {dobj.name} on {iobj.name}")
 
-        self.assertIs(self.game.lastTurn.verb, setOnVerb)
-        self.assertIs(self.game.lastTurn.dobj, dobj)
-        self.assertIs(self.game.lastTurn.iobj, iobj)
+        self.assertIs(self.game.parser.previous_command.verb, setOnVerb)
+        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
+        self.assertIs(self.game.parser.previous_command.iobj.target, iobj)
 
 
 class TestGetGrammarObj(IFPTestCase):
@@ -80,8 +80,8 @@ class TestGetGrammarObj(IFPTestCase):
 
         self.game.turnMain(f"give {dobj_item.name} {iobj_item.name}")
 
-        self.assertEqual(self.game.lastTurn.dobj, dobj_item)
-        self.assertEqual(self.game.lastTurn.iobj, iobj_item)
+        self.assertEqual(self.game.parser.previous_command.dobj.target, dobj_item)
+        self.assertEqual(self.game.parser.previous_command.iobj.target, iobj_item)
 
 
 class TestGetThing(IFPTestCase):
@@ -101,7 +101,9 @@ class TestGetThing(IFPTestCase):
 
         self.game.turnMain(f"examine {noun}")
         self.assertIs(
-            self.game.lastTurn.dobj, item1, "Failed to match item from unambiguous noun"
+            self.game.parser.previous_command.dobj.target,
+            item1,
+            "Failed to match item from unambiguous noun",
         )
 
         item2 = Thing(noun)
@@ -119,11 +121,11 @@ class TestGetThing(IFPTestCase):
 
         self.game.turnMain(f"examine {noun}")
 
-        self.assertEqual(self.game.lastTurn.dobj, [noun])
+        self.assertEqual(self.game.parser.previous_command.dobj.tokens, [noun])
 
         self.game.turnMain(f"examine {adj1} {noun}")
         self.assertIs(
-            self.game.lastTurn.dobj,
+            self.game.parser.previous_command.dobj.target,
             item1,
             "Noun adjective array should have been unambiguous, but failed to match "
             "Thing",
@@ -140,7 +142,14 @@ class TestParserError(IFPTestCase):
         self.assertIn(expected, msg, "Unexpected response to unrecognized verb.")
 
     def test_suggestion_not_understood(self):
-        self.game.lastTurn.convNode = True
+        topic = SpecialTopic(
+            "tell sarah to grow a beard", "You tell Sarah to grow a beard."
+        )
+
+        self.game.parser.previous_command.specialTopics[
+            "tell sarah to grow a beard"
+        ] = topic
+
         self.game.turnMain("thisverbwillnevereverbedefined")
 
         msg = self.app.print_stack.pop()
@@ -179,7 +188,7 @@ class TestParserError(IFPTestCase):
         self.start_room.addThing(sarah2)
 
         self.game.turnMain("hi teacher")
-        self.assertTrue(self.game.lastTurn.ambig_noun)
+        self.assertTrue(self.game.parser.previous_command.ambiguous)
 
         self.game.turnMain("set green sarah")
 

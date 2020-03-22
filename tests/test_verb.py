@@ -1121,11 +1121,12 @@ class TestBuyFiniteStock(IFPTestCase):
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 1, 1)
         self.start_room.addThing(self.actor)
+        self.sale_item.makeKnown(self.me)
 
         self.OUT_STOCK_MSG = "That item is out of stock. "
 
     def test_buy(self):
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1137,7 +1138,7 @@ class TestBuyFiniteStock(IFPTestCase):
             "Attempted to buy item. Received success message. ",
         )
 
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -1190,11 +1191,12 @@ class TestBuyInfiniteStock(IFPTestCase):
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 1, True)
         self.start_room.addThing(self.actor)
+        self.sale_item.makeKnown(self.me)
 
     def test_buy(self):
         stock_before = self.actor.for_sale[self.sale_item.ix].number
 
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1224,9 +1226,10 @@ class TestBuyNotEnoughMoney(IFPTestCase):
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 2, 1)
         self.start_room.addThing(self.actor)
+        self.sale_item.makeKnown(self.me)
 
     def test_buy(self):
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         BASE_FAILURE_MSG = "You don't have enough"
@@ -1250,6 +1253,7 @@ class TestBuyNotSelling(IFPTestCase):
         self.actor = Actor("Dmitri")
         self.currency = Thing("penny")
         self.me.addThing(self.currency)
+        self.sale_item.makeKnown(self.me)
 
         self.start_room.addThing(self.actor)
 
@@ -1277,9 +1281,12 @@ class TestBuyWithNoActorsInRoom(IFPTestCase):
         self.currency = Thing("penny")
         self.me.addThing(self.currency)
         self.start_room.addThing(self.actor)
+        self.sale_item.makeKnown(self.me)
 
     def test_buy_from(self):
-        buyFromVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
+        self.game.turnMain(
+            f"buy {self.sale_item.verbose_name} from {self.actor.verbose_name}"
+        )
 
         msg = self.app.print_stack.pop()
         BASE_FAILURE_MSG = "You cannot buy anything from"
@@ -1294,7 +1301,7 @@ class TestBuyWithNoActorsInRoom(IFPTestCase):
         )
 
     def test_buy(self):
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         FAILURE_MSG = "There's no one obvious here to buy from. "
@@ -1311,18 +1318,19 @@ class TestBuyWithNoActorsInRoom(IFPTestCase):
         )
 
 
-class TestBuyNotEnoughMoney(IFPTestCase):
+class TestBuyPerson(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Actor("Kate")
-        self.actor = Actor("Dmitri")
+        self.sale_item = Actor("kate")
+        self.actor = Actor("dmitri")
         self.currency = Thing("penny")
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 2, 1)
         self.start_room.addThing(self.actor)
+        self.sale_item.makeKnown(self.me)
 
     def test_buy(self):
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         FAILURE_MSG = "You cannot buy or sell a person. "
@@ -1346,9 +1354,10 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
         self.actor1.addSelling(self.sale_item, self.currency, 1, 1)
         self.start_room.addThing(self.actor1)
         self.start_room.addThing(self.actor2)
+        self.sale_item.makeKnown(self.me)
 
     def test_buy(self):
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         BASE_DISAMBIG_MSG = "Would you like to buy from"
@@ -1363,9 +1372,9 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_buy_with_lastTurn_dobj_actor(self):
-        self.game.lastTurn.dobj = self.actor1
+        self.game.parser.previous_command.dobj.target = self.actor1
 
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -1382,7 +1391,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_buy_with_lastTurn_iobj_actor(self):
-        self.game.lastTurn.iobj = self.actor1
+        self.game.parser.previous_command.iobj.target = self.actor1
 
         buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
@@ -1404,7 +1413,7 @@ class TestSell(IFPTestCase):
         super().setUp()
         self.sale_item = Thing("widget")
         self.sale_item.makeKnown(self.me)
-        self.actor = Actor("Dmitri")
+        self.actor = Actor("dmitri")
         self.currency = Thing("penny")
         self.me.addThing(self.sale_item)
         self.me.addThing(self.sale_item.copyThing())
@@ -1421,7 +1430,7 @@ class TestSell(IFPTestCase):
         )
         self.assertEqual(len(self.me.contains[self.sale_item.ix]), 2)
 
-        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"sell {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1460,7 +1469,9 @@ class TestSell(IFPTestCase):
         )
         self.assertEqual(len(self.me.contains[self.sale_item.ix]), 2)
 
-        sellToVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
+        self.game.turnMain(
+            f"sell {self.sale_item.verbose_name} to {self.actor.verbose_name}"
+        )
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1553,8 +1564,8 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
     def setUp(self):
         super().setUp()
         self.sale_item = Thing("bulb")
-        self.actor1 = Actor("Dmitri")
-        self.actor2 = Actor("Kate")
+        self.actor1 = Actor("dmitri")
+        self.actor2 = Actor("kate")
         self.currency = Thing("penny")
         self.me.addThing(self.sale_item)
         self.actor1.addWillBuy(self.sale_item, self.currency, 1, 1)
@@ -1562,7 +1573,7 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
         self.start_room.addThing(self.actor2)
 
     def test_sell(self):
-        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"sell {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         BASE_DISAMBIG_MSG = "Would you like to sell it to"
@@ -1577,9 +1588,9 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_sell_with_lastTurn_dobj_actor(self):
-        self.game.lastTurn.dobj = self.actor1
+        self.game.parser.previous_command.dobj.target = self.actor1
 
-        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"sell {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1603,9 +1614,9 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_sell_with_lastTurn_iobj_actor(self):
-        self.game.lastTurn.iobj = self.actor1
+        self.game.parser.previous_command.iobj.target = self.actor1
 
-        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"sell {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         expected = (
@@ -1654,10 +1665,7 @@ class TestSellInRoomWithNoActors(IFPTestCase):
 
 class TestGetImpTalkToNobodyNear(IFPTestCase):
     def test_get_implicit(self):
-        with self.assertRaises(AbortTurn):
-            self.game.parser.checkObj(talkToVerb, None, None)
-
-        self.game.runTurnEvents()
+        self.game.turnMain("hi")
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg, "There's no one obvious here to talk to. ",
@@ -1673,17 +1681,14 @@ class TestGetImpTalkToAmbiguous(IFPTestCase):
         self.start_room.addThing(self.actor2)
 
     def test_get_implicit(self):
-        with self.assertRaises(AbortTurn):
-            self.game.parser.checkObj(talkToVerb, None, None)
-
-        self.game.runTurnEvents()
+        self.game.turnMain("hi")
         msg = self.app.print_stack.pop()
         self.assertIn("Would you like to talk to ", msg)
 
     def test_get_implicit_with_lastTurn_dobj(self):
-        self.game.lastTurn.dobj = self.actor1
-        (dobj, iobj) = self.game.parser.checkObj(talkToVerb, None, None)
-        self.assertIs(dobj, self.actor1)
+        self.game.turnMain(f"hi {self.actor1.verbose_name}")
+        self.game.turnMain("hi")
+        self.assertIs(self.game.parser.previous_command.dobj.target, self.actor1)
 
 
 class TestGetImpTalkToUnambiguous(IFPTestCase):
@@ -1693,8 +1698,8 @@ class TestGetImpTalkToUnambiguous(IFPTestCase):
         self.start_room.addThing(self.actor1)
 
     def test_get_implicit(self):
-        (dobj, iobj) = self.game.parser.checkObj(talkToVerb, None, None)
-        self.assertIs(dobj, self.actor1)
+        self.game.turnMain("hi")
+        self.assertIs(self.game.parser.previous_command.dobj.target, self.actor1)
 
 
 if __name__ == "__main__":

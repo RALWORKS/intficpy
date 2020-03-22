@@ -123,10 +123,14 @@ class Verb:
             return people
         if len(people) == 0:
             game.addTextToEvent("turn", len0_msg)
-        elif game.lastTurn.dobj in people and isinstance(game.lastTurn.dobj, Actor):
-            return [game.lastTurn.dobj]
-        elif game.lastTurn.iobj in people and isinstance(game.lastTurn.iobj, Actor):
-            return [game.lastTurn.iobj]
+        elif game.parser.previous_command.dobj.target in people and isinstance(
+            game.parser.previous_command.dobj.target, Actor
+        ):
+            return [game.parser.previous_command.dobj.target]
+        elif game.parser.previous_command.iobj.target in people and isinstance(
+            game.parser.previous_command.iobj.target, Actor
+        ):
+            return [game.parser.previous_command.iobj.target]
         else:
             msg = base_disambig_msg
             for p in people:
@@ -1379,8 +1383,8 @@ def getImpTalkTo(game):
     elif len(people) == 1:
         return people[0]
 
-    game.lastTurn.things = people
-    game.lastTurn.ambiguous = True
+    game.parser.previous_command.things = people
+    game.parser.previous_command.ambiguous = True
     return None
 
 
@@ -3617,10 +3621,8 @@ def useVerbFunc(game, dobj, skip=False):
                 "turn",
                 "What would you like to unlock with " + dobj.lowNameArticle(True) + "?",
             )
-            game.lastTurn.verb = unlockWithVerb
-            game.lastTurn.iobj = dobj
-            game.lastTurn.dobj = False
-            game.lastTurn.ambiguous = True
+            game.parser.command.verb = unlockWithVerb
+            game.parser.command.ambiguous = True
         elif isinstance(dobj, Transparent):
             return lookThroughVerb.verbFunc(game, dobj)
         elif dobj.connection:
@@ -3754,11 +3756,9 @@ def buyVerbFunc(game, dobj):
         "Would you like to buy from ",
     )
     if len(people) > 1:
-        game.lastTurn.verb = buyFromVerb
-        game.lastTurn.dobj = dobj
-        game.lastTurn.iobj = None
-        game.lastTurn.things = people
-        game.lastTurn.ambiguous = True
+        game.parser.command.verb = buyFromVerb
+        game.parser.command.things = people
+        game.parser.command.ambiguous = True
         return False
 
     elif len(people) == 0:
@@ -3869,11 +3869,8 @@ def sellVerbFunc(game, dobj):
         return sellToVerb.verbFunc(game, dobj, iobj)
 
     if len(people) > 1:
-        game.lastTurn.verb = sellToVerb
-        game.lastTurn.dobj = dobj
-        game.lastTurn.iobj = None
-        game.lastTurn.things = people
-        game.lastTurn.ambiguous = True
+        game.parser.command.things = people
+        game.parser.command.ambiguous = True
 
     return False
 

@@ -101,36 +101,15 @@ class GameInfo:
         )
 
 
-class TurnInfo:
-    """
-    Information about a turn
-    Used mainly to store disambiguation information about the last turn
-    """
-
-    def __init__(self):
-        self.things = []
-        self.ambiguous = False
-        self.err = False
-        self.verb = False
-        self.dobj = False
-        self.iobj = False
-        self.ambig_noun = None
-        self.find_by_loc = False
-        self.gameOpening = False
-        self.gameEnding = False
-        self.convNode = False
-        self.specialTopics = {}
-
-
 class IFPGame:
     def __init__(self, me, app):
         self.app = app
         app.game = self
         self.me = me
         self.parser = Parser(self)
-        self.lastTurn = TurnInfo()
         self.aboutGame = GameInfo()
         self.daemons = DaemonManager()
+        self.ended = False
         self.next_events = {}
 
         self.turn_event_style = None
@@ -150,11 +129,14 @@ class IFPGame:
         self.next_events.clear()
         self.addEvent("turn", 5, style=self.turn_event_style)
 
+    @staticmethod
+    def gameOpening(game):
+        pass
+
     def initGame(self):
         reflexive.makeKnown(self.me)
         self.addEvent("turn", 5, style=self.turn_event_style)
-        if self.lastTurn.gameOpening:
-            self.lastTurn.gameOpening(self)
+        self.gameOpening(self)
         self.parser.roomDescribe()
         self.daemons.runAll(self)
         self.runTurnEvents()

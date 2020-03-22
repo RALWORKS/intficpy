@@ -76,7 +76,7 @@ class Ending(IFPObject):
     def endGame(self, game):
         game.addTextToEvent("turn", "<b>" + self.title + "</b>")
         game.addTextToEvent("turn", self.desc)
-        game.lastTurn.gameEnding = True
+        game.ended = True
 
 
 class HintSystem(IFPObject):

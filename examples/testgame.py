@@ -85,7 +85,7 @@ def opening(game):
     )
 
 
-game.lastTurn.gameOpening = opening
+game.gameOpening = opening
 
 
 def addCave(game):
