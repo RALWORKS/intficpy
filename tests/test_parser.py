@@ -402,5 +402,28 @@ class TestKeywords(IFPTestCase):
         )
 
 
+class TestSuggestions(IFPTestCase):
+    def test_accept_suggestion(self):
+        girl = Actor("girl")
+        TOPIC_SUGGESTION = "ask what her name is"
+        TOPIC_TEXT = '"It\'s Karen," says the girl.'
+        topic = SpecialTopic(TOPIC_SUGGESTION, TOPIC_TEXT)
+        girl.addSpecialTopic(topic)
+        self.start_room.addThing(girl)
+
+        self.game.turnMain("talk to girl")
+        self.assertTrue(self.game.parser.previous_command.specialTopics)
+
+        self.game.turnMain(TOPIC_SUGGESTION)
+
+        msg = self.app.print_stack.pop(-2)
+
+        self.assertEqual(
+            msg,
+            TOPIC_TEXT,
+            "Expected topic text to print after accepting suggestion"
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

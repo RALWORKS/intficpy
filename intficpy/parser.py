@@ -146,6 +146,10 @@ class Parser:
             self.command.err = True
 
             if not ambiguous_noun:
+                if self.previous_command.specialTopics:
+                    if self.getConvCommand():
+                        raise AbortTurn("Accepted conversation suggestion")
+
                 raise ParserError(
                     'I understood as far as "'
                     + self.command.primary_verb_token
@@ -203,6 +207,10 @@ class Parser:
             self.command.dobj = GrammarObject(match_pairs[0][2])
             self.command.iobj = GrammarObject(match_pairs[0][3])
             return
+
+        if self.previous_command.specialTopics:
+            if self.getConvCommand():
+                raise AbortTurn("Accepted conversation suggestion")
 
         raise ParserError(
             'I understood as far as "'
@@ -1413,11 +1421,6 @@ class Parser:
         d = self.getDirection()
         if d:
             return
-        if self.previous_command.specialTopics:
-            conv_command = self.getConvCommand()
-            if conv_command:
-                return
-
         self.getCurVerb()
         if not self.command.verb:
             return
