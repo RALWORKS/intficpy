@@ -105,7 +105,7 @@ class Parser:
 
         if self.previous_command.ambiguous or self.previous_command.specialTopics:
             self.disambig()
-            return None
+            raise AbortTurn("Disambiguation complete.")
 
         raise VerbMatchError(
             f"I don't understand the verb: {self.command.primary_verb_token}"
@@ -920,7 +920,7 @@ class Parser:
         # empty things to reorder elements according to the order printed,
         # since we are using name_dict
         for name in name_dict:
-            # use name_dict for self.disambiguation message composition rather than things
+            # use name_dict for disambiguation message composition rather than things
             scanned_keys.append(name)
             unscanned = list(set(name_dict.keys()) - set(scanned_keys))
             if len(name_dict[name]) > 1:
@@ -1089,10 +1089,10 @@ class Parser:
 
     def disambig(self):
         """
-        When self.disambiguation mode is active, use the player input to specify the target for 
+        When disambiguation mode is active, use the player input to specify the target for 
         the previous turn's ambiguous command
         called by self.parseInput
-        Returns a Boolean, True if self.disambiguation successful
+        Returns a Boolean, True if disambiguation
         """
         self.command.dobj = self.previous_command.dobj
         self.command.iobj = self.previous_command.iobj
@@ -1420,7 +1420,6 @@ class Parser:
             return
 
         self.getGrammarObj()
-        # turn OFF self.disambiguation mode for next turn
         self._prepareGrammarObjects()
         self.callVerb()
 
