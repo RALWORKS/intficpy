@@ -298,7 +298,10 @@ class Parser:
                     if p in ["up", "down", "in", "out"]:
                         if verb.iscope == "direction" or verb.dscope == "direction":
                             exempt = True
-                    if not (verb.preposition or not p in verb.preposition) and not exempt:
+                    if (
+                        not (verb.preposition or not p in verb.preposition)
+                        and not exempt
+                    ):
                         remove_verb.append(verb)
         for p in english.keywords:
             if p in self.command.tokens and len(self.command.tokens) > 1:

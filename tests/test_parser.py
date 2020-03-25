@@ -115,14 +115,15 @@ class TestAdjacentStrObj(IFPTestCase):
             self.game.parser.previous_command.verb,
             self.strangeVerb,
             "Unexpected verb from command with adjacent string objects where thing "
-            "follows string"
+            "follows string",
         )
         self.assertIs(
             self.game.parser.previous_command.dobj.target,
             thing,
             "Unexpected dobj from command with adjacent string objects where thing "
-            "follows string"
+            "follows string",
         )
+
 
 class TestGetThing(IFPTestCase):
     def test_get_thing(self):
@@ -283,7 +284,7 @@ class TestDisambig(IFPTestCase):
             self.game.parser.previous_command.dobj.target,
             east_pillar,
             "Unexpected direct object after attempting to disambiguate with direction "
-            "adjective"
+            "adjective",
         )
 
     def test_disambiguate_with_index(self):
@@ -304,7 +305,7 @@ class TestDisambig(IFPTestCase):
         self.assertIn(
             self.game.parser.previous_command.dobj.target,
             [east_pillar, west_pillar],
-            "Unexpected direct object after attempting to disambiguate with index"
+            "Unexpected direct object after attempting to disambiguate with index",
         )
 
 
@@ -320,13 +321,13 @@ class TestPrepositions(IFPTestCase):
         self.assertIs(
             self.game.parser.previous_command.verb,
             examineVerb,
-            "Unexpected verb after using a preposition as an adjective"
+            "Unexpected verb after using a preposition as an adjective",
         )
 
         self.assertIs(
             self.game.parser.previous_command.dobj.target,
             up_ladder,
-            "Unexpected dobj after using a preposition as an adjective"
+            "Unexpected dobj after using a preposition as an adjective",
         )
 
     def test_verb_rejected_if_preposition_not_accounted_for(self):
@@ -339,7 +340,7 @@ class TestPrepositions(IFPTestCase):
         self.assertIsNot(
             self.game.parser.previous_command.verb,
             examineVerb,
-            "Examine verb does not have preposition `up`. Should not have matched."
+            "Examine verb does not have preposition `up`. Should not have matched.",
         )
 
     def test_preposition_directional_verb(self):
@@ -353,7 +354,7 @@ class TestPrepositions(IFPTestCase):
             self.game.parser.previous_command.verb,
             leadDirVerb,
             "Unexpected verb after using a direction that doubles as a preposition (up) "
-            "for a directional verb"
+            "for a directional verb",
         )
 
 
@@ -369,13 +370,13 @@ class TestKeywords(IFPTestCase):
         self.assertIs(
             self.game.parser.previous_command.verb,
             examineVerb,
-            "Unexpected verb after using an english keyword as an adjective"
+            "Unexpected verb after using an english keyword as an adjective",
         )
 
         self.assertIs(
             self.game.parser.previous_command.dobj.target,
             everything_box,
-            "Unexpected dobj after using an english keyword as an adjective"
+            "Unexpected dobj after using an english keyword as an adjective",
         )
 
     def test_verb_rejected_if_keyword_not_accounted_for(self):
@@ -388,7 +389,7 @@ class TestKeywords(IFPTestCase):
         self.assertIsNot(
             self.game.parser.previous_command.verb,
             examineVerb,
-            "Examine verb does not have keyword `everything`. Should not have matched."
+            "Examine verb does not have keyword `everything`. Should not have matched.",
         )
 
     def test_verb_with_keyword(self):
@@ -397,8 +398,9 @@ class TestKeywords(IFPTestCase):
         self.assertIs(
             self.game.parser.previous_command.verb,
             getAllVerb,
-            "Tried to call a verb with an english keyword."
+            "Tried to call a verb with an english keyword.",
         )
+
 
 if __name__ == "__main__":
     unittest.main()
