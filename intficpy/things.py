@@ -662,6 +662,7 @@ class Lock(Thing):
 
         self.is_locked = is_locked
         self.key_obj = key_obj
+        self.invItem = False
 
         # TODO: extract strings into instance properties
         if self.is_locked:
