@@ -419,9 +419,7 @@ class TestSuggestions(IFPTestCase):
         msg = self.app.print_stack.pop(-2)
 
         self.assertEqual(
-            msg,
-            TOPIC_TEXT,
-            "Expected topic text to print after accepting suggestion"
+            msg, TOPIC_TEXT, "Expected topic text to print after accepting suggestion"
         )
 
 

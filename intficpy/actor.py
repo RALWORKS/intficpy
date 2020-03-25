@@ -258,9 +258,9 @@ class Actor(Thing):
         if self.special_topics != {}:
             for suggestion in self.special_topics:
                 game.addTextToEvent("turn", "(You could " + suggestion + ")")
-                game.parser.command.specialTopics[
+                game.parser.command.specialTopics[suggestion] = self.special_topics[
                     suggestion
-                ] = self.special_topics[suggestion]
+                ]
             for phrasing in self.special_topics_alternate_keys:
                 game.parser.command.specialTopics[
                     phrasing
