@@ -275,7 +275,7 @@ getVerb.verbFunc = getVerbFunc
 
 # GET/TAKE ALL
 # intransitive verb
-getAllVerb = Verb("get")
+getAllVerb = Verb("get", "get all")
 getAllVerb.addSynonym("take")
 getAllVerb.syntax = [
     ["get", "all"],

@@ -316,7 +316,7 @@ class Parser:
                             for item in nounDict[noun]:
                                 if p in item.adjectives:
                                     exempt = True
-                    if not (verb.keywords and not p in verb.keywords) and not exempt:
+                    if not (verb.keywords or not p in verb.keywords) and not exempt:
                         remove_verb.append(verb)
         for verb in remove_verb:
             if verb in self.command.verb_matches:

@@ -15,6 +15,7 @@ from intficpy.verb import (
     jumpOverVerb,
     giveVerb,
     examineVerb,
+    getAllVerb,
 )
 from intficpy.exceptions import ObjectMatchError
 
@@ -388,6 +389,15 @@ class TestKeywords(IFPTestCase):
             self.game.parser.previous_command.verb,
             examineVerb,
             "Examine verb does not have keyword `everything`. Should not have matched."
+        )
+
+    def test_verb_with_keyword(self):
+        self.game.turnMain("take all")
+
+        self.assertIs(
+            self.game.parser.previous_command.verb,
+            getAllVerb,
+            "Tried to call a verb with an english keyword."
         )
 
 if __name__ == "__main__":
