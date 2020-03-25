@@ -46,63 +46,51 @@ class TestDirectionTravel(IFPTestCase):
         self.me.location.removeThing(self.me)
         room1.addThing(self.me)
 
-        travelN(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("n")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.n_false_msg)
 
-        travelNE(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("ne")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.ne_false_msg)
 
-        travelE(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("e")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.e_false_msg)
 
-        travelSE(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("se")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.se_false_msg)
 
-        travelS(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("s")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.s_false_msg)
 
-        travelSW(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("sw")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.sw_false_msg)
 
-        travelW(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("w")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.w_false_msg)
 
-        travelNW(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("nw")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.nw_false_msg)
 
-        travelU(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("u")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.u_false_msg)
 
-        travelD(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("d")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.d_false_msg)
 
-        travelIn(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("in")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.entrance_false_msg)
 
-        travelOut(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("out")
         self.assertIs(self.me.location, room1)
         self.assertEqual(self.app.print_stack.pop(), room1.exit_false_msg)
 
@@ -117,9 +105,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelN(self.game)
-        self.game.runTurnEvents()
-
+        self.game.turnMain("go n")
         self.assertEqual(self.app.print_stack[-3], room1.n_msg)
 
         self.assertIs(
@@ -129,8 +115,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelS(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("s")
 
         self.assertEqual(self.app.print_stack[-3], room1.s_msg)
 
@@ -152,8 +137,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelNE(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("go northeast")
 
         self.assertEqual(self.app.print_stack[-3], room1.ne_msg)
 
@@ -164,8 +148,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelSW(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("southwest")
 
         self.assertEqual(self.app.print_stack[-3], room1.sw_msg)
 
@@ -187,8 +170,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelE(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("go e")
 
         self.assertEqual(self.app.print_stack[-3], room1.e_msg)
 
@@ -199,8 +181,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelW(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("w")
 
         self.assertEqual(self.app.print_stack[-3], room1.w_msg)
 
@@ -222,8 +203,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelSE(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("go southeast")
 
         self.assertEqual(self.app.print_stack[-3], room1.se_msg)
 
@@ -234,8 +214,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelNW(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("go northwest")
 
         self.assertEqual(self.app.print_stack[-3], room1.nw_msg)
 
@@ -257,8 +236,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelU(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("u")
 
         self.assertEqual(self.app.print_stack[-3], room1.u_msg)
 
@@ -269,9 +247,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelD(self.game)
-        self.game.runTurnEvents()
-
+        self.game.turnMain("go d")
         self.assertEqual(self.app.print_stack[-3], room1.d_msg)
 
         self.assertIs(
@@ -292,8 +268,7 @@ class TestDirectionTravel(IFPTestCase):
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        travelIn(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("enter")
 
         self.assertEqual(self.app.print_stack[-3], room1.entrance_msg)
 
@@ -304,8 +279,7 @@ class TestDirectionTravel(IFPTestCase):
             f"{self.me.location}",
         )
 
-        travelOut(self.game)
-        self.game.runTurnEvents()
+        self.game.turnMain("exit")
 
         self.assertEqual(self.app.print_stack[-3], room1.exit_msg)
 

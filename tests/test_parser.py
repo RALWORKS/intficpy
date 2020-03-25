@@ -7,6 +7,7 @@ from intficpy.things import Surface, UnderSpace
 from intficpy.vocab import nounDict
 from intficpy.actor import Actor, SpecialTopic
 from intficpy.verb import (
+    Verb,
     getVerb,
     lookVerb,
     setOnVerb,
@@ -83,6 +84,44 @@ class TestGetGrammarObj(IFPTestCase):
         self.assertEqual(self.game.parser.previous_command.dobj.target, dobj_item)
         self.assertEqual(self.game.parser.previous_command.iobj.target, iobj_item)
 
+
+class TestAdjacentStrObj(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.strangeVerb = Verb("strange")
+        self.strangeVerb.syntax = [["strange", "<iobj>", "<dobj>"]]
+        self.strangeVerb.hasDobj = True
+        self.strangeVerb.hasIobj = True
+        self.strangeVerb.hasStrIobj = True
+        self.strangeVerb.iscope = "text"
+        self.strangeVerb.dscope = "near"
+
+        def strangeVerbFunc(game, dobj, iobj):
+            game.addTextToEvent("turn", "You do strange things")
+            return True
+
+        self.strangeVerb.verbFunc = strangeVerbFunc
+
+    def test_thing_follows_string_adjacent_string_object(self):
+        thing = Thing("thing")
+        thing.setAdjectives(["good"])
+        self.start_room.addThing(thing)
+
+        self.game.turnMain("strange purple good thing")
+
+        self.assertIs(
+            self.game.parser.previous_command.verb,
+            self.strangeVerb,
+            "Unexpected verb from command with adjacent string objects where thing "
+            "follows string"
+        )
+        self.assertIs(
+            self.game.parser.previous_command.dobj.target,
+            thing,
+            "Unexpected dobj from command with adjacent string objects where thing "
+            "follows string"
+        )
 
 class TestGetThing(IFPTestCase):
     def test_get_thing(self):
@@ -222,6 +261,134 @@ class TestCompositeObjectRedirection(IFPTestCase):
             "Unexpected response attempting to use a component redirection",
         )
 
+
+class TestDisambig(IFPTestCase):
+    def test_disambiguate_with_directional_adjective(self):
+        east_pillar = Thing("pillar")
+        east_pillar.setAdjectives(["east"])
+        west_pillar = Thing("pillar")
+        west_pillar.setAdjectives(["west"])
+
+        self.start_room.addThing(east_pillar)
+        self.start_room.addThing(west_pillar)
+
+        self.game.turnMain("x pillar")
+
+        self.assertTrue(self.game.parser.previous_command.ambiguous)
+
+        self.game.turnMain("east")
+
+        self.assertIs(
+            self.game.parser.previous_command.dobj.target,
+            east_pillar,
+            "Unexpected direct object after attempting to disambiguate with direction "
+            "adjective"
+        )
+
+    def test_disambiguate_with_index(self):
+        east_pillar = Thing("pillar")
+        east_pillar.setAdjectives(["east"])
+        west_pillar = Thing("pillar")
+        west_pillar.setAdjectives(["west"])
+
+        self.start_room.addThing(east_pillar)
+        self.start_room.addThing(west_pillar)
+
+        self.game.turnMain("x pillar")
+
+        self.assertTrue(self.game.parser.previous_command.ambiguous)
+
+        self.game.turnMain("1")
+
+        self.assertIn(
+            self.game.parser.previous_command.dobj.target,
+            [east_pillar, west_pillar],
+            "Unexpected direct object after attempting to disambiguate with index"
+        )
+
+
+class TestPrepositions(IFPTestCase):
+    def test_prepositional_adjectives(self):
+        up_ladder = Thing(self._get_unique_noun())
+        up_ladder.setAdjectives(["high", "up"])
+
+        self.start_room.addThing(up_ladder)
+
+        self.game.turnMain(f"x up high {up_ladder.name}")
+
+        self.assertIs(
+            self.game.parser.previous_command.verb,
+            examineVerb,
+            "Unexpected verb after using a preposition as an adjective"
+        )
+
+        self.assertIs(
+            self.game.parser.previous_command.dobj.target,
+            up_ladder,
+            "Unexpected dobj after using a preposition as an adjective"
+        )
+
+    def test_verb_rejected_if_preposition_not_accounted_for(self):
+        up_ladder = Thing(self._get_unique_noun())
+
+        self.start_room.addThing(up_ladder)
+
+        self.game.turnMain(f"x up big {up_ladder.name}")
+
+        self.assertIsNot(
+            self.game.parser.previous_command.verb,
+            examineVerb,
+            "Examine verb does not have preposition `up`. Should not have matched."
+        )
+
+    def test_preposition_directional_verb(self):
+        girl = Thing("girl")
+
+        self.start_room.addThing(girl)
+
+        self.game.turnMain(f"lead girl up")
+
+        self.assertIs(
+            self.game.parser.previous_command.verb,
+            leadDirVerb,
+            "Unexpected verb after using a direction that doubles as a preposition (up) "
+            "for a directional verb"
+        )
+
+
+class TestKeywords(IFPTestCase):
+    def test_keyword_adjectives(self):
+        everything_box = Thing(self._get_unique_noun())
+        everything_box.setAdjectives(["good", "everything"])
+
+        self.start_room.addThing(everything_box)
+
+        self.game.turnMain(f"x everything good {everything_box.name}")
+
+        self.assertIs(
+            self.game.parser.previous_command.verb,
+            examineVerb,
+            "Unexpected verb after using an english keyword as an adjective"
+        )
+
+        self.assertIs(
+            self.game.parser.previous_command.dobj.target,
+            everything_box,
+            "Unexpected dobj after using an english keyword as an adjective"
+        )
+
+    def test_verb_rejected_if_keyword_not_accounted_for(self):
+        everything_box = Thing(self._get_unique_noun())
+
+        self.start_room.addThing(everything_box)
+
+        self.game.turnMain(f"x everything good {everything_box.name}")
+
+        self.assertIsNot(
+            self.game.parser.previous_command.verb,
+            examineVerb,
+            "Examine verb does not have keyword `everything`. Should not have matched."
+        )
 
 if __name__ == "__main__":
     unittest.main()

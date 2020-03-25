@@ -70,6 +70,9 @@ class Verb:
         self.dobj_contains_iobj = False
         self.iobj_contains_dobj = False
 
+    def __repr__(self):
+        return f"<Verb `{self.list_word}`>"
+
     def addSynonym(self, word):
         """Add a synonym verb
 			Takes argument word, a single verb (string)
@@ -2399,11 +2402,11 @@ climbUpVerb.preposition = ["up"]
 def climbUpVerbFunc(game):
     """Climb up to the room above
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
-    from .travel import travel
+    from .travel import travelU
 
     cur_loc = game.me.getOutermostLocation()
     if cur_loc.up:
-        travel.travelU(game)
+        travelU(game)
     else:
         game.addTextToEvent("turn", "You cannot climb up from here. ")
 
@@ -2428,11 +2431,11 @@ climbDownVerb.preposition = ["off", "down"]
 def climbDownVerbFunc(game):
     """Climb down from a Surface you currently occupy
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
-    from . import travel
+    from .travel import travelD
 
     cur_loc = game.me.getOutermostLocation()
     if cur_loc.down:
-        travel.travelD(game)
+        travelD(game)
     elif isinstance(game.me.location, Surface):
         game.addTextToEvent(
             "turn",
@@ -2851,13 +2854,13 @@ exitVerb.syntax = [["exit"]]
 def exitVerbFunc(game):
     """Climb out of a Container you currently occupy
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
-    from .travel import travel
+    from .travel import travelOut
 
     out_loc = game.me.getOutermostLocation()
     if isinstance(game.me.location, Thing):
         climbOutOfVerb.verbFunc(game, game.me.location)
     elif out_loc.exit:
-        travel.travelOut(game)
+        travelOut(game)
     else:
         game.addTextToEvent("turn", "There is no obvious exit. ")
 
@@ -2874,11 +2877,11 @@ enterVerb.syntax = [["enter"]]
 def enterVerbFunc(game):
     """Climb out of a Container you currently occupy
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
-    from .travel import travel
+    from .travel import travelIn
 
     out_loc = game.me.getOutermostLocation()
     if out_loc.entrance:
-        travel.travelIn(game)
+        travelIn(game)
     else:
         game.addTextToEvent("turn", "There is no obvious entrance. ")
 

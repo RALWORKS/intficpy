@@ -71,11 +71,10 @@ class Parser:
                 return True
         elif d in directionDict and len(self.command.tokens) == 1:
             if self.previous_command.ambiguous:
-                for obj in [self.previous_command.dobj, self.previous_command.iobj]:
-                    if obj and not obj.target and obj.entity_matches:
-                        for item in obj.entity_matches:
-                            if d in item.adjectives:
-                                return False
+                candidates = []
+                for obj in self.previous_command.things:
+                    if d in obj.adjectives:
+                        return False
             directionDict[d](self.game)
             return True
         else:
@@ -180,7 +179,7 @@ class Parser:
 
             pair += [dobj, iobj]
 
-            extra = self.checkExtra(verb_form, dobj, iobj)
+            extra = self.checkExtra(verb, verb_form, dobj, iobj)
 
             if len(extra) > 0:
                 removeMatch.append(pair)
@@ -213,7 +212,7 @@ class Parser:
             + " for help with phrasing.) ",
         )
 
-    def checkExtra(self, verb_form, dobj, iobj):
+    def checkExtra(self, verb, verb_form, dobj, iobj):
         """
         Checks for words unaccounted for by verb form
 
@@ -234,6 +233,14 @@ class Parser:
                             if word in item.adjectives:
                                 exempt = True
                                 break
+                    if (
+                        len(dobj) == 1
+                        and word in dobj
+                        and word in ("up", "down", "in", "out")
+                        and verb.dscope == "direction"
+                    ):
+                        exempt = True
+
                     if exempt:
                         accounted.append(word)
                 else:
@@ -248,6 +255,14 @@ class Parser:
                             if word in item.adjectives:
                                 exempt = True
                                 break
+                    if (
+                        len(iobj) == 1
+                        and word in iobj
+                        and word in ("up", "down", "in", "out")
+                        and verb.iscope == "direction"
+                    ):
+                        exempt = True
+
                     if exempt:
                         accounted.append(word)
                 else:
@@ -283,9 +298,7 @@ class Parser:
                     if p in ["up", "down", "in", "out"]:
                         if verb.iscope == "direction" or verb.dscope == "direction":
                             exempt = True
-                    if not verb.preposition and not exempt:
-                        remove_verb.append(verb)
-                    elif not p in verb.preposition and not exempt:
+                    if not (verb.preposition or not p in verb.preposition) and not exempt:
                         remove_verb.append(verb)
         for p in english.keywords:
             if p in self.command.tokens and len(self.command.tokens) > 1:
@@ -303,9 +316,7 @@ class Parser:
                             for item in nounDict[noun]:
                                 if p in item.adjectives:
                                     exempt = True
-                    if not verb.keywords and not exempt:
-                        remove_verb.append(verb)
-                    elif not p in verb.keywords and not exempt:
+                    if not (verb.keywords and not p in verb.keywords) and not exempt:
                         remove_verb.append(verb)
         for verb in remove_verb:
             if verb in self.command.verb_matches:
@@ -378,21 +389,21 @@ class Parser:
             thing_follows_string = False
 
         if thing_follows_string:
-            if not objs[-1] in nounDict:
+            if not objs[-1] in nounDict or len(objs) < 2:
                 return None
             things = nounDict[objs[-1]]
-            i = len(objs) - 2
-            while i > 0:
+            end_str = len(objs) - 1
+            while end_str > 1:
                 accounted = False
                 for item in things:
-                    if objs[i] in thing.adjectives:
+                    tokens_in_adjectives = [
+                        tok in item.adjectives for tok in objs[end_str:-1]
+                    ]
+                    if all(tokens_in_adjectives):
                         accounted = True
                 if not accounted:
-                    end_str = i
                     break
-                elif i == 1:
-                    end_str = i
-                i = i - 1
+                end_str -= 1
             strobj = objs[:end_str]
             tobj = objs[end_str:]
 
@@ -772,9 +783,9 @@ class Parser:
             if noun_adj_arr[-1] in item.adjectives:
                 adj_disambig_candidates.append(item)
                 thing = self.checkAdjectives(
-                    noun_adj_arr + item.name,
+                    noun_adj_arr + [item.name],
                     item.name,
-                    things,
+                    [item],
                     scope,
                     far_obj,
                     obj_direction,
@@ -796,9 +807,8 @@ class Parser:
                 noun_adj_arr.append(noun)
             things = adj_disambig_candidates
 
-        elif t_ix and t_ix < len(self.previous_command):
+        elif t_ix and t_ix < len(self.previous_command.tokens):
             # assume tokens are adjectives for a Thing from the previous command
-            self.previous_command.ambiguous = False
             return self.previous_command.things[t_ix - 1]
 
         else:
@@ -820,7 +830,7 @@ class Parser:
         if len(self.command.tokens) != 1:
             return None
         try:
-            return int(noun_adj_arr[-1])
+            return int(self.command.tokens[-1])
         except ValueError:
             return None
 
@@ -954,9 +964,6 @@ class Parser:
         Returns a single Thing object or None
         """
         if things == self.previous_command.things:
-            self.command.ambiguous = False
-            self.command.things = []
-            self.command.err = False
             try:
                 n_select = int(noun_adj_arr[0])
             except ValueError:
@@ -1091,9 +1098,9 @@ class Parser:
         self.command.iobj = self.previous_command.iobj
         self.command.verb = self.previous_command.verb
         if not self.command.dobj.target and self.command.verb.hasDobj:
-            dobj = self.command.tokens
+            self.command.dobj.tokens = self.command.tokens
         elif not self.command.iobj.target and self.command.verb.hasIobj:
-            iobj = self.command.tokens
+            self.command.iobj.tokens = self.command.tokens
         self._prepareGrammarObjects()
         self.callVerb()
 
