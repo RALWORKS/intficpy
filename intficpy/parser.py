@@ -132,34 +132,6 @@ class Parser:
                 if i == 0:
                     match_pairs.append([cur_verb, verb_form])
 
-        if not match_pairs:
-            ambiguous_noun = False
-            if self.previous_command.ambiguous:
-                for term in self.previous_command.things:
-                    if (
-                        self.command.tokens[0] in term.adjectives
-                        or self.command.tokens[0] in term.synonyms
-                        or self.command.tokens[0] == term.name
-                    ):
-                        ambiguous_noun = True
-
-            self.command.err = True
-
-            if not ambiguous_noun:
-                if self.previous_command.specialTopics:
-                    if self.getConvCommand():
-                        raise AbortTurn("Accepted conversation suggestion")
-
-                raise ParserError(
-                    'I understood as far as "'
-                    + self.command.primary_verb_token
-                    + '".<br>(Type VERB HELP '
-                    + self.command.primary_verb_token.upper()
-                    + " for help with phrasing.) ",
-                )
-
-            return None
-
         removeMatch = []
         for pair in match_pairs:
             verb = pair[0]
