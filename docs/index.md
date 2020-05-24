@@ -1,4 +1,4 @@
-# Getting Started
+Getting Started
 ---
 
 To get started with IntFicPy, you will first need to obtain and install the Python
@@ -6,7 +6,7 @@ module.
 
 For prospective IntFicPy game developers, downloading the latest release is
 reccommended. Releases can be downloaded from GitHub at
-https://github.com/JSMaika/intficpy/releases
+[https://github.com/JSMaika/intficpy/releases](https://github.com/JSMaika/intficpy/releases)
 
 Alternately, you can clone the IntFicPy repo to work with the latest code. However,
 master branch is not guaranteed to be stable at any given time.
