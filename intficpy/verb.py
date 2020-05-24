@@ -460,14 +460,19 @@ def dropVerbFunc(game, dobj, skip=False):
         container = dobj.getContainer()
         if container:
             dobj = container
-    if dobj.invItem and game.me.removeThing(dobj):
+
+    if not game.me.containsItem(dobj):
         game.addTextToEvent(
-            "turn", "You drop " + dobj.getArticle(True) + dobj.verbose_name + ". "
+            "turn",
+            "You are not holding " + dobj.getArticle(True) + dobj.verbose_name + ". ",
         )
-        dobj.location = game.me.location
-        dobj.location.addThing(dobj)
-        return True
-    elif dobj.parent_obj:
+        return False
+
+    if not dobj.invItem:
+        # TODO: why are we checking this?
+        raise ValueError(f"{dobj.verbose_name} is not an inventory item. Cannot drop.")
+
+    if dobj.parent_obj:
         game.addTextToEvent(
             "turn",
             (dobj.getArticle(True) + dobj.verbose_name).capitalize()
@@ -477,15 +482,14 @@ def dropVerbFunc(game, dobj, skip=False):
             + ". ",
         )
         return False
-    elif not dobj.invItem:
-        game.addTextToEvent("turn", "Error: not an inventory item. ")
-        print(dobj)
-    else:
-        game.addTextToEvent(
-            "turn",
-            "You are not holding " + dobj.getArticle(True) + dobj.verbose_name + ". ",
-        )
-        return False
+
+    game.me.removeThing(dobj)
+    game.addTextToEvent(
+        "turn", "You drop " + dobj.getArticle(True) + dobj.verbose_name + ". "
+    )
+    dobj.location = game.me.location
+    dobj.location.addThing(dobj)
+    return True
 
 
 # replace the default verbFunc method

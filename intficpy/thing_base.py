@@ -40,13 +40,13 @@ class Thing(PhysicalEntity):
         self.revealed = False
         self.desc_reveal = True
         self.xdesc_reveal = True
-        self.contains_desc = ""
 
         # COMPOSITE OBJECTS
-        self.is_composite = False
+        self.is_composite = False  # TODO: replace if x.composite with if x.children
         self.parent_obj = None
         self.lock_obj = None
         self.children_desc = None
+        # TODO: refactor: duplicate storing of all children seems unnecessary
         self.child_Things = []
         self.child_Surfaces = []
         self.child_Containers = []
@@ -56,6 +56,9 @@ class Thing(PhysicalEntity):
         # OPEN/CLOSE
         self.has_lid = False
         self.is_open = False
+
+        # STATES
+        self.state_descriptors = []
 
         # thing properties
         self.far_away = False
@@ -68,10 +71,6 @@ class Thing(PhysicalEntity):
         self.hasArticle = True
         self.isDefinite = False
         self.is_numberless = False
-
-        # STATE DESCRIPTIONS
-        self.lock_desc = ""
-        self.state_desc = ""
 
         # LOCATION & INVITEM STATUS
         self.location = False
@@ -98,18 +97,117 @@ class Thing(PhysicalEntity):
         self.give = False
 
         # DESCRIPTION
-        self.desc_reveal = False  # reveal contents in description
-        # the default description to print from the room
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
-        # the default description for the examine command
+        self.description = None
+        self.x_description = None
+
         # add name to list of nouns
         if name in nounDict:
             nounDict[name].append(self)
         else:
             nounDict[name] = [self]
+
+    @property
+    def default_desc(self):
+        """
+        The base item description, if a description has not been specified.
+        """
+        if not self.hasArticle or self.isDefinite:
+            return f"{self.capNameArticle()} is here. "
+        return f"There is {self.lowNameArticle()} here. "
+
+    @property
+    def default_xdesc(self):
+        """
+        The base item examin description, if an x_description has not been specified.
+        """
+        return f"You notice nothing remarkable about {self.lowNameArticle(True)}. "
+
+    @property
+    def desc(self):
+        """
+        The item description that will be used in room descriptions.
+        """
+        return (
+            (self.description or self.default_desc)
+            + self.state_desc
+            + self.composite_desc
+            + (self.contains_desc if self.desc_reveal else "")
+        )
+
+    @property
+    def xdesc(self):
+        """
+        The item description that will be used for examine.
+        """
+        return (
+            (self.x_description or self.default_xdesc)
+            + self.state_desc
+            + self.composite_desc
+            + (self.contains_desc if self.xdesc_reveal else "")
+        )
+
+    @property
+    def state_desc(self):
+        """
+        Describe an item's state, with aspects such as open/closed or on/off
+        """
+        return "".join([getattr(self, key) for key in self.state_descriptors])
+
+    @property
+    def composite_desc(self):
+        """
+        Describe the composite parts (children) of the item
+        """
+        if not self.children:
+            return ""
+
+        return (
+            self.children_desc
+            or "".join(
+                [
+                    child.desc
+                    for child in self.children
+                    # don't include spaces underneath the item in the composite description
+                    # unless they are explicitly described
+                    if not (child.contains_under and not child.description)
+                ]
+            )
+            + " "
+        )
+
+    @property
+    def contains_desc(self):
+        """
+        Describe the contents of an item
+        """
+        if not self.contains:
+            return ""
+
+        desc = (
+            f"{self.contains_preposition.capitalize()} {self.lowNameArticle(True)} is "
+        )
+        item_phrases = []
+        # filter out composite child items
+        contains = {
+            ix: sublist
+            for ix, sublist in self.contains.items()
+            if not (sublist[0].parent_obj and sublist[0].parent_obj.ix in self.contains)
+        }
+        for key, sublist in contains.items():
+            item_phrases.append(
+                sublist[0].lowNameArticle()
+                if len(sublist) == 1
+                else (str(len(sublist)) + sublist[0].getPlural())
+            )
+
+        item_phrases[-1] += ". "
+
+        if len(item_phrases) > 1:
+            for i in range(0, len(item_phrases) - 2):
+                item_phrases[i] += ","
+            item_phrases[-2] += " and"
+
+        return desc + " ".join(item_phrases)
 
     def makeKnown(self, me):
         if self.known_ix and (not self.known_ix in me.knows_about):
@@ -153,17 +251,12 @@ class Thing(PhysicalEntity):
             if nounDict[word] == []:
                 del nounDict[word]
 
-    def setAdjectives(self, adj_list, update_desc=False):
+    def setAdjectives(self, adj_list):
         """Sets adjectives for a Thing
 		Takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
 		Game creators should set update_desc to False if using a custom desc or xdesc for a Thing """
         self.adjectives = adj_list
         self.verbose_name = " ".join(adj_list) + " " + self.name
-        if update_desc:
-            self.base_desc = (
-                "There is " + self.getArticle() + self.verbose_name + " here. "
-            )
-            self.desc = self.base_desc
 
     def capNameArticle(self, definite=False):
         out = self.getArticle(definite) + self.verbose_name
@@ -206,29 +299,29 @@ class Thing(PhysicalEntity):
         """Make a Thing unique (use definite article)
 		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
         self.isDefinite = True
-        self.base_desc = (
-            self.getArticle().capitalize() + self.verbose_name + " is here."
-        )
-        self.desc = self.base_desc
 
     def copyThing(self):
-        """Copy a Thing, keeping the index of the original. Safe to use for dynamic item duplication. """
+        """
+        Copy a Thing, keeping the index of the original.
+        Safe to use for dynamic item duplication.
+        """
         out = copy.copy(self)
         nounDict[out.name].append(out)
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
             nounDict[synonym].append(out)
         out.verbose_name = self.verbose_name
-        out.desc = self.desc
-        out.xdesc = self.xdesc
         out.contains = {}
         out.sub_contains = {}
         return out
 
     def copyThingUniqueIx(self):
-        """Copy a Thing, creating a new index. NOT safe to use for dynamic item duplication. 
-		The copy object is by default treated as not distinct from the original in Player knowledge (me.knows_about dictionary). 
-		To override this behaviour, manually set the copy's known_ix to its own ix property. """
+        """
+        Copy a Thing, creating a new index. NOT safe to use for dynamic item duplication.
+        The copy object is by default treated as not distinct from the original in
+        Player knowledge (me.knows_about dictionary).
+        To override this behaviour, manually set the copy's known_ix to its own ix property.
+        """
         out = copy.copy(self)
         self.registerNewIndex()
         nounDict[out.name].append(out)
@@ -236,8 +329,6 @@ class Thing(PhysicalEntity):
         for synonym in out.synonyms:
             nounDict[synonym].append(out)
         out.verbose_name = self.verbose_name
-        out.desc = self.desc
-        out.xdesc = self.xdesc
         out.contains = {}
         out.sub_contains = {}
         return out
@@ -277,35 +368,10 @@ class Thing(PhysicalEntity):
             return True
 
     def describeThing(self, description):
-        self.base_desc = description
-        self.desc = description
-        if self.parent_obj:
-            if not self.parent_obj.children_desc:
-                self.parent_obj.desc = self.parent_obj.base_desc
-                self.parent_obj.xdesc = self.parent_obj.base_xdesc
-                for item in self.parent_obj.children:
-                    self.parent_obj.desc = self.parent_obj.desc + item.base_desc
-                    self.parent_obj.xdesc = self.parent_obj.xdesc + item.base_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
+        self.description = description
 
     def xdescribeThing(self, description):
-        self.base_xdesc = description
-        self.xdesc = description
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.xdesc = self.xdesc + item.desc
+        self.x_description = description
 
     def addComposite(self, item):
         self.is_composite = True
@@ -337,8 +403,6 @@ class Thing(PhysicalEntity):
 
     def describeChildren(self, description):
         self.children_desc = description
-        self.desc = self.desc + self.children_desc
-        self.xdesc = self.xdesc + self.children_desc
         self.containsListUpdate()
 
     def getNested(self):

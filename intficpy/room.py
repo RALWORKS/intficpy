@@ -1,7 +1,7 @@
 from .physical_entity import PhysicalEntity
 from .ifp_object import IFPObject
 from .thing_base import Thing
-from .things import Container, LightSource
+from .things import Container, LightSource, Unremarkable
 
 ##############################################################
 # ROOM.PY - verbs for IntFicPy
@@ -68,63 +68,38 @@ class Room(PhysicalEntity):
         self.dark_visible_exits = []
         self.walls = []
 
-        self.floor = Thing("floor")
-        self.floor.known_ix = None
+        self.floor = Unremarkable("floor")
         self.floor.addSynonym("ground")
-        self.floor.invItem = False
-        self.floor.describeThing("")
-        self.floor.xdescribeThing("You notice nothing remarkable about the floor. ")
         self.addThing(self.floor)
 
-        self.ceiling = Thing("ceiling")
-        self.ceiling.known_ix = None
-        self.ceiling.invItem = False
-        self.ceiling.far_away = True
-        self.ceiling.describeThing("")
-        self.ceiling.xdescribeThing("You notice nothing remarkable about the ceiling. ")
+        self.ceiling = Unremarkable("ceiling")
         self.addThing(self.ceiling)
 
-        self.north_wall = Thing("wall")
+        self.north_wall = Unremarkable("wall")
         self.north_wall.addSynonym("walls")
         self.north_wall.setAdjectives(["north"])
-        self.north_wall.invItem = False
-        self.north_wall.describeThing("")
-        self.north_wall.xdescribeThing(
-            "You notice nothing remarkable about the north wall. "
-        )
+
         self.addThing(self.north_wall)
         self.walls.append(self.north_wall)
 
-        self.south_wall = Thing("wall")
+        self.south_wall = Unremarkable("wall")
         self.south_wall.addSynonym("walls")
         self.south_wall.setAdjectives(["south"])
-        self.south_wall.invItem = False
-        self.south_wall.describeThing("")
-        self.south_wall.xdescribeThing(
-            "You notice nothing remarkable about the south wall. "
-        )
+
         self.addThing(self.south_wall)
         self.walls.append(self.south_wall)
 
-        self.east_wall = Thing("wall")
+        self.east_wall = Unremarkable("wall")
         self.east_wall.addSynonym("walls")
         self.east_wall.setAdjectives(["east"])
-        self.east_wall.invItem = False
-        self.east_wall.describeThing("")
-        self.east_wall.xdescribeThing(
-            "You notice nothing remarkable about the east wall. "
-        )
+
         self.addThing(self.east_wall)
         self.walls.append(self.east_wall)
 
-        self.west_wall = Thing("wall")
+        self.west_wall = Unremarkable("wall")
         self.west_wall.addSynonym("walls")
         self.west_wall.setAdjectives(["west"])
-        self.west_wall.invItem = False
-        self.west_wall.describeThing("")
-        self.west_wall.xdescribeThing(
-            "You notice nothing remarkable about the west wall. "
-        )
+
         self.addThing(self.west_wall)
         self.walls.append(self.west_wall)
         for wall in self.walls:
@@ -231,7 +206,7 @@ class Room(PhysicalEntity):
                     + " here. "
                 )
             elif desc_loc != key and key not in child_items and len(things) > 0:
-                self.fulldesc = self.fulldesc + " " + things[0].desc
+                self.fulldesc = self.fulldesc + things[0].desc
         if desc_loc:
             self.fulldesc = self.fulldesc + "<br>"
             if len(self.contains[desc_loc]) > 2:

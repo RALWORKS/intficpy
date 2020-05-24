@@ -377,28 +377,6 @@ class DoorConnector(TravelConnector):
                     + self.entranceB.adjectives
                     + [self.entranceB.name]
                 )
-                self.entranceA.lock_obj.describeThing("")
-                self.entranceB.lock_obj.describeThing("")
-                self.entranceA.lock_obj.xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + self.entranceA.lock_obj.getArticle(True)
-                    + self.entranceA.lock_obj.name
-                    + ". "
-                )
-                self.entranceB.lock_obj.xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + self.entranceB.lock_obj.getArticle(True)
-                    + self.entranceB.lock_obj.name
-                    + ". "
-                )
-                if lock_obj.is_locked:
-                    self.entranceA.lock_desc = " It is locked. "
-                    self.entranceB.lock_desc = " It is locked. "
-                else:
-                    self.entranceA.lock_desc = " It is unlocked. "
-                    self.entranceB.lock_desc = " It is unlocked. "
-                self.entranceA.xdesc = self.entranceA.xdesc + self.entranceA.lock_desc
-                self.entranceB.xdesc = self.entranceB.xdesc + self.entranceB.lock_desc
             else:
                 print(
                     "Cannot set lock_obj for "

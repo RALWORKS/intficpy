@@ -18,7 +18,6 @@ class Achievement(IFPObject):
 
     def award(self, game):
         # add self to fullscore
-        print("AWARD")
         if not self in score.achievements:
             game.addTextToEvent(
                 "turn",
@@ -117,9 +116,7 @@ class HintSystem(IFPObject):
         nodes_checked.append(x)
         while x:
             if not isinstance(x, HintNode):
-                print(x)
-                print("ERROR: not a HintNode - cannot use as current hint ")
-                return False
+                raise ValueError(f"{x} is not a HintNode - cannot use as current hint ")
             if not x.complete:
                 if not x.checkRequiredIncomplete():
                     x.complete = True  # not sure
@@ -189,8 +186,7 @@ class HintNode(IFPObject):
         self.complete = False
         for x in hints:
             if not isinstance(x, Hint):
-                print(x)
-                print("ERROR: not a Hint - cannot add to HintNode ")
+                raise ValueError(f"{x} is not a HintNode - cannot add to HintNode")
         self.hints = hints
         # nodes that must be complete/incomplete in order to open node
         self.open_require_nodes_complete = []
@@ -215,9 +211,7 @@ class HintNode(IFPObject):
     def setHints(self, hints):
         for x in hints:
             if not isinstance(x, Hint):
-                print(x)
-                print("ERROR: not a Hint - cannot add to HintNode ")
-                return False
+                raise ValueError(f"{x} is not a HintNode - cannot add to HintNode")
         self.hints = hints
 
     def nextHint(self, game):
@@ -225,8 +219,8 @@ class HintNode(IFPObject):
 		Returns True if a hint can be given, False on failure """
 
         if len(self.hints) == 0:
-            print("ERROR: cannot use nextHint on empty HintNode ")
-            return False
+            raise ValueError(f"Cannot use nextHint on {self} - HintNode is empty")
+
         if self.previousTurnHint(game):
             self.cur_hint += 1
         if self.cur_hint == len(self.hints):
