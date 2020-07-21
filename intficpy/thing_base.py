@@ -154,6 +154,13 @@ class Thing(PhysicalEntity):
         return "".join([getattr(self, key) for key in self.state_descriptors])
 
     @property
+    def component_desc(self):
+        """
+        How the item is described when it is a component of another item
+        """
+        return self.desc
+
+    @property
     def composite_desc(self):
         """
         Describe the composite parts (children) of the item
@@ -163,16 +170,7 @@ class Thing(PhysicalEntity):
 
         return (
             self.children_desc
-            or "".join(
-                [
-                    child.desc
-                    for child in self.children
-                    # don't include spaces underneath the item in the composite description
-                    # unless they are explicitly described
-                    if not (child.contains_under and not child.description)
-                ]
-            )
-            + " "
+            or "".join([child.component_desc for child in self.children]) + " "
         )
 
     @property

@@ -401,6 +401,19 @@ class UnderSpace(Thing):
         self.contains_under = True
         self.contains_preposition_inverse = "out"
 
+    @property
+    def component_desc(self):
+        """
+        How the item is described when it is a component of another item
+
+        UnderSpaces that are a component of another item are only described
+        if they are given an explicit description.
+
+        This avoids descriptions like, "There is a dresser. Under the dresser is here."
+        being produced by default.
+        """
+        return self.desc if self.description else ""
+
     def revealUnder(self):
         self.revealed = True
         for key in self.contains:
