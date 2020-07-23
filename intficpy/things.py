@@ -631,7 +631,7 @@ class Liquid(Thing):
         article is definite
         Returns a string
         """
-        if not self.hasArticle:
+        if self.has_proper_name:
             return ""
         elif definite or self.isDefinite:
             return "the "

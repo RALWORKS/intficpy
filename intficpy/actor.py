@@ -63,7 +63,7 @@ class Actor(Thing):
         for tok in token_name:
             self.addSynonym(tok)
         self.verbose_name = proper_name
-        self.hasArticle = False
+        self.has_proper_name = True
 
     def makeStanding(self):
         self.position = "standing"

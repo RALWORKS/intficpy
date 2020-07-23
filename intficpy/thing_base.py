@@ -68,7 +68,7 @@ class Thing(PhysicalEntity):
         # ARTICLES & PLURALIZATION
         self.isPlural = False
         self.special_plural = False
-        self.hasArticle = True
+        self.has_proper_name = False
         self.isDefinite = False
         self.is_numberless = False
 
@@ -111,7 +111,7 @@ class Thing(PhysicalEntity):
         """
         The base item description, if a description has not been specified.
         """
-        if not self.hasArticle or self.isDefinite:
+        if self.has_proper_name or self.isDefinite:
             return f"{self.capNameArticle()} is here. "
         return f"There is {self.lowNameArticle()} here. "
 
@@ -269,7 +269,7 @@ class Thing(PhysicalEntity):
         """Gets the correct article for a Thing
 		Takes argument definite (defaults to False), which specifies whether the article is definite
 		Returns a string """
-        if not self.hasArticle:
+        if self.has_proper_name:
             return ""
         elif definite or self.isDefinite:
             return "the "
