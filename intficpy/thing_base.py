@@ -83,9 +83,7 @@ class Thing(PhysicalEntity):
         self.adjectives = []
         self.name = name
         self.synonyms = []
-        self.manual_update = False
-        # verbose name will be updated when adjectives are added
-        self.verbose_name = name
+        self._verbose_name = None
 
         # CAPABILITIES
         # can I do x with this?
@@ -105,6 +103,15 @@ class Thing(PhysicalEntity):
             nounDict[name].append(self)
         else:
             nounDict[name] = [self]
+
+    @property
+    def verbose_name(self):
+        """
+        The name that will be printed for descriptions.
+        """
+        if self._verbose_name:
+            return self._verbose_name
+        return " ".join(self.adjectives + [self.name])
 
     @property
     def default_desc(self):
@@ -254,7 +261,6 @@ class Thing(PhysicalEntity):
 		Takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
 		Game creators should set update_desc to False if using a custom desc or xdesc for a Thing """
         self.adjectives = adj_list
-        self.verbose_name = " ".join(adj_list) + " " + self.name
 
     def capNameArticle(self, definite=False):
         out = self.getArticle(definite) + self.verbose_name
@@ -313,7 +319,7 @@ class Thing(PhysicalEntity):
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
             nounDict[synonym].append(out)
-        out.verbose_name = self.verbose_name
+        out._verbose_name = self._verbose_name
         out.contains = {}
         out.sub_contains = {}
         return out
@@ -331,7 +337,7 @@ class Thing(PhysicalEntity):
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
             nounDict[synonym].append(out)
-        out.verbose_name = self.verbose_name
+        out._verbose_name = self._verbose_name
         out.contains = {}
         out.sub_contains = {}
         return out

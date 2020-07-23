@@ -311,7 +311,7 @@ class OutdoorRoom(Room):
 
         self.floor.addSynonym("ground")
         self.floor.name = "ground"
-        self.floor.verbose_name = "ground"
+        self.floor._verbose_name = "ground"
         self.floor.removeSynonym("floor")
         self.floor.xdescribeThing("You notice nothing remarkable about the ground. ")
 

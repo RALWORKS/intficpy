@@ -87,3 +87,20 @@ class TestDesc(IFPTestCase):
         self.game.turnMain(f"l {subject.verbose_name}")
         msg = self.app.print_stack.pop()
         self.assertNotIn(child.verbose_name, msg)
+
+
+class TestVerboseName(IFPTestCase):
+    def test_verbose_name_contains_all_adjectives_in_order_if_not_overridden(self):
+        subject = Thing("flower")
+        ADJECTIVES = ["grandma's", "big", "bright", "yellow"]
+        subject.setAdjectives(ADJECTIVES)
+        expected_name = " ".join(ADJECTIVES + [subject.name])
+        self.assertEqual(expected_name, subject.verbose_name)
+
+    def test_verbose_name_is__verbose_name_if_overridden(self):
+        subject = Thing("flower")
+        ADJECTIVES = ["grandma's", "big", "bright", "yellow"]
+        subject.setAdjectives(ADJECTIVES)
+        NAME = "sasquatch"
+        subject._verbose_name = NAME
+        self.assertEqual(NAME, subject.verbose_name)

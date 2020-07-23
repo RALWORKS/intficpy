@@ -251,10 +251,7 @@ def getVerbFunc(game, dobj, skip=False):
             old_loc = dobj.location
             if not isinstance(dobj.location, Room):
                 dobj.location.removeThing(dobj)
-            elif dobj.location.manual_update:
-                dobj.location.removeThing(dobj, False, False)
-            else:
-                dobj.location.removeThing(dobj)
+            dobj.location.removeThing(dobj)
             dobj.location = old_loc.location
             if not isinstance(old_loc, Actor):
                 old_loc.containsListUpdate()
@@ -723,10 +720,8 @@ def setInVerbFunc(game, dobj, iobj, skip=False):
         )
         # game.me.contains.remove(dobj)
         game.me.removeThing(dobj)
-        if iobj.manual_update:
-            iobj.addThing(dobj, False, False)
-        else:
-            iobj.addThing(dobj)
+
+        iobj.addThing(dobj)
         return True
     elif isinstance(iobj, Container):
         game.addTextToEvent(

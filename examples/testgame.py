@@ -144,7 +144,7 @@ startroom.addThing(bench)
 underbench = UnderSpace("space", game)
 underbench.contains_preposition = "in"
 bench.addComposite(underbench)
-underbench.verbose_name = "space under the bench"
+underbench._verbose_name = "space under the bench"
 
 nails = Thing("nails")
 nails.addSynonym("can")
