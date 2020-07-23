@@ -624,25 +624,6 @@ class Liquid(Thing):
         self.location.removeThing(self)
         return True
 
-    def getArticle(self, definite=False):
-        """
-        Gets the correct article for a Thing
-        Takes argument definite (defaults to False), which specifies whether the
-        article is definite
-        Returns a string
-        """
-        if self.has_proper_name:
-            return ""
-        elif definite or self.isDefinite:
-            return "the "
-        elif self.is_numberless:
-            return ""
-        else:
-            if self.verbose_name[0] in ["a", "e", "i", "o", "u"]:
-                return "an "
-            else:
-                return "a "
-
 
 # hacky solution for reflexive pronouns (himself/herself/itself)
 reflexive = Abstract("itself")

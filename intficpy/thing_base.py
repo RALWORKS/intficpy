@@ -266,13 +266,18 @@ class Thing(PhysicalEntity):
         return self.getArticle(definite) + self.verbose_name
 
     def getArticle(self, definite=False):
-        """Gets the correct article for a Thing
-		Takes argument definite (defaults to False), which specifies whether the article is definite
-		Returns a string """
+        """
+        Gets the correct article for a Thing
+        Takes argument definite (defaults to False), which specifies whether the
+        article is definite
+        Returns a string
+        """
         if self.has_proper_name:
             return ""
         elif definite or self.isDefinite:
             return "the "
+        elif self.is_numberless:
+            return ""
         else:
             if self.verbose_name[0] in ["a", "e", "i", "o", "u"]:
                 return "an "
