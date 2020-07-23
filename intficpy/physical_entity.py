@@ -50,6 +50,8 @@ class PhysicalEntity(IFPObject):
         for t in self_nested:
             self.location.addSubLevelContains(t)
 
+        return True
+
     def addTopLevelContains(self, item):
         if item.ix in self.contains:
             self.contains[item.ix].append(item)
@@ -64,6 +66,8 @@ class PhysicalEntity(IFPObject):
             self.sub_contains[item.ix] = [item]
 
     def removeThing(self, item):
+        if not self.containsItem(item):
+            return False  # might be better to raise here
         if item.lock_obj and self.containsItem(item.lock_obj):
             self.removeContains(item.lock_obj)
 
@@ -85,6 +89,8 @@ class PhysicalEntity(IFPObject):
         self_nested = self.getNested()
         for t in self_nested:
             self.location.removeContains(t)
+
+        return True
 
     def removeContains(self, item):
         if self.topLevelContainsItem(item):

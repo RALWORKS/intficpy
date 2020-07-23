@@ -105,10 +105,11 @@ class TestDropVerb(IFPTestCase):
         self.assertEqual(len(self.me.contains[item.ix]), 1)
         self.assertIn(item, self.me.contains[item.ix])
 
-        success = dropVerb._runVerbFuncAndEvents(self.game, item)
-        self.assertTrue(success)
+        self.game.turnMain(f"drop {item.verbose_name}")
 
-        self.assertNotIn(item.ix, self.me.contains)
+        self.assertItemNotIn(
+            item, self.me.contains, "Dropped item, but item still in inventory"
+        )
 
     def test_drop_item_not_in_inv(self):
         item = Thing(self._get_unique_noun())

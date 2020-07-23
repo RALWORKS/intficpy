@@ -96,21 +96,20 @@ class TestCreateAllTypes(IFPTestCase):
 
 
 class TestAddRemoveThing(IFPTestCase):
-    def _get_full_desc(self, subject):
-        if hasattr(subject, "describe"):
-            subject.describe(self.game)
-            self.game.runTurnEvents()
+    def describe(self, subject):
+        if isinstance(subject, Room):
+            self.game.turnMain("l")
             return self.app.print_stack.pop()
-        return subject.xdesc
+        return subject.desc
 
     def _assert_can_add_remove(self, parent, child):
         self.assertNotIn(child.ix, parent.contains)
 
-        parent_desc = self._get_full_desc(parent)
+        parent.desc_reveal = True
 
         self.assertNotIn(
             child.verbose_name,
-            parent_desc,
+            self.describe(parent),
             "This test needs the child verbose_name to not intially be in "
             "the parent description",
         )
@@ -121,62 +120,33 @@ class TestAddRemoveThing(IFPTestCase):
             self.assertNotIn(sub_item.ix, parent.contains)
 
         parent.addThing(child)
-        self.assertIn(
-            child.ix,
-            parent.contains,
-            f"Tried to add item to {parent} but ix not in contains",
-        )
-        self.assertIn(
+        self.assertItemIn(
             child,
-            parent.contains[child.ix],
-            f"Tried to add item to {parent}. ix in contains, but item not "
-            "found under key",
-        )
-
-        parent_desc = self._get_full_desc(parent)
-
-        self.assertIn(
-            child.verbose_name,
-            parent_desc,
-            f"Item added to {parent}, but item verbose_name not found in description",
+            parent.contains,
+            f"Tried to add item to {parent}, but item not found in `contains`",
         )
 
         if child.lock_obj:
-            self.assertIn(
-                child.lock_obj.ix,
-                parent.contains,
-                f"Added item to {parent}, but lock_obj not added",
-            )
-            self.assertIn(
+            self.assertItemIn(
                 child.lock_obj,
-                parent.contains[child.lock_obj.ix],
-                f"Item lock_obj ix in {parent}, but lock_obj not found under ix",
-            )
-        for sub_item in child.children:
-            self.assertIn(
-                sub_item.ix,
                 parent.contains,
-                f"Added item to {parent}, but composite {sub_item} not added",
+                f"Added item with lock to {parent}, but lock_obj not found in `contains`",
             )
-            self.assertIn(
+
+        for sub_item in child.children:
+            self.assertItemIn(
                 sub_item,
-                parent.contains[sub_item.ix],
-                f"Composite {sub_item} ix in {parent}, but item not found " "under ix",
+                parent.contains,
+                f"Tried to add item to {parent}, but composite child item not found in "
+                "`contains`",
             )
 
         parent.removeThing(child)
-        self.assertNotIn(
-            child.ix,
+        self.assertItemNotIn(
+            child,
             parent.contains,
-            f"Tried to remove unique item from {parent} but ix still in " "contains",
+            f"Tried to remove item from {parent}, but item still found in `contains`",
         )
-        parent_desc = self._get_full_desc(parent)
-        self.assertNotIn(
-            child.verbose_name,
-            parent_desc,
-            f"Item removed from {parent}, but item verbose_name still in xdesc",
-        )
-
         if child.lock_obj:
             self.assertNotIn(
                 child.lock_obj.ix,

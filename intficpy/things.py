@@ -6,6 +6,59 @@ from .thing_base import Thing
 from .daemons import Daemon
 
 
+class Openable(Thing):
+    """
+    An item that can be opened.
+    Inheriting from this class means that instances can be made openable
+    """
+
+    IS_OPEN_DESC_KEY = "is_open_desc"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._is_open_desc__true = "It is open. "
+        self._is_open_desc__false = "It is closed. "
+
+    @property
+    def is_open_desc(self):
+        """
+        Describes the objects open/closed state in words
+        """
+        return self._is_open_desc__true if self.is_open else self._is_open_desc__false
+
+    @property
+    def is_locked_desc(self):
+        if not self.lock_obj:
+            return ""
+        return self.lock_obj.is_locked_desc
+
+    def makeOpen(self):
+        self.is_open = True
+
+    def makeClosed(self):
+        self.is_open = False
+
+
+class Unremarkable(Thing):
+    """
+    An item that does not need to be explicitly brought to the Player's attention
+    most of the time.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.invItem = False
+        self.known_ix = None
+
+    @property
+    def default_desc(self):
+        """
+        By default, do not describe in the room description.
+        """
+        return ""
+
+
 class Surface(Thing):
     """Class for Things that can have other Things placed on them """
 
@@ -24,138 +77,9 @@ class Surface(Thing):
 
         self.desc_reveal = True
 
-    def containsListUpdate(self, update_desc=True, update_xdesc=True):
-        """Update description of contents
-		Called when a Thing is added or removed """
-        onlist = " On the " + self.name + " is "
-        if update_desc:
-            self.compositeBaseDesc()
-        if update_xdesc:
-            self.compositeBasexDesc()
-        # iterate through contents, appending the verbose_name of each to onlist
-        list_version = list(self.contains.keys())
-        player_here = False
-        for key in list_version:
-            for item in self.contains[key]:
-                if isinstance(item, Player):
-                    list_version.remove(key)
-                    player_here = True
-                elif item.parent_obj:
-                    list_version.remove(key)
-        for key in list_version:
-            if len(self.contains[key]) > 1:
-                onlist = (
-                    onlist + str(len(things)) + " " + self.contains[key][0].getPlural()
-                )
-            else:
-                onlist = (
-                    onlist
-                    + self.contains[key][0].getArticle()
-                    + self.contains[key][0].verbose_name
-                )
-            if key is list_version[-1]:
-                onlist = onlist + "."
-            elif key is list_version[-2]:
-                onlist = onlist + " and "
-            else:
-                onlist = onlist + ", "
-            if key not in self._me.knows_about:
-                self._me.knows_about.append(key)
-        # if contains is empty, there should be no onlist
-        # TODO: consider rewriting this logic to avoid contructing an empty onlist, then deleting it
-        if len(list_version) == 0:
-            onlist = ""
-        if player_here:
-            if onlist != "":
-                onlist = onlist + "<br>"
-            onlist = (
-                onlist + "You are on " + self.getArticle(True) + self.verbose_name + "."
-            )
-        # append onlist to description
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.xdesc = self.xdesc + item.desc
-                    self.desc = self.desc + item.desc
-            if self.desc_reveal and update_desc:
-                self.desc = self.desc + onlist
-            if update_xdesc:
-                self.xdesc = self.xdesc + onlist
-        else:
-            if self.desc_reveal and update_desc:
-                self.desc = self.base_desc + onlist
-            if update_xdesc:
-                self.xdesc = self.base_xdesc + onlist
-        self.contains_desc = onlist
-
-    def compositeBaseDesc(self):
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.base_desc + self.children_desc
-            else:
-                self.desc = self.base_desc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        else:
-            self.desc = self.base_desc
-
-    def compositeBasexDesc(self):
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                self.xdesc = self.base_xdesc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        else:
-            self.xdesc = self.base_xdesc
-
-    def describeThing(self, description):
-        self.base_desc = description
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.base_desc + self.children_desc
-            else:
-                self.desc = self.base_desc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        self.containsListUpdate()
-
-    def xdescribeThing(self, description):
-        self.base_xdesc = description
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                self.xdesc = self.base_xdesc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        self.containsListUpdate()
-
-    def addThing(self, item):
-        super().addThing(item)
-        self.containsListUpdate()
-
-    def removeThing(self, item):
-        super().removeThing(item)
-        self.containsListUpdate()
-
 
 # NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
-class Container(Thing):
+class Container(Openable):
     """Things that can contain other Things """
 
     def __init__(self, name, game):
@@ -173,132 +97,14 @@ class Container(Thing):
 
         self._me = game.me
 
-    def updateDesc(self):
-        self.containsListUpdate(True, True)
-
-    def containsListUpdate(self, update_desc=True, update_xdesc=True):
-        """Update description for addition/removal of items from the Container instance """
-        from .actor import Player
-
-        # desc = self.base_desc
-        # xdesc = self.base_xdesc
-        if update_desc:
-            self.compositeBaseDesc()
-        if update_xdesc:
-            self.compositeBasexDesc()
-        desc = self.desc
-        xdesc = self.xdesc
-        if self.has_lid:
-            desc = desc + self.state_desc
-            xdesc = xdesc + self.state_desc
-            if not self.is_open:
-                self.desc = desc
-                self.xdesc = xdesc + self.lock_desc
-                self.contains_desc = (
-                    "You cannot see inside "
-                    + self.getArticle(True)
-                    + self.verbose_name
-                    + " as it is closed."
-                )
-                return False
-        inlist = " In the " + self.name + " is "
-        # iterate through contents, appending the verbose_name of each to onlist
-        list_version = list(self.contains.keys())
-        player_here = False
-        for key in list_version:
-            for item in self.contains[key]:
-                if isinstance(item, Player):
-                    list_version.remove(key)
-                    player_here = True
-                elif item.parent_obj:
-                    list_version.remove(key)
-        for key in list_version:
-            if len(self.contains[key]) > 1:
-                inlist = (
-                    inlist + str(len(things)) + " " + self.contains[key][0].verbose_name
-                )
-            else:
-                inlist = (
-                    inlist
-                    + self.contains[key][0].getArticle()
-                    + self.contains[key][0].verbose_name
-                )
-            if key is list_version[-1]:
-                inlist = inlist + "."
-            elif key is list_version[-2]:
-                inlist = inlist + " and "
-            else:
-                inlist = inlist + ", "
-            if key not in self._me.knows_about:
-                self._me.knows_about.append(key)
-        # remove the empty inlist in the case of no contents
-        # TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
-        if len(list_version) == 0:
-            inlist = ""
-        if player_here:
-            if inlist != "":
-                inlist = inlist + "<br>"
-            inlist = (
-                inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
-            )
-        # update descriptions
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.base_desc + self.children_desc
-                self.xdesc = self.base_xdesc + self.children_desc
-            else:
-                self.xdesc = self.base_xdesc
-                self.desc = self.base_desc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.xdesc = self.xdesc + item.desc
-                    self.desc = self.desc + item.desc
-            if update_desc and self.desc_reveal:
-                self.desc = self.desc + inlist
-            if update_xdesc and self.xdesc_reveal:
-                self.xdesc = self.xdesc + inlist
-        else:
-            if update_desc and self.desc_reveal:
-                self.desc = self.desc + inlist
-            if update_xdesc and self.xdesc_reveal:
-                self.xdesc = self.xdesc + self.lock_desc + inlist
-        self.contains_desc = inlist
-        return True
-
-    def compositeBaseDesc(self):
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.base_desc + self.children_desc
-            else:
-                self.desc = self.base_desc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        else:
-            self.desc = self.base_desc
-
-    def compositeBasexDesc(self):
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                self.xdesc = self.base_xdesc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        else:
-            self.xdesc = self.base_xdesc
-
-    def addThing(self, item):
-        super().addThing(item)
-        self.containsListUpdate()
-
-    def removeThing(self, item):
-        super().removeThing(item)
-        self.containsListUpdate()
+    @property
+    def contains_desc(self):
+        """
+        Describe the contents of an item
+        """
+        if self.has_lid and not self.is_open:
+            return ""
+        return super().contains_desc
 
     def revealContents(self):
         list_version = list(self.contains.keys())
@@ -319,55 +125,27 @@ class Container(Thing):
                     next_loc = next_loc.location
 
     def hideContents(self):
-        list_version = list(self.contains.keys())
-        for key in list_version:
-            for item in self.contains[key]:
-                nested = item.getNested()
-                next_loc = self.location
-                while next_loc:
-                    for x in nested:
-                        if x.ix in next_loc.sub_contains:
-                            next_loc.sub_contains[x.ix].remove(x)
-                            if next_loc.sub_contains[x.ix] == []:
-                                del next_loc.sub_contains[x.ix]
-                    if item.ix in next_loc.sub_contains:
-                        next_loc.sub_contains[item.ix].remove(item)
-                        if next_loc.sub_contains[item.ix] == []:
-                            del next_loc.sub_contains[item.ix]
-                    next_loc = next_loc.location
+        self.desc_reveal = True
+        self.xdesc_reveal = True
 
     def setLock(self, lock_obj):
-        if isinstance(lock_obj, Lock) and self.has_lid:
-            if not lock_obj.parent_obj:
-                self.lock_obj = lock_obj
-                lock_obj.parent_obj = self
-                if self.location:
-                    self.location.addThing(lock_obj)
-                lock_obj.setAdjectives(
-                    lock_obj.adjectives + self.adjectives + [self.name]
-                )
-                if lock_obj.is_locked:
-                    self.lock_desc = " It is locked. "
-                else:
-                    self.lock_desc = " It is unlocked. "
-                lock_obj.describeThing("")
-                lock_obj.xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + lock_obj.getArticle(True)
-                    + lock_obj.verbose_name
-                    + ". "
-                )
-                self.containsListUpdate()
-            else:
-                print(
-                    "Cannot set lock_obj for "
-                    + self.verbose_name
-                    + ": lock_obj.parent already set "
-                )
-        elif not self.has_lid:
-            print("Cannot set lock_obj for " + self.verbose_name + ": no lid ")
-        else:
-            print("Cannot set lock_obj for " + self.verbose_name + ": not a Lock ")
+        if not isinstance(lock_obj, Lock):
+            raise ValueError("Cannot set lock_obj for {self.verbose_name}: not a Lock")
+
+        if not self.has_lid:
+            raise ValueError(f"Cannot set lock_obj for {self.verbose_name}: no lid")
+
+        if lock_obj.parent_obj:
+            raise ValueError(
+                f"Cannot set lock_obj for {self.verbose_name}: lock_obj.parent already set"
+            )
+
+        self.lock_obj = lock_obj
+        lock_obj.parent_obj = self
+        if self.location:
+            self.location.addThing(lock_obj)
+        lock_obj.setAdjectives(lock_obj.adjectives + self.adjectives + [self.name])
+        self.state_descriptors.append(lock_obj.IS_LOCKED_DESC_KEY)
 
     def containsLiquid(self):
         """Returns  the first Liquid found in the Container or None"""
@@ -384,55 +162,19 @@ class Container(Thing):
             return self.size
         return self.size - liquid.size
 
-    def describeThing(self, description):
-        self.base_desc = description
-        self.desc = self.base_desc + self.state_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        self.containsListUpdate()
-
-    def xdescribeThing(self, description):
-        self.base_xdesc = description
-        self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.xdesc = self.xdesc + item.desc
-        self.containsListUpdate()
-
     def giveLid(self):
         self.has_lid = True
         self.is_open = False
-        self.state_desc = " It is currently closed. "
-        self.containsListUpdate()
+        if not self.IS_OPEN_DESC_KEY in self.state_descriptors:
+            self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
 
     def makeOpen(self):
-        self.is_open = True
-        self.state_desc = " It is currently open. "
-        self.containsListUpdate()
+        super().makeOpen()
         self.revealContents()
-        if self.parent_obj:
-            self.parent_obj.describeThing(self.parent_obj.base_desc)
-            self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
 
     def makeClosed(self):
-        self.is_open = False
-        self.state_desc = " It is currently closed. "
-        self.containsListUpdate()
+        super().makeClosed()
         self.hideContents()
-        if self.parent_obj:
-            self.parent_obj.describeThing(self.parent_obj.base_desc)
-            self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
 
 
 # NOTE: May not be necessary as a distinct class. Consider just using the wearable property.
@@ -447,17 +189,14 @@ class Clothing(Thing):
 class LightSource(Thing):
     """Class for Things that are light sources """
 
+    IS_LIT_DESC_KEY = "is_lit_desc"
+
     def __init__(self, name):
         """
         Set basic properties for the LightSource instance
         Takes argument name, a single noun (string)
         """
         super().__init__(name)
-
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc + "It is currently not lit. "
-        self.xdesc = self.base_xdesc + "It is currently not lit. "
 
         # LightSource properties
         self.is_lit = False
@@ -483,23 +222,16 @@ class LightSource(Thing):
 
         self.consumeLightSourceDaemon = Daemon(self.consumeLightSourceDaemonFunc)
 
-    def describeThing(self, description):
-        self.base_desc = description
-        if self.is_lit:
-            self.desc = self.base_desc + self.lit_desc
-        elif self.consumable and not self.turns_left:
-            self.desc = self.base_desc + self.expired_desc
-        else:
-            self.desc = self.base_desc + self.not_lit_desc
+        self.state_descriptors.append(self.IS_LIT_DESC_KEY)
 
-    def xdescribeThing(self, description):
-        self.base_xdesc = description
-        if self.is_lit:
-            self.xdesc = self.base_xdesc + self.lit_desc
-        elif self.consumable and not self.turns_left:
-            self.xdesc = self.base_xdesc + self.expired_desc
-        else:
-            self.xdesc = self.base_xdesc + self.not_lit_desc
+    @property
+    def is_lit_desc(self):
+        """
+        Describe whether the light source is lit, not lit, or burnt out
+        """
+        if turns_left == 0:
+            return self.expired_desc
+        return self.lit_desc if self.is_lit else self.not_lit_desc
 
     def light(self, game):
         if self.is_lit:
@@ -508,27 +240,27 @@ class LightSource(Thing):
         elif self.consumable and not self.turns_left:
             game.addTextToEvent("turn", self.cannot_light_expired_msg)
             return False
-        else:
-            if self.consumable:
-                game.daemons.add(self.consumeLightSourceDaemon)
 
-            self.is_lit = True
-            self.desc = self.base_desc + self.lit_desc
-            self.xdesc = self.base_xdesc + self.lit_desc
+        if self.consumable:
+            game.daemons.add(self.consumeLightSourceDaemon)
+
+        self.is_lit = True
+        return True
 
     def extinguish(self, game):
         if not self.is_lit:
             game.addTextToEvent("turn", self.already_extinguished_msg)
             return True
-        else:
-            if self.consumable and self.consumeLightSourceDaemon in game.daemons.active:
-                game.daemons.remove(self.consumeLightSourceDaemon)
-            self.is_lit = False
-            self.desc = self.base_desc + self.not_lit_desc
-            self.xdesc = self.base_xdesc + self.not_lit_desc
+
+        if self.consumable and self.consumeLightSourceDaemon in game.daemons.active:
+            game.daemons.remove(self.consumeLightSourceDaemon)
+        self.is_lit = False
 
     def consumeLightSourceDaemonFunc(self, game):
-        """Runs every turn while a consumable light source is active, to keep track of time left. """
+        """
+        Runs every turn while a consumable light source is active, to keep track of
+        time left.
+        """
         from .verb import helpVerb, helpVerbVerb, aboutVerb
 
         if not (
@@ -543,8 +275,7 @@ class LightSource(Thing):
                 if game.me.getOutermostLocation() == self.getOutermostLocation():
                     game.addTextToEvent("turn", self.extinguishing_expired_msg)
                 self.is_lit = False
-                self.desc = self.base_desc + self.expired_desc
-                self.xdesc = self.base_xdesc + self.expired_desc
+
                 if self.consumeLightSourceDaemon in game.daemons.active:
                     game.daemons.remove(self.consumeLightSourceDaemon)
             elif game.me.getOutermostLocation() == self.getOutermostLocation():
@@ -570,79 +301,34 @@ class AbstractClimbable(Thing):
         self.invItem = False
 
 
-class Door(Thing):
-    """Represents one side of a door. Always define with a twin, and set a direction. Can be open or closed.
-	Creators should generally use DoorConnectors (travel.py) rather than defining Doors  directly. """
+class Door(Openable):
+    """
+    Represents one side of a door. Always define with a twin, and set a direction.
+    Can be open or closed.
+    Creators should generally use DoorConnectors (travel.py) rather than defining Doors
+    directly.
+    """
 
     def __init__(self, name):
         """Sets essential properties for the Door instance """
         super().__init__(name)
         self.invItem = False
 
-        # TODO: create instance properties closed_desc and open_desc - possibly on Thing
-        self.state_desc = "It is currently closed. "
+        self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
 
     def makeOpen(self):
-        self.is_open = True
-        self.state_desc = "It is currently open. "
-        self.desc = self.base_desc + self.state_desc
-        self.xdesc = self.base_xdesc + self.state_desc
+        super().makeOpen()
+
         if self.twin:
             if not self.twin.is_open:
                 self.twin.makeOpen()
-        if self.parent_obj:
-            self.parent_obj.describeThing(self.parent_obj.base_desc)
-            self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
 
     def makeClosed(self):
-        self.is_open = False
-        self.state_desc = "It is currently closed. "
-        self.desc = self.base_desc + self.state_desc
-        self.xdesc = self.base_xdesc + self.state_desc
+        super().makeClosed()
+
         if self.twin:
-            if self.twin.is_open:
+            if not self.twin.is_open:
                 self.twin.makeClosed()
-        if self.parent_obj:
-            self.parent_obj.describeThing(self.parent_obj.base_desc)
-            self.parent_obj.xdescribeThing(self.parent_obj.base_xdesc)
-
-    def describeThing(self, description):
-        self.base_desc = description
-        self.desc = description + self.state_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-
-    def xdescribeThing(self, description):
-        self.base_xdesc = description
-        self.xdesc = description + self.state_desc + self.lock_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.xdesc = self.xdesc + item.desc
-
-    def updateDesc(self):
-        self.xdesc = self.base_xdesc + self.state_desc + self.lock_desc
-        self.desc = self.base_desc + self.state_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-                    self.xdesc = self.xdesc + item.desc
 
 
 class Key(Thing):
@@ -656,6 +342,8 @@ class Key(Thing):
 class Lock(Thing):
     """Lock is the class for lock items in the game  """
 
+    IS_LOCKED_DESC_KEY = "is_locked_desc"
+
     def __init__(self, is_locked, key_obj, name="lock"):
         """Sets essential properties for the Lock instance """
         super().__init__(name)
@@ -664,57 +352,34 @@ class Lock(Thing):
         self.key_obj = key_obj
         self.invItem = False
 
-        # TODO: extract strings into instance properties
-        if self.is_locked:
-            self.state_desc = " It is currently locked. "
-        else:
-            self.state_desc = "It is currently unlocked. "
+        self._is_locked_desc__true = "It is currently locked. "
+        self._is_locked_desc__flase = "It is currently unlocked. "
+        self.state_descriptors.append(self.IS_LOCKED_DESC_KEY)
+
+    @property
+    def is_locked_desc(self):
+        """
+        Descripe the item's locked/unlocked state in words
+        """
+        return (
+            self._is_locked_desc__true
+            if self.is_locked
+            else self._is_locked_desc__false
+        )
 
     def makeUnlocked(self):
         self.is_locked = False
-        self.state_desc = "It is currently unlocked. "
-        self.xdesc = self.base_xdesc + self.state_desc
-        if self.parent_obj:
-            self.parent_obj.lock_desc = " It is unlocked. "
-            self.parent_obj.updateDesc()
+
         if self.twin:
             if self.twin.is_locked:
                 self.twin.makeUnlocked()
 
     def makeLocked(self):
         self.is_locked = True
-        self.state_desc = "It is currently locked. "
-        self.xdesc = self.base_xdesc + self.state_desc
-        if self.parent_obj:
-            self.parent_obj.lock_desc = " It is locked. "
-            self.parent_obj.updateDesc()
+
         if self.twin:
             if not self.twin.is_locked:
                 self.twin.makeLocked()
-
-    def describeThing(self, description):
-        self.base_desc = description
-        self.desc = self.base_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-
-    def xdescribeThing(self, description):
-        self.base_xdesc = description
-        self.xdesc = self.base_xdesc + self.state_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.xdesc = self.xdesc + item.desc
 
 
 class Abstract(Thing):
@@ -728,8 +393,6 @@ class UnderSpace(Thing):
     """Things that can have other Things underneath """
 
     def __init__(self, name, game):
-        """Set basic properties for the UnderSpace instance
-		Takes argument name, a single noun (string)"""
         super().__init__(name)
 
         self._me = game.me
@@ -738,121 +401,21 @@ class UnderSpace(Thing):
         self.contains_under = True
         self.contains_preposition_inverse = "out"
 
-    def compositeBaseDesc(self):
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.base_desc + self.children_desc
-            else:
-                self.desc = self.base_desc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        else:
-            self.desc = self.base_desc
+    @property
+    def component_desc(self):
+        """
+        How the item is described when it is a component of another item
 
-    def compositeBasexDesc(self):
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                self.xdesc = self.base_xdesc
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        else:
-            self.xdesc = self.base_xdesc
+        UnderSpaces that are a component of another item are only described
+        if they are given an explicit description.
 
-    def containsListUpdate(self, update_desc=True, update_xdesc=True):
-        """Update description for addition/removal of items from the UnderSpace instance """
-        from .actor import Player
-
-        # desc = self.base_desc
-        # xdesc = self.base_xdesc
-        self.compositeBaseDesc()
-        self.compositeBasexDesc()
-        if not self.revealed:
-            return False
-        inlist = (
-            " "
-            + self.contains_preposition.capitalize()
-            + " "
-            + self.getArticle(True)
-            + self.verbose_name
-            + " is "
-        )
-        # iterate through contents, appending the verbose_name of each to onlist
-        list_version = list(self.contains.keys())
-        player_here = False
-        for key in list_version:
-            for item in self.contains[key]:
-                if key in list_version:
-                    if isinstance(item, Player):
-                        list_version.remove(key)
-                        player_here = True
-                    elif item.parent_obj:
-                        list_version.remove(key)
-        for key in list_version:
-            if len(self.contains[key]) > 1:
-                inlist = (
-                    inlist + str(len(things)) + " " + self.contains[key][0].verbose_name
-                )
-            else:
-                inlist = (
-                    inlist
-                    + self.contains[key][0].getArticle()
-                    + self.contains[key][0].verbose_name
-                )
-            if key is list_version[-1]:
-                inlist = inlist + "."
-            elif key is list_version[-2]:
-                inlist = inlist + " and "
-            else:
-                inlist = inlist + ", "
-            if key not in self._me.knows_about:
-                self._me.knows_about.append(key)
-        # remove the empty inlist in the case of no contents
-        # TODO: consider rewriting this logic to avoid contructing an empty inlist, then deleting it
-        if len(list_version) == 0:
-            inlist = ""
-        if player_here:
-            if inlist != "":
-                inlist = inlist + "<br>"
-            inlist = (
-                inlist + "You are in " + self.getArticle(True) + self.verbose_name + "."
-            )
-        # update descriptions
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-                    self.xdesc = self.xdesc + item.desc
-            # self.desc = self.desc + inlist
-            # self.xdesc = self.xdesc + inlist
-        if update_desc and self.desc_reveal:
-            self.desc = self.desc + inlist
-        if update_xdesc and self.xdesc_reveal:
-            self.xdesc = self.xdesc + inlist
-        self.contains_desc = inlist
-        return True
-
-    def addThing(self, item):
-        super().addThing(item)
-        self.containsListUpdate()
-
-    def removeThing(self, item):
-        super().removeThing(item)
-        self.containsListUpdate()
+        This avoids descriptions like, "There is a dresser. Under the dresser is here."
+        being produced by default.
+        """
+        return self.desc if self.description else ""
 
     def revealUnder(self):
         self.revealed = True
-        self.containsListUpdate()
         for key in self.contains:
             next_loc = self.location
             for item in self.contains[key]:
@@ -908,38 +471,9 @@ class UnderSpace(Thing):
         else:
             return [out, False]
 
-    def describeThing(self, description):
-        self.base_desc = description
-        self.desc = self.base_desc + self.state_desc
-        if self.is_composite:
-            if self.children_desc:
-                self.desc = self.desc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.desc = self.desc + item.desc
-        self.containsListUpdate()
-
-    def xdescribeThing(self, description):
-        self.base_xdesc = description
-        self.xdesc = self.base_xdesc
-        if self.is_composite:
-            if self.children_desc:
-                self.xdesc = self.xdesc + self.children_desc
-            else:
-                for item in self.children:
-                    if item in self.child_UnderSpaces:
-                        continue
-                    self.xdesc = self.xdesc + item.desc
-        self.containsListUpdate()
-
-    def updateDesc(self):
-        self.containsListUpdate()
-
 
 class Transparent(Thing):
-    """Transparent Things 
+    """Transparent Things
 	Set the look_through_desc property to print the same string every time look through [instance as dobj] is used
 	Replace default lookThrough method for more complicated behaviour """
 
@@ -955,8 +489,8 @@ class Transparent(Thing):
 
 class Readable(Thing):
     """
-    Readable Things 
-    Set the read_desc property to print the same string every time 
+    Readable Things
+    Set the read_desc property to print the same string every time
     READ [instance as dobj] is used.
 
     Replace default readText method for more complicated behaviour
@@ -974,23 +508,14 @@ class Readable(Thing):
         game.addTextToEvent("turn", self.read_desc)
 
 
-class Book(Readable):
+class Book(Openable, Readable):
     """Readable that can be opened """
 
     def __init__(self, name, text="There's nothing written here. "):
         """Sets essential properties for the Book instance """
         super().__init__(name, text)
         self.is_open = False
-
-    def makeOpen(self):
-        self.is_open = True
-        self.desc = self.base_desc + "It is open. "
-        self.xdesc = self.base_xdesc + "It is open. "
-
-    def makeClosed(self):
-        self.is_open = False
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
+        self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
 
 
 class Pressable(Thing):
@@ -1012,7 +537,7 @@ class Pressable(Thing):
 class Liquid(Thing):
     """
     Can fill a container where holds_liquid is True, can be poured, and can
-    optionally be drunk 
+    optionally be drunk
 
     Game creators should redefine the pressThing method for the instance to
     trigger events when the press/push verb is used
@@ -1020,7 +545,7 @@ class Liquid(Thing):
 
     def __init__(self, name, liquid_type):
         """
-        Sets essential properties for the Liquid instance 
+        Sets essential properties for the Liquid instance
 
         The liquid_type property should be a short description
         of what the liquid is, such as "water" or "motor oil"
@@ -1042,11 +567,6 @@ class Liquid(Thing):
         self.cannot_drink_msg = "You shouldn't drink that. "
 
         self.is_numberless = True
-
-        self.base_desc = "There is " + self.getArticle() + self.verbose_name + " here. "
-        self.base_xdesc = self.base_desc
-        self.desc = self.base_desc
-        self.xdesc = self.base_xdesc
 
     def getContainer(self):
         """Redirect to the Container rather than the Liquid for certain verbs (i.e. take) """
@@ -1105,9 +625,12 @@ class Liquid(Thing):
         return True
 
     def getArticle(self, definite=False):
-        """Gets the correct article for a Thing
-		Takes argument definite (defaults to False), which specifies whether the article is definite
-		Returns a string """
+        """
+        Gets the correct article for a Thing
+        Takes argument definite (defaults to False), which specifies whether the
+        article is definite
+        Returns a string
+        """
         if not self.hasArticle:
             return ""
         elif definite or self.isDefinite:
