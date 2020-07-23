@@ -845,7 +845,7 @@ class TestPlayerGetOn(IFPTestCase):
     def test_climb_on_can_lie(self):
         SUCCESS_MSG = f"You lie on {self.surface.lowNameArticle(True)}. "
 
-        self.surface.canLie = True
+        self.surface.can_contain_lying_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -859,7 +859,7 @@ class TestPlayerGetOn(IFPTestCase):
     def test_climb_on_can_sit(self):
         SUCCESS_MSG = f"You sit on {self.surface.lowNameArticle(True)}. "
 
-        self.surface.canSit = True
+        self.surface.can_contain_sitting_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -873,7 +873,7 @@ class TestPlayerGetOn(IFPTestCase):
     def test_climb_on_can_stand(self):
         SUCCESS_MSG = f"You stand on {self.surface.lowNameArticle(True)}. "
 
-        self.surface.canStand = True
+        self.surface.can_contain_standing_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -889,7 +889,7 @@ class TestPlayerGetOff(IFPTestCase):
     def setUp(self):
         super().setUp()
         self.surface = Surface("bench", self.game)
-        self.surface.canStand = True
+        self.surface.can_contain_standing_player = True
         self.start_room.addThing(self.surface)
         climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
@@ -934,7 +934,7 @@ class TestPlayerGetIn(IFPTestCase):
     def test_climb_in_can_lie(self):
         SUCCESS_MSG = f"You lie in {self.container.lowNameArticle(True)}. "
 
-        self.container.canLie = True
+        self.container.can_contain_lying_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -948,7 +948,7 @@ class TestPlayerGetIn(IFPTestCase):
     def test_climb_in_can_sit(self):
         SUCCESS_MSG = f"You sit in {self.container.lowNameArticle(True)}. "
 
-        self.container.canSit = True
+        self.container.can_contain_sitting_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -962,7 +962,7 @@ class TestPlayerGetIn(IFPTestCase):
     def test_climb_in_can_stand(self):
         SUCCESS_MSG = f"You stand in {self.container.lowNameArticle(True)}. "
 
-        self.container.canStand = True
+        self.container.can_contain_standing_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -985,7 +985,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
     def test_climb_in_can_lie(self):
         SUCCESS_MSG = f"You lie in {self.container.lowNameArticle(True)}. "
 
-        self.container.canLie = True
+        self.container.can_contain_lying_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -999,7 +999,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
     def test_climb_in_can_sit(self):
         SUCCESS_MSG = f"You sit in {self.container.lowNameArticle(True)}. "
 
-        self.container.canSit = True
+        self.container.can_contain_sitting_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -1013,7 +1013,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
     def test_climb_in_can_stand(self):
         SUCCESS_MSG = f"You stand in {self.container.lowNameArticle(True)}. "
 
-        self.container.canStand = True
+        self.container.can_contain_standing_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -1039,7 +1039,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
             "since it is closed. "
         )
 
-        self.container.canLie = True
+        self.container.can_contain_lying_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -1056,7 +1056,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
             "since it is closed. "
         )
 
-        self.container.canSit = True
+        self.container.can_contain_sitting_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -1073,7 +1073,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
             "since it is closed. "
         )
 
-        self.container.canStand = True
+        self.container.can_contain_standing_player = True
 
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
@@ -1089,7 +1089,7 @@ class TestPlayerGetOut(IFPTestCase):
     def setUp(self):
         super().setUp()
         self.container = Container("box", self.game)
-        self.container.canStand = True
+        self.container.can_contain_standing_player = True
         self.start_room.addThing(self.container)
         climbInVerb._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)

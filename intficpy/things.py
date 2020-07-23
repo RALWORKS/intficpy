@@ -71,9 +71,9 @@ class Surface(Thing):
         self.contains_on = True
         self.contains_preposition_inverse = "off"
 
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
+        self.can_contain_sitting_player = False
+        self.can_contain_standing_player = False
+        self.can_contain_lying_player = False
 
         self.desc_reveal = True
 

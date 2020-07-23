@@ -1818,7 +1818,7 @@ def lieDownVerbFunc(game):
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
     if game.me.position != "lying":
         if isinstance(game.me.location, Thing):
-            if not game.me.location.canLie:
+            if not game.me.location.can_contain_lying_player:
                 game.addTextToEvent(
                     "turn",
                     "(First getting "
@@ -1853,7 +1853,7 @@ def standUpVerbFunc(game):
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
     if game.me.position != "standing":
         if isinstance(game.me.location, Thing):
-            if not game.me.location.canStand:
+            if not game.me.location.can_contain_standing_player:
                 game.addTextToEvent(
                     "turn",
                     "(First getting "
@@ -1887,7 +1887,7 @@ def sitDownVerbFunc(game):
 	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
     if game.me.position != "sitting":
         if isinstance(game.me.location, Thing):
-            if not game.me.location.canSit:
+            if not game.me.location.can_contain_sitting_player:
                 game.addTextToEvent(
                     "turn",
                     "(First getting "
@@ -1920,7 +1920,7 @@ standOnVerb.preposition = ["on"]
 
 
 def standOnVerbFunc(game, dobj, skip=False):
-    """Sit on a Surface where canSit is True
+    """Sit on a Surface where can_contain_sitting_player is True
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     if not skip:
         runfunc = True
@@ -1970,7 +1970,7 @@ def standOnVerbFunc(game, dobj, skip=False):
             + dobj.verbose_name
             + ". ",
         )
-    elif isinstance(dobj, Surface) and dobj.canStand:
+    elif isinstance(dobj, Surface) and dobj.can_contain_standing_player:
         game.addTextToEvent(
             "turn", "You stand on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
@@ -2002,7 +2002,7 @@ sitOnVerb.preposition = ["down", "on"]
 
 
 def sitOnVerbFunc(game, dobj, skip=False):
-    """Stand on a Surface where canStand is True
+    """Stand on a Surface where can_contain_standing_player is True
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     if not skip:
         runfunc = True
@@ -2050,7 +2050,7 @@ def sitOnVerbFunc(game, dobj, skip=False):
             + dobj.verbose_name
             + ". ",
         )
-    elif isinstance(dobj, Surface) and dobj.canSit:
+    elif isinstance(dobj, Surface) and dobj.can_contain_sitting_player:
         game.addTextToEvent(
             "turn", "You sit on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
@@ -2087,7 +2087,7 @@ lieOnVerb.preposition = ["down", "on"]
 
 
 def lieOnVerbFunc(game, dobj):
-    """Lie on a Surface where canLie is True
+    """Lie on a Surface where can_contain_lying_player is True
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     runfunc = True
     try:
@@ -2135,7 +2135,7 @@ def lieOnVerbFunc(game, dobj):
             + dobj.verbose_name
             + ". ",
         )
-    elif isinstance(dobj, Surface) and dobj.canLie:
+    elif isinstance(dobj, Surface) and dobj.can_contain_lying_player:
         game.addTextToEvent(
             "turn", "You lie on " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
@@ -2167,7 +2167,7 @@ sitInVerb.preposition = ["down", "in"]
 
 # when the Chair subclass of Surface is implemented, redirect to sit on if dobj is a Chair
 def sitInVerbFunc(game, dobj, skip=False):
-    """Stand on a Surface where canStand is True
+    """Stand on a Surface where can_contain_standing_player is True
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     if not skip:
         runfunc = True
@@ -2193,7 +2193,7 @@ def sitInVerbFunc(game, dobj, skip=False):
             + ". ",
         )
         return True
-    elif isinstance(dobj, Container) and dobj.canSit:
+    elif isinstance(dobj, Container) and dobj.can_contain_sitting_player:
         game.addTextToEvent(
             "turn", "You sit in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
@@ -2225,7 +2225,7 @@ standInVerb.preposition = ["in"]
 
 
 def standInVerbFunc(game, dobj, skip=False):
-    """Sit on a Surface where canSit is True
+    """Sit on a Surface where can_contain_sitting_player is True
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     if not skip:
         runfunc = True
@@ -2251,7 +2251,7 @@ def standInVerbFunc(game, dobj, skip=False):
             + ". ",
         )
         return True
-    elif isinstance(dobj, Container) and dobj.canStand:
+    elif isinstance(dobj, Container) and dobj.can_contain_standing_player:
         game.addTextToEvent(
             "turn", "You stand in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
@@ -2290,7 +2290,7 @@ lieInVerb.preposition = ["down", "in"]
 
 
 def lieInVerbFunc(game, dobj, skip=False):
-    """Lie on a Surface where canLie is True
+    """Lie on a Surface where can_contain_lying_player is True
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     if not skip:
         runfunc = True
@@ -2316,7 +2316,7 @@ def lieInVerbFunc(game, dobj, skip=False):
             + ". ",
         )
         return True
-    elif isinstance(dobj, Container) and dobj.canLie:
+    elif isinstance(dobj, Container) and dobj.can_contain_lying_player:
         game.addTextToEvent(
             "turn", "You lie in " + dobj.getArticle(True) + dobj.verbose_name + ". "
         )
@@ -2356,7 +2356,7 @@ climbOnVerb.preposition = ["on", "up"]
 
 
 def climbOnVerbFunc(game, dobj, skip=False):
-    """Climb on a Surface where one of more of canStand/canSit/canLie is True
+    """Climb on a Surface where one of more of can_contain_standing_player/can_contain_sitting_player/can_contain_lying_player is True
 	Will be extended once stairs/ladders are implemented
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     if not skip:
@@ -2376,13 +2376,13 @@ def climbOnVerbFunc(game, dobj, skip=False):
         else:
             game.addTextToEvent("turn", "You can't climb up that. ")
             return False
-    elif isinstance(dobj, Surface) and dobj.canStand:
+    elif isinstance(dobj, Surface) and dobj.can_contain_standing_player:
         standOnVerb.verbFunc(game, dobj)
         return True
-    elif isinstance(dobj, Surface) and dobj.canSit:
+    elif isinstance(dobj, Surface) and dobj.can_contain_sitting_player:
         sitOnVerb.verbFunc(game, dobj)
         return True
-    elif isinstance(dobj, Surface) and dobj.canLie:
+    elif isinstance(dobj, Surface) and dobj.can_contain_lying_player:
         lieOnVerb.verbFunc(game, dobj)
         return True
     else:
@@ -2572,7 +2572,7 @@ climbInVerb.preposition = ["in", "into"]
 
 
 def climbInVerbFunc(game, dobj, skip=False):
-    """Climb in a Container where one of more of canStand/canSit/canLie is True
+    """Climb in a Container where one of more of can_contain_standing_player/can_contain_sitting_player/can_contain_lying_player is True
 	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
     if not skip:
         runfunc = True
@@ -2588,7 +2588,7 @@ def climbInVerbFunc(game, dobj, skip=False):
     if dobj.connection:
         dobj.connection.travel(game)
         return True
-    if isinstance(dobj, Container) and dobj.canStand:
+    if isinstance(dobj, Container) and dobj.can_contain_standing_player:
         if dobj.has_lid:
             if not dobj.is_open:
                 game.addTextToEvent(
@@ -2601,7 +2601,7 @@ def climbInVerbFunc(game, dobj, skip=False):
                 return False
         standInVerb.verbFunc(game, dobj)
         return True
-    elif isinstance(dobj, Container) and dobj.canSit:
+    elif isinstance(dobj, Container) and dobj.can_contain_sitting_player:
         if dobj.has_lid:
             if not dobj.is_open:
                 game.addTextToEvent(
@@ -2614,7 +2614,7 @@ def climbInVerbFunc(game, dobj, skip=False):
                 return False
         sitInVerb.verbFunc(game, dobj)
         return True
-    elif isinstance(dobj, Container) and dobj.canLie:
+    elif isinstance(dobj, Container) and dobj.can_contain_lying_player:
         if dobj.has_lid:
             if not dobj.is_open:
                 game.addTextToEvent(

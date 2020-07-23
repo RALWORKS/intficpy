@@ -30,9 +30,9 @@ class Thing(PhysicalEntity):
         self.contains_in = False
         self.contains_under = False
         # is valid Player location?
-        self.canSit = False
-        self.canStand = False
-        self.canLie = False
+        self.can_contain_sitting_player = False
+        self.can_contain_standing_player = False
+        self.can_contain_lying_player = False
         # language
         # TODO: these should default to in/out (out of?) to eliminate the null check
         self.contains_preposition = "on"
@@ -66,10 +66,10 @@ class Thing(PhysicalEntity):
         self.size = 50
 
         # ARTICLES & PLURALIZATION
-        self.isPlural = False
+        self.is_plural = False
         self.special_plural = False
         self.has_proper_name = False
-        self.isDefinite = False
+        self.is_definite = False
         self.is_numberless = False
 
         # LOCATION & INVITEM STATUS
@@ -111,7 +111,7 @@ class Thing(PhysicalEntity):
         """
         The base item description, if a description has not been specified.
         """
-        if self.has_proper_name or self.isDefinite:
+        if self.has_proper_name or self.is_definite:
             return f"{self.capNameArticle()} is here. "
         return f"There is {self.lowNameArticle()} here. "
 
@@ -274,7 +274,7 @@ class Thing(PhysicalEntity):
         """
         if self.has_proper_name:
             return ""
-        elif definite or self.isDefinite:
+        elif definite or self.is_definite:
             return "the "
         elif self.is_numberless:
             return ""
@@ -301,7 +301,7 @@ class Thing(PhysicalEntity):
     def makeUnique(self):
         """Make a Thing unique (use definite article)
 		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
-        self.isDefinite = True
+        self.is_definite = True
 
     def copyThing(self):
         """

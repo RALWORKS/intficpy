@@ -96,9 +96,9 @@ scarf = Clothing("scarf")
 startroom.addThing(scarf)
 
 box = Container("box", game)
-box.canStand = True
-box.canSit = True
-box.canLie = True
+box.can_contain_standing_player = True
+box.can_contain_sitting_player = True
+box.can_contain_lying_player = True
 box.giveLid()
 startroom.addThing(box)
 
@@ -133,8 +133,8 @@ bottle2 = bottle.copyThing()
 startroom.addThing(bottle2)
 
 bench = Surface("bench", game)
-bench.canSit = True
-bench.canStand = True
+bench.can_contain_sitting_player = True
+bench.can_contain_standing_player = True
 bench.invItem = False
 bench.describeThing("A rough wooden bench sits against the wall.")
 bench.xdescribeThing(
