@@ -263,8 +263,7 @@ class SaleItem(IFPObject):
                 game.me.removeThing(game.me.sub_contains[self.currency.ix][0])
         if self.price > 1:
             game.addTextToEvent(
-                "turn",
-                "(Lost: " + str(self.price) + " " + self.currency.getPlural() + ")",
+                "turn", "(Lost: " + str(self.price) + " " + self.currency.plural + ")",
             )
         else:
             game.addTextToEvent(
@@ -303,11 +302,7 @@ class SaleItem(IFPObject):
         if self.price > 1:
             game.addTextToEvent(
                 "turn",
-                "(Received: "
-                + str(self.price)
-                + " "
-                + self.currency.getPlural()
-                + ") ",
+                "(Received: " + str(self.price) + " " + self.currency.plural + ") ",
             )
         else:
             game.addTextToEvent(

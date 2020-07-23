@@ -774,7 +774,7 @@ class TestFullInventory(IFPTestCase):
 
         parent_desc = self.parent.lowNameArticle()
         stacked_desc = (
-            f"{len(self.me.contains[self.stacked1.ix])} " f"{self.stacked1.getPlural()}"
+            f"{len(self.me.contains[self.stacked1.ix])} " f"{self.stacked1.plural}"
         )
 
         self.assertIn(
@@ -800,8 +800,7 @@ class TestFullInventory(IFPTestCase):
 
         clothing_desc = self.clothing.lowNameArticle()
         stacked_clothing_desc = (
-            f"{len(self.me.wearing[self.clothing1.ix])} "
-            f"{self.clothing1.getPlural()}"
+            f"{len(self.me.wearing[self.clothing1.ix])} " f"{self.clothing1.plural}"
         )
 
         self.assertIn(

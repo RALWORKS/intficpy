@@ -105,6 +105,29 @@ class Thing(PhysicalEntity):
             nounDict[name] = [self]
 
     @property
+    def verb_to_be(self):
+        if self.is_plural:
+            return "are"
+        return "is"
+
+    @property
+    def plural(self):
+        if self.is_plural:
+            return self.verbose_name
+        if self.special_plural:
+            return self.special_plural
+        elif (
+            self.verbose_name[-1] == "s"
+            or self.verbose_name[-1] == "x"
+            or self.verbose_name[-1] == "z"
+            or self.verbose_name[-2:] == "sh"
+            or self.verbose_name[-2:] == "ch"
+        ):
+            return self.verbose_name + "es"
+        else:
+            return self.verbose_name + "s"
+
+    @property
     def verbose_name(self):
         """
         The name that will be printed for descriptions.
@@ -120,12 +143,12 @@ class Thing(PhysicalEntity):
         """
         if self.has_proper_name or self.is_definite:
             return f"{self.capNameArticle()} is here. "
-        return f"There is {self.lowNameArticle()} here. "
+        return f"There {self.verb_to_be} {self.lowNameArticle()} here. "
 
     @property
     def default_xdesc(self):
         """
-        The base item examin description, if an x_description has not been specified.
+        The base item examine description, if an x_description has not been specified.
         """
         return f"You notice nothing remarkable about {self.lowNameArticle(True)}. "
 
@@ -202,7 +225,7 @@ class Thing(PhysicalEntity):
             item_phrases.append(
                 sublist[0].lowNameArticle()
                 if len(sublist) == 1
-                else (str(len(sublist)) + sublist[0].getPlural())
+                else (str(len(sublist)) + sublist[0].plural)
             )
 
         item_phrases[-1] += ". "
@@ -282,27 +305,13 @@ class Thing(PhysicalEntity):
             return ""
         elif definite or self.is_definite:
             return "the "
-        elif self.is_numberless:
+        elif self.is_numberless or self.is_plural:
             return ""
         else:
             if self.verbose_name[0] in ["a", "e", "i", "o", "u"]:
                 return "an "
             else:
                 return "a "
-
-    def getPlural(self):
-        if self.special_plural:
-            return self.special_plural
-        elif (
-            self.verbose_name[-1] == "s"
-            or self.verbose_name[-1] == "x"
-            or self.verbose_name[-1] == "z"
-            or self.verbose_name[-2:] == "sh"
-            or self.verbose_name[-2:] == "ch"
-        ):
-            return self.verbose_name + "es"
-        else:
-            return self.verbose_name + "s"
 
     def makeUnique(self):
         """Make a Thing unique (use definite article)

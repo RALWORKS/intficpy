@@ -202,7 +202,7 @@ class Room(PhysicalEntity):
                     + " There are "
                     + str(len(things))
                     + " "
-                    + things[0].getPlural()
+                    + things[0].plural
                     + " here. "
                 )
             elif desc_loc != key and key not in child_items and len(things) > 0:
@@ -225,7 +225,7 @@ class Room(PhysicalEntity):
                     "There are "
                     + str(len(self.contains[desc_loc]) - 1)
                     + " more "
-                    + self.contains[desc_loc][0].getPlural
+                    + self.contains[desc_loc][0].plural
                     + " nearby. "
                 )
             elif len(self.contains[desc_loc]) > 1:

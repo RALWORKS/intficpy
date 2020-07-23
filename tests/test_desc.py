@@ -89,6 +89,24 @@ class TestDesc(IFPTestCase):
         self.assertNotIn(child.verbose_name, msg)
 
 
+class TestPlural(IFPTestCase):
+    def test_plural_of_plural_returns_verbose_name(self):
+        subject = Thing("beads")
+        subject.is_plural = True
+        self.assertEqual(subject.verbose_name, subject.plural)
+
+    def test_desc_of_plural_conjugates_correctly(self):
+        subject = Thing("beads")
+        self.assertNotIn("are", subject.desc)
+        subject.is_plural = True
+        self.assertIn("are", subject.desc)
+
+    def test_plural_uses_special_plural(self):
+        subject = Thing("fungus")
+        subject.special_plural = "fungi"
+        self.assertEqual(subject.plural, subject.special_plural)
+
+
 class TestVerboseName(IFPTestCase):
     def test_verbose_name_contains_all_adjectives_in_order_if_not_overridden(self):
         subject = Thing("flower")

@@ -864,7 +864,7 @@ def invVerbFunc(game):
                     invdesc
                     + str(len(game.me.contains[key]))
                     + " "
-                    + game.me.contains[key][0].getPlural()
+                    + game.me.contains[key][0].plural
                 )
             else:
                 invdesc = (
@@ -901,7 +901,7 @@ def invVerbFunc(game):
                     weardesc
                     + str(len(game.me.wearing[key]))
                     + " "
-                    + game.me.wearing[key][0].getPlural()
+                    + game.me.wearing[key][0].plural
                 )
             else:
                 weardesc = (
@@ -3718,7 +3718,7 @@ def buyFromVerbFunc(game, dobj, iobj, skip=False):
             game.addTextToEvent(
                 "turn",
                 "You don't have enough "
-                + currency.getPlural()
+                + currency.plural
                 + " to purchase "
                 + dobj.lowNameArticle(False)
                 + ". <br> (requires "
@@ -3828,10 +3828,7 @@ def sellToVerbFunc(game, dobj, iobj, skip=False):
     elif not iobj.will_buy[dobj.known_ix].number:
         game.addTextToEvent(
             "turn",
-            iobj.capNameArticle(True)
-            + " will not buy any more "
-            + dobj.getPlural()
-            + ". ",
+            iobj.capNameArticle(True) + " will not buy any more " + dobj.plural + ". ",
         )
         return False
     else:
