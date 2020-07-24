@@ -14,7 +14,7 @@ def make_thing_instantiation_test(thing_class):
 
     def test(self):
         if thing_class in requires_me_classes:
-            item = thing_class(thing_class.__name__, self.game)
+            item = thing_class(thing_class.__name__)
         else:
             item = thing_class(thing_class.__name__)
         self.assertTrue(item.ix)
@@ -161,19 +161,19 @@ class TestAddRemoveThing(IFPTestCase):
             )
 
     def test_add_remove_from_Surface(self):
-        parent = Surface("parent", self.game)
+        parent = Surface("parent")
         child = Thing("child")
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_from_Container(self):
-        parent = Container("parent", self.game)
+        parent = Container("parent")
         child = Thing("child")
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_from_UnderSpace(self):
-        parent = UnderSpace("parent", self.game)
+        parent = UnderSpace("parent")
         parent.revealed = True
         child = Thing("child")
         self.start_room.addThing(parent)
@@ -185,7 +185,7 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_Surface(self):
-        parent = Surface("parent", self.game)
+        parent = Surface("parent")
         child = Thing("child")
         sub = Thing("sub")
         child.addComposite(sub)
@@ -193,7 +193,7 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_Container(self):
-        parent = Container("parent", self.game)
+        parent = Container("parent")
         child = Thing("child")
         sub = Thing("sub")
         child.addComposite(sub)
@@ -201,7 +201,7 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_UnderSpace(self):
-        parent = UnderSpace("parent", self.game)
+        parent = UnderSpace("parent")
         parent.revealed = True
         child = Thing("child")
         sub = Thing("sub")
@@ -217,8 +217,8 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_Surface(self):
-        parent = Surface("parent", self.game)
-        child = Container("child", self.game)
+        parent = Surface("parent")
+        child = Container("child")
         child.has_lid = True
         lock = Lock("lock", None)
         child.setLock(lock)
@@ -226,8 +226,8 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_Container(self):
-        parent = Container("parent", self.game)
-        child = Container("child", self.game)
+        parent = Container("parent")
+        child = Container("child")
         child.has_lid = True
         lock = Lock("lock", None)
         child.setLock(lock)
@@ -235,9 +235,9 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_UnderSpace(self):
-        parent = UnderSpace("parent", self.game)
+        parent = UnderSpace("parent")
         parent.revealed = True
-        child = Container("child", self.game)
+        child = Container("child")
         child.has_lid = True
         lock = Lock("lock", None)
         child.setLock(lock)
@@ -247,7 +247,7 @@ class TestAddRemoveThing(IFPTestCase):
     def test_add_remove_item_with_lock_from_Room(self):
         parent = Room("parent", "This is a room. ")
         parent.revealed = True
-        child = Container("child", self.game)
+        child = Container("child")
         child.has_lid = True
         lock = Lock("lock", None)
         child.setLock(lock)

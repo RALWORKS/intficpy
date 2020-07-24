@@ -126,7 +126,7 @@ class TestSetVerbs(IFPTestCase):
         item = Thing(self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        container = Container(self._get_unique_noun(), self.game)
+        container = Container(self._get_unique_noun())
         self.start_room.addThing(container)
 
         self.assertNotIn(item.ix, container.contains)
@@ -141,7 +141,7 @@ class TestSetVerbs(IFPTestCase):
         item = Thing(self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        surface = Surface(self._get_unique_noun(), self.game)
+        surface = Surface(self._get_unique_noun())
         self.start_room.addThing(surface)
 
         self.assertNotIn(item.ix, surface.contains)
@@ -156,7 +156,7 @@ class TestSetVerbs(IFPTestCase):
         item = Thing(self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        underspace = UnderSpace(self._get_unique_noun(), self.game)
+        underspace = UnderSpace(self._get_unique_noun())
         self.start_room.addThing(underspace)
 
         self.assertNotIn(item.ix, underspace.contains)
@@ -243,7 +243,7 @@ class TestLookVerbs(IFPTestCase):
         )
 
     def test_look_in(self):
-        parent = Container("shoebox", self.game)
+        parent = Container("shoebox")
         child = Thing("penny")
         parent.addThing(child)
 
@@ -259,7 +259,7 @@ class TestLookVerbs(IFPTestCase):
         )
 
     def test_look_under(self):
-        parent = UnderSpace("table", self.game)
+        parent = UnderSpace("table")
         child = Thing("penny")
         parent.addThing(child)
 
@@ -478,7 +478,7 @@ class TestDoorVerbs(IFPTestCase):
 class TestLidVerbs(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("chest", self.game)
+        self.container = Container("chest")
         self.container.has_lid = True
         self.container.is_open = False
         self.key = Key("key")
@@ -741,7 +741,7 @@ class TestFullInventory(IFPTestCase):
     def setUp(self):
         super().setUp()
         self.parent = Thing("cube")
-        self.child = Container("slot", self.game)
+        self.child = Container("slot")
         self.parent.addComposite(self.child)
         self.stacked1 = Thing("tile")
         self.stacked2 = self.stacked1.copyThing()
@@ -826,7 +826,7 @@ class TestFullInventory(IFPTestCase):
 class TestPlayerGetOn(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.surface = Surface("bench", self.game)
+        self.surface = Surface("bench")
         self.start_room.addThing(self.surface)
 
     def test_climb_on_cannot_sit_stand_lie(self):
@@ -887,7 +887,7 @@ class TestPlayerGetOn(IFPTestCase):
 class TestPlayerGetOff(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.surface = Surface("bench", self.game)
+        self.surface = Surface("bench")
         self.surface.can_contain_standing_player = True
         self.start_room.addThing(self.surface)
         climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
@@ -915,7 +915,7 @@ class TestPlayerGetOff(IFPTestCase):
 class TestPlayerGetIn(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box", self.game)
+        self.container = Container("box")
         self.start_room.addThing(self.container)
 
     def test_climb_in_cannot_sit_stand_lie(self):
@@ -976,7 +976,7 @@ class TestPlayerGetIn(IFPTestCase):
 class TestPlayerGetInOpenLid(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box", self.game)
+        self.container = Container("box")
         self.container.has_lid = True
         self.container.is_open = True
         self.start_room.addThing(self.container)
@@ -1027,7 +1027,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
 class TestPlayerGetInClosedLid(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box", self.game)
+        self.container = Container("box")
         self.container.has_lid = True
         self.container.is_open = False
         self.start_room.addThing(self.container)
@@ -1087,7 +1087,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
 class TestPlayerGetOut(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box", self.game)
+        self.container = Container("box")
         self.container.can_contain_standing_player = True
         self.start_room.addThing(self.container)
         climbInVerb._runVerbFuncAndEvents(self.game, self.container)

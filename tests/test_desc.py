@@ -15,7 +15,7 @@ class TestDesc(IFPTestCase):
         self.assertIn(subject.description, msg)
 
     def test_desc_contains_contents_if_desc_reveal(self):
-        subject = Surface(self._get_unique_noun(), self.game)
+        subject = Surface(self._get_unique_noun())
         subject.desc_reveal = True
         content = Thing(self._get_unique_noun())
         subject.addThing(content)
@@ -25,7 +25,7 @@ class TestDesc(IFPTestCase):
         self.assertIn(content.verbose_name, msg)
 
     def test_xdesc_does_not_contain_contents_if_not_xdesc_reveal(self):
-        subject = Surface(self._get_unique_noun(), self.game)
+        subject = Surface(self._get_unique_noun())
         subject.xdesc_reveal = False
         content = Thing(self._get_unique_noun())
         subject.addThing(content)
@@ -35,7 +35,7 @@ class TestDesc(IFPTestCase):
         self.assertNotIn(content.verbose_name, msg)
 
     def test_desc_does_not_contain_contents_if_lid_is_closed(self):
-        subject = Container(self._get_unique_noun(), self.game)
+        subject = Container(self._get_unique_noun())
         subject.giveLid()
         subject.is_open = False
         content = Thing(self._get_unique_noun())
@@ -46,7 +46,7 @@ class TestDesc(IFPTestCase):
         self.assertNotIn(content.verbose_name, msg)
 
     def test_desc_contains_lid_state(self):
-        subject = Container(self._get_unique_noun(), self.game)
+        subject = Container(self._get_unique_noun())
         subject.giveLid()
         content = Thing(self._get_unique_noun())
         subject.addThing(content)
@@ -57,7 +57,7 @@ class TestDesc(IFPTestCase):
         self.assertIn("is closed", msg)
 
     def test_desc_contains_lock_state(self):
-        subject = Container(self._get_unique_noun(), self.game)
+        subject = Container(self._get_unique_noun())
         subject.giveLid()
         lock = Lock(False, None)
         subject.setLock(lock)
@@ -66,7 +66,7 @@ class TestDesc(IFPTestCase):
         self.assertNotIn("is locked", msg)
 
     def test_contains_list_does_not_contain_composite_child_items(self):
-        subject = Container(self._get_unique_noun(), self.game)
+        subject = Container(self._get_unique_noun())
         content = Thing(self._get_unique_noun())
         child = Thing("child")
         content.addComposite(child)
@@ -78,7 +78,7 @@ class TestDesc(IFPTestCase):
 
     def test_undescribed_underspace_not_included_in_composite_desc(self):
         subject = Thing(self._get_unique_noun())
-        child = UnderSpace("child", self.game)
+        child = UnderSpace("child")
         subject.addComposite(child)
         self.start_room.addThing(subject)
 

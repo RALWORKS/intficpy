@@ -122,9 +122,9 @@ class TestSaveLoadNested(IFPTestCase):
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
 
-        self.item1 = Surface("table", self.game)
-        self.item2 = Container("box", self.game)
-        self.item3 = Container("cup", self.game)
+        self.item1 = Surface("table")
+        self.item2 = Container("box")
+        self.item3 = Container("cup")
         self.item4 = Thing("bean")
         self.item5 = Thing("spider")
 
@@ -179,8 +179,8 @@ class TestSaveLoadComplexAttribute(IFPTestCase):
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
 
-        self.item1 = Surface("table", self.game)
-        self.item2 = Container("box", self.game)
+        self.item1 = Surface("table")
+        self.item2 = Container("box")
 
         self.EXPECTED_ATTR = {
             "data": {"sarah_has_seen": True, "containers": [self.item1],},

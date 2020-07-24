@@ -95,7 +95,7 @@ def addCave(game):
 scarf = Clothing("scarf")
 startroom.addThing(scarf)
 
-box = Container("box", game)
+box = Container("box")
 box.can_contain_standing_player = True
 box.can_contain_sitting_player = True
 box.can_contain_lying_player = True
@@ -132,7 +132,7 @@ startroom.addThing(bottle)
 bottle2 = bottle.copyThing()
 startroom.addThing(bottle2)
 
-bench = Surface("bench", game)
+bench = Surface("bench")
 bench.can_contain_sitting_player = True
 bench.can_contain_standing_player = True
 bench.invItem = False
@@ -141,7 +141,7 @@ bench.xdescribeThing(
     "The wooden bench is splintering, and faded grey. It looks very old."
 )
 startroom.addThing(bench)
-underbench = UnderSpace("space", game)
+underbench = UnderSpace("space")
 underbench.contains_preposition = "in"
 bench.addComposite(underbench)
 underbench._verbose_name = "space under the bench"
@@ -151,7 +151,7 @@ nails.addSynonym("can")
 nails.setAdjectives(["can", "of"])
 bench.addThing(nails)
 
-emptycan = Container("can", game)
+emptycan = Container("can")
 emptycan.setAdjectives(["empty", "old"])
 emptycan.size = 30
 startroom.addThing(emptycan)

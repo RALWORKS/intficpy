@@ -62,11 +62,10 @@ class Unremarkable(Thing):
 class Surface(Thing):
     """Class for Things that can have other Things placed on them """
 
-    def __init__(self, name, game):
+    def __init__(self, name):
         """Sets the essential properties for a new Surface object """
         super().__init__(name)
 
-        self._me = game.me
         self.contains_preposition = "on"
         self.contains_on = True
         self.contains_preposition_inverse = "off"
@@ -82,7 +81,7 @@ class Surface(Thing):
 class Container(Openable):
     """Things that can contain other Things """
 
-    def __init__(self, name, game):
+    def __init__(self, name):
         """
         Set basic properties for the Container instance
         Takes argument name, a single noun (string)
@@ -94,8 +93,6 @@ class Container(Openable):
         self.contains_preposition = "in"
         self.contains_in = True
         self.contains_preposition_inverse = "out"
-
-        self._me = game.me
 
     @property
     def contains_desc(self):
@@ -392,10 +389,9 @@ class Abstract(Thing):
 class UnderSpace(Thing):
     """Things that can have other Things underneath """
 
-    def __init__(self, name, game):
+    def __init__(self, name):
         super().__init__(name)
 
-        self._me = game.me
         self.size = 50
         self.contains_preposition = "under"
         self.contains_under = True

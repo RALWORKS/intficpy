@@ -63,7 +63,7 @@ class TestParser(IFPTestCase):
     def test_gets_correct_verb_with_preposition_dobj_and_iobj(self):
         dobj = Thing(self._get_unique_noun())
         self.start_room.addThing(dobj)
-        iobj = Surface(self._get_unique_noun(), self.game)
+        iobj = Surface(self._get_unique_noun())
         self.start_room.addThing(iobj)
 
         self.game.turnMain(f"set {dobj.name} on {iobj.name}")
@@ -246,9 +246,9 @@ class TestParserError(IFPTestCase):
 
 class TestCompositeObjectRedirection(IFPTestCase):
     def test_composite_object_redirection(self):
-        bench = Surface("bench", self.game)
+        bench = Surface("bench")
         self.start_room.addThing(bench)
-        underbench = UnderSpace("space", self.game)
+        underbench = UnderSpace("space")
         bench.addComposite(underbench)
 
         widget = Thing("widget")
