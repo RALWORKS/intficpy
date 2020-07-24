@@ -43,6 +43,29 @@ class Actor(Thing):
         self.invItem = False
         self.cannotTakeMsg = "You cannot take a person. "
 
+        # initializing the game with this Player will automatically set this
+        # any other Players will need to have this manually set in order
+        # for them to know if they are the current active player
+        self.game = None
+
+    @property
+    def verb_to_be(self):
+        if self.is_current_player:
+            return "are"
+        return "is"
+
+    @property
+    def verbose_name(self):
+        if self.is_current_player:
+            return "you"
+        return super().verbose_name
+
+    @property
+    def is_current_player(self):
+        if not self.game:
+            return False
+        return self.game.me.ix == self.ix
+
     @property
     def position_state_desc(self):
         if self.position == "standing":

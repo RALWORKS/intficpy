@@ -128,6 +128,10 @@ class Thing(PhysicalEntity):
             return self.verbose_name + "s"
 
     @property
+    def is_current_player(self):
+        return False
+
+    @property
     def verbose_name(self):
         """
         The name that will be printed for descriptions.
