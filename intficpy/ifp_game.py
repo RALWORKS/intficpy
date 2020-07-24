@@ -106,6 +106,7 @@ class IFPGame:
         self.app = app
         app.game = self
         self.me = me
+        me.game = self
         self.parser = Parser(self)
         self.aboutGame = GameInfo()
         self.daemons = DaemonManager()
