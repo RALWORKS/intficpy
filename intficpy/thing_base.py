@@ -264,7 +264,7 @@ class Thing(PhysicalEntity):
 
     def addSynonym(self, word):
         """Adds a synonym (noun) that can be used to refer to a Thing
-		Takes argument word, a string, which should be a single noun """
+        Takes argument word, a string, which should be a single noun """
         self.synonyms.append(word)
         if word in nounDict:
             if self not in nounDict[word]:
@@ -274,7 +274,7 @@ class Thing(PhysicalEntity):
 
     def removeSynonym(self, word):
         """Adds a synonym (noun) that can be used to refer to a Thing
-		Takes argument word, a string, which should be a single noun """
+        Takes argument word, a string, which should be a single noun """
         if word in self.synonyms:
             self.synonyms.remove(word)
         if word in nounDict:
@@ -285,8 +285,8 @@ class Thing(PhysicalEntity):
 
     def setAdjectives(self, adj_list):
         """Sets adjectives for a Thing
-		Takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
-		Game creators should set update_desc to False if using a custom desc or xdesc for a Thing """
+        Takes arguments adj_list, a list of one word strings (adjectives), and update_desc, a Boolean defaulting to True
+        Game creators should set update_desc to False if using a custom desc or xdesc for a Thing """
         self.adjectives = adj_list
 
     def capNameArticle(self, definite=False):
@@ -317,9 +317,17 @@ class Thing(PhysicalEntity):
             else:
                 return "a "
 
+    def moveTo(self, location):
+        """
+        Move an item to a new location
+        """
+        if self.location:
+            self.location.removeThing(self)
+        location.addThing(self)
+
     def makeUnique(self):
         """Make a Thing unique (use definite article)
-		Creators should use a Thing's makeUnique method rather than setting its definite property directly """
+        Creators should use a Thing's makeUnique method rather than setting its definite property directly """
         self.is_definite = True
 
     def copyThing(self):

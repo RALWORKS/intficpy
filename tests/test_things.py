@@ -254,6 +254,29 @@ class TestAddRemoveThing(IFPTestCase):
         self._assert_can_add_remove(parent, child)
 
 
+class TestMoveTo(IFPTestCase):
+    def test_move_to_removes_item_from_old_location_and_adds_to_new_location(self):
+        old = Room("old", "It is old")
+        child = Thing("child")
+        old.addThing(child)
+
+        new = Container("new")
+        child.moveTo(new)
+
+        self.assertItemIn(child, new.contains, "Item not added to new location")
+        self.assertItemNotIn(child, old.contains, "Item not removed from old location")
+        self.assertIs(child.location, new, "Item not added to new location")
+
+    def test_adds_to_new_location_if_no_previous_location(self):
+        child = Thing("child")
+
+        new = Container("new")
+        child.moveTo(new)
+
+        self.assertItemIn(child, new.contains, "Item not added to new location")
+        self.assertIs(child.location, new, "Item not added to new location")
+
+
 add_thing_instantiation_tests()
 
 if __name__ == "__main__":
