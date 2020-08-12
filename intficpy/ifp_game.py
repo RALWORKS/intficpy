@@ -183,6 +183,18 @@ class IFPGame:
             )
         self.next_events[name].text.append(text)
 
+    def addText(self, text):
+        """
+        Shortcut to add text to the turn event
+        """
+        if not "turn" in self.next_events:
+            raise KeyError(
+                "The `turn` event has not yet been generated for this turn. "
+                "Please use either `addTextToEvent`, and specify a different event "
+                "name, or create a new event using `addEvent`"
+            )
+        self.next_events["turn"].text.append(text)
+
     def recordOn(self, f):
         """
         Try opening the specified file for recording,
