@@ -84,8 +84,8 @@ class Parser:
         """
         Identify the verb
         Called every turn by self.parseInput
-        Returns a two item list. The first is a Verb object and an associated verb form 
-        (list of strings), or None. 
+        Returns a two item list. The first is a Verb object and an associated verb form
+        (list of strings), or None.
         The second is True if potential verb matches were found, False otherwise
         """
         # look up first word in verb dictionary
@@ -95,6 +95,7 @@ class Parser:
             self.verbByObjects()
             if self.command.verb:
                 return
+        self.checkForConvCommand()
 
         self.command.err = True
         if self.previous_command.specialTopics:
@@ -111,12 +112,19 @@ class Parser:
             f"I don't understand the verb: {self.command.primary_verb_token}"
         )
 
+    def checkForConvCommand(self):
+        if self.previous_command.specialTopics:
+            if self.getConvCommand():
+                raise AbortTurn("Accepted conversation suggestion")
+
     def verbByObjects(self):
         """
         Disambiguates verbs based on syntax used
         Iterates through verb list, comparing syntax in input to the entries in the
         .syntax attribute of the verb
         """
+        self.checkForConvCommand()
+
         match_pairs = []
         for cur_verb in self.command.verb_matches:
             for verb_form in cur_verb.syntax:
@@ -179,10 +187,6 @@ class Parser:
             self.command.dobj = GrammarObject(match_pairs[0][2])
             self.command.iobj = GrammarObject(match_pairs[0][3])
             return
-
-        if self.previous_command.specialTopics:
-            if self.getConvCommand():
-                raise AbortTurn("Accepted conversation suggestion")
 
         raise ParserError(
             'I understood as far as "'
@@ -254,7 +258,7 @@ class Parser:
 
     def matchPrepKeywords(self):
         """
-        Check for prepositions in the self.tokenized player command, and remove any candidate 
+        Check for prepositions in the self.tokenized player command, and remove any candidate
         verbs whose preposition does not match
         Returns a list of Verb objects or an empty list
         """
@@ -410,8 +414,8 @@ class Parser:
 
     def _analyzeSyntax(self, verb_form, tag):
         """
-        Parse verb form (list of strings) to find the words directly preceding and 
-        following object tags, and pass these to self.getObjWords find the objects in the 
+        Parse verb form (list of strings) to find the words directly preceding and
+        following object tags, and pass these to self.getObjWords find the objects in the
         player's command
         Takes arguments:
         - verb_form, the assumed syntax of the command (list of strings),
@@ -464,10 +468,10 @@ class Parser:
 
     def getObjWords(self, game, before, after):
         """
-        Create a list of all nouns and adjectives (strings) referring to a direct or 
+        Create a list of all nouns and adjectives (strings) referring to a direct or
         indirect object
         Takes arguments
-        - before, the word expected before the grammatical object (string), 
+        - before, the word expected before the grammatical object (string),
         - after, the word expected after the grammatical object (string or None),
         Called by self._analyzeSyntax
         Returns an array of strings or None
@@ -590,7 +594,7 @@ class Parser:
         Returns True if within range, False otherwise
         """
         out_loc = self.game.me.getOutermostLocation()
-        too_dark = not out_loc.resolveDarkness(self.game.me)
+        too_dark = not out_loc.resolveDarkness(self.game)
         found = False
         if thing.ix in out_loc.contains:
             if thing not in out_loc.contains[thing.ix]:
@@ -666,10 +670,10 @@ class Parser:
 
     def checkRange(self, things, scope):
         """
-        Eliminates all grammatical object candidates that are not within the scope of the 
+        Eliminates all grammatical object candidates that are not within the scope of the
         current verb
-        Takes arguments self.game.me, things, a list of Thing objects (thing.py) that are candidates 
-        for the target of a player's action, and scope, a string representing the range of 
+        Takes arguments self.game.me, things, a list of Thing objects (thing.py) that are candidates
+        for the target of a player's action, and scope, a string representing the range of
         the verb
         Returns a list of Thing objects, or an empty list
         """
@@ -725,7 +729,7 @@ class Parser:
     def generateVerbScopeErrorMsg(self, scope, noun_adj_arr):
         """
         Prints the appropriate Thing out of scope message
-        Takes arguments self.game.app, pointing to the PyQt self.game.app, scope, a string, and noun_adj_arr, a 
+        Takes arguments self.game.app, pointing to the PyQt self.game.app, scope, a string, and noun_adj_arr, a
         list of strings
         Returns None
         """
@@ -755,8 +759,8 @@ class Parser:
     def getThing(self, noun_adj_arr, scope, far_obj, obj_direction):
         """
         Get the Thing object in range associated with a list of adjectives and a noun
-        Takes arguments noun_adj_array, a list of strings referring to an in game 
-        item, taken from the player command, 
+        Takes arguments noun_adj_array, a list of strings referring to an in game
+        item, taken from the player command,
         and scope, a string specifying the range of the verb
         Called by self.callVerb
         Returns a single Thing object (thing.py) or None
@@ -820,10 +824,10 @@ class Parser:
     def verboseNamesMatch(self, things):
         """
         Check if any of the potential grammatical objects have identical verbose names
-        Takes the list of things associated with the direct or indirect object 
-        Returns a list of two items: 
+        Takes the list of things associated with the direct or indirect object
+        Returns a list of two items:
             Item one is True if duplicates are present, else False
-            Item two is dictionary mapping verbose names to lists of Things from the input 
+            Item two is dictionary mapping verbose names to lists of Things from the input
             with that name
         """
         duplicates_present = False
@@ -878,14 +882,13 @@ class Parser:
             item, ix, location
         ) + self._disambigMsgNextJoiner(item, name_dict, name, unscanned)
 
-    def _generateDisambigMsg(self, things):
+    def _generateDisambigMsg(self, things, msg):
         """
         Generate the disambiguation message for a list of things
         """
         name_match = self.verboseNamesMatch(things)
         # dictionary of verbose_names from the current set of things
         name_dict = name_match[1]
-        msg = "Do you mean "
         scanned_keys = []
 
         if not name_match[0]:
@@ -938,11 +941,11 @@ class Parser:
         self, noun_adj_arr, noun, things, scope, far_obj, obj_direction
     ):
         """
-        If there are multiple Thing objects matching the noun, check the adjectives to 
+        If there are multiple Thing objects matching the noun, check the adjectives to
         narrow down to exactly 1
-        Takes arguments self.game.app, noun_adj_arr, a list of strings referring to an in game item, 
+        Takes arguments self.game.app, noun_adj_arr, a list of strings referring to an in game item,
         taken from the player command,noun (string), things, a list of Thing objects
-        (things.py) that are     candidates for the target of the player's action, and 
+        (things.py) that are     candidates for the target of the player's action, and
         scope, a string specifying the range of the verb
         Returns a single Thing object or None
         """
@@ -1022,7 +1025,7 @@ class Parser:
                 if same_loc:
                     return things[0]
 
-            msg = self._generateDisambigMsg(things)
+            msg = self._generateDisambigMsg(things, "Do you mean ")
             # turn ON disambiguation mode for next turn
             self.command.ambiguous = True
             self.command.ambig_noun = noun
@@ -1039,7 +1042,7 @@ class Parser:
         Gets the Thing objects (if any) referred to in the player command, then calls
         the verb function
 
-        Returns a Boolean, True if a verb function is successfully called, False 
+        Returns a Boolean, True if a verb function is successfully called, False
         otherwise
         """
         if self.command.verb.hasDobj and self.command.verb.hasIobj:
@@ -1072,7 +1075,7 @@ class Parser:
 
     def disambig(self):
         """
-        When disambiguation mode is active, use the player input to specify the target for 
+        When disambiguation mode is active, use the player input to specify the target for
         the previous turn's ambiguous command
         called by self.parseInput
         Returns a Boolean, True if disambiguation
@@ -1111,7 +1114,7 @@ class Parser:
         """
         Check if the given object has a subcomponent that is a better candidate for
         object of the current verb.
-        
+
         Takes arguments
         - obj_words, the words from the player comman that specify the object
         - which_obj, a string "dobj" or "iobj" specifying whether this object is direc
@@ -1258,11 +1261,10 @@ class Parser:
             return " ".join(obj)
 
         if scope == "direction":
-            obj = " ".join(obj)
             correct = self.directionRangeCheck(obj)
             if not correct:
                 raise ObjectMatchError(
-                    f"{obj.capitalize} is not a direction I recognize."
+                    f"{obj.capitalize()} is not a direction I recognize."
                 )
             return obj
 
@@ -1327,7 +1329,7 @@ class Parser:
             return obj_words
 
         if scope in ("text", "direction"):
-            return obj_words
+            return " ".join(obj_words)
 
         return self.getThing(obj_words, scope, far_obj, obj_direction,)
 

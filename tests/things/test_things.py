@@ -1,6 +1,6 @@
 import unittest
 
-from .helpers import IFPTestCase
+from ..helpers import IFPTestCase
 
 from intficpy.ifp_object import IFPObject
 from intficpy.thing_base import Thing

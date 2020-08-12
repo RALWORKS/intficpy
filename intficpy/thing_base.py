@@ -136,7 +136,7 @@ class Thing(PhysicalEntity):
         """
         The name that will be printed for descriptions.
         """
-        if self._verbose_name:
+        if self._verbose_name is not None:
             return self._verbose_name
         return " ".join(self.adjectives + [self.name])
 
@@ -162,7 +162,7 @@ class Thing(PhysicalEntity):
         The item description that will be used in room descriptions.
         """
         return (
-            (self.description or self.default_desc)
+            (self.description if self.description is not None else self.default_desc)
             + self.state_desc
             + self.composite_desc
             + (self.contains_desc if self.desc_reveal else "")
@@ -174,7 +174,11 @@ class Thing(PhysicalEntity):
         The item description that will be used for examine.
         """
         return (
-            (self.x_description or self.default_xdesc)
+            (
+                self.x_description
+                if self.x_description is not None
+                else self.default_xdesc
+            )
             + self.state_desc
             + self.composite_desc
             + (self.contains_desc if self.xdesc_reveal else "")

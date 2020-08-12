@@ -35,8 +35,8 @@ game.turn_event_style = ex.box_style1
 game.command_event_style = ex.box_style2
 
 
-game.aboutGame.setInfo("WIND AND OCEAN", "JSMaika")
-game.aboutGame.desc = "This is a test game for the IntFicPy parser. "
+game.title = "WIND AND OCEAN"
+game.author = "JSMaika"
 
 seenshackintro = False
 

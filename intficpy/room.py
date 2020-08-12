@@ -160,27 +160,40 @@ class Room(PhysicalEntity):
                 can_see = False
         return can_see
 
+    def describeDark(self, game):
+        if not self.dark:
+            return False
+
+        lightsource = (
+            (
+                [
+                    item
+                    for key, sublist in self.contains.items()
+                    for item in sublist
+                    if getattr(item, "is_lit", False)
+                ]
+                + [
+                    item
+                    for key, sublist in game.me.contains.items()
+                    for item in sublist
+                    if getattr(item, "is_lit", False)
+                ]
+            )
+            or [None]
+        )[0]
+
+        if lightsource:
+            game.addTextToEvent("turn", lightsource.room_lit_msg)
+            return False
+
+        game.addTextToEvent("turn", self.dark_desc)
+        return True
+
     def describe(self, game):
         """Prints the Room title and description and lists items in the Room """
-        if self.dark:
-            lightsource = None
-            for key in self.contains:
-                for item in self.contains[key]:
-                    if isinstance(item, LightSource):
-                        if item.is_lit:
-                            lightsource = item
-                            break
-            for key in game.me.contains:
-                for item in game.me.contains[key]:
-                    if isinstance(item, LightSource):
-                        if item.is_lit:
-                            lightsource = item
-                            break
-            if lightsource:
-                game.addTextToEvent("turn", lightsource.room_lit_msg)
-            else:
-                game.addTextToEvent("turn", self.dark_desc)
-                return False
+        if self.describeDark(game):
+            return False
+
         self.updateDiscovered(game)
         self.arriveFunc(game)
         self.fulldesc = self.desc

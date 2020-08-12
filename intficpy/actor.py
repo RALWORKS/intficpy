@@ -67,6 +67,13 @@ class Actor(Thing):
         return self.game.me.ix == self.ix
 
     @property
+    def contains_desc(self):
+        """
+        Do not describe an actor's inventory on room/examine desc
+        """
+        return ""
+
+    @property
     def position_state_desc(self):
         if self.position == "standing":
             return ""

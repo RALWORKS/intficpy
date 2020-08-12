@@ -4,6 +4,16 @@ from intficpy.things import Surface, Container, Lock, UnderSpace
 
 
 class TestDesc(IFPTestCase):
+    def test_desc_is_blank_if_description_is_blank(self):
+        subject = Thing(self._get_unique_noun())
+        subject.description = ""
+        self.assertEqual(subject.desc, "")
+
+    def test_xdesc_is_blank_if_x_description_is_blank(self):
+        subject = Thing(self._get_unique_noun())
+        subject.x_description = ""
+        self.assertEqual(subject.xdesc, "")
+
     def test_room_desc_contains_description_of_described_item_in_room(self):
         subject = Thing(self._get_unique_noun())
         subject.description = (

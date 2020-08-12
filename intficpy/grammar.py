@@ -2,11 +2,11 @@ from .tokenizer import cleanInput, tokenize, removeArticles
 
 
 class GrammarObject(object):
-    def __init__(self, tokens=""):
+    def __init__(self, tokens="", target=None):
         self.tokens = tokens
         self.adjectives = []
         self.entity_matches = []
-        self.target = None
+        self.target = target
 
     @property
     def noun_token(self):

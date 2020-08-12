@@ -226,7 +226,7 @@ class LightSource(Thing):
         """
         Describe whether the light source is lit, not lit, or burnt out
         """
-        if turns_left == 0:
+        if not self.turns_left:
             return self.expired_desc
         return self.lit_desc if self.is_lit else self.not_lit_desc
 

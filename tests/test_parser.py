@@ -48,7 +48,7 @@ class TestParser(IFPTestCase):
 
         self.assertIs(self.game.parser.previous_command.verb, leadDirVerb)
         self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
-        self.assertEqual(self.game.parser.previous_command.iobj.target, [iobj])
+        self.assertEqual(self.game.parser.previous_command.iobj.target, iobj)
 
     def test_gets_correct_verb_with_preposition_dobj_only(self):
         dobj = Thing(self._get_unique_noun())

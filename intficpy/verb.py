@@ -119,31 +119,31 @@ class Verb:
         """
         room = game.me.getOutermostLocation()
         people = room.contentsByClass(Actor)
-        people.remove(game.me)
-        people = list(filter(lambda item: not item.ignore_if_ambiguous, people))
+        people = list(
+            filter(
+                lambda item: not item.ignore_if_ambiguous and item is not game.me,
+                people,
+            )
+        )
 
         if len(people) == 1:
             return people
         if len(people) == 0:
             game.addTextToEvent("turn", len0_msg)
-        elif game.parser.previous_command.dobj.target in people and isinstance(
-            game.parser.previous_command.dobj.target, Actor
+        elif (
+            game.parser.previous_command.dobj
+            and game.parser.previous_command.dobj.target in people
+            and isinstance(game.parser.previous_command.dobj.target, Actor)
         ):
             return [game.parser.previous_command.dobj.target]
-        elif game.parser.previous_command.iobj.target in people and isinstance(
-            game.parser.previous_command.iobj.target, Actor
+        elif (
+            game.parser.previous_command.iobj
+            and game.parser.previous_command.iobj.target in people
+            and isinstance(game.parser.previous_command.iobj.target, Actor)
         ):
             return [game.parser.previous_command.iobj.target]
         else:
-            msg = base_disambig_msg
-            for p in people:
-                msg = msg + p.lowNameArticle(True)
-                if p is people[-1]:
-                    msg = msg + "? "
-                elif p is people[-2]:
-                    msg = msg + " or "
-                else:
-                    msg = msg + ", "
+            msg = game.parser._generateDisambigMsg(people, base_disambig_msg)
             game.addTextToEvent("turn", msg)
         return people
 
@@ -247,16 +247,7 @@ def getVerbFunc(game, dobj, skip=False):
                     else:
                         msg = msg.capitalize() + " is revealed. "
                     game.addTextToEvent("turn", msg)
-        while isinstance(dobj.location, Thing):
-            old_loc = dobj.location
-            if not isinstance(dobj.location, Room):
-                dobj.location.removeThing(dobj)
-            dobj.location.removeThing(dobj)
-            dobj.location = old_loc.location
-            if not isinstance(old_loc, Actor):
-                old_loc.containsListUpdate()
-        dobj.location.removeThing(dobj)
-        game.me.addThing(dobj)
+        dobj.moveTo(game.me)
         return True
     elif dobj.parent_obj:
         game.addTextToEvent("turn", dobj.cannotTakeMsg)
@@ -380,7 +371,7 @@ def removeFromVerbFunc(game, dobj, iobj, skip=True):
             + dobj.parent_obj.capNameArticle(True),
         )
         return False
-    if dobj.containsItem(game):
+    if dobj.containsItem(game.me):
         game.addTextToEvent(
             "turn",
             "You are currently "
@@ -1373,20 +1364,22 @@ talkToVerb.dtype = "Actor"
 
 def getImpTalkTo(game):
     """If no dobj is specified, try to guess the Actor
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+    Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+    from .grammar import GrammarObject
 
     people = Verb.disambiguateActor(
-        game, "There's no one obvious here to talk to. ", "Would you like to talk to ",
+        game, "There's no one obvious here to talk to. ", "Would you like to talk to "
     )
 
     if len(people) == 0:
         return None
 
     elif len(people) == 1:
+        game.parser.previous_command.dobj = GrammarObject(target=people[0])
         return people[0]
 
-    game.parser.previous_command.things = people
-    game.parser.previous_command.ambiguous = True
+    game.parser.command.things = people
+    game.parser.command.ambiguous = True
     return None
 
 
@@ -3935,6 +3928,7 @@ def playBackVerbFunc(game):
             game.turnMain(line[:-1])
 
     game.addTextToEvent("turn", "**PLAYBACK COMPLETE** ")
+    game.parser.command = game.parser.previous_command
     return True
 
 

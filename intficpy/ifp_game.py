@@ -45,46 +45,48 @@ class GameInfo:
         self.title = title
         self.author = author
 
-    def printAbout(self, app):
+    def printAbout(self, game):
         if self.customMsg:
-            addTextToEvent("turn", self.customMsg)
+            game.addTextToEvent("turn", self.customMsg)
         else:
-            addTextToEvent("turn", "<b>" + self.title + "</b>")
-            addTextToEvent("turn", "<b>Created by " + self.author + "</b>")
+            game.addTextToEvent("turn", "<b>" + self.title + "</b>")
+            game.addTextToEvent("turn", "<b>Created by " + self.author + "</b>")
             if self.intFicPyCredit:
-                addTextToEvent("turn", "Built with JSMaika's IntFicPy parser")
+                game.addTextToEvent("turn", "Built with JSMaika's IntFicPy parser")
             if self.desc:
-                addTextToEvent("turn", self.desc)
+                game.addTextToEvent("turn", self.desc)
             if self.betaTesterCredit:
-                addTextToEvent("turn", "<b>Beta Testing Credits</b>")
-                addTextToEvent("turn", self.betaTesterCredit)
+                game.addTextToEvent("turn", "<b>Beta Testing Credits</b>")
+                game.addTextToEvent("turn", self.betaTesterCredit)
 
-    def printInstructions(self, app):
-        addTextToEvent("turn", "<b>Basic Instructions</b>")
-        addTextToEvent("turn", self.basic_instructions)
+    def printInstructions(self, game):
+        game.addTextToEvent("turn", "<b>Basic Instructions</b>")
+        game.addTextToEvent("turn", self.basic_instructions)
         if self.game_instructions:
-            addTextToEvent("turn", "<b>Game Instructions</b>")
-            addTextToEvent("turn", self.game_instructions)
+            game.addTextToEvent("turn", "<b>Game Instructions</b>")
+            game.addTextToEvent("turn", self.game_instructions)
 
-    def printHelp(self, app):
+    def printHelp(self, game):
         if self.help_msg:
-            addTextToEvent("turn", self.help_msg)
+            game.addTextToEvent("turn", self.help_msg)
         # self.printVerbs(app)
-        addTextToEvent(
+        game.addTextToEvent(
             "turn",
             "Type INSTRUCTIONS for game instructions, or VERBS for a full list of accepted verbs. ",
         )
 
-    def printVerbs(self, app):
-        addTextToEvent("turn", "<b>This game accepts the following basic verbs: </b>")
+    def printVerbs(self, game):
+        game.addTextToEvent(
+            "turn", "<b>This game accepts the following basic verbs: </b>"
+        )
         verb_list = ""
         for verb in self.verbs:
             verb_list = verb_list + verb
             if verb != self.verbs[-1]:
                 verb_list = verb_list + ", "
-        addTextToEvent("turn", verb_list)
+        game.addTextToEvent("turn", verb_list)
         if len(self.discovered_verbs) > 0:
-            addTextToEvent(
+            game.addTextToEvent(
                 "turn", "<b>You have discovered the following additional verbs: </b>"
             )
             d_verb_list = ""
@@ -92,8 +94,8 @@ class GameInfo:
                 verb_list = verb_list + verb
                 if verb != self.verbs[-1]:
                     d_verb_list = d_verb_list + ", "
-            addTextToEvent("turn", d_verb_list)
-        addTextToEvent(
+            game.addTextToEvent("turn", d_verb_list)
+        game.addTextToEvent(
             "turn",
             'For help with phrasing, type "verb help" followed by a verb for a '
             "complete list of acceptable sentence structures for that verb. This will "

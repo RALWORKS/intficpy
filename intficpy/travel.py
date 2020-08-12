@@ -206,7 +206,7 @@ class TravelConnector(IFPObject):
             game.addTextToEvent("turn", self.cannot_pass_msg)
             return False
         if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
@@ -236,7 +236,7 @@ class TravelConnector(IFPObject):
                 game.me.location.describe(game)
                 return True
         elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
@@ -394,13 +394,13 @@ class DoorConnector(TravelConnector):
         outer_loc = game.me.getOutermostLocation()
         preRemovePlayer(game)
         if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
                 return False
         else:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
@@ -524,7 +524,7 @@ class LadderConnector(TravelConnector):
             return False
         outer_loc = game.me.getOutermostLocation()
         if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
@@ -542,7 +542,7 @@ class LadderConnector(TravelConnector):
             game.me.location.describe(game)
             return True
         elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
@@ -625,7 +625,7 @@ class StaircaseConnector(TravelConnector):
             game.addTextToEvent("turn", self.cannot_pass_msg)
             return False
         elif outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceA.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
@@ -643,7 +643,7 @@ class StaircaseConnector(TravelConnector):
             game.me.location.describe(game)
             return True
         elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(game.me) and (
+            if not outer_loc.resolveDarkness(game) and (
                 self.entranceB.direction not in outer_loc.dark_visible_exits
             ):
                 game.addTextToEvent("turn", outer_loc.dark_msg)
@@ -726,7 +726,7 @@ def travelN(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("n" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("n" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.north:
         game.addTextToEvent("turn", loc.n_false_msg)
@@ -749,7 +749,7 @@ def travelNE(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("ne" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("ne" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.northeast:
         game.addTextToEvent("turn", loc.ne_false_msg)
@@ -772,7 +772,7 @@ def travelE(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("e" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("e" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.east:
         game.addTextToEvent("turn", loc.e_false_msg)
@@ -795,7 +795,7 @@ def travelSE(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("se" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("se" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.southeast:
         game.addTextToEvent("turn", loc.se_false_msg)
@@ -818,7 +818,7 @@ def travelS(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("s" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("s" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.south:
         game.addTextToEvent("turn", loc.s_false_msg)
@@ -841,7 +841,7 @@ def travelSW(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("sw" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("sw" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.southwest:
         game.addTextToEvent("turn", loc.sw_false_msg)
@@ -864,7 +864,7 @@ def travelW(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("w" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("w" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.west:
         game.addTextToEvent("turn", loc.w_false_msg)
@@ -888,7 +888,7 @@ def travelNW(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("nw" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("nw" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.northwest:
         game.addTextToEvent("turn", loc.nw_false_msg)
@@ -912,7 +912,7 @@ def travelU(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("u" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("u" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.up:
         game.addTextToEvent("turn", loc.u_false_msg)
@@ -936,7 +936,7 @@ def travelD(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("d" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("d" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.down:
         game.addTextToEvent("turn", loc.d_false_msg)
@@ -961,7 +961,7 @@ def travelOut(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("exit" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("exit" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.exit:
         game.addTextToEvent("turn", loc.exit_false_msg)
@@ -986,7 +986,7 @@ def travelIn(game):
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
-    if not loc.resolveDarkness(game.me) and ("entrance" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and ("entrance" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.entrance:
         game.addTextToEvent("turn", loc.entrance_false_msg)
