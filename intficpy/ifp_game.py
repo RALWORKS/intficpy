@@ -108,6 +108,7 @@ class IFPGame:
         self.app = app
         app.game = self
         self.me = me
+        me.setPlayer()
         me.game = self
         self.parser = Parser(self)
         self.aboutGame = GameInfo()
