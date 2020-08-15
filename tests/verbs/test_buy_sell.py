@@ -2,6 +2,7 @@ from ..helpers import IFPTestCase
 from intficpy.thing_base import Thing
 from intficpy.actor import Actor
 from intficpy.verb import buyVerb, sellVerb, buyFromVerb, sellToVerb
+from intficpy.grammar import GrammarObject
 
 
 class TestBuyFiniteStock(IFPTestCase):
@@ -264,7 +265,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_buy_with_lastTurn_dobj_actor(self):
-        self.game.parser.previous_command.dobj.target = self.actor1
+        self.game.parser.command.dobj = GrammarObject(target=self.actor1)
 
         self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
@@ -283,7 +284,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_buy_with_lastTurn_iobj_actor(self):
-        self.game.parser.previous_command.iobj.target = self.actor1
+        self.game.parser.command.iobj = GrammarObject(target=self.actor1)
 
         buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
 
@@ -480,7 +481,7 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_sell_with_lastTurn_dobj_actor(self):
-        self.game.parser.previous_command.dobj.target = self.actor1
+        self.game.parser.command.dobj = GrammarObject(target=self.actor1)
 
         self.game.turnMain(f"sell {self.sale_item.verbose_name}")
 
@@ -506,7 +507,7 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
         )
 
     def test_sell_with_lastTurn_iobj_actor(self):
-        self.game.parser.previous_command.iobj.target = self.actor1
+        self.game.parser.command.iobj = GrammarObject(target=self.actor1)
 
         self.game.turnMain(f"sell {self.sale_item.verbose_name}")
 

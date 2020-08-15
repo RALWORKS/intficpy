@@ -187,9 +187,7 @@ class TestParserError(IFPTestCase):
             "tell sarah to grow a beard", "You tell Sarah to grow a beard."
         )
 
-        self.game.parser.previous_command.specialTopics[
-            "tell sarah to grow a beard"
-        ] = topic
+        self.game.parser.command.specialTopics["tell sarah to grow a beard"] = topic
 
         self.game.turnMain("thisverbwillnevereverbedefined")
 

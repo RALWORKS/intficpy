@@ -237,22 +237,39 @@ class Player(Actor):
         return "You notice nothing remarkable about yourself. "
 
 
-class Topic(IFPObject):
+class UpdateSuggestionsMixin(object):
+    def update_suggestions(self):
+        if not self.owner:
+            return
+        for item in self.new_suggestions:
+            if item.suggestion not in self.owner.special_topics:
+                self.owner.addSpecialTopic(item)
+        for item in self.expire_suggestions:
+            if item.suggestion in self.owner.special_topics:
+                self.owner.removeSpecialTopic(item)
+
+
+class Topic(UpdateSuggestionsMixin, IFPObject):
     """class for conversation topics"""
 
     def __init__(self, topic_text):
         super().__init__
         self.text = topic_text
         self.owner = None
+        self.new_suggestions = []
+        self.expire_suggestions = []
 
     def func(self, game, suggest=True):
+        self.update_suggestions()
+
         game.addTextToEvent("turn", self.text)
+
         if self.owner and suggest:
             if not self.owner.manual_suggest:
                 self.owner.printSuggestions(game)
 
 
-class SpecialTopic(IFPObject):
+class SpecialTopic(UpdateSuggestionsMixin, IFPObject):
     """class for conversation topics"""
 
     def __init__(self, suggestion, topic_text):
@@ -261,9 +278,14 @@ class SpecialTopic(IFPObject):
         self.suggestion = suggestion
         self.alternate_phrasings = []
         self.owner = None
+        self.new_suggestions = []
+        self.expire_suggestions = []
 
     def func(self, game, suggest=True):
+        self.update_suggestions()
+
         game.addTextToEvent("turn", self.text)
+
         if suggest and self.owner:
             if not self.owner.manual_suggest:
                 self.owner.printSuggestions(game)

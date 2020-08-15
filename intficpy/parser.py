@@ -36,10 +36,11 @@ from .exceptions import (
 class Parser:
     def __init__(self, game):
         self.game = game
-        self.command = None
+        self.command = Command()
         self.previous_command = Command()
         self.previous_command.dobj = GrammarObject()
         self.previous_command.iobj = GrammarObject()
+        self.turns = 0
 
     def recordInput(self, input_string):
         self.game.turn_list.append(input_string)
@@ -1410,6 +1411,10 @@ class Parser:
         Called by mainLoop in terminal version, turnMain (gui.py) in GUI version
         Returns 0 when complete
         """
+        if not self.turns:
+            self.clearCommand()
+
+        self.turns += 1
         # print back the player's command
         self.game.addEvent(
             "command", 0, text=input_string, style=self.game.command_event_style
