@@ -194,8 +194,9 @@ class Room(PhysicalEntity):
         if self.describeDark(game):
             return False
 
-        self.updateDiscovered(game)
         self.arriveFunc(game)
+        self.updateDiscovered(game)
+
         self.fulldesc = self.desc
         desc_loc = False
         child_items = []
