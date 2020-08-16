@@ -28,6 +28,7 @@ class Command(object):
         self.iobj = None
 
         self.ambiguous = False
+        self.ambig_noun = None
         self.err = False
 
         self.disambig_objects = []
