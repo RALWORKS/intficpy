@@ -237,7 +237,28 @@ class Player(Actor):
         return "You notice nothing remarkable about yourself. "
 
 
-class UpdateSuggestionsMixin(object):
+class Topic(IFPObject):
+    """class for conversation topics"""
+
+    def __init__(self, topic_text):
+        super().__init__()
+
+        self.text = topic_text
+        self.owner = None
+        self.new_suggestions = []
+        self.expire_suggestions = []
+
+    def func(self, game, suggest=True):
+        self.update_suggestions()
+
+        game.addTextToEvent("turn", self.text)
+
+        self.on_trigger(game)
+
+        if self.owner and suggest:
+            if not self.owner.manual_suggest:
+                self.owner.printSuggestions(game)
+
     def update_suggestions(self):
         if not self.owner:
             return
@@ -248,47 +269,21 @@ class UpdateSuggestionsMixin(object):
             if item.suggestion in self.owner.special_topics:
                 self.owner.removeSpecialTopic(item)
 
-
-class Topic(UpdateSuggestionsMixin, IFPObject):
-    """class for conversation topics"""
-
-    def __init__(self, topic_text):
-        super().__init__
-        self.text = topic_text
-        self.owner = None
-        self.new_suggestions = []
-        self.expire_suggestions = []
-
-    def func(self, game, suggest=True):
-        self.update_suggestions()
-
-        game.addTextToEvent("turn", self.text)
-
-        if self.owner and suggest:
-            if not self.owner.manual_suggest:
-                self.owner.printSuggestions(game)
+    def on_trigger(self, game):
+        """
+        Override this to add custom behaviour when the Topic function runs
+        """
+        pass
 
 
-class SpecialTopic(UpdateSuggestionsMixin, IFPObject):
+class SpecialTopic(Topic):
     """class for conversation topics"""
 
     def __init__(self, suggestion, topic_text):
-        super().__init__()
-        self.text = topic_text
+        super().__init__(topic_text)
+
         self.suggestion = suggestion
         self.alternate_phrasings = []
-        self.owner = None
-        self.new_suggestions = []
-        self.expire_suggestions = []
-
-    def func(self, game, suggest=True):
-        self.update_suggestions()
-
-        game.addTextToEvent("turn", self.text)
-
-        if suggest and self.owner:
-            if not self.owner.manual_suggest:
-                self.owner.printSuggestions(game)
 
     def addAlternatePhrasing(self, phrasing):
         self.alternate_phrasings.append(phrasing)
