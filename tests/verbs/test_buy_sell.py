@@ -272,9 +272,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
         self.assertEqual(
-            msg,
-            expected,
-            "Unexpected mkddffsg after attempting to buy from ambigous Actor",
+            msg, expected, "Unexpected msg after attempting to buy from ambigous Actor",
         )
 
         self.assertItemExactlyOnceIn(
