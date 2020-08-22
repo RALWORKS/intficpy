@@ -1411,8 +1411,7 @@ class Parser:
         Called by mainLoop in terminal version, turnMain (gui.py) in GUI version
         Returns 0 when complete
         """
-        if not self.turns:
-            self.clearCommand()
+        self.clearCommand()
 
         self.turns += 1
         # print back the player's command
@@ -1434,7 +1433,6 @@ class Parser:
                 )
             except AbortTurn:
                 pass
-            self.clearCommand()
             return
 
         if self.command.tokens == ["full", "score"]:

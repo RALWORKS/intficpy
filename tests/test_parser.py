@@ -24,9 +24,9 @@ class TestParser(IFPTestCase):
     def test_verb_with_no_objects(self):
         self.game.turnMain("look")
 
-        self.assertIs(self.game.parser.previous_command.verb, lookVerb)
-        self.assertIsNone(self.game.parser.previous_command.dobj.target)
-        self.assertIsNone(self.game.parser.previous_command.iobj.target)
+        self.assertIs(self.game.parser.command.verb, lookVerb)
+        self.assertIsNone(self.game.parser.command.dobj.target)
+        self.assertIsNone(self.game.parser.command.iobj.target)
 
     def test_verb_with_dobj_only(self):
         dobj = Thing(self._get_unique_noun())
@@ -34,9 +34,9 @@ class TestParser(IFPTestCase):
 
         self.game.turnMain(f"get {dobj.name}")
 
-        self.assertIs(self.game.parser.previous_command.verb, getVerb)
-        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
-        self.assertIsNone(self.game.parser.previous_command.iobj.target)
+        self.assertIs(self.game.parser.command.verb, getVerb)
+        self.assertIs(self.game.parser.command.dobj.target, dobj)
+        self.assertIsNone(self.game.parser.command.iobj.target)
 
     def test_gets_correct_verb_with_dobj_and_direction_iobj(self):
         dobj = Actor(self._get_unique_noun())
@@ -46,9 +46,9 @@ class TestParser(IFPTestCase):
 
         self.game.turnMain(f"lead {dobj.name} {iobj}")
 
-        self.assertIs(self.game.parser.previous_command.verb, leadDirVerb)
-        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
-        self.assertEqual(self.game.parser.previous_command.iobj.target, iobj)
+        self.assertIs(self.game.parser.command.verb, leadDirVerb)
+        self.assertIs(self.game.parser.command.dobj.target, dobj)
+        self.assertEqual(self.game.parser.command.iobj.target, iobj)
 
     def test_gets_correct_verb_with_preposition_dobj_only(self):
         dobj = Thing(self._get_unique_noun())
@@ -56,9 +56,9 @@ class TestParser(IFPTestCase):
 
         self.game.turnMain(f"jump over {dobj.name}")
 
-        self.assertIs(self.game.parser.previous_command.verb, jumpOverVerb)
-        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
-        self.assertIsNone(self.game.parser.previous_command.iobj.target)
+        self.assertIs(self.game.parser.command.verb, jumpOverVerb)
+        self.assertIs(self.game.parser.command.dobj.target, dobj)
+        self.assertIsNone(self.game.parser.command.iobj.target)
 
     def test_gets_correct_verb_with_preposition_dobj_and_iobj(self):
         dobj = Thing(self._get_unique_noun())
@@ -68,9 +68,9 @@ class TestParser(IFPTestCase):
 
         self.game.turnMain(f"set {dobj.name} on {iobj.name}")
 
-        self.assertIs(self.game.parser.previous_command.verb, setOnVerb)
-        self.assertIs(self.game.parser.previous_command.dobj.target, dobj)
-        self.assertIs(self.game.parser.previous_command.iobj.target, iobj)
+        self.assertIs(self.game.parser.command.verb, setOnVerb)
+        self.assertIs(self.game.parser.command.dobj.target, dobj)
+        self.assertIs(self.game.parser.command.iobj.target, iobj)
 
 
 class TestGetGrammarObj(IFPTestCase):
@@ -82,8 +82,8 @@ class TestGetGrammarObj(IFPTestCase):
 
         self.game.turnMain(f"give {dobj_item.name} {iobj_item.name}")
 
-        self.assertEqual(self.game.parser.previous_command.dobj.target, dobj_item)
-        self.assertEqual(self.game.parser.previous_command.iobj.target, iobj_item)
+        self.assertEqual(self.game.parser.command.dobj.target, dobj_item)
+        self.assertEqual(self.game.parser.command.iobj.target, iobj_item)
 
 
 class TestAdjacentStrObj(IFPTestCase):
@@ -112,13 +112,13 @@ class TestAdjacentStrObj(IFPTestCase):
         self.game.turnMain("strange purple good thing")
 
         self.assertIs(
-            self.game.parser.previous_command.verb,
+            self.game.parser.command.verb,
             self.strangeVerb,
             "Unexpected verb from command with adjacent string objects where thing "
             "follows string",
         )
         self.assertIs(
-            self.game.parser.previous_command.dobj.target,
+            self.game.parser.command.dobj.target,
             thing,
             "Unexpected dobj from command with adjacent string objects where thing "
             "follows string",
@@ -142,7 +142,7 @@ class TestGetThing(IFPTestCase):
 
         self.game.turnMain(f"examine {noun}")
         self.assertIs(
-            self.game.parser.previous_command.dobj.target,
+            self.game.parser.command.dobj.target,
             item1,
             "Failed to match item from unambiguous noun",
         )
@@ -162,11 +162,11 @@ class TestGetThing(IFPTestCase):
 
         self.game.turnMain(f"examine {noun}")
 
-        self.assertEqual(self.game.parser.previous_command.dobj.tokens, [noun])
+        self.assertEqual(self.game.parser.command.dobj.tokens, [noun])
 
         self.game.turnMain(f"examine {adj1} {noun}")
         self.assertIs(
-            self.game.parser.previous_command.dobj.target,
+            self.game.parser.command.dobj.target,
             item1,
             "Noun adjective array should have been unambiguous, but failed to match "
             "Thing",
@@ -227,7 +227,7 @@ class TestParserError(IFPTestCase):
         self.start_room.addThing(sarah2)
 
         self.game.turnMain("hi teacher")
-        self.assertTrue(self.game.parser.previous_command.ambiguous)
+        self.assertTrue(self.game.parser.command.ambiguous)
 
         self.game.turnMain("set green sarah")
 
@@ -274,12 +274,12 @@ class TestDisambig(IFPTestCase):
 
         self.game.turnMain("x pillar")
 
-        self.assertTrue(self.game.parser.previous_command.ambiguous)
+        self.assertTrue(self.game.parser.command.ambiguous)
 
         self.game.turnMain("east")
 
         self.assertIs(
-            self.game.parser.previous_command.dobj.target,
+            self.game.parser.command.dobj.target,
             east_pillar,
             "Unexpected direct object after attempting to disambiguate with direction "
             "adjective",
@@ -296,12 +296,12 @@ class TestDisambig(IFPTestCase):
 
         self.game.turnMain("x pillar")
 
-        self.assertTrue(self.game.parser.previous_command.ambiguous)
+        self.assertTrue(self.game.parser.command.ambiguous)
 
         self.game.turnMain("1")
 
         self.assertIn(
-            self.game.parser.previous_command.dobj.target,
+            self.game.parser.command.dobj.target,
             [east_pillar, west_pillar],
             "Unexpected direct object after attempting to disambiguate with index",
         )
@@ -317,13 +317,13 @@ class TestPrepositions(IFPTestCase):
         self.game.turnMain(f"x up high {up_ladder.name}")
 
         self.assertIs(
-            self.game.parser.previous_command.verb,
+            self.game.parser.command.verb,
             examineVerb,
             "Unexpected verb after using a preposition as an adjective",
         )
 
         self.assertIs(
-            self.game.parser.previous_command.dobj.target,
+            self.game.parser.command.dobj.target,
             up_ladder,
             "Unexpected dobj after using a preposition as an adjective",
         )
@@ -336,7 +336,7 @@ class TestPrepositions(IFPTestCase):
         self.game.turnMain(f"x up big {up_ladder.name}")
 
         self.assertIsNot(
-            self.game.parser.previous_command.verb,
+            self.game.parser.command.verb,
             examineVerb,
             "Examine verb does not have preposition `up`. Should not have matched.",
         )
@@ -349,7 +349,7 @@ class TestPrepositions(IFPTestCase):
         self.game.turnMain(f"lead girl up")
 
         self.assertIs(
-            self.game.parser.previous_command.verb,
+            self.game.parser.command.verb,
             leadDirVerb,
             "Unexpected verb after using a direction that doubles as a preposition (up) "
             "for a directional verb",
@@ -366,13 +366,13 @@ class TestKeywords(IFPTestCase):
         self.game.turnMain(f"x everything good {everything_box.name}")
 
         self.assertIs(
-            self.game.parser.previous_command.verb,
+            self.game.parser.command.verb,
             examineVerb,
             "Unexpected verb after using an english keyword as an adjective",
         )
 
         self.assertIs(
-            self.game.parser.previous_command.dobj.target,
+            self.game.parser.command.dobj.target,
             everything_box,
             "Unexpected dobj after using an english keyword as an adjective",
         )
@@ -385,7 +385,7 @@ class TestKeywords(IFPTestCase):
         self.game.turnMain(f"x everything good {everything_box.name}")
 
         self.assertIsNot(
-            self.game.parser.previous_command.verb,
+            self.game.parser.command.verb,
             examineVerb,
             "Examine verb does not have keyword `everything`. Should not have matched.",
         )
@@ -394,7 +394,7 @@ class TestKeywords(IFPTestCase):
         self.game.turnMain("take all")
 
         self.assertIs(
-            self.game.parser.previous_command.verb,
+            self.game.parser.command.verb,
             getAllVerb,
             "Tried to call a verb with an english keyword.",
         )
@@ -410,7 +410,7 @@ class TestSuggestions(IFPTestCase):
         self.start_room.addThing(girl)
 
         self.game.turnMain("talk to girl")
-        self.assertTrue(self.game.parser.previous_command.specialTopics)
+        self.assertTrue(self.game.parser.command.specialTopics)
 
         self.game.turnMain(TOPIC_SUGGESTION)
 

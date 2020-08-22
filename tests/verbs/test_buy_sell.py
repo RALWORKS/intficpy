@@ -286,7 +286,7 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
     def test_buy_with_lastTurn_iobj_actor(self):
         self.game.parser.command.iobj = GrammarObject(target=self.actor1)
 
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        self.game.turnMain(f"buy {self.sale_item.verbose_name}")
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -508,6 +508,7 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
 
     def test_sell_with_lastTurn_iobj_actor(self):
         self.game.parser.command.iobj = GrammarObject(target=self.actor1)
+        self.assertTrue(self.game.parser.command.iobj.target)
 
         self.game.turnMain(f"sell {self.sale_item.verbose_name}")
 
