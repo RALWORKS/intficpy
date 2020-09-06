@@ -160,10 +160,22 @@ class Actor(Thing):
         self.give_topics = {}
         self.show_topics = {}
 
+    def setTopicCluster(self, cluster):
+        self.removeAllSpecialTopics()
+        cluster.owner = self
+        self.topic_cluster = cluster
+        for prompt in cluster.cur_prompts:
+            self.addSpecialTopic(prompt)
+
+    def removeTopicCluster(self, cluster):
+        self.specialTopics.clear()
+        self.topic_cluster.reset()
+        self.topic_cluster = None
+
     def printSuggestions(self, game):
         if self.special_topics != {}:
-            for suggestion in self.special_topics:
-                game.addTextToEvent("turn", "(You could " + suggestion + ")")
+            for suggestion, topic in self.special_topics.items():
+                game.addText(f"({topic.prompt_text} {suggestion})")
                 game.parser.command.specialTopics[suggestion] = self.special_topics[
                     suggestion
                 ]
@@ -284,9 +296,90 @@ class SpecialTopic(Topic):
 
         self.suggestion = suggestion
         self.alternate_phrasings = []
+        self.prompt_text = "You could"
 
     def addAlternatePhrasing(self, phrasing):
         self.alternate_phrasings.append(phrasing)
+
+
+class ConstructedTopic(Topic):
+    def __init__(self, topic_text, params):
+        super().__init__(topic_text)
+
+        self.params = params
+
+
+class TopicCluster(IFPObject):
+    """
+    A cluster of ConstructedTopics.
+
+    Init takes
+        topics - (optional) an array of ConstructedTopics with the same set of param keys
+        prompts - (optional) the initial list of TopicPrompts
+    """
+
+    def __init__(self, topics=None, prompts=None):
+        self.topics = topics
+        self.prompts = []
+        self._cur_prompts = []
+        self.params = {}
+
+    @property
+    def cur_prompts(self):
+        if not self._cur_prompts:
+            self._cur_prompts = self.prompts
+        return self._cur_prompts
+
+    @property
+    def resolution(self):
+        matched = list(self.topics)
+        for topic in self.topics:
+            for key, value in self.params.items():
+                if not topic in matched:
+                    continue
+                if not key in topic.params:
+                    matched.remove(topic)
+                    continue
+                if topic.params[key] != value:
+                    matched.remove(topic)
+
+        if not len(matched) == 1:
+            raise ValueError(
+                f"Tried to resolve TopicCluster with params {self.params}. "
+                "Found no single exact match."
+            )
+        return matched[0]
+
+    def func(self, game, child):
+        self.params.update(child.params)
+        if child.children:
+            self._cur_prompts = child.children
+            self.owner.setTopicCluster(self)
+            self.owner.printSuggestions(game)
+        else:
+            self.resolution.func(game)
+
+    def reset(self):
+        self.params.clear()
+        self._cur_prompts.clear()
+
+
+class TopicPrompt(IFPObject):
+    """
+    A single prompt in a TopicCluster
+    """
+
+    def __init__(self, cluster, suggestion, params=None):
+        self.cluster = cluster
+        self.suggestion = suggestion
+        self.params = params or {}
+        self.children = []
+
+        self.alternate_phrasings = []
+        self.prompt_text = "..."
+
+    def func(self, game):
+        self.cluster.func(game, self)
 
 
 class SaleItem(IFPObject):

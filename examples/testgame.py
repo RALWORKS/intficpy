@@ -22,7 +22,15 @@ from intficpy.travel import (
     LadderConnector,
     StaircaseConnector,
 )
-from intficpy.actor import Actor, Player, Topic, SpecialTopic
+from intficpy.actor import (
+    Actor,
+    Player,
+    Topic,
+    SpecialTopic,
+    ConstructedTopic,
+    TopicCluster,
+    TopicPrompt,
+)
 from intficpy.ifp_game import IFPGame
 import intficpy.gui as gui
 
@@ -225,14 +233,6 @@ howgethere = SpecialTopic(
 )
 sarah.threwkey = False
 
-
-def sarahDefault(game):
-    game.addTextToEvent("turn", sarah.default_topic)
-    sarah.addSpecialTopic(howgethere)
-
-
-sarah.defaultTopic = sarahDefault
-
 opalTopic = Topic(
     '"I should never it from the cave," says Sarah. "I want nothing to do with it. If you\'re smart, you\'ll leave it where you found it."'
 )
@@ -275,6 +275,46 @@ cave_concept = Abstract("cave")
 caveTopic = Topic('Sarah narrows her eyes. "You don\'t want to know," she says.')
 sarah.addTopic("ask", caveTopic, cave_concept)
 
+
+neutral_sarah_topic = ConstructedTopic(
+    '"I\'m Sarah," says the woman. She smiles. ', {"tone": "neutral", "topic": "sarah"}
+)
+hostile_sarah_topic = ConstructedTopic(
+    'The woman backs away from you a little. "S-Sarah," she says timidly. ',
+    {"tone": "hostile", "topic": "sarah"},
+)
+neutral_lost_topic = ConstructedTopic(
+    '"This is my home," the woman says. "I brought you here."',
+    {"tone": "neutral", "topic": "lost"},
+)
+hostile_lost_topic = ConstructedTopic(
+    '"This is my home," the woman says. "And if you don\'t want the shelter, you can damn well leave."',
+    {"tone": "hostile", "topic": "lost"},
+)
+
+sarah_cluster_1 = TopicCluster(
+    topics=[
+        neutral_sarah_topic,
+        hostile_sarah_topic,
+        neutral_lost_topic,
+        hostile_lost_topic,
+    ]
+)
+
+cluster_1_first = [
+    TopicPrompt(sarah_cluster_1, "Excuse me,", {"tone": "neutral"}),
+    TopicPrompt(sarah_cluster_1, "Hey! You!", {"tone": "hostile"}),
+]
+cluster_1_second = [
+    TopicPrompt(sarah_cluster_1, "Who are you?", {"topic": "sarah"}),
+    TopicPrompt(sarah_cluster_1, "What is this place?", {"topic": "lost"}),
+]
+for topic in cluster_1_first:
+    topic.children = cluster_1_second
+
+sarah_cluster_1.prompts = cluster_1_first
+
+sarah.setTopicCluster(sarah_cluster_1)
 
 game.initGame()
 ex.show()
