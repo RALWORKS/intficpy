@@ -104,9 +104,10 @@ class GameInfo:
 
 
 class IFPGame:
-    def __init__(self, me, app):
+    def __init__(self, me, app, main="__main__"):
         self.app = app
         app.game = self
+        self.main = __import__(main)
         self.me = me
         me.setPlayer()
         me.game = self
@@ -180,6 +181,7 @@ class IFPGame:
         Raises KeyError if the specified event name is not defined for this
         turn
         """
+        text = self.parser.replace_string_vars(text)
         if not name in self.next_events:
             raise KeyError(
                 f"Event with name '{name}' does not yet exist in current turn. "
@@ -190,13 +192,7 @@ class IFPGame:
         """
         Shortcut to add text to the turn event
         """
-        if not "turn" in self.next_events:
-            raise KeyError(
-                "The `turn` event has not yet been generated for this turn. "
-                "Please use either `addTextToEvent`, and specify a different event "
-                "name, or create a new event using `addEvent`"
-            )
-        self.next_events["turn"].text.append(text)
+        self.addTextToEvent("turn", text)
 
     def recordOn(self, f):
         """

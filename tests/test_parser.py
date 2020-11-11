@@ -1,7 +1,6 @@
-import unittest
-
 from .helpers import IFPTestCase
 
+from intficpy.ifp_game import IFPGame
 from intficpy.thing_base import Thing
 from intficpy.things import Surface, UnderSpace
 from intficpy.vocab import nounDict
@@ -421,5 +420,40 @@ class TestSuggestions(IFPTestCase):
         )
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestReplacement(IFPTestCase):
+    STRING = "this one here is improbable to find elsewhere"
+    INTEGER = 77
+
+    @classmethod
+    def class_method_with_one_arg(cls, ret):
+        return ret
+
+    def test_print_replace_with_string(self):
+        thing = Thing(self._get_unique_noun())
+        thing.x_description = "I will <<test_parser.TestReplacement.STRING>> this."
+        thing.moveTo(self.start_room)
+
+        self.game.turnMain(f"x {thing.name}")
+
+        msg = self.app.print_stack.pop()
+        self.assertIn(self.STRING, msg)
+
+    def test_print_replace_with_integer(self):
+        thing = Thing(self._get_unique_noun())
+        thing.x_description = "I will <<test_parser.TestReplacement.INTEGER>> this."
+        thing.moveTo(self.start_room)
+
+        self.game.turnMain(f"x {thing.name}")
+
+        msg = self.app.print_stack.pop()
+        self.assertIn(str(self.INTEGER), msg)
+
+    def test_attempting_to_replace_with_function_call_raises(self):
+        thing = Thing(self._get_unique_noun())
+        thing.x_description = (
+            "I will <<test_parser.TestReplacement.class_method_with_one_arg(7)>> this."
+        )
+        thing.moveTo(self.start_room)
+
+        with self.assertRaises(NotImplementedError):
+            self.game.turnMain(f"x {thing.name}")

@@ -52,7 +52,6 @@ freeEnding = Ending(
 
 def test1(app):
     game.addTextToEvent("turn", "testing")
-    print("test1")
 
 
 def test2(app):
@@ -113,7 +112,6 @@ me.opaltaken = False
 
 
 def takeOpalFunc(game):
-    print("TAKE")
     if not me.opaltaken:
         game.addTextToEvent(
             "turn",
@@ -163,7 +161,6 @@ beach = OutdoorRoom(
 
 def beachEnding(game):
     freeEnding.endGame(game)
-    # print("hullloo")
 
 
 beach.arriveFunc = beachEnding

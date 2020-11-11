@@ -20,7 +20,7 @@ class IFPTestCase(TestCase):
     def setUp(self):
         self.app = TestApp()
         self.me = Player("me")
-        self.game = IFPGame(self.me, self.app)
+        self.game = IFPGame(self.me, self.app, main=__name__)
         self.start_room = Room("room", "desc")
         self.start_room.addThing(self.me)
         self.me.setPlayer()

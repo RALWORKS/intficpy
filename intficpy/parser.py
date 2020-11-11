@@ -1,5 +1,6 @@
 import importlib
 import string
+import re
 
 from .vocab import english
 from .vocab import english, verbDict, nounDict
@@ -56,6 +57,37 @@ class Parser:
             del self.previous_command
         self.previous_command = self.command
         self.command = None
+
+    def replace_string_vars(self, text):
+        """
+        Perform string replacements for text in the format
+        <<main_module.module.attribute ... >>
+
+        This should be called by the Game instance when text is
+        added to an event
+        """
+        if not ("<<" in text and ">>" in text):
+            return text
+        tokens = re.split(r"(<<[a-zA-Z0-9\.\(\)_]+>>)", text)
+        text = ""
+        for tok in tokens:
+            if tok.startswith("<<") and tok.endswith(">>"):
+                if "(" in tok:
+                    raise NotImplementedError(
+                        f"IntFicPy cannot perform the replacement `{tok}`. "
+                        "<<syntax>>> string replacement does not support inserting "
+                        "return values from functions or callables"
+                    )
+
+                nested_attrs = tok[2:-2]
+                nested_attrs = nested_attrs.split(".")
+                obj = self.game.main
+                for attr in nested_attrs:
+                    obj = getattr(obj, attr)
+                tok = str(obj)
+            text += tok
+
+        return text
 
     def getDirection(self):
         """
