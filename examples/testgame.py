@@ -24,15 +24,11 @@ from intficpy.travel import (
 )
 from intficpy.actor import Actor, Player, Topic, SpecialTopic
 from intficpy.ifp_game import IFPGame
-import intficpy.gui as gui
-
-app = QApplication(sys.argv)
+from intficpy.cli import TerminalApp
 
 me = Player("boy")
-ex = gui.App()
+ex = TerminalApp()
 game = IFPGame(me, ex)
-game.turn_event_style = ex.box_style1
-game.command_event_style = ex.box_style2
 
 
 game.title = "WIND AND OCEAN"
@@ -273,6 +269,4 @@ caveTopic = Topic('Sarah narrows her eyes. "You don\'t want to know," she says.'
 sarah.addTopic("ask", caveTopic, cave_concept)
 
 
-game.initGame()
-ex.show()
-sys.exit(app.exec_())
+ex.runGame()

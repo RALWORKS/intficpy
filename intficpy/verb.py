@@ -3977,7 +3977,12 @@ def loadVerbFunc(game):
         game.addTextToEvent("turn", "Choose a valid save file to load a game.")
         return False
 
-    l = LoadGame(f)
+    try:
+        l = LoadGame(f)
+    except FileNotFoundError:
+        game.addTextToEvent("turn", f"File {f} does not exist.")
+        return False
+
     if not l.is_valid():
         game.addTextToEvent("turn", "Cannot load game file.")
         return False
