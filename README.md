@@ -50,4 +50,4 @@ $ python -m unittest discover
 ```
 
 # License
-IntFicPy is distributed with a GPL3 license
+IntFicPy is distributed with the MIT license (see LICENSE)
