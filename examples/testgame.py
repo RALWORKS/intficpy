@@ -1,7 +1,6 @@
 # imports from other libraries
 import sys
 import random
-from PyQt5.QtWidgets import QApplication
 
 # imports from intficpy
 from intficpy.room import Room, OutdoorRoom
@@ -31,8 +30,8 @@ ex = TerminalApp()
 game = IFPGame(me, ex)
 
 
-game.title = "WIND AND OCEAN"
-game.author = "JSMaika"
+game.aboutGame.title = "WIND AND OCEAN"
+game.aboutGame.author = "JSMaika"
 
 seenshackintro = False
 
@@ -44,20 +43,6 @@ freeEnding = Ending(
     "**YOU ARE FREE**",
     "You arrive on the seashore, leaving Sarah to cower in her shack. You are free.",
 )
-
-
-def test1(app):
-    game.addTextToEvent("turn", "testing")
-
-
-def test2(app):
-    global seenshackintro
-    if seenshackintro:
-        return ""
-    else:
-        seenshackintro = True
-        return "You can hear the waves crashing on the shore outside. There are no car sounds, no human voices. You are far from any populated area.\n"
-
 
 startroom = Room(
     "Shack interior",
@@ -98,7 +83,6 @@ box.giveLid()
 startroom.addThing(box)
 
 opal = Thing("opal")
-# startroom.addThing(opal)
 opal.makeUnique()
 opal.size = 25
 
@@ -192,7 +176,7 @@ def sarahOpalFunc(game, dobj):
         )
         game.addTextToEvent("turn", "Sarah flings a rusty key at you. You catch it.")
         me.addThing(rustykey)
-        keyAchievement.award(app)
+        keyAchievement.award(game)
         sarah.threwkey = True
 
 

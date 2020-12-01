@@ -1,8 +1,4 @@
 # Creating an item:
-The easiest place to create an item is inside of the [room file](room.md) where the
-item will start. If we end up having an item or items that we use a lot and need to
-find quickly, we can create a specific file for that item.
-
 IFP has many types of item, like, Surface, Container, UnderSpace, LightSource, Lock,
 and Key. Even Actor, the class for [characters](characters.md) is a type of item.
 All types of item (with the exception of `Actor`, which is in `intficpy.actor`) can
@@ -11,7 +7,7 @@ be imported from `intficpy.things`.
 Let's create a `Surface` in `rooms/bathroom.py`
 ```python
 from intficpy.room import Room
-from intficpy.things import Surface # here's our new import
+from intficpy.things import Surface
 
 
 bathroom = Room("Bathroom", "This bathroom is small and bright. ")
@@ -36,12 +32,9 @@ can_of_nails.setAdjectives(["can", "of"])
 can_of_nails.addSynonym("can")
 ```
 
-Then, we set the adjectives, as demonstrated above. Give this function a list of adjectives
-(remember the square brackets) that can describe the item. Order matters here, as
-the game will try to string them together to create the name it will use to talk about the
-item (its verbose name).
+Then, we set the adjectives, as demonstrated above. Give this function a list of adjectives that can describe the item. Order matters here, as the game will try to string them together to create the name it will use to talk about the item (its verbose name).
 
-If we want to *give* the game a phrase to use to the verbose name, instead of generating
+If we want to *give* the game a phrase to use for the verbose name, instead of generating
 one automatically, we should set
 
 ```python

@@ -1,16 +1,26 @@
 # Creating a room
-Each room should have its own file.
-Start by creating a new file in the `rooms` directory. Name it after the name of the room.
-Use a name that's descriptive and unique.
+Rooms in IntFicPy are objects inheriting from the `Room` class.
 
-For an example, here's `rooms/bathroom.py`
+Every IntFicPy game needs at least one room, where the Player object is placed at the
+start of the game.
+
+For instance, we might have a starting room like this.
 ```python
-from intficpy.room import Room # put this at the top of the file, along with any other imports
+start_room = Room(
+    "Shack interior",
+    "A little room. Four walls, a floor, and a ceiling. ",
+)
+startroom.addThing(me)
+```
+
+We can create more rooms in the same way.
+
+```python
+from intficpy.room import Room
 
 bathroom = Room("Bathroom", "This bathroom is small and bright. ")
 
 ```
-Make sure you've imported the `Room` class. Then, define the room.
 To create a Room, you need to pass in two parameters: name first, then description.
 When the player enters our new room, the game will print
 > **Bathroom**
@@ -18,10 +28,7 @@ When the player enters our new room, the game will print
   This bathroom is small and bright.
 
 # Connecting rooms together
-To connect your new room to an existing room, open `rooms/__init__.py`.
-Near the top, import your new room.
-
-Then, connect your room to existing rooms using the direction properties.
+You can connect your room to existing rooms using the rooms' direction attributes.
 
 ```python
 from .start_room import start_room
@@ -47,7 +54,3 @@ Once you have an item, you can add it to a room like this.
 ```python
 toilet.moveTo(bathroom)
 ```
-You should do this inside of your room file, after you've created the room.
-# Doors, stairways, ladders, locks, etc.
-IFP has the capacity to do more complicated things, like connecting rooms using a ladder,
-or a door that opens, closes, and locks.

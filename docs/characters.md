@@ -52,12 +52,6 @@ Characters can be described using the same methods we use for describing [items]
 # Building conversations
 There are two main tools for building conversations in IFP: SpecialTopics, and Topics.
 
-## Quick Tips
-+ Be mindful of quotation marks. Python uses quotation marks to determine
-where a string of text begins and ends. If you want to use quotation marks inside of a
-string, put a backslash before each. This is demonstrated in the examples for default
-topics below.
-
 ## Default topics
 Start building a conversation by setting a character's default topic. This can be made
 to change based on game state.
