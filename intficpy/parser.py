@@ -762,7 +762,7 @@ class Parser:
     def generateVerbScopeErrorMsg(self, scope, noun_adj_arr):
         """
         Prints the appropriate Thing out of scope message
-        Takes arguments self.game.app, pointing to the PyQt self.game.app, scope, a string, and noun_adj_arr, a
+        Takes arguments, scope, a string, and noun_adj_arr, a
         list of strings
         Returns None
         """

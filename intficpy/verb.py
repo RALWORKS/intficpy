@@ -34,10 +34,24 @@ from .serializer import SaveGame, LoadGame
 class Verb:
     """Verb objects represent actions the player can take """
 
+    # TODO: should list_word be deprecated?
     def __init__(self, word, list_word=None, list_by_default=True):
         """Set default properties for the Verb instance
-		Takes argument word, a one word verb (string)
-		The creator can build constructions like "take off" by specifying prepositions and syntax """
+        Args:
+            - word (str): the single word verb to use as the "core" of the verb phrase
+
+            - list_word (str): a single word verb. if supplied, this will display in
+              player-facing verb lists (verb help) instead of this verb's `word`.
+              The intended use of this is to make the verb lists tidier in cases where
+              two Verb objects are conceptually the same, despite being different in
+              internal logic.
+
+            - list_by_default (bool): should this verb be listed in the auto-documenting
+              verb list used by player facing tools like verb help?
+
+        The creator can build constructions like "take off" by specifying prepositions
+        and syntax
+        """
         if word in verbDict:
             verbDict[word].append(self)
         elif word is not None:
@@ -74,19 +88,25 @@ class Verb:
         return f"<Verb `{self.list_word}`>"
 
     def addSynonym(self, word):
-        """Add a synonym verb
-			Takes argument word, a single verb (string)
-			The creator can build constructions like "take off" by specifying prepositions and syntax """
+        """
+        Add a synonym verb
+        Takes argument word, a single verb (string)
+
+        The creator can build constructions like "take off" by specifying
+        prepositions and syntax
+        """
         if word in verbDict:
             verbDict[word].append(self)
         else:
             verbDict[word] = [self]
 
     def verbFunc(self, game):
-        """The default verb function
-		Takes arguments game.me, pointing to the player, game.app, pointing to the GUI game.app, and dobj, the direct object
-		Should generally be overwritten by the game creator
-		Optionally add arguments dobj and iobj, and set hasDobj and hasIobj appropriately """
+        """
+        The default verb function
+        Should generally be overwritten by the game creator
+        Optionally add arguments dobj and iobj, and set hasDobj and hasIobj appropriately
+        """
+        # TODO(#125): refactor this so we're not overriding this method on instances
         game.addTextToEvent("turn", "You " + self.word + ". ")
 
     def _runVerbFuncAndEvents(self, game, *args):
@@ -100,13 +120,13 @@ class Verb:
 
     def getImpDobj(self, game):
         """Get the implicit direct object
-		The creator should overwrite this if planning to use implicit objects
-		View the ask verb for an example """
+        The creator should overwrite this if planning to use implicit objects
+        View the ask verb for an example """
         game.addTextToEvent("turn", "Error: no implicit direct object defined")
 
     def getImpIobj(self, game):
         """"Get the implicit indirect object
-		The creator should overwrite this if planning to use implicit objects """
+        The creator should overwrite this if planning to use implicit objects """
         game.addTextToEvent("turn", "Error: no implicit indirect object defined")
 
     @staticmethod
@@ -169,8 +189,9 @@ getVerb.hasDobj = True
 
 
 def getVerbFunc(game, dobj, skip=False):
-    """Take a Thing from the room
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 application, and dobj, a Thing """
+    """
+    Take a Thing from the room
+    """
     if not skip:
         runfunc = True
         try:
@@ -277,8 +298,9 @@ getAllVerb.keywords = ["all", "everything"]
 
 
 def getAllVerbFunc(game):
-    """Take all obvious invItems in the current room
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 application, and dobj, a Thing """
+    """
+    Take all obvious invItems in the current room
+    """
     loc = game.me.getOutermostLocation()
     items_found = []
     for key in loc.contains:
@@ -332,7 +354,7 @@ removeFromVerb.iobj_contains_dobj = True
 
 def removeFromVerbFunc(game, dobj, iobj, skip=True):
     """Remove a Thing from a Thing
-	Mostly intended for implicit use within the inventory """
+    Mostly intended for implicit use within the inventory """
     prep = iobj.contains_preposition or "in"
     if dobj == game.me:
         game.addTextToEvent("turn", "You cannot take yourself. ")
@@ -431,8 +453,9 @@ dropVerb.preposition = ["down"]
 
 
 def dropVerbFunc(game, dobj, skip=False):
-    """Drop a Thing from the contains
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 application, and dobj, a Thing """
+    """
+    Drop a Thing from the contains
+    """
     if not skip:
         runfunc = True
         try:
@@ -493,8 +516,9 @@ dropAllVerb.keywords = ["all", "everything"]
 
 
 def dropAllVerbFunc(game):
-    """Drop everything in the inventory
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 application, and dobj, a Thing """
+    """
+    Drop everything in the inventory
+    """
     inv = [item for key, sublist in game.me.contains.items() for item in sublist]
     dropped = 0
     for item in inv:
@@ -529,8 +553,9 @@ setOnVerb.preposition = ["on"]
 
 
 def setOnVerbFunc(game, dobj, iobj, skip=False):
-    """Put a Thing on a Surface
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Put a Thing on a Surface
+    """
     if dobj == iobj:
         game.addTextToEvent("turn", "You cannot set something on itself. ")
         return False
@@ -636,8 +661,9 @@ setInVerb.preposition = ["in"]
 
 
 def setInVerbFunc(game, dobj, iobj, skip=False):
-    """Put a Thing in a Container
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Put a Thing in a Container
+    """
     if iobj == dobj:
         game.addTextToEvent("turn", "You cannot set something in itself. ")
         return False
@@ -752,8 +778,9 @@ setUnderVerb.preposition = ["under"]
 
 
 def setUnderVerbFunc(game, dobj, iobj, skip=False):
-    """Put a Thing under an UnderSpace
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Put a Thing under an UnderSpace
+    """
     if iobj == dobj:
         game.addTextToEvent("turn", "You cannot set something under itself. ")
         return False
@@ -831,7 +858,7 @@ invVerb.hasDobj = False
 
 def invVerbFunc(game):
     """View the player's contains
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     # describe contains
     if game.me.contains == {}:
         game.addTextToEvent("turn", "You don't have anything with you. ")
@@ -923,7 +950,7 @@ scoreVerb.hasDobj = False
 def scoreVerbFunc(game):
     """
     View the current score
-    Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app
+
     """
 
     score.score(game)
@@ -942,7 +969,7 @@ fullScoreVerb.hasDobj = False
 
 def fullScoreVerbFunc(game):
     """View the current score
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
 
     score.fullscore(game)
 
@@ -959,7 +986,7 @@ aboutVerb.hasDobj = False
 
 def aboutVerbFunc(game):
     """View the current score
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     game.aboutGame.printAbout(game)
 
 
@@ -975,7 +1002,7 @@ helpVerb.hasDobj = False
 
 def helpVerbFunc(game):
     """View the current score
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     game.aboutGame.printHelp(game)
 
 
@@ -991,7 +1018,7 @@ instructionsVerb.hasDobj = False
 
 def instructionVerbFunc(game):
     """View the current score
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     game.aboutGame.printInstructions(game)
 
 
@@ -1022,7 +1049,7 @@ helpVerbVerb.dtype = "String"
 
 def helpVerbVerbFunc(game, dobj):
     """View the current score
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
 
     game.addTextToEvent("turn", "<b>Verb Help: " + " ".join(dobj) + "</b>")
     if dobj[0] in verbDict:
@@ -1074,7 +1101,7 @@ hintVerb.hasDobj = False
 
 def hintVerbFunc(game):
     """View the current score
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
 
     if hints.cur_node:
         if len(hints.cur_node.hints) > 0:
@@ -1097,7 +1124,7 @@ lookVerb.hasDobj = False
 
 def lookVerbFunc(game):
     """Look around the current room
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     # print location description
     loc = game.me.getOutermostLocation()
     loc.describe(game)
@@ -1364,7 +1391,7 @@ talkToVerb.dtype = "Actor"
 
 def getImpTalkTo(game):
     """If no dobj is specified, try to guess the Actor
-    Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     from .grammar import GrammarObject
 
     people = Verb.disambiguateActor(
@@ -1388,8 +1415,9 @@ talkToVerb.getImpDobj = getImpTalkTo
 
 
 def talkToVerbFunc(game, dobj, skip=False):
-    """Talk to an Actor
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Talk to an Actor
+    """
 
     if not skip:
         runfunc = True
@@ -1445,8 +1473,6 @@ askVerb.getImpDobj = getImpTalkTo
 def askVerbFunc(game, dobj, iobj, skip=False):
     """
     Ask an Actor about a Thing
-    Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing,
-    and iobj, a Thing
     """
 
     if isinstance(dobj, Actor):
@@ -1512,8 +1538,9 @@ tellVerb.getImpDobj = getImpTalkTo
 
 
 def tellVerbFunc(game, dobj, iobj, skip=False):
-    """Tell an Actor about a Thing
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Tell an Actor about a Thing
+    """
 
     if isinstance(dobj, Actor):
         if dobj.hermit_topic:
@@ -1576,8 +1603,9 @@ giveVerb.getImpDobj = getImpTalkTo
 
 
 def giveVerbFunc(game, dobj, iobj, skip=False):
-    """Give an Actor a Thing
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Give an Actor a Thing
+    """
     if not skip:
         runfunc = True
         try:
@@ -1650,8 +1678,9 @@ showVerb.getImpDobj = getImpTalkTo
 
 
 def showVerbFunc(game, dobj, iobj, skip=False):
-    """Show an Actor a Thing
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Show an Actor a Thing
+    """
     if isinstance(dobj, Actor):
         if dobj.hermit_topic:
             dobj.hermit_topic.func(game, False)
@@ -1715,8 +1744,9 @@ wearVerb.preposition = ["on"]
 
 
 def wearVerbFunc(game, dobj, skip=False):
-    """Wear a piece of clothing
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Wear a piece of clothing
+    """
     if not skip:
         runfunc = True
         try:
@@ -1765,8 +1795,9 @@ doffVerb.preposition = ["off"]
 
 
 def doffVerbFunc(game, dobj, skip=False):
-    """Take off a piece of clothing
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Take off a piece of clothing
+    """
     if not skip:
         runfunc = True
         try:
@@ -1803,7 +1834,7 @@ lieDownVerb.preposition = ["down"]
 
 def lieDownVerbFunc(game):
     """Take off a piece of clothing
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
+    """
     if game.me.position != "lying":
         if isinstance(game.me.location, Thing):
             if not game.me.location.can_contain_lying_player:
@@ -1838,7 +1869,7 @@ standUpVerb.preposition = ["up"]
 
 def standUpVerbFunc(game):
     """Take off a piece of clothing
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
+    """
     if game.me.position != "standing":
         if isinstance(game.me.location, Thing):
             if not game.me.location.can_contain_standing_player:
@@ -1872,7 +1903,7 @@ sitDownVerb.preposition = ["down"]
 
 def sitDownVerbFunc(game):
     """Take off a piece of clothing
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
+    """
     if game.me.position != "sitting":
         if isinstance(game.me.location, Thing):
             if not game.me.location.can_contain_sitting_player:
@@ -1908,8 +1939,9 @@ standOnVerb.preposition = ["on"]
 
 
 def standOnVerbFunc(game, dobj, skip=False):
-    """Sit on a Surface where can_contain_sitting_player is True
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Stand on a Surface where can_contain_sitting_player is True
+    """
     if not skip:
         runfunc = True
         try:
@@ -1990,8 +2022,9 @@ sitOnVerb.preposition = ["down", "on"]
 
 
 def sitOnVerbFunc(game, dobj, skip=False):
-    """Stand on a Surface where can_contain_standing_player is True
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Sit on a Surface where can_contain_standing_player is True
+    """
     if not skip:
         runfunc = True
         try:
@@ -2075,8 +2108,9 @@ lieOnVerb.preposition = ["down", "on"]
 
 
 def lieOnVerbFunc(game, dobj):
-    """Lie on a Surface where can_contain_lying_player is True
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Lie on a Surface where can_contain_lying_player is True
+    """
     runfunc = True
     try:
         runfunc = dobj.lieOnVerbDobj(game)
@@ -2155,8 +2189,9 @@ sitInVerb.preposition = ["down", "in"]
 
 # when the Chair subclass of Surface is implemented, redirect to sit on if dobj is a Chair
 def sitInVerbFunc(game, dobj, skip=False):
-    """Stand on a Surface where can_contain_standing_player is True
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Stand in a Container where can_contain_standing_player is True
+    """
     if not skip:
         runfunc = True
         try:
@@ -2213,8 +2248,9 @@ standInVerb.preposition = ["in"]
 
 
 def standInVerbFunc(game, dobj, skip=False):
-    """Sit on a Surface where can_contain_sitting_player is True
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Sit on a Surface where can_contain_sitting_player is True
+    """
     if not skip:
         runfunc = True
         try:
@@ -2278,8 +2314,9 @@ lieInVerb.preposition = ["down", "in"]
 
 
 def lieInVerbFunc(game, dobj, skip=False):
-    """Lie on a Surface where can_contain_lying_player is True
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Lie on a Surface where can_contain_lying_player is True
+    """
     if not skip:
         runfunc = True
         try:
@@ -2345,8 +2382,7 @@ climbOnVerb.preposition = ["on", "up"]
 
 def climbOnVerbFunc(game, dobj, skip=False):
     """Climb on a Surface where one of more of can_contain_standing_player/can_contain_sitting_player/can_contain_lying_player is True
-	Will be extended once stairs/ladders are implemented
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
     if not skip:
         runfunc = True
         try:
@@ -2393,7 +2429,7 @@ climbUpVerb.preposition = ["up"]
 
 def climbUpVerbFunc(game):
     """Climb up to the room above
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     from .travel import travelU
 
     cur_loc = game.me.getOutermostLocation()
@@ -2422,7 +2458,7 @@ climbDownVerb.preposition = ["off", "down"]
 
 def climbDownVerbFunc(game):
     """Climb down from a Surface you currently occupy
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     from .travel import travelD
 
     cur_loc = game.me.getOutermostLocation()
@@ -2464,9 +2500,10 @@ climbDownFromVerb.dobj_direction = "d"
 
 
 def climbDownFromVerbFunc(game, dobj, skip=False):
-    """Climb down from a Surface you currently occupy
-	Will be extended once stairs/ladders/up direction/down direction are implemented
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Climb down from a Surface you currently occupy
+    Will be extended once stairs/ladders/up direction/down direction are implemented
+    """
     if not skip:
         runfunc = True
         try:
@@ -2561,7 +2598,7 @@ climbInVerb.preposition = ["in", "into"]
 
 def climbInVerbFunc(game, dobj, skip=False):
     """Climb in a Container where one of more of can_contain_standing_player/can_contain_sitting_player/can_contain_lying_player is True
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
     if not skip:
         runfunc = True
         try:
@@ -2636,7 +2673,7 @@ climbOutVerb.preposition = ["out"]
 
 def climbOutVerbFunc(game):
     """Climb out of a Container you currently occupy
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     if isinstance(game.me.location, Container):
         game.addTextToEvent(
             "turn",
@@ -2671,9 +2708,10 @@ climbOutOfVerb.preposition = ["out", "of"]
 
 
 def climbOutOfVerbFunc(game, dobj, skip=False):
-    """Climb down from a Surface you currently occupy
-	Will be extended once stairs/ladders/up direction/down direction are implemented
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Climb down from a Surface you currently occupy
+    Will be extended once stairs/ladders/up direction/down direction are implemented
+    """
     if not skip:
         runfunc = True
         try:
@@ -2718,8 +2756,9 @@ openVerb.dscope = "near"
 
 
 def openVerbFunc(game, dobj, skip=False):
-    """Open a Thing with an open property
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Open a Thing with an is_open attribute
+    """
     try:
         lock = dobj.lock_obj
     except:
@@ -2785,8 +2824,9 @@ closeVerb.dscope = "near"
 
 
 def closeVerbFunc(game, dobj, skip=False):
-    """Open a Thing with an open property
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing """
+    """
+    Open a Thing with an open property
+    """
 
     if isinstance(dobj, Container):
         if dobj.has_lid:
@@ -2845,7 +2885,7 @@ exitVerb.syntax = [["exit"]]
 
 def exitVerbFunc(game):
     """Climb out of a Container you currently occupy
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     from .travel import travelOut
 
     out_loc = game.me.getOutermostLocation()
@@ -2868,7 +2908,7 @@ enterVerb.syntax = [["enter"]]
 
 def enterVerbFunc(game):
     """Climb out of a Container you currently occupy
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     from .travel import travelIn
 
     out_loc = game.me.getOutermostLocation()
@@ -2891,9 +2931,9 @@ unlockVerb.dscope = "near"
 
 
 def unlockVerbFunc(game, dobj, skip=False):
-    """Unlock a Door or Container with an lock
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing
-	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock. """
+    """
+    Unlock a Door or Container with an lock
+    Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock. """
     if not skip:
         runfunc = True
         try:
@@ -3033,8 +3073,7 @@ lockVerb.dscope = "near"
 
 def lockVerbFunc(game, dobj, skip=False):
     """Lock a Door or Container with an lock
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing
-	Returns True when the function ends with dobj locked. Returns False on failure to lock, or when dobj has no lock. """
+    Returns True when the function ends with dobj locked. Returns False on failure to lock, or when dobj has no lock. """
     if not skip:
         runfunc = True
         try:
@@ -3194,8 +3233,7 @@ unlockWithVerb.iscope = "invflex"
 
 def unlockWithVerbFunc(game, dobj, iobj, skip=False):
     """Unlock a Door or Container with an lock
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing
-	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
+    Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
     if not skip:
         runfunc = True
         try:
@@ -3328,8 +3366,7 @@ lockWithVerb.iscope = "invflex"
 
 def lockWithVerbFunc(game, dobj, iobj, skip=False):
     """Unlock a Door or Container with an lock
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, and dobj, a Thing
-	Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
+    Returns True when the function ends with dobj unlocked, or without a lock. Returns False on failure to unlock.  """
     if not skip:
         runfunc = True
         try:
@@ -3466,8 +3503,9 @@ goVerb.dscope = "direction"
 
 
 def goVerbFunc(game, dobj):
-    """Empty function which should never be evaluated
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 application, and dobj, a Thing """
+    """
+    Do nothing, and let the travel functions handle travel.
+    """
     pass
 
 
@@ -3578,7 +3616,7 @@ waitVerb.hasDobj = False
 
 def waitVerbFunc(game):
     """Wait a turn
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app """
+     """
     game.addTextToEvent("turn", "You wait a turn. ")
     return True
 
@@ -3595,8 +3633,9 @@ useVerb.dscope = "near"
 
 
 def useVerbFunc(game, dobj, skip=False):
-    """Use a Thing
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 application, and dobj, a Thing """
+    """
+    Use a Thing
+    """
     if not skip:
         runfunc = True
         try:
@@ -3655,8 +3694,9 @@ buyFromVerb.preposition = ["from"]
 
 
 def buyFromVerbFunc(game, dobj, iobj, skip=False):
-    """Buy something from a person
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Buy something from a person
+    """
     if not skip:
         runfunc = True
         try:
@@ -3742,8 +3782,9 @@ buyVerb.dscope = "knows"
 
 
 def buyVerbFunc(game, dobj):
-    """Redriect to buy from
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing """
+    """
+    Redirect to buy from
+    """
 
     people = Verb.disambiguateActor(
         game,
@@ -3778,8 +3819,9 @@ sellToVerb.preposition = ["to"]
 
 
 def sellToVerbFunc(game, dobj, iobj, skip=False):
-    """Sell something to a person
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Sell something to a person
+    """
     if not skip:
         runfunc = True
         try:
@@ -3846,8 +3888,9 @@ sellVerb.dscope = "invflex"
 
 
 def sellVerbFunc(game, dobj):
-    """Redriect to sell to
-    Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing """
+    """
+    Redriect to sell to
+    """
 
     people = Verb.disambiguateActor(
         game,
@@ -3996,8 +4039,9 @@ loadVerb.verbFunc = loadVerbFunc
 
 
 def leadDirVerbFunc(game, dobj, iobj, skip=False):
-    """Lead an Actor in a direction
-	Takes arguments game.me, pointing to the player, game.app, the PyQt5 GUI game.app, dobj, a Thing, and iobj, a Thing """
+    """
+    Lead an Actor in a direction
+    """
     from .travel import TravelConnector
 
     if not skip:
@@ -4137,8 +4181,9 @@ jumpVerb.syntax = [["jump"]]
 
 
 def jumpVerbFunc(game):
-    """Jump in place
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
+    """
+    Jump in place
+    """
     game.addTextToEvent("turn", "You jump in place. ")
 
 
@@ -4155,8 +4200,9 @@ jumpOverVerb.dscope = "room"
 
 
 def jumpOverVerbFunc(game, dobj, skip=False):
-    """Jump over a Thing
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
+    """
+    Jump over a Thing
+    """
     if not skip:
         runfunc = True
         try:
@@ -4192,8 +4238,9 @@ jumpInVerb.dscope = "room"
 
 
 def jumpInVerbFunc(game, dobj, skip=False):
-    """Jump in a Thing
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
+    """
+    Jump in a Thing
+    """
     if not skip:
         runfunc = True
         try:
@@ -4222,8 +4269,9 @@ jumpOnVerb.dscope = "room"
 
 
 def jumpOnVerbFunc(game, dobj, skip=False):
-    """Jump on a Thing
-	Takes arguments game.me, pointing to the player, and game.app, the PyQt5 GUI game.app"""
+    """
+    Jump on a Thing
+    """
     if not skip:
         runfunc = True
         try:
