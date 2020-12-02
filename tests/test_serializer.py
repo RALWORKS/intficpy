@@ -236,8 +236,8 @@ class TestSaveLoadDaemon(IFPTestCase):
         self.daemon.counter = 67
         self.game.daemons.remove(self.daemon)
 
-    def _daemon_func(self, me, app):
-        app.printToGUI(f"Turn #{self.daemon.counter}")
+    def _daemon_func(self, game):
+        game.addText(f"Turn #{self.daemon.counter}")
         self.daemon.counter += 1
 
     def test_load(self):
