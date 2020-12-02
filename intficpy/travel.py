@@ -12,7 +12,7 @@ from .room import Room
 
 class TravelConnector(IFPObject):
     """Base class for travel connectors
-	Links two rooms together"""
+    Links two rooms together"""
 
     def __init__(self, room1, direction1, room2, direction2, name="doorway", prep=0):
         super().__init__()
@@ -272,7 +272,7 @@ class TravelConnector(IFPObject):
 
 class DoorConnector(TravelConnector):
     """Base class for travel connectors
-	Links two rooms together"""
+    Links two rooms together"""
 
     def __init__(self, room1, direction1, room2, direction2):
         self.registerNewIndex()
@@ -473,7 +473,7 @@ class DoorConnector(TravelConnector):
 
 class LadderConnector(TravelConnector):
     """Class for ladder travel connectors (up/down)
-	Links two rooms together"""
+    Links two rooms together"""
 
     def __init__(self, room1, room2):
         self.registerNewIndex()
@@ -566,7 +566,7 @@ class LadderConnector(TravelConnector):
 
 class StaircaseConnector(TravelConnector):
     """Class for staircase travel connectors (up/down)
-	Links two rooms together"""
+    Links two rooms together"""
 
     def __init__(self, room1, room2):
         self.registerNewIndex()
@@ -668,8 +668,8 @@ class StaircaseConnector(TravelConnector):
 # travel functions, called by getDirection in parser.py
 def preRemovePlayer(game):
     """Remove the Player from the current room
-	Called by travel functions
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    Called by travel functions
+    """
     x = game.me.location
     if isinstance(x, Thing):
         x.removeThing(game.me)
@@ -722,7 +722,7 @@ def getDirectionFromString(loc, input_string):
 
 def travelN(game):
     """Travel north
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -745,7 +745,7 @@ def travelN(game):
 
 def travelNE(game):
     """Travel northeast
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -768,7 +768,7 @@ def travelNE(game):
 
 def travelE(game):
     """Travel east
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -791,7 +791,7 @@ def travelE(game):
 
 def travelSE(game):
     """Travel southeast
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -814,7 +814,7 @@ def travelSE(game):
 
 def travelS(game):
     """Travel south
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -837,7 +837,7 @@ def travelS(game):
 
 def travelSW(game):
     """Travel southwest
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -860,7 +860,7 @@ def travelSW(game):
 
 def travelW(game):
     """Travel west
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -884,7 +884,7 @@ def travelW(game):
 # travel northwest
 def travelNW(game):
     """Travel northwest
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -908,7 +908,7 @@ def travelNW(game):
 # travel up
 def travelU(game):
     """Travel upward
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -932,7 +932,7 @@ def travelU(game):
 # travel down
 def travelD(game):
     """Travel downward
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -957,7 +957,7 @@ def travelD(game):
 # synonym "exit" implemented as a verb
 def travelOut(game):
     """Travel out
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
@@ -982,7 +982,7 @@ def travelOut(game):
 # synonym "enter" implemented as a verb
 def travelIn(game):
     """Travel through entance
-	Takes arguments game.me, pointing to the player, and game.app, pointing to the GUI game.app """
+    """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         standUpVerb.verbFunc(game)
