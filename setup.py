@@ -9,5 +9,5 @@ setup(
     author="JSMaika",
     author_email="r.a.lester121@gmail.com",
     packages=["intficpy"],
-    install_requires=["PyQt5"],  # external packages as dependencies
+    install_requires=[],  # external packages as dependencies
 )
