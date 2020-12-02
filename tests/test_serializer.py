@@ -1,17 +1,19 @@
 import os
 import pickle
-from .helpers import IFPTestCase
+import uuid
 
 from intficpy.serializer import SaveGame, LoadGame
 from intficpy.daemons import Daemon
 from intficpy.thing_base import Thing
 from intficpy.things import Surface, Container
 
+from .helpers import IFPTestCase
+
 
 class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
     def setUp(self):
         super().setUp()
-        FILENAME = "_ifp_tests_saveload__0001.sav"
+        FILENAME = f"_ifp_tests_saveload__{uuid.uuid4()}.sav"
 
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
@@ -117,7 +119,7 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
 class TestSaveLoadNested(IFPTestCase):
     def setUp(self):
         super().setUp()
-        FILENAME = "_ifp_tests_saveload__0002.sav"
+        FILENAME = f"_ifp_tests_saveload__{uuid.uuid4()}.sav"
 
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
