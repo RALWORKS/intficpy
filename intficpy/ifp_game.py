@@ -123,6 +123,9 @@ class IFPGame:
         self.turn_list = []
         self.back = 0
 
+        self.score = AbstractScore(self)
+        self.hints = HintSystem(self)
+
     def runTurnEvents(self):
         events = sorted(
             [event for name, event in self.next_events.items()],
@@ -147,9 +150,6 @@ class IFPGame:
         self.reflexive.addSynonym("themself")
         self.reflexive.addSynonym("themselves")
         self.reflexive.makeKnown(self.me)
-
-        self.score = AbstractScore(self)
-        self.hints = HintSystem(self)
 
         self.addEvent("turn", 5, style=self.turn_event_style)
         self.gameOpening(self)

@@ -14,11 +14,11 @@ class Achievement(IFPObject):
         super().__init__(game)
         self.points = points
         self.desc = desc
-        score.possible = score.possible + self.points
+        self.game.score.possible += self.points
 
     def award(self, game):
         # add self to fullscore
-        if not self in score.achievements:
+        if not self in self.game.score.achievements:
             game.addTextToEvent(
                 "turn",
                 "<b>ACHIEVEMENT:</b><br>"
@@ -26,8 +26,8 @@ class Achievement(IFPObject):
                 + " points for "
                 + self.desc,
             )
-            score.achievements.append(self)
-            score.total = score.total + self.points
+            self.game.score.achievements.append(self)
+            self.game.score.total += self.points
 
 
 class AbstractScore(IFPObject):
