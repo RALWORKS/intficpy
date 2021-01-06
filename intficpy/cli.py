@@ -1,14 +1,17 @@
 import os
 import re
 
+from .tokenizer import cleanInput
+
 
 class TerminalApp:
 
     QUIT_COMMANDS = ["quit", "q"]
 
-    def __init__(self):
+    def __init__(self, echo_on=False):
         self.game = None  # we let the game instance set both game.app and app.game
         self.command = None
+        self.echo_on = echo_on
 
     def printEventText(self, event):
         for t in event.text:
@@ -18,6 +21,7 @@ class TerminalApp:
             t = re.sub(r"<\/[ib]>", "\033[0m", t)
 
             print(t)
+        print("\n")
 
     def saveFilePrompt(self, extension, filetype_desc, msg):
         cur_dir = os.getcwd()
@@ -57,12 +61,13 @@ class TerminalApp:
                 "a game."
             )
 
+        print("\n")
+
         self.game.initGame()
 
         while True:
-            print("\n")
             self.command = input(">")
-            if self.command.lower() in self.QUIT_COMMANDS:
+            if cleanInput(self.command) in self.QUIT_COMMANDS:
                 break
             self.game.turnMain(self.command)
 

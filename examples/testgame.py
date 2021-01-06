@@ -116,8 +116,8 @@ bench = Surface(game, "bench")
 bench.can_contain_sitting_player = True
 bench.can_contain_standing_player = True
 bench.invItem = False
-bench.describeThing("A rough wooden bench sits against the wall. ")
-bench.xdescribeThing(
+bench.description = "A rough wooden bench sits against the wall. "
+bench.x_description = (
     "The wooden bench is splintering, and faded grey. It looks very old."
 )
 bench.moveTo(startroom)
@@ -155,8 +155,8 @@ def beachArrival(game):
 beach.arriveFunc = beachArrival
 
 shackdoor = DoorConnector(game, startroom, "e", beach, "w")
-shackdoor.entranceA.describeThing("To the east, a door leads outside. ")
-shackdoor.entranceB.describeThing("The door to the shack is directly west of you. ")
+shackdoor.entranceA.description = "To the east, a door leads outside. "
+shackdoor.entranceB.description = "The door to the shack is directly west of you. "
 
 cabinlock = Lock(game, True, rustykey)
 shackdoor.setLock(cabinlock)
@@ -168,10 +168,10 @@ beach.entrance = shackdoor
 
 attic = Room(game, "Shack, attic", "You are in a dim, cramped attic. ")
 shackladder = LadderConnector(game, startroom, attic)
-shackladder.entranceA.describeThing(
+shackladder.entranceA.description = (
     "Against the north wall is a ladder leading up to the attic. "
 )
-shackladder.entranceA.xdescribeThing(
+shackladder.entranceA.x_description(
     "Against the north wall is a ladder leading up to the attic. "
 )
 startroom.north = shackladder

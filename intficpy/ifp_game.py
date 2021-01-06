@@ -118,6 +118,7 @@ class IFPGame:
 
         self.turn_event_style = None
         self.command_event_style = None
+        self.echo_on = getattr(self.app, "echo_on", True)
 
         self.recfile = None
         self.turn_list = []
@@ -128,7 +129,11 @@ class IFPGame:
 
     def runTurnEvents(self):
         events = sorted(
-            [event for name, event in self.next_events.items()],
+            [
+                event
+                for name, event in self.next_events.items()
+                if not ((not self.echo_on) and name == "command")
+            ],
             key=lambda x: x.priority,
         )
         for event in events:
