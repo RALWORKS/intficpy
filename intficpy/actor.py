@@ -210,8 +210,8 @@ class Player(Actor):
     Currently, the game only supports a single Player character.
     """
 
-    def __init__(self, game, name):
-        super().__init__(game, name)
+    def __init__(self, game):
+        super().__init__(game, "me")
 
     def setPlayer(self):
         self.addSynonym("me")
