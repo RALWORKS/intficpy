@@ -896,14 +896,9 @@ class InvVerb(Verb):
                         + game.me.contains[key][0].verbose_name
                     )
                 # if the Thing contains Things, list them
-                if game.me.contains[key][0].contains != {}:
-                    # remove capitalization and terminating period from contains_desc
-                    c = game.me.contains[key][0].contains_desc.lower()
-                    if c[0] == " ":
-                        c = c[1:-1]
-                    else:
-                        c = c[:-1]
-                    invdesc = invdesc + " (" + c + ")"
+                contents_desc = game.me.contains[key][0].contains_desc.lower().strip()
+                if contents_desc:
+                    invdesc = invdesc + " (" + contents_desc + ")"
                 # add appropriate punctuation and "and"
                 if key is list_version[-1]:
                     invdesc = invdesc + ". "
