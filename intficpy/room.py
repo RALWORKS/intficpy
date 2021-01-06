@@ -329,7 +329,7 @@ class OutdoorRoom(Room):
         self.floor.removeSynonym("floor")
         self.floor.xdescribeThing("You notice nothing remarkable about the ground. ")
 
-        self.ceiling = Thing("sky")
+        self.ceiling = Thing(self.game, "sky")
         self.ceiling.known_ix = None
         self.ceiling.invItem = False
         self.ceiling.far_away = True
