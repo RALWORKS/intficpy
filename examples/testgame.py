@@ -96,6 +96,9 @@ startroom = Room(
 
 me.moveTo(startroom)
 
+# ABSTRACT CONCEPTS
+# Use "Abstract" items to create topics of discussion (for ask/tell Topics) that do not
+# correlate to a physical item. Alternately, use them to track player knowledge
 storm_concept = Abstract(game, "storm")
 shack_concept = Abstract(game, "shack")
 shack_concept.setAdjectives(["one", "room"])

@@ -5,8 +5,10 @@ Every IntFicPy game needs at least one room, where the Player object is placed a
 start of the game.
 
 For instance, we might have a starting room like this.
+
 ```python
 start_room = Room(
+    game,
     "Shack interior",
     "A little room. Four walls, a floor, and a ceiling. ",
 )
@@ -18,7 +20,7 @@ We can create more rooms in the same way.
 ```python
 from intficpy.room import Room
 
-bathroom = Room("Bathroom", "This bathroom is small and bright. ")
+bathroom = Room(game, "Bathroom", "This bathroom is small and bright. ")
 
 ```
 To create a Room, you need to pass in two parameters: name first, then description.

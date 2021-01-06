@@ -10,7 +10,7 @@ Let's create an Actor in a new file, `characters/carpenter.py`
 ```python
 from intficpy.actor import Actor
 
-carpenter = Actor("carpenter")
+carpenter = Actor(game, "carpenter")
 
 ```
 We'll place the carpenter in the starting room.
@@ -22,7 +22,7 @@ from intficpy.room import Room
 from characters.carpenter import carpenter # import our new character into the room file
 
 
-start_room = Room("Starting Room", "We begin here. ")
+start_room = Room(game, "Starting Room", "We begin here. ")
 
 carpenter.moveTo(start_room)
 
@@ -40,7 +40,7 @@ dealing with a *name* or *proper noun*. We can do so like this:
 ```python
 from intficpy.actor import Actor
 
-carpenter = Actor("carpenter")
+carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
 
 ```
@@ -65,7 +65,7 @@ Let's give the carpenter a default topic.
 ```python
 from intficpy.actor import Actor
 
-carpenter = Actor("carpenter")
+carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
 
 # here's where we set the default topic text
@@ -99,16 +99,18 @@ So how do we use SpecialTopics? Let's build the scenario above.
 ```python
 from intficpy.actor import Actor, SpecialTopic # here's our new import
 
-carpenter = Actor("carpenter")
+carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
 
 carpenter.default_topic = "\"What did you want to talk about?\" Joshua asks."
 
 topic_nature_of_reality = SpecialTopic(
+    game,
     "muse about the nature of reality",
     "You muse about the nature of reality for a while, but Joshua doesn't listen."
 )
 topic_help_with_work = SpecialTopic(
+    game,
     "offer to help him with his work",
     "\"That's OK,\" says Joshua."
 )
@@ -127,7 +129,7 @@ them in the character file, at the top level, like:
 ```python
 from intficpy.actor import Actor, SpecialTopic
 
-carpenter = Actor("carpenter")
+carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
 
 carpenter.default_topic = "\"What did you want to talk about?\" Joshua asks."
@@ -154,6 +156,7 @@ Let's say we want a new topic to unlock after we muse to the carpenter.
 We'll create a new topic to suggest:
 ```python
 topic_nature_of_reality_2 = SpecialTopic(
+    game,
     "ask what his thoughts are on the nature of reality",
     # tip: spread long strings across multiple lines like this:
     # (make sure they are enclosed in parentheses)
@@ -195,16 +198,18 @@ In `characters/carpenter.py`:
 ```python
 from intficpy.actor import Actor, SpecialTopic
 
-carpenter = Actor("carpenter")
+carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
 
 carpenter.default_topic = "\"What did you want to talk about?\" Joshua asks."
 
 topic_nature_of_reality = SpecialTopic(
+    game,
     "muse about the nature of reality",
     "You muse about the nature of reality for a while, but Joshua doesn't listen."
 )
 topic_nature_of_reality_2 = SpecialTopic(
+    game,
     "ask what his thoughts are on the nature of reality",
     "Joshua pauses to think for a moment. \"God,\" he says finally. "
     "\"The universe. Humanity. It's all the same thing.\""
@@ -218,6 +223,7 @@ def topic_nature_of_reality_func(game):
 topic_nature_of_reality.func = topic_nature_of_reality_func
 
 topic_help_with_work = SpecialTopic(
+    game,
     "offer to help him with his work",
     "\"That's OK,\" says Joshua."
 )

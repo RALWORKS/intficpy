@@ -9,10 +9,12 @@ Let's create a `Surface` in `rooms/bathroom.py`
 from intficpy.room import Room
 from intficpy.things import Surface
 
+from .main import game
 
-bathroom = Room("Bathroom", "This bathroom is small and bright. ")
 
-high_shelf = Surface("shelf")
+bathroom = Room(game, "Bathroom", "This bathroom is small and bright. ")
+
+high_shelf = Surface(game, "shelf")
 high_shelf.setAdjectives(["high"])
 
 high_shelf.moveTo(bathroom)
@@ -38,7 +40,7 @@ If we want to *give* the game a phrase to use for the verbose name, instead of g
 one automatically, we should set
 
 ```python
-high_shelf = Surface("shelf")
+high_shelf = Surface(game, "shelf")
 
 high_shelf._verbose_name = "high shelf"
 ```
@@ -53,7 +55,7 @@ the game prints a generic description, like
 We don't have to stick with this - we can modify it to say whatever we like!
 
 ```python
-high_shelf = Surface("shelf")
+high_shelf = Surface(game, "shelf")
 
 # this is the description that will print when you look around the room
 high_shelf.description = "A high shelf stand in the corner of the room."
