@@ -1,7 +1,10 @@
-# IntFicPy Tutorial: Contents
+# IntFicPy Tutorial:
 + [Rooms](rooms.md) - How to create rooms, and link them together
 + [Items](items.md) - How to create items and place them
 + [Characters](characters.md) - Mechanics of game characters and conversation construction
+
+# Advanced Topics:
++ [IFPObjects](ifp_objects.md) - Overview of IFPObjects, the base class for saveable objects
 
 # Running the example game
 To get a feel for IntFicPy quickly, let's use the example game as a jumping off point.
