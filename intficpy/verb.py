@@ -246,9 +246,9 @@ class IndirectObjectVerb(DirectObjectVerb):
                 None,
             )
             if dfunc:
-                abort_main_verb_func = dfunc(game)
+                abort_main_verb_func = dfunc(game, iobj)
             if ifunc:
-                abort_main_verb_func = ifunc(game) or abort_main_verb_func
+                abort_main_verb_func = ifunc(game, dobj) or abort_main_verb_func
             if abort_main_verb_func:
                 return True
 
@@ -332,7 +332,7 @@ class GetVerb(DirectObjectVerb):
                     )
                     return False
                 elif not isinstance(dobj.location, Room):
-                    return verbFunc(self, game, dobj, dobj.location)
+                    return RemoveFromVerb().verbFunc(game, dobj, dobj.location)
             # print the action message
             game.addTextToEvent(
                 "turn", "You take " + dobj.getArticle(True) + dobj.verbose_name + ". "
@@ -692,7 +692,7 @@ class SetOnVerb(IndirectObjectVerb):
 class SetInVerb(IndirectObjectVerb):
     word = "set"
     list_word = "set in"
-    synomyms = ["put", "insert", "place", "drop"]
+    synonyms = ["put", "insert", "place", "drop"]
     syntax = [
         ["put", "<dobj>", "in", "<iobj>"],
         ["set", "<dobj>", "in", "<iobj>"],
