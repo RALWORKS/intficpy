@@ -10,6 +10,9 @@ Let's create an Actor in a new file, `characters/carpenter.py`
 ```python
 from intficpy.actor import Actor
 
+from .main import game
+
+
 carpenter = Actor(game, "carpenter")
 
 ```
@@ -18,6 +21,9 @@ We'll place the carpenter in the starting room.
 In `rooms/start_room.py`:
 ```python
 from intficpy.room import Room
+
+from .main import game
+
 
 from characters.carpenter import carpenter # import our new character into the room file
 
@@ -39,6 +45,9 @@ that the game defaults to treating this like any other word, and adds an article
 dealing with a *name* or *proper noun*. We can do so like this:
 ```python
 from intficpy.actor import Actor
+
+from .main import game
+
 
 carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
@@ -64,6 +73,9 @@ Let's give the carpenter a default topic.
 
 ```python
 from intficpy.actor import Actor
+
+from .main import game
+
 
 carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
@@ -99,6 +111,9 @@ So how do we use SpecialTopics? Let's build the scenario above.
 ```python
 from intficpy.actor import Actor, SpecialTopic # here's our new import
 
+from .main import game
+
+
 carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
 
@@ -128,6 +143,9 @@ If we want these topics to be available as soon as we meet the character, we can
 them in the character file, at the top level, like:
 ```python
 from intficpy.actor import Actor, SpecialTopic
+
+from .main import game
+
 
 carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")
@@ -197,6 +215,9 @@ Let's look at all of it together.
 In `characters/carpenter.py`:
 ```python
 from intficpy.actor import Actor, SpecialTopic
+
+from .main import game
+
 
 carpenter = Actor(game, "carpenter")
 carpenter.makeProper("Joshua")

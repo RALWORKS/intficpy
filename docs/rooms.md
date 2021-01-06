@@ -20,6 +20,9 @@ We can create more rooms in the same way.
 ```python
 from intficpy.room import Room
 
+from .main import game
+
+
 bathroom = Room(game, "Bathroom", "This bathroom is small and bright. ")
 
 ```
@@ -35,6 +38,9 @@ You can connect your room to existing rooms using the rooms' direction attribute
 ```python
 from .start_room import start_room
 from .bathroom import bathroom # here's our new room
+
+from .main import game
+
 
 start_room.north = bathroom
 bathroom.south = start_room

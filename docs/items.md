@@ -29,7 +29,7 @@ should be the final word of the name we use to describe it.
 So "car starter" gets "starter" for a name; "can of nails" gets "nails". If we also want
 to be able to refer to "can of nails" as "can", then we have to do
 ```python
-can_of_nails = Container("nails")
+can_of_nails = Container(game, "nails")
 can_of_nails.setAdjectives(["can", "of"])
 can_of_nails.addSynonym("can")
 ```
