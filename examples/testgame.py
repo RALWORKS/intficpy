@@ -51,9 +51,10 @@ def opening(game):
         "opening",  # the name of your event
         1,  # the priority of the event. lower numbers will show first. the main turn event is 5
         (
+            f"<b>{game.aboutGame.title}</b><br><br>"
             "You can hear the waves crashing on the shore outside. "
-            "There are no car sounds, no human voices."
-            "You are far from any populated area."
+            "There are no car sounds, no human voices. "
+            "You are far from any populated area. "
         ),
     )
 
@@ -118,7 +119,7 @@ bench.can_contain_standing_player = True
 bench.invItem = False
 bench.description = "A rough wooden bench sits against the wall. "
 bench.x_description = (
-    "The wooden bench is splintering, and faded grey. It looks very old."
+    "The wooden bench is splintering, and faded grey. It looks very old. "
 )
 bench.moveTo(startroom)
 
@@ -171,7 +172,7 @@ shackladder = LadderConnector(game, startroom, attic)
 shackladder.entranceA.description = (
     "Against the north wall is a ladder leading up to the attic. "
 )
-shackladder.entranceA.x_description(
+shackladder.entranceA.x_description = (
     "Against the north wall is a ladder leading up to the attic. "
 )
 startroom.north = shackladder
