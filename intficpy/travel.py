@@ -1,7 +1,7 @@
 from .ifp_object import IFPObject
 from .thing_base import Thing
 from .things import Door, Lock, AbstractClimbable, Surface
-from .verb import openVerb, standUpVerb
+from .verb import OpenVerb, StandUpVerb
 from .room import Room
 
 ##############################################################
@@ -14,8 +14,10 @@ class TravelConnector(IFPObject):
     """Base class for travel connectors
     Links two rooms together"""
 
-    def __init__(self, room1, direction1, room2, direction2, name="doorway", prep=0):
-        super().__init__()
+    def __init__(
+        self, game, room1, direction1, room2, direction2, name="doorway", prep=0
+    ):
+        super().__init__(game)
         self.prep = prep
         self.pointA = room1
         self.pointB = room2
@@ -26,8 +28,8 @@ class TravelConnector(IFPObject):
         r = [room1, room2]
         d = [direction1, direction2]
         interactables = []
-        self.entranceA = Thing(name)
-        self.entranceB = Thing(name)
+        self.entranceA = Thing(self.game, name)
+        self.entranceB = Thing(self.game, name)
         self.entranceA.invItem = False
         self.entranceB.invItem = False
         self.entranceA.connection = self
@@ -150,19 +152,17 @@ class TravelConnector(IFPObject):
                 print("error: invalid direction input for TravelConnector: " + d[x])
 
     def setFromPrototype(self, connector):
-        from .vocab import vocab
-
         x = 0
         self.entranceA_msg = connector.entranceA_msg
         self.entranceB_msg = connector.entranceB_msg
         for x in range(0, 2):
             print(x)
             for synonym in self.interactables[x].synonyms:
-                if synonym in vocab.nounDict:
-                    if self.interactables[x] in vocab.nounDict[synonym]:
-                        vocab.nounDict[synonym].remove(self.interactables[x])
-                        if vocab.nounDict[synonym] == []:
-                            del vocab.nounDict[synonym]
+                if synonym in self.game.nouns:
+                    if self.interactables[x] in self.game.nouns[synonym]:
+                        self.game.nouns[synonym].remove(self.interactables[x])
+                        if self.game.nouns[synonym] == []:
+                            del self.game.nouns[synonym]
             for adj in self.interactables[x].adjectives:
                 remove_list = []
                 if adj not in directionDict and adj != "upward" and adj != "downward":
@@ -187,11 +187,11 @@ class TravelConnector(IFPObject):
 
             add = self.interactables[x].synonyms + [self.interactables[x].name]
             for noun in add:
-                if noun in vocab.nounDict:
-                    if self.interactables[x] not in vocab.nounDict[noun]:
-                        vocab.nounDict[noun].append(self.interactables[x])
+                if noun in self.game.nouns:
+                    if self.interactables[x] not in self.game.nouns[noun]:
+                        self.game.nouns[noun].append(self.interactables[x])
                 else:
-                    vocab.nounDict[noun] = [self.interactables[x]]
+                    self.game.nouns[noun] = [self.interactables[x]]
             x = x + 1
 
     def travel(self, game):
@@ -274,7 +274,8 @@ class DoorConnector(TravelConnector):
     """Base class for travel connectors
     Links two rooms together"""
 
-    def __init__(self, room1, direction1, room2, direction2):
+    def __init__(self, game, room1, direction1, room2, direction2):
+        self.game = game
         self.registerNewIndex()
         self.is_top_level_location = False
         self.pointA = room1
@@ -286,8 +287,8 @@ class DoorConnector(TravelConnector):
         interactables = []
         self.can_pass = True
         self.cannot_pass_msg = "The way is blocked. "
-        self.entranceA = Door("door")
-        self.entranceB = Door("door")
+        self.entranceA = Door(self.game, "door")
+        self.entranceB = Door(self.game, "door")
         self.entranceA.twin = self.entranceB
         self.entranceB.twin = self.entranceA
         self.entranceA.connection = self
@@ -411,7 +412,7 @@ class DoorConnector(TravelConnector):
             return False
         elif outer_loc == self.pointA:
             if not self.entranceA.is_open:
-                opened = openVerb.verbFunc(game, self.entranceA)
+                opened = OpenVerb().verbFunc(game, self.entranceA)
                 if not opened:
                     return False
             try:
@@ -439,7 +440,7 @@ class DoorConnector(TravelConnector):
             return True
         elif outer_loc == self.pointB:
             if not self.entranceB.is_open:
-                opened = openVerb.verbFunc(game, self.entranceB)
+                opened = OpenVerb().verbFunc(game, self.entranceB)
                 if not opened:
                     return False
             try:
@@ -475,7 +476,8 @@ class LadderConnector(TravelConnector):
     """Class for ladder travel connectors (up/down)
     Links two rooms together"""
 
-    def __init__(self, room1, room2):
+    def __init__(self, game, room1, room2):
+        self.game = game
         self.registerNewIndex()
         self.is_top_level_location = False
         self.pointA = room1
@@ -487,8 +489,8 @@ class LadderConnector(TravelConnector):
         interactables = []
         self.can_pass = True
         self.cannot_pass_msg = "The way is blocked. "
-        self.entranceA = AbstractClimbable("ladder")
-        self.entranceB = AbstractClimbable("ladder")
+        self.entranceA = AbstractClimbable(self.game, "ladder")
+        self.entranceB = AbstractClimbable(self.game, "ladder")
         self.interactables = [self.entranceA, self.entranceB]
         self.entranceA.connection = self
         self.entranceB.connection = self
@@ -568,7 +570,8 @@ class StaircaseConnector(TravelConnector):
     """Class for staircase travel connectors (up/down)
     Links two rooms together"""
 
-    def __init__(self, room1, room2):
+    def __init__(self, game, room1, room2):
+        self.game = game
         self.registerNewIndex()
         self.is_top_level_location = False
         self.pointA = room1
@@ -580,8 +583,8 @@ class StaircaseConnector(TravelConnector):
         interactables = []
         self.can_pass = True
         self.cannot_pass_msg = "The way is blocked. "
-        self.entranceA = AbstractClimbable("staircase")
-        self.entranceB = AbstractClimbable("staircase")
+        self.entranceA = AbstractClimbable(self.game, "staircase")
+        self.entranceB = AbstractClimbable(self.game, "staircase")
         self.entranceA.addSynonym("stairway")
         self.entranceB.addSynonym("stairway")
         self.entranceA.addSynonym("stairs")
@@ -725,7 +728,7 @@ def travelN(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("n" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.north:
@@ -748,7 +751,7 @@ def travelNE(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("ne" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.northeast:
@@ -771,7 +774,7 @@ def travelE(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("e" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.east:
@@ -794,7 +797,7 @@ def travelSE(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("se" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.southeast:
@@ -817,7 +820,7 @@ def travelS(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("s" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.south:
@@ -840,7 +843,7 @@ def travelSW(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("sw" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.southwest:
@@ -863,7 +866,7 @@ def travelW(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("w" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.west:
@@ -887,7 +890,7 @@ def travelNW(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("nw" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.northwest:
@@ -911,7 +914,7 @@ def travelU(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("u" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.up:
@@ -935,7 +938,7 @@ def travelD(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("d" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.down:
@@ -960,7 +963,7 @@ def travelOut(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("exit" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.exit:
@@ -985,7 +988,7 @@ def travelIn(game):
     """
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
-        standUpVerb.verbFunc(game)
+        StandUpVerb().verbFunc(game)
     if not loc.resolveDarkness(game) and ("entrance" not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
     elif not loc.entrance:

@@ -3,18 +3,17 @@ from .helpers import IFPTestCase
 from intficpy.ifp_game import IFPGame
 from intficpy.thing_base import Thing
 from intficpy.things import Surface, UnderSpace
-from intficpy.vocab import nounDict
 from intficpy.actor import Actor, SpecialTopic
 from intficpy.verb import (
-    Verb,
-    getVerb,
-    lookVerb,
-    setOnVerb,
-    leadDirVerb,
-    jumpOverVerb,
-    giveVerb,
-    examineVerb,
-    getAllVerb,
+    IndirectObjectVerb,
+    GetVerb,
+    LookVerb,
+    SetOnVerb,
+    LeadDirVerb,
+    JumpOverVerb,
+    GiveVerb,
+    ExamineVerb,
+    GetAllVerb,
 )
 from intficpy.exceptions import ObjectMatchError
 
@@ -23,60 +22,60 @@ class TestParser(IFPTestCase):
     def test_verb_with_no_objects(self):
         self.game.turnMain("look")
 
-        self.assertIs(self.game.parser.command.verb, lookVerb)
+        self.assertIs(self.game.parser.command.verb, LookVerb)
         self.assertIsNone(self.game.parser.command.dobj.target)
         self.assertIsNone(self.game.parser.command.iobj.target)
 
     def test_verb_with_dobj_only(self):
-        dobj = Thing(self._get_unique_noun())
+        dobj = Thing(self.game, self._get_unique_noun())
         self.start_room.addThing(dobj)
 
         self.game.turnMain(f"get {dobj.name}")
 
-        self.assertIs(self.game.parser.command.verb, getVerb)
+        self.assertIs(self.game.parser.command.verb, GetVerb)
         self.assertIs(self.game.parser.command.dobj.target, dobj)
         self.assertIsNone(self.game.parser.command.iobj.target)
 
     def test_gets_correct_verb_with_dobj_and_direction_iobj(self):
-        dobj = Actor(self._get_unique_noun())
+        dobj = Actor(self.game, self._get_unique_noun())
         self.start_room.addThing(dobj)
         iobj = "east"
         self.start_room.east = self.start_room
 
         self.game.turnMain(f"lead {dobj.name} {iobj}")
 
-        self.assertIs(self.game.parser.command.verb, leadDirVerb)
+        self.assertIs(self.game.parser.command.verb, LeadDirVerb)
         self.assertIs(self.game.parser.command.dobj.target, dobj)
         self.assertEqual(self.game.parser.command.iobj.target, iobj)
 
     def test_gets_correct_verb_with_preposition_dobj_only(self):
-        dobj = Thing(self._get_unique_noun())
+        dobj = Thing(self.game, self._get_unique_noun())
         self.start_room.addThing(dobj)
 
         self.game.turnMain(f"jump over {dobj.name}")
 
-        self.assertIs(self.game.parser.command.verb, jumpOverVerb)
+        self.assertIs(self.game.parser.command.verb, JumpOverVerb)
         self.assertIs(self.game.parser.command.dobj.target, dobj)
         self.assertIsNone(self.game.parser.command.iobj.target)
 
     def test_gets_correct_verb_with_preposition_dobj_and_iobj(self):
-        dobj = Thing(self._get_unique_noun())
+        dobj = Thing(self.game, self._get_unique_noun())
         self.start_room.addThing(dobj)
-        iobj = Surface(self._get_unique_noun())
+        iobj = Surface(self.game, self._get_unique_noun())
         self.start_room.addThing(iobj)
 
         self.game.turnMain(f"set {dobj.name} on {iobj.name}")
 
-        self.assertIs(self.game.parser.command.verb, setOnVerb)
+        self.assertIs(self.game.parser.command.verb, SetOnVerb)
         self.assertIs(self.game.parser.command.dobj.target, dobj)
         self.assertIs(self.game.parser.command.iobj.target, iobj)
 
 
 class TestGetGrammarObj(IFPTestCase):
     def test_gets_correct_objects_with_adjacent_dobj_iobj(self):
-        dobj_item = Actor(self._get_unique_noun())
+        dobj_item = Actor(self.game, self._get_unique_noun())
         self.start_room.addThing(dobj_item)
-        iobj_item = Thing(self._get_unique_noun())
+        iobj_item = Thing(self.game, self._get_unique_noun())
         self.start_room.addThing(iobj_item)
 
         self.game.turnMain(f"give {dobj_item.name} {iobj_item.name}")
@@ -86,25 +85,19 @@ class TestGetGrammarObj(IFPTestCase):
 
 
 class TestAdjacentStrObj(IFPTestCase):
-    def setUp(self):
-        super().setUp()
-
-        self.strangeVerb = Verb("strange")
-        self.strangeVerb.syntax = [["strange", "<iobj>", "<dobj>"]]
-        self.strangeVerb.hasDobj = True
-        self.strangeVerb.hasIobj = True
-        self.strangeVerb.hasStrIobj = True
-        self.strangeVerb.iscope = "text"
-        self.strangeVerb.dscope = "near"
+    class StrangeVerb(IndirectObjectVerb):
+        word = "strange"
+        syntax = [["strange", "<iobj>", "<dobj>"]]
+        hasStrIobj = True
+        iscope = "text"
+        dscope = "near"
 
         def strangeVerbFunc(game, dobj, iobj):
             game.addTextToEvent("turn", "You do strange things")
             return True
 
-        self.strangeVerb.verbFunc = strangeVerbFunc
-
     def test_thing_follows_string_adjacent_string_object(self):
-        thing = Thing("thing")
+        thing = Thing(self.game, "thing")
         thing.setAdjectives(["good"])
         self.start_room.addThing(thing)
 
@@ -112,7 +105,7 @@ class TestAdjacentStrObj(IFPTestCase):
 
         self.assertIs(
             self.game.parser.command.verb,
-            self.strangeVerb,
+            self.StrangeVerb,
             "Unexpected verb from command with adjacent string objects where thing "
             "follows string",
         )
@@ -129,14 +122,15 @@ class TestGetThing(IFPTestCase):
         noun = self._get_unique_noun()
         self.assertNotIn(
             noun,
-            nounDict,
+            self.game.nouns,
             f"This test needs the value of noun ({noun}) to be such that it does not "
-            "initially exist in nounDict",
+            "initially exist in self.game.nouns",
         )
-        item1 = Thing(noun)
+        item1 = Thing(self.game, noun)
         self.start_room.addThing(item1)
         self.assertTrue(
-            noun in nounDict, "Name was not added to nounDict after Thing creation"
+            noun in self.game.nouns,
+            "Name was not added to self.game.nouns after Thing creation",
         )
 
         self.game.turnMain(f"examine {noun}")
@@ -146,9 +140,9 @@ class TestGetThing(IFPTestCase):
             "Failed to match item from unambiguous noun",
         )
 
-        item2 = Thing(noun)
+        item2 = Thing(self.game, noun)
         self.start_room.addThing(item2)
-        self.assertEqual(len(nounDict[noun]), 2)
+        self.assertEqual(len(self.game.nouns[noun]), 2)
 
         adj1 = "unique"
         adj2 = "special"
@@ -183,7 +177,7 @@ class TestParserError(IFPTestCase):
 
     def test_suggestion_not_understood(self):
         topic = SpecialTopic(
-            "tell sarah to grow a beard", "You tell Sarah to grow a beard."
+            self.game, "tell sarah to grow a beard", "You tell Sarah to grow a beard."
         )
 
         self.game.parser.command.specialTopics["tell sarah to grow a beard"] = topic
@@ -217,11 +211,11 @@ class TestParserError(IFPTestCase):
         )
 
     def test_verb_by_objects_no_near_matches_unrecognized_noun(self):
-        sarah1 = Actor("teacher")
+        sarah1 = Actor(self.game, "teacher")
         sarah1.setAdjectives(["good"])
         self.start_room.addThing(sarah1)
 
-        sarah2 = Actor("teacher")
+        sarah2 = Actor(self.game, "teacher")
         sarah2.setAdjectives(["bad"])
         self.start_room.addThing(sarah2)
 
@@ -243,12 +237,12 @@ class TestParserError(IFPTestCase):
 
 class TestCompositeObjectRedirection(IFPTestCase):
     def test_composite_object_redirection(self):
-        bench = Surface("bench")
+        bench = Surface(self.game, "bench")
         self.start_room.addThing(bench)
-        underbench = UnderSpace("space")
+        underbench = UnderSpace(self.game, "space")
         bench.addComposite(underbench)
 
-        widget = Thing("widget")
+        widget = Thing(self.game, "widget")
         underbench.addThing(widget)
 
         self.game.turnMain("look under bench")
@@ -263,9 +257,9 @@ class TestCompositeObjectRedirection(IFPTestCase):
 
 class TestDisambig(IFPTestCase):
     def test_disambiguate_with_directional_adjective(self):
-        east_pillar = Thing("pillar")
+        east_pillar = Thing(self.game, "pillar")
         east_pillar.setAdjectives(["east"])
-        west_pillar = Thing("pillar")
+        west_pillar = Thing(self.game, "pillar")
         west_pillar.setAdjectives(["west"])
 
         self.start_room.addThing(east_pillar)
@@ -285,9 +279,9 @@ class TestDisambig(IFPTestCase):
         )
 
     def test_disambiguate_with_index(self):
-        east_pillar = Thing("pillar")
+        east_pillar = Thing(self.game, "pillar")
         east_pillar.setAdjectives(["east"])
-        west_pillar = Thing("pillar")
+        west_pillar = Thing(self.game, "pillar")
         west_pillar.setAdjectives(["west"])
 
         self.start_room.addThing(east_pillar)
@@ -308,7 +302,7 @@ class TestDisambig(IFPTestCase):
 
 class TestPrepositions(IFPTestCase):
     def test_prepositional_adjectives(self):
-        up_ladder = Thing(self._get_unique_noun())
+        up_ladder = Thing(self.game, self._get_unique_noun())
         up_ladder.setAdjectives(["high", "up"])
 
         self.start_room.addThing(up_ladder)
@@ -317,7 +311,7 @@ class TestPrepositions(IFPTestCase):
 
         self.assertIs(
             self.game.parser.command.verb,
-            examineVerb,
+            ExamineVerb,
             "Unexpected verb after using a preposition as an adjective",
         )
 
@@ -328,7 +322,7 @@ class TestPrepositions(IFPTestCase):
         )
 
     def test_verb_rejected_if_preposition_not_accounted_for(self):
-        up_ladder = Thing(self._get_unique_noun())
+        up_ladder = Thing(self.game, self._get_unique_noun())
 
         self.start_room.addThing(up_ladder)
 
@@ -336,12 +330,12 @@ class TestPrepositions(IFPTestCase):
 
         self.assertIsNot(
             self.game.parser.command.verb,
-            examineVerb,
+            ExamineVerb,
             "Examine verb does not have preposition `up`. Should not have matched.",
         )
 
     def test_preposition_directional_verb(self):
-        girl = Thing("girl")
+        girl = Thing(self.game, "girl")
 
         self.start_room.addThing(girl)
 
@@ -349,7 +343,7 @@ class TestPrepositions(IFPTestCase):
 
         self.assertIs(
             self.game.parser.command.verb,
-            leadDirVerb,
+            LeadDirVerb,
             "Unexpected verb after using a direction that doubles as a preposition (up) "
             "for a directional verb",
         )
@@ -357,7 +351,7 @@ class TestPrepositions(IFPTestCase):
 
 class TestKeywords(IFPTestCase):
     def test_keyword_adjectives(self):
-        everything_box = Thing(self._get_unique_noun())
+        everything_box = Thing(self.game, self._get_unique_noun())
         everything_box.setAdjectives(["good", "everything"])
 
         self.start_room.addThing(everything_box)
@@ -366,7 +360,7 @@ class TestKeywords(IFPTestCase):
 
         self.assertIs(
             self.game.parser.command.verb,
-            examineVerb,
+            ExamineVerb,
             "Unexpected verb after using an english keyword as an adjective",
         )
 
@@ -377,7 +371,7 @@ class TestKeywords(IFPTestCase):
         )
 
     def test_verb_rejected_if_keyword_not_accounted_for(self):
-        everything_box = Thing(self._get_unique_noun())
+        everything_box = Thing(self.game, self._get_unique_noun())
 
         self.start_room.addThing(everything_box)
 
@@ -385,7 +379,7 @@ class TestKeywords(IFPTestCase):
 
         self.assertIsNot(
             self.game.parser.command.verb,
-            examineVerb,
+            ExamineVerb,
             "Examine verb does not have keyword `everything`. Should not have matched.",
         )
 
@@ -394,17 +388,17 @@ class TestKeywords(IFPTestCase):
 
         self.assertIs(
             self.game.parser.command.verb,
-            getAllVerb,
+            GetAllVerb,
             "Tried to call a verb with an english keyword.",
         )
 
 
 class TestSuggestions(IFPTestCase):
     def test_accept_suggestion(self):
-        girl = Actor("girl")
+        girl = Actor(self.game, "girl")
         TOPIC_SUGGESTION = "ask what her name is"
         TOPIC_TEXT = '"It\'s Karen," says the girl.'
-        topic = SpecialTopic(TOPIC_SUGGESTION, TOPIC_TEXT)
+        topic = SpecialTopic(self.game, TOPIC_SUGGESTION, TOPIC_TEXT)
         girl.addSpecialTopic(topic)
         self.start_room.addThing(girl)
 
@@ -429,7 +423,7 @@ class TestReplacement(IFPTestCase):
         return ret
 
     def test_print_replace_with_string(self):
-        thing = Thing(self._get_unique_noun())
+        thing = Thing(self.game, self._get_unique_noun())
         thing.x_description = "I will <<test_parser.TestReplacement.STRING>> this."
         thing.moveTo(self.start_room)
 
@@ -439,7 +433,7 @@ class TestReplacement(IFPTestCase):
         self.assertIn(self.STRING, msg)
 
     def test_print_replace_with_integer(self):
-        thing = Thing(self._get_unique_noun())
+        thing = Thing(self.game, self._get_unique_noun())
         thing.x_description = "I will <<test_parser.TestReplacement.INTEGER>> this."
         thing.moveTo(self.start_room)
 
@@ -449,7 +443,7 @@ class TestReplacement(IFPTestCase):
         self.assertIn(str(self.INTEGER), msg)
 
     def test_attempting_to_replace_with_function_call_raises(self):
-        thing = Thing(self._get_unique_noun())
+        thing = Thing(self.game, self._get_unique_noun())
         thing.x_description = (
             "I will <<test_parser.TestReplacement.class_method_with_one_arg(7)>> this."
         )

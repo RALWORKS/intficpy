@@ -1,19 +1,18 @@
 import copy
 
 from .physical_entity import PhysicalEntity
-from .vocab import nounDict
 
 ##############################################################
 # THING_BASE.PY - the Thing class for IntFicPy
-# Defines the Thing class, and the thing dictionary
+# Defines the Thing class
 ##############################################################
 
 
 class Thing(PhysicalEntity):
     """Thing is the overarching class for all items that exist in the game """
 
-    def __init__(self, name):
-        super().__init__()
+    def __init__(self, game, name):
+        super().__init__(game)
 
         self.known_ix = self.ix
         self.ignore_if_ambiguous = False
@@ -99,10 +98,10 @@ class Thing(PhysicalEntity):
         self.x_description = None
 
         # add name to list of nouns
-        if name in nounDict:
-            nounDict[name].append(self)
+        if name in self.game.nouns:
+            self.game.nouns[name].append(self)
         else:
-            nounDict[name] = [self]
+            self.game.nouns[name] = [self]
 
     @property
     def verb_to_be(self):
@@ -270,22 +269,22 @@ class Thing(PhysicalEntity):
         """Adds a synonym (noun) that can be used to refer to a Thing
         Takes argument word, a string, which should be a single noun """
         self.synonyms.append(word)
-        if word in nounDict:
-            if self not in nounDict[word]:
-                nounDict[word].append(self)
+        if word in self.game.nouns:
+            if self not in self.game.nouns[word]:
+                self.game.nouns[word].append(self)
         else:
-            nounDict[word] = [self]
+            self.game.nouns[word] = [self]
 
     def removeSynonym(self, word):
         """Adds a synonym (noun) that can be used to refer to a Thing
         Takes argument word, a string, which should be a single noun """
         if word in self.synonyms:
             self.synonyms.remove(word)
-        if word in nounDict:
-            if self in nounDict[word]:
-                nounDict[word].remove(self)
-            if nounDict[word] == []:
-                del nounDict[word]
+        if word in self.game.nouns:
+            if self in self.game.nouns[word]:
+                self.game.nouns[word].remove(self)
+            if self.game.nouns[word] == []:
+                del self.game.nouns[word]
 
     def setAdjectives(self, adj_list):
         """Sets adjectives for a Thing
@@ -340,10 +339,10 @@ class Thing(PhysicalEntity):
         Safe to use for dynamic item duplication.
         """
         out = copy.copy(self)
-        nounDict[out.name].append(out)
+        self.game.nouns[out.name].append(out)
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
-            nounDict[synonym].append(out)
+            self.game.nouns[synonym].append(out)
         out._verbose_name = self._verbose_name
         out.contains = {}
         out.sub_contains = {}
@@ -358,10 +357,10 @@ class Thing(PhysicalEntity):
         """
         out = copy.copy(self)
         self.registerNewIndex()
-        nounDict[out.name].append(out)
+        self.game.nouns[out.name].append(out)
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
-            nounDict[synonym].append(out)
+            self.game.nouns[synonym].append(out)
         out._verbose_name = self._verbose_name
         out.contains = {}
         out.sub_contains = {}
@@ -376,29 +375,29 @@ class Thing(PhysicalEntity):
             )
             return False
         else:
-            if self.name in nounDict:
-                if self in nounDict[self.name]:
-                    nounDict[self.name].remove(self)
-                    if nounDict[self.name] == []:
-                        del nounDict[self.name]
+            if self.name in self.game.nouns:
+                if self in self.game.nouns[self.name]:
+                    self.game.nouns[self.name].remove(self)
+                    if self.game.nouns[self.name] == []:
+                        del self.game.nouns[self.name]
             for synonym in self.synonyms:
-                if self in nounDict[synonym]:
-                    if self in nounDict[synonym]:
-                        nounDict[synonym].remove(self)
-                        if nounDict[synonym] == []:
-                            del nounDict[synonym]
+                if self in self.game.nouns[synonym]:
+                    if self in self.game.nouns[synonym]:
+                        self.game.nouns[synonym].remove(self)
+                        if self.game.nouns[synonym] == []:
+                            del self.game.nouns[synonym]
             for attr, value in item.__dict__.items():
                 if attr != "ix":
                     setattr(self, attr, value)
-            if self.name in nounDict:
-                nounDict[self.name].append(self)
+            if self.name in self.game.nouns:
+                self.game.nouns[self.name].append(self)
             else:
-                nounDict[self.name] = [self]
+                self.game.nouns[self.name] = [self]
             for synonym in self.synonyms:
-                if synonym in nounDict:
-                    nounDict[synonym].append(self)
+                if synonym in self.game.nouns:
+                    self.game.nouns[synonym].append(self)
                 else:
-                    nounDict[synonym] = [self]
+                    self.game.nouns[synonym] = [self]
             return True
 
     def describeThing(self, description):

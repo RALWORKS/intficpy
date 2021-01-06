@@ -12,50 +12,47 @@ from intficpy.things import (
     Key,
     Clothing,
 )
-from intficpy.actor import Actor
 from intficpy.exceptions import AbortTurn, ObjectMatchError
 from intficpy.room import Room
 from intficpy.travel import DoorConnector
 from intficpy.verb import (
-    getVerb,
-    dropVerb,
-    lookVerb,
-    examineVerb,
-    setInVerb,
-    setOnVerb,
-    setUnderVerb,
-    lookVerb,
-    examineVerb,
-    lookInVerb,
-    lookUnderVerb,
-    readVerb,
-    getAllVerb,
-    dropAllVerb,
-    invVerb,
-    openVerb,
-    closeVerb,
-    lockVerb,
-    lockWithVerb,
-    unlockVerb,
-    unlockWithVerb,
-    wearVerb,
-    climbOnVerb,
-    climbDownFromVerb,
-    climbDownVerb,
-    climbInVerb,
-    climbOutVerb,
-    climbOutOfVerb,
-    talkToVerb,
+    GetVerb,
+    DropVerb,
+    LookVerb,
+    ExamineVerb,
+    SetInVerb,
+    SetOnVerb,
+    SetUnderVerb,
+    LookInVerb,
+    LookUnderVerb,
+    ReadVerb,
+    GetAllVerb,
+    DropAllVerb,
+    InvVerb,
+    OpenVerb,
+    CloseVerb,
+    LockVerb,
+    LockWithVerb,
+    UnlockVerb,
+    UnlockWithVerb,
+    WearVerb,
+    ClimbOnVerb,
+    ClimbDownFromVerb,
+    ClimbDownVerb,
+    ClimbInVerb,
+    ClimbOutVerb,
+    ClimbOutOfVerb,
+    TalkToVerb,
 )
 
 
 class TestGetVerb(IFPTestCase):
     def test_verb_func_adds_invitem_to_inv(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.start_room.addThing(item)
 
-        success = getVerb._runVerbFuncAndEvents(self.game, item)
+        success = GetVerb()._runVerbFuncAndEvents(self.game, item)
         self.assertTrue(success)
 
         self.assertIn(item.ix, self.me.contains)
@@ -63,26 +60,26 @@ class TestGetVerb(IFPTestCase):
         self.assertIn(item, self.me.contains[item.ix])
 
     def test_verb_func_does_not_add_to_inv_where_invitem_false(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = False
         self.start_room.addThing(item)
 
         self.assertFalse(item.ix in self.me.contains)
 
-        success = getVerb._runVerbFuncAndEvents(self.game, item)
+        success = GetVerb()._runVerbFuncAndEvents(self.game, item)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, self.me.contains)
 
     def test_verb_func_does_not_add_to_inv_where_already_in_inv(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
         self.assertTrue(item.ix in self.me.contains)
         self.assertEqual(len(self.me.contains[item.ix]), 1)
         self.assertIn(item, self.me.contains[item.ix])
 
-        success = getVerb._runVerbFuncAndEvents(self.game, item)
+        success = GetVerb()._runVerbFuncAndEvents(self.game, item)
         self.assertFalse(success)
 
         self.assertEqual(len(self.me.contains[item.ix]), 1)
@@ -90,7 +87,7 @@ class TestGetVerb(IFPTestCase):
 
 class TestDropVerb(IFPTestCase):
     def test_verb_func_drops_item(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
         self.assertIn(item.ix, self.me.contains)
@@ -104,99 +101,99 @@ class TestDropVerb(IFPTestCase):
         )
 
     def test_drop_item_not_in_inv(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.start_room.addThing(item)
         self.assertNotIn(item.ix, self.me.contains)
 
-        success = dropVerb._runVerbFuncAndEvents(self.game, item)
+        success = DropVerb()._runVerbFuncAndEvents(self.game, item)
         self.assertFalse(success)
 
 
 class TestSetVerbs(IFPTestCase):
     def test_set_in_adds_item(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        container = Container(self._get_unique_noun())
+        container = Container(self.game, self._get_unique_noun())
         self.start_room.addThing(container)
 
         self.assertNotIn(item.ix, container.contains)
 
-        success = setInVerb._runVerbFuncAndEvents(self.game, item, container)
+        success = SetInVerb()._runVerbFuncAndEvents(self.game, item, container)
         self.assertTrue(success)
 
         self.assertIn(item.ix, container.contains)
         self.assertIn(item, container.contains[item.ix])
 
     def test_set_on_adds_item(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        surface = Surface(self._get_unique_noun())
+        surface = Surface(self.game, self._get_unique_noun())
         self.start_room.addThing(surface)
 
         self.assertNotIn(item.ix, surface.contains)
 
-        success = setOnVerb._runVerbFuncAndEvents(self.game, item, surface)
+        success = SetOnVerb()._runVerbFuncAndEvents(self.game, item, surface)
         self.assertTrue(success)
 
         self.assertIn(item.ix, surface.contains)
         self.assertIn(item, surface.contains[item.ix])
 
     def test_set_under_adds_item(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        underspace = UnderSpace(self._get_unique_noun())
+        underspace = UnderSpace(self.game, self._get_unique_noun())
         self.start_room.addThing(underspace)
 
         self.assertNotIn(item.ix, underspace.contains)
 
-        success = setUnderVerb._runVerbFuncAndEvents(self.game, item, underspace)
+        success = SetUnderVerb()._runVerbFuncAndEvents(self.game, item, underspace)
         self.assertTrue(success)
 
         self.assertIn(item.ix, underspace.contains)
         self.assertIn(item, underspace.contains[item.ix])
 
     def test_cannot_set_in_non_container(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        invalid_iobj = Thing(self._get_unique_noun())
+        invalid_iobj = Thing(self.game, self._get_unique_noun())
         self.start_room.addThing(invalid_iobj)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
-        success = setInVerb._runVerbFuncAndEvents(self.game, item, invalid_iobj)
+        success = SetInVerb()._runVerbFuncAndEvents(self.game, item, invalid_iobj)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
     def test_cannot_set_on_non_surface(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        invalid_iobj = Thing(self._get_unique_noun())
+        invalid_iobj = Thing(self.game, self._get_unique_noun())
         self.start_room.addThing(invalid_iobj)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
-        success = setOnVerb._runVerbFuncAndEvents(self.game, item, invalid_iobj)
+        success = SetOnVerb()._runVerbFuncAndEvents(self.game, item, invalid_iobj)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
     def test_cannot_set_under_non_underspace(self):
-        item = Thing(self._get_unique_noun())
+        item = Thing(self.game, self._get_unique_noun())
         item.invItem = True
         self.me.addThing(item)
-        invalid_iobj = Thing(self._get_unique_noun())
+        invalid_iobj = Thing(self.game, self._get_unique_noun())
         self.start_room.addThing(invalid_iobj)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
 
-        success = setUnderVerb._runVerbFuncAndEvents(self.game, item, invalid_iobj)
+        success = SetUnderVerb()._runVerbFuncAndEvents(self.game, item, invalid_iobj)
         self.assertFalse(success)
 
         self.assertNotIn(item.ix, invalid_iobj.contains)
@@ -204,15 +201,15 @@ class TestSetVerbs(IFPTestCase):
 
 class TestLookVerbs(IFPTestCase):
     def test_look(self):
-        room = Room("Strange Room", "It's strange in here. ")
-        item = Thing("hullabaloo")
+        room = Room(self.game, "Strange Room", "It's strange in here. ")
+        item = Thing(self.game, "hullabaloo")
         item.describeThing("All around is a hullabaloo. ")
         room.addThing(item)
 
         self.me.location.removeThing(self.me)
         room.addThing(self.me)
 
-        lookVerb._runVerbFuncAndEvents(self.game)
+        LookVerb()._runVerbFuncAndEvents(self.game)
         look_desc = self.app.print_stack.pop()
         look_title = self.app.print_stack.pop()
 
@@ -221,10 +218,10 @@ class TestLookVerbs(IFPTestCase):
         self.assertIn(item.desc, look_desc, "Item description not printed by look")
 
     def test_examine(self):
-        item = Thing("widget")
+        item = Thing(self.game, "widget")
         item.xdescribeThing("It's a shiny little widget. ")
 
-        examineVerb._runVerbFuncAndEvents(self.game, item)
+        ExamineVerb()._runVerbFuncAndEvents(self.game, item)
 
         examine_desc = self.app.print_stack.pop()
 
@@ -235,11 +232,11 @@ class TestLookVerbs(IFPTestCase):
         )
 
     def test_look_in(self):
-        parent = Container("shoebox")
-        child = Thing("penny")
+        parent = Container(self.game, "shoebox")
+        child = Thing(self.game, "penny")
         parent.addThing(child)
 
-        lookInVerb._runVerbFuncAndEvents(self.game, parent)
+        LookInVerb()._runVerbFuncAndEvents(self.game, parent)
 
         look_in_desc = self.app.print_stack.pop()
 
@@ -251,11 +248,11 @@ class TestLookVerbs(IFPTestCase):
         )
 
     def test_look_under(self):
-        parent = UnderSpace("table")
-        child = Thing("penny")
+        parent = UnderSpace(self.game, "table")
+        child = Thing(self.game, "penny")
         parent.addThing(child)
 
-        lookUnderVerb._runVerbFuncAndEvents(self.game, parent)
+        LookUnderVerb()._runVerbFuncAndEvents(self.game, parent)
 
         look_under_desc = self.app.print_stack.pop()
 
@@ -267,9 +264,9 @@ class TestLookVerbs(IFPTestCase):
         )
 
     def test_read(self):
-        item = Readable("note", "I'm sorry, but I have to do this. ")
+        item = Readable(self.game, "note", "I'm sorry, but I have to do this. ")
 
-        readVerb._runVerbFuncAndEvents(self.game, item)
+        ReadVerb()._runVerbFuncAndEvents(self.game, item)
 
         read_desc = self.app.print_stack.pop()
 
@@ -282,8 +279,8 @@ class TestLookVerbs(IFPTestCase):
 
 class TestInventoryVerbs(IFPTestCase):
     def test_get_all_drop(self):
-        item1 = Thing("miracle")
-        item2 = Thing("wonder")
+        item1 = Thing(self.game, "miracle")
+        item2 = Thing(self.game, "wonder")
         item1.invItem = True
         item2.invItem = True
         item3 = item2.copyThing()
@@ -297,7 +294,7 @@ class TestInventoryVerbs(IFPTestCase):
         self.assertIn(item2.ix, self.me.contains)
         self.assertNotIn(item3, self.me.contains[item2.ix])
 
-        getAllVerb._runVerbFuncAndEvents(self.game)
+        GetAllVerb()._runVerbFuncAndEvents(self.game)
         getall_msg = self.app.print_stack.pop()
 
         self.assertIn(
@@ -313,13 +310,13 @@ class TestInventoryVerbs(IFPTestCase):
         )
         self.assertIn(item2, self.me.contains[item2.ix])
 
-        getAllVerb._runVerbFuncAndEvents(self.game)
+        GetAllVerb()._runVerbFuncAndEvents(self.game)
         getall_msg = self.app.print_stack.pop()
         self.assertEqual(getall_msg, "There are no obvious items here to take. ")
 
     def test_drop_all(self):
-        item1 = Thing("miracle")
-        item2 = Thing("wonder")
+        item1 = Thing(self.game, "miracle")
+        item2 = Thing(self.game, "wonder")
         item1.invItem = True
         item2.invItem = True
         item1.makeKnown(self.me)
@@ -333,7 +330,7 @@ class TestInventoryVerbs(IFPTestCase):
             "This test needs the Player to be in the start room",
         )
 
-        dropAllVerb._runVerbFuncAndEvents(self.game)
+        DropAllVerb()._runVerbFuncAndEvents(self.game)
         dropall_msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -346,7 +343,7 @@ class TestInventoryVerbs(IFPTestCase):
         self.assertIn(item1, self.start_room.contains[item1.ix])
         self.assertIn(item2.ix, self.start_room.contains)
         self.assertIn(item2, self.start_room.contains[item2.ix])
-        dropAllVerb._runVerbFuncAndEvents(self.game)
+        DropAllVerb()._runVerbFuncAndEvents(self.game)
         dropall_msg = self.app.print_stack.pop()
         self.assertEqual(dropall_msg, "Your inventory is empty. ")
 
@@ -354,12 +351,12 @@ class TestInventoryVerbs(IFPTestCase):
 class TestDoorVerbs(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.room1 = Room("A cold room", "This room is cold. ")
-        self.room2 = Room("A hot room", "This room is uncomfortably hot. ")
-        self.door = DoorConnector(self.room1, "se", self.room2, "nw")
-        self.key = Key("key")
+        self.room1 = Room(self.game, "A cold room", "This room is cold. ")
+        self.room2 = Room(self.game, "A hot room", "This room is uncomfortably hot. ")
+        self.door = DoorConnector(self.game, self.room1, "se", self.room2, "nw")
+        self.key = Key(self.game, "key")
         self.me.addThing(self.key)
-        self.lock = Lock(False, self.key)
+        self.lock = Lock(self.game, False, self.key)
         self.lock.is_locked = False
         self.door.setLock(self.lock)
 
@@ -373,7 +370,7 @@ class TestDoorVerbs(IFPTestCase):
             "This test needs the door to be initially unlocked",
         )
 
-        openVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        OpenVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertTrue(
             self.door.entranceA.is_open,
@@ -387,7 +384,7 @@ class TestDoorVerbs(IFPTestCase):
             self.door.entranceA.is_open, "This test needs the door to be initially open"
         )
 
-        closeVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        CloseVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertFalse(
             self.door.entranceA.is_open,
@@ -400,7 +397,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        lockVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        LockVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertTrue(
             self.lock.is_locked,
@@ -413,7 +410,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        unlockVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        UnlockVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertFalse(
             self.lock.is_locked,
@@ -426,7 +423,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        lockWithVerb._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
+        LockWithVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
 
         self.assertTrue(
             self.lock.is_locked,
@@ -439,7 +436,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        unlockWithVerb._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
+        UnlockWithVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
 
         self.assertFalse(
             self.lock.is_locked,
@@ -458,7 +455,7 @@ class TestDoorVerbs(IFPTestCase):
             "This test needs the door to be initially locked",
         )
 
-        openVerb._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        OpenVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
 
         self.assertFalse(
             self.door.entranceA.is_open,
@@ -470,12 +467,12 @@ class TestDoorVerbs(IFPTestCase):
 class TestLidVerbs(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("chest")
+        self.container = Container(self.game, "chest")
         self.container.has_lid = True
         self.container.is_open = False
-        self.key = Key("key")
+        self.key = Key(self.game, "key")
         self.me.addThing(self.key)
-        self.lock = Lock(False, self.key)
+        self.lock = Lock(self.game, False, self.key)
         self.lock.is_locked = False
         self.container.setLock(self.lock)
 
@@ -489,7 +486,7 @@ class TestLidVerbs(IFPTestCase):
             "This test needs the container to be initially unlocked",
         )
 
-        openVerb._runVerbFuncAndEvents(self.game, self.container)
+        OpenVerb()._runVerbFuncAndEvents(self.game, self.container)
 
         self.assertTrue(
             self.container.is_open,
@@ -503,7 +500,7 @@ class TestLidVerbs(IFPTestCase):
             self.container.is_open, "This test needs the container to be initially open"
         )
 
-        closeVerb._runVerbFuncAndEvents(self.game, self.container)
+        CloseVerb()._runVerbFuncAndEvents(self.game, self.container)
 
         self.assertFalse(
             self.container.is_open,
@@ -522,7 +519,7 @@ class TestLidVerbs(IFPTestCase):
             "This test needs the container to be initially locked",
         )
 
-        openVerb._runVerbFuncAndEvents(self.game, self.container)
+        OpenVerb()._runVerbFuncAndEvents(self.game, self.container)
 
         self.assertFalse(
             self.container.is_open,
@@ -533,14 +530,14 @@ class TestLidVerbs(IFPTestCase):
 
 class TestEmptyInventory(IFPTestCase):
     def test_view_empty_inv(self):
-        dropAllVerb._runVerbFuncAndEvents(self.game)
+        DropAllVerb()._runVerbFuncAndEvents(self.game)
         self.assertEqual(
             len(self.me.contains), 0, "This test requires an empty player inventory"
         )
 
         EMPTY_INV_MSG = "You don't have anything with you. "
 
-        invVerb._runVerbFuncAndEvents(self.game)
+        InvVerb()._runVerbFuncAndEvents(self.game)
         inv_msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -553,13 +550,13 @@ class TestEmptyInventory(IFPTestCase):
 class TestFullInventory(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.parent = Thing("cube")
-        self.child = Container("slot")
+        self.parent = Thing(self.game, "cube")
+        self.child = Container(self.game, "slot")
         self.parent.addComposite(self.child)
-        self.stacked1 = Thing("tile")
+        self.stacked1 = Thing(self.game, "tile")
         self.stacked2 = self.stacked1.copyThing()
-        self.clothing = Clothing("scarf")
-        self.clothing1 = Clothing("mitten")
+        self.clothing = Clothing(self.game, "scarf")
+        self.clothing1 = Clothing(self.game, "mitten")
         self.clothing2 = self.clothing1.copyThing()
 
         self.me.addThing(self.parent)
@@ -570,9 +567,9 @@ class TestFullInventory(IFPTestCase):
         self.me.addThing(self.clothing1)
         self.me.addThing(self.clothing2)
 
-        wearVerb._runVerbFuncAndEvents(self.game, self.clothing)
-        wearVerb._runVerbFuncAndEvents(self.game, self.clothing1)
-        wearVerb._runVerbFuncAndEvents(self.game, self.clothing2)
+        WearVerb()._runVerbFuncAndEvents(self.game, self.clothing)
+        WearVerb()._runVerbFuncAndEvents(self.game, self.clothing1)
+        WearVerb()._runVerbFuncAndEvents(self.game, self.clothing2)
 
     def strip_desc(self, desc):
         desc = desc.replace(". ", "").replace(",", "").replace("and", "")
@@ -581,7 +578,7 @@ class TestFullInventory(IFPTestCase):
     def test_inventory_items_desc(self):
         BASE_MSG = "You have"
 
-        invVerb._runVerbFuncAndEvents(self.game)
+        InvVerb()._runVerbFuncAndEvents(self.game)
         self.app.print_stack.pop()
         inv_desc = self.app.print_stack.pop()
 
@@ -608,7 +605,7 @@ class TestFullInventory(IFPTestCase):
     def test_inventory_wearing_desc(self):
         BASE_MSG = "You are wearing"
 
-        invVerb._runVerbFuncAndEvents(self.game)
+        InvVerb()._runVerbFuncAndEvents(self.game)
         wearing_desc = self.app.print_stack.pop()
 
         clothing_desc = self.clothing.lowNameArticle()
@@ -639,7 +636,7 @@ class TestFullInventory(IFPTestCase):
 class TestPlayerGetOn(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.surface = Surface("bench")
+        self.surface = Surface(self.game, "bench")
         self.start_room.addThing(self.surface)
 
     def test_climb_on_cannot_sit_stand_lie(self):
@@ -648,7 +645,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
+        ClimbOnVerb()._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -662,7 +659,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
+        ClimbOnVerb()._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
         msg = self.app.print_stack.pop()
@@ -676,7 +673,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
+        ClimbOnVerb()._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
         msg = self.app.print_stack.pop()
@@ -690,7 +687,7 @@ class TestPlayerGetOn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
+        ClimbOnVerb()._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
         msg = self.app.print_stack.pop()
@@ -700,16 +697,16 @@ class TestPlayerGetOn(IFPTestCase):
 class TestPlayerGetOff(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.surface = Surface("bench")
+        self.surface = Surface(self.game, "bench")
         self.surface.can_contain_standing_player = True
         self.start_room.addThing(self.surface)
-        climbOnVerb._runVerbFuncAndEvents(self.game, self.surface)
+        ClimbOnVerb()._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.surface)
 
     def test_climb_down_from(self):
         SUCCESS_MSG = f"You climb down from {self.surface.lowNameArticle(True)}. "
 
-        climbDownFromVerb._runVerbFuncAndEvents(self.game, self.surface)
+        ClimbDownFromVerb()._runVerbFuncAndEvents(self.game, self.surface)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -718,7 +715,7 @@ class TestPlayerGetOff(IFPTestCase):
     def test_climb_down(self):
         SUCCESS_MSG = f"You climb down from {self.surface.lowNameArticle(True)}. "
 
-        climbDownVerb._runVerbFuncAndEvents(self.game)
+        ClimbDownVerb()._runVerbFuncAndEvents(self.game)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -728,7 +725,7 @@ class TestPlayerGetOff(IFPTestCase):
 class TestPlayerGetIn(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box")
+        self.container = Container(self.game, "box")
         self.start_room.addThing(self.container)
 
     def test_climb_in_cannot_sit_stand_lie(self):
@@ -737,7 +734,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -751,7 +748,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -765,7 +762,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -779,7 +776,7 @@ class TestPlayerGetIn(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -789,7 +786,7 @@ class TestPlayerGetIn(IFPTestCase):
 class TestPlayerGetInOpenLid(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box")
+        self.container = Container(self.game, "box")
         self.container.has_lid = True
         self.container.is_open = True
         self.start_room.addThing(self.container)
@@ -802,7 +799,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -816,7 +813,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -830,7 +827,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
         msg = self.app.print_stack.pop()
@@ -840,7 +837,7 @@ class TestPlayerGetInOpenLid(IFPTestCase):
 class TestPlayerGetInClosedLid(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box")
+        self.container = Container(self.game, "box")
         self.container.has_lid = True
         self.container.is_open = False
         self.start_room.addThing(self.container)
@@ -856,7 +853,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -873,7 +870,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -890,7 +887,7 @@ class TestPlayerGetInClosedLid(IFPTestCase):
         self.assertIs(
             self.me.location, self.start_room, "Player needs to start in start_room"
         )
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -900,16 +897,16 @@ class TestPlayerGetInClosedLid(IFPTestCase):
 class TestPlayerGetOut(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.container = Container("box")
+        self.container = Container(self.game, "box")
         self.container.can_contain_standing_player = True
         self.start_room.addThing(self.container)
-        climbInVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbInVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.container)
 
     def test_climb_out_of(self):
         SUCCESS_MSG = f"You climb out of {self.container.lowNameArticle(True)}. "
 
-        climbOutOfVerb._runVerbFuncAndEvents(self.game, self.container)
+        ClimbOutOfVerb()._runVerbFuncAndEvents(self.game, self.container)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()
@@ -918,7 +915,7 @@ class TestPlayerGetOut(IFPTestCase):
     def test_climb_out(self):
         SUCCESS_MSG = f"You climb out of {self.container.lowNameArticle(True)}. "
 
-        climbOutVerb._runVerbFuncAndEvents(self.game)
+        ClimbOutVerb()._runVerbFuncAndEvents(self.game)
         self.assertIs(self.me.location, self.start_room)
 
         msg = self.app.print_stack.pop()

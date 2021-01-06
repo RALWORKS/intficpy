@@ -2,7 +2,6 @@ import os
 import pickle
 import types
 
-from .vocab import nounDict
 from .ifp_object import IFPObject
 from .exceptions import DeserializationError, Unserializable
 
@@ -14,7 +13,8 @@ from .exceptions import DeserializationError, Unserializable
 
 
 class SaveGame:
-    def __init__(self, filename):
+    def __init__(self, game, filename):
+        self.game = game
         self.filename = self.create_save_file_path(filename)
         self.data = {
             "ifp_objects": self.save_ifp_objects(),
@@ -26,7 +26,7 @@ class SaveGame:
 
     def save_ifp_objects(self):
         out = {}
-        for ix, obj in IFPObject.instances.items():
+        for ix, obj in self.game.ifp_objects.items():
             out[ix] = self.serialize_ifp_object(obj)
         return out
 
@@ -85,7 +85,9 @@ class SaveGame:
 
     def save_locations(self):
         top_level_locations = [
-            obj for key, obj in IFPObject.instances.items() if obj.is_top_level_location
+            obj
+            for key, obj in self.game.ifp_objects.items()
+            if obj.is_top_level_location
         ]
         out = {}
         for obj in top_level_locations:
@@ -121,7 +123,8 @@ class SaveGame:
 
 
 class LoadGame:
-    def __init__(self, filename):
+    def __init__(self, game, filename):
+        self.game = game
         self.filename = filename
         self.file = open(self.filename, "rb")
         self.data = pickle.load(self.file)
@@ -135,7 +138,7 @@ class LoadGame:
         """
         for key, subdict in self.data.items():
             for ix, obj in subdict.items():
-                if not ix in IFPObject.instances:
+                if not ix in self.game.ifp_objects:
                     return False
 
                 for attr, value in obj.items():
@@ -159,7 +162,7 @@ class LoadGame:
             raise DeserializationError("Call is_valid before loading game.")
 
         for ix, obj_data in self.validated_data["ifp_objects"].items():
-            obj = IFPObject.instances[ix]
+            obj = self.game.ifp_objects[ix]
 
             for attr, value in obj_data.items():
                 setattr(obj, attr, self.deserialize_attribute(value))
@@ -171,7 +174,7 @@ class LoadGame:
             raise DeserializationError("Call is_valid before loading game.")
 
         for ix, obj_data in self.validated_data["locations"].items():
-            obj = IFPObject.instances[ix]
+            obj = self.game.ifp_objects[ix]
             self.empty_contains(obj)
             self.populate_contains(obj, obj_data["contains"])
 
@@ -188,25 +191,25 @@ class LoadGame:
     def add_thing_by_ix(self, destination, ix):
         """
         Adds a Thing to a location (Room/Thing) by index. Makes a copy if a Thing of
-        the specified index has already been placed. 
+        the specified index has already been placed.
         destination is a PhysicalEntity subclass instance
         """
         if ix in self.placed_things:
-            item = IFPObject.instances[ix].copyThing()
+            item = self.game.ifp_objects[ix].copyThing()
         else:
             self.placed_things.append(ix)
-            item = IFPObject.instances[ix]
+            item = self.game.ifp_objects[ix]
         for word in item.synonyms:
-            if not word in nounDict:
-                nounDict[word] = [item]
-            elif not item in nounDict[word]:
-                nounDict[word].append(item)
+            if not word in self.game.nouns:
+                self.game.nouns[word] = [item]
+            elif not item in self.game.nouns[word]:
+                self.game.nouns[word].append(item)
         destination.addThing(item)
         return item
 
     def populate_contains(self, root_obj, dict_in):
         """
-        Uses a recursive depth first search to place all items in the correct location 
+        Uses a recursive depth first search to place all items in the correct location
         root_obj is the object to populate, dict_in is the dictionary to read from
         """
         for key in dict_in:
@@ -225,9 +228,9 @@ class LoadGame:
         """
         if isinstance(value, str) and value[:5] == "<IFP>":
             ix = value[5:]
-            if not ix in IFPObject.instances:
+            if not ix in self.game.ifp_objects:
                 raise DeserializationError
-            return IFPObject.instances[ix]
+            return self.game.ifp_objects[ix]
 
         elif isinstance(value, str):
             return value

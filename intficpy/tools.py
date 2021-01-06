@@ -3,8 +3,8 @@
 
 from .thing_base import Thing
 from .actor import Actor
-from .gameplay import score
 from .travel import travel, room
+import intficpy.score as score
 
 
 def isSerializableClassInstance(obj):

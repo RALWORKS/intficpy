@@ -10,8 +10,8 @@ from .daemons import Daemon
 class Achievement(IFPObject):
     """Class for achievements in the .game"""
 
-    def __init__(self, points, desc):
-        super().__init__()
+    def __init__(self, game, points, desc):
+        super().__init__(game)
         self.points = points
         self.desc = desc
         score.possible = score.possible + self.points
@@ -31,8 +31,8 @@ class Achievement(IFPObject):
 
 
 class AbstractScore(IFPObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, game):
+        super().__init__(game)
         self.total = 0
         self.possible = 0
         self.achievements = []
@@ -62,12 +62,9 @@ class AbstractScore(IFPObject):
                 )
 
 
-score = AbstractScore()
-
-
 class Ending(IFPObject):
-    def __init__(self, good, title, desc):
-        super().__init__()
+    def __init__(self, game, good, title, desc):
+        super().__init__(game)
         self.good = good
         self.title = title
         self.desc = desc
@@ -79,13 +76,13 @@ class Ending(IFPObject):
 
 
 class HintSystem(IFPObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, game):
+        super().__init__(game)
         self.cur_node = None
         self.stack = []
         self.pending = []
         self.has_pending_daemon = False
-        self.pending_daemon = Daemon(self.checkPending)
+        self.pending_daemon = Daemon(self.game, self.checkPending)
 
     def addPending(self, game, node):
         if node not in self.pending:
@@ -153,12 +150,9 @@ class HintSystem(IFPObject):
         return self.setNode(game, node)
 
 
-hints = HintSystem()
-
-
 class Hint(IFPObject):
-    def __init__(self, text, achievement=None, cost=0):
-        super().__init__()
+    def __init__(self, game, text, achievement=None, cost=0):
+        super().__init__(game)
         self.text = text
         self.achievement = achievement
         self.cost = cost
@@ -178,8 +172,8 @@ class Hint(IFPObject):
 
 
 class HintNode(IFPObject):
-    def __init__(self, hints):
-        super().__init__()
+    def __init__(self, game, hints):
+        super().__init__(game)
         self.cur_hint = 0
         self.hints = []
         self.next_node = None

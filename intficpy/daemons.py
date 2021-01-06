@@ -2,8 +2,8 @@ from intficpy.ifp_object import IFPObject
 
 
 class DaemonManager(IFPObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, game):
+        super().__init__(game)
         self.active = []
 
     def runAll(self, game):
@@ -27,8 +27,8 @@ class Daemon(IFPObject):
     serializable, and can be added so a Daemon can track its own state.
     """
 
-    def __init__(self, func):
-        super().__init__()
+    def __init__(self, game, func):
+        super().__init__(game)
         self.func = func
 
     def onRemove(self):

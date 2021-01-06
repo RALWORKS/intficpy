@@ -1,7 +1,7 @@
 from ..helpers import IFPTestCase
 from intficpy.actor import Actor, Topic, SpecialTopic
 from intficpy.thing_base import Thing
-from intficpy.verb import askVerb, tellVerb, giveVerb, showVerb
+from intficpy.verb import AskVerb, TellVerb, GiveVerb, ShowVerb
 
 
 class TestGetImpTalkToNobodyNear(IFPTestCase):
@@ -16,8 +16,8 @@ class TestGetImpTalkToNobodyNear(IFPTestCase):
 class TestGetImpTalkToAmbiguous(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.actor1 = Actor("grocer")
-        self.actor2 = Actor("patron")
+        self.actor1 = Actor(self.game, "grocer")
+        self.actor2 = Actor(self.game, "patron")
         self.start_room.addThing(self.actor1)
         self.start_room.addThing(self.actor2)
 
@@ -35,7 +35,7 @@ class TestGetImpTalkToAmbiguous(IFPTestCase):
 class TestGetImpTalkToUnambiguous(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.actor1 = Actor("grocer")
+        self.actor1 = Actor(self.game, "grocer")
         self.start_room.addThing(self.actor1)
 
     def test_get_implicit(self):
@@ -46,15 +46,15 @@ class TestGetImpTalkToUnambiguous(IFPTestCase):
 class TestConversationVerbs(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.item = Thing("mess")
-        self.actor = Actor("Jenny")
+        self.item = Thing(self.game, "mess")
+        self.actor = Actor(self.game, "Jenny")
         self.start_room.addThing(self.item)
         self.start_room.addThing(self.actor)
         self.CANNOT_TALK_MSG = "You cannot talk to that. "
-        self.topic = Topic('"Ah, yes," says Jenny mysteriously. ')
+        self.topic = Topic(self.game, '"Ah, yes," says Jenny mysteriously. ')
 
     def test_ask_inanimate(self):
-        askVerb._runVerbFuncAndEvents(self.game, self.item, self.actor)
+        AskVerb()._runVerbFuncAndEvents(self.game, self.item, self.actor)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -64,7 +64,7 @@ class TestConversationVerbs(IFPTestCase):
         )
 
     def test_tell_inanimate(self):
-        tellVerb._runVerbFuncAndEvents(self.game, self.item, self.actor)
+        TellVerb()._runVerbFuncAndEvents(self.game, self.item, self.actor)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -74,7 +74,7 @@ class TestConversationVerbs(IFPTestCase):
         )
 
     def test_give_inanimate(self):
-        giveVerb._runVerbFuncAndEvents(self.game, self.item, self.item)
+        GiveVerb()._runVerbFuncAndEvents(self.game, self.item, self.item)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -84,7 +84,7 @@ class TestConversationVerbs(IFPTestCase):
         )
 
     def test_show_inanimate(self):
-        showVerb._runVerbFuncAndEvents(self.game, self.item, self.item)
+        ShowVerb()._runVerbFuncAndEvents(self.game, self.item, self.item)
         msg = self.app.print_stack.pop()
         self.assertEqual(
             msg,
@@ -102,7 +102,7 @@ class TestConversationVerbs(IFPTestCase):
             self.item.ix, self.actor.ask_topics,
         )
 
-        askVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        AskVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -121,7 +121,7 @@ class TestConversationVerbs(IFPTestCase):
             self.item.ix, self.actor.tell_topics,
         )
 
-        tellVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        TellVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -140,7 +140,7 @@ class TestConversationVerbs(IFPTestCase):
             self.item.ix, self.actor.give_topics,
         )
 
-        giveVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        GiveVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -159,7 +159,7 @@ class TestConversationVerbs(IFPTestCase):
             self.item.ix, self.actor.show_topics,
         )
 
-        showVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        ShowVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -172,7 +172,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_ask_with_topic(self):
         self.actor.addTopic("ask", self.topic, self.item)
 
-        askVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        AskVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -185,7 +185,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_tell_with_topic(self):
         self.actor.addTopic("tell", self.topic, self.item)
 
-        tellVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        TellVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -198,7 +198,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_give_with_topic(self):
         self.actor.addTopic("give", self.topic, self.item)
 
-        giveVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        GiveVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -211,7 +211,7 @@ class TestConversationVerbs(IFPTestCase):
     def test_show_with_topic(self):
         self.actor.addTopic("show", self.topic, self.item)
 
-        showVerb._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        ShowVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -226,7 +226,7 @@ class TestSpecialTopic(IFPTestCase):
     def setUp(self):
         super().setUp()
 
-        self.actor = Actor("shepherd")
+        self.actor = Actor(self.game, "shepherd")
         self.actor.moveTo(self.start_room)
 
         self.verb_keyword = "ask"
@@ -235,7 +235,7 @@ class TestSpecialTopic(IFPTestCase):
 
         self.text = "He shakes his head sadly."
 
-        topic = SpecialTopic(suggestion, self.text)
+        topic = SpecialTopic(self.game, suggestion, self.text)
         self.actor.addSpecialTopic(topic)
 
         self.game.turnMain("hi")

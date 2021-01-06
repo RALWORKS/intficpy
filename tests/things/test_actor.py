@@ -7,8 +7,8 @@ class TestActorInventoryDescription(IFPTestCase):
     def setUp(self):
         super().setUp()
 
-        self.actor = Actor("girl")
-        self.item = Thing("item")
+        self.actor = Actor(self.game, "girl")
+        self.item = Thing(self.game, "item")
         self.item.moveTo(self.actor)
 
     def test_actor_desc_does_not_include_inventory(self):

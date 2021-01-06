@@ -7,10 +7,10 @@ class TestDarkness(IFPTestCase):
         super().setUp()
 
         self.start_room.dark = True
-        self.item = Thing("item")
+        self.item = Thing(self.game, "item")
         self.start_room.addThing(self.item)
 
-        self.light = LightSource("light")
+        self.light = LightSource(self.game, "light")
 
     def test_can_see_items_if_room_is_not_dark(self):
         self.start_room.dark = False
@@ -50,7 +50,7 @@ class TestDarkness(IFPTestCase):
 class TestLightSource(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.light = LightSource("light")
+        self.light = LightSource(self.game, "light")
 
     def test_is_lit_state_desc_show_in_desc_when_light_is_lit(self):
         self.light.light(self.game)

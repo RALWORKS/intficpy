@@ -1,16 +1,16 @@
 from ..helpers import IFPTestCase
 from intficpy.thing_base import Thing
 from intficpy.actor import Actor
-from intficpy.verb import buyVerb, sellVerb, buyFromVerb, sellToVerb
+from intficpy.verb import BuyVerb, SellVerb, BuyFromVerb, SellToVerb
 from intficpy.grammar import GrammarObject
 
 
 class TestBuyFiniteStock(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("widget")
-        self.actor = Actor("Dmitri")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "widget")
+        self.actor = Actor(self.game, "Dmitri")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 1, 1)
         self.start_room.addThing(self.actor)
@@ -47,7 +47,7 @@ class TestBuyFiniteStock(IFPTestCase):
         )
 
     def test_buy_from(self):
-        buyFromVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
+        BuyFromVerb()._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
 
         msg = self.app.print_stack.pop()
         expected = f"(Received: {self.sale_item.verbose_name}) "
@@ -59,7 +59,7 @@ class TestBuyFiniteStock(IFPTestCase):
             "Attempted to buy item. Received success message. ",
         )
 
-        buyFromVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
+        BuyFromVerb()._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -78,9 +78,9 @@ class TestBuyFiniteStock(IFPTestCase):
 class TestBuyInfiniteStock(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("widget")
-        self.actor = Actor("Dmitri")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "widget")
+        self.actor = Actor(self.game, "Dmitri")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 1, True)
         self.start_room.addThing(self.actor)
@@ -113,9 +113,9 @@ class TestBuyInfiniteStock(IFPTestCase):
 class TestBuyNotEnoughMoney(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("widget")
-        self.actor = Actor("Dmitri")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "widget")
+        self.actor = Actor(self.game, "Dmitri")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 2, 1)
         self.start_room.addThing(self.actor)
@@ -142,16 +142,16 @@ class TestBuyNotEnoughMoney(IFPTestCase):
 class TestBuyNotSelling(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("widget")
-        self.actor = Actor("Dmitri")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "widget")
+        self.actor = Actor(self.game, "Dmitri")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.currency)
         self.sale_item.makeKnown(self.me)
 
         self.start_room.addThing(self.actor)
 
     def test_buy(self):
-        buyVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        BuyVerb()._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         BASE_FAILURE_MSG = f"{self.actor.capNameArticle(True)} doesn't sell"
@@ -169,9 +169,9 @@ class TestBuyNotSelling(IFPTestCase):
 class TestBuyWithNoActorsInRoom(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("widget")
-        self.actor = Thing("statue")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "widget")
+        self.actor = Thing(self.game, "statue")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.currency)
         self.start_room.addThing(self.actor)
         self.sale_item.makeKnown(self.me)
@@ -214,9 +214,9 @@ class TestBuyWithNoActorsInRoom(IFPTestCase):
 class TestBuyPerson(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Actor("kate")
-        self.actor = Actor("dmitri")
-        self.currency = Thing("penny")
+        self.sale_item = Actor(self.game, "kate")
+        self.actor = Actor(self.game, "dmitri")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.currency)
         self.actor.addSelling(self.sale_item, self.currency, 2, 1)
         self.start_room.addThing(self.actor)
@@ -239,10 +239,10 @@ class TestBuyPerson(IFPTestCase):
 class TestBuyInRoomWithMultipleActors(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("bulb")
-        self.actor1 = Actor("Dmitri")
-        self.actor2 = Actor("Kate")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "bulb")
+        self.actor1 = Actor(self.game, "Dmitri")
+        self.actor2 = Actor(self.game, "Kate")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.currency)
         self.actor1.addSelling(self.sale_item, self.currency, 1, 1)
         self.start_room.addThing(self.actor1)
@@ -302,10 +302,10 @@ class TestBuyInRoomWithMultipleActors(IFPTestCase):
 class TestSell(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("widget")
+        self.sale_item = Thing(self.game, "widget")
         self.sale_item.makeKnown(self.me)
-        self.actor = Actor("dmitri")
-        self.currency = Thing("penny")
+        self.actor = Actor(self.game, "dmitri")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.sale_item)
         self.me.addThing(self.sale_item.copyThing())
         self.actor.addWillBuy(self.sale_item, self.currency, 1, 1)
@@ -336,7 +336,7 @@ class TestSell(IFPTestCase):
             "Attempted to sell item. Received success message. ",
         )
 
-        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        SellVerb()._runVerbFuncAndEvents(self.game, self.sale_item)
         msg = self.app.print_stack.pop()
 
         self.assertIn(
@@ -377,7 +377,7 @@ class TestSell(IFPTestCase):
             "Attempted to sell item. Received success message. ",
         )
 
-        sellToVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
+        SellToVerb()._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
         msg = self.app.print_stack.pop()
 
         self.assertIn(
@@ -397,9 +397,9 @@ class TestSell(IFPTestCase):
 class TestSellDoesNotWant(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("widget")
+        self.sale_item = Thing(self.game, "widget")
         self.sale_item.makeKnown(self.me)
-        self.actor = Actor("Dmitri")
+        self.actor = Actor(self.game, "Dmitri")
         self.me.addThing(self.sale_item)
 
         self.start_room.addThing(self.actor)
@@ -413,7 +413,7 @@ class TestSellDoesNotWant(IFPTestCase):
             "This test needs a widget in the inventory. ",
         )
 
-        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        SellVerb()._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         self.assertIn(
@@ -435,7 +435,7 @@ class TestSellDoesNotWant(IFPTestCase):
             "This test needs a widget in the inventory. ",
         )
 
-        sellToVerb._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
+        SellToVerb()._runVerbFuncAndEvents(self.game, self.sale_item, self.actor)
 
         msg = self.app.print_stack.pop()
         self.assertIn(
@@ -454,10 +454,10 @@ class TestSellDoesNotWant(IFPTestCase):
 class TestSellInRoomWithMultipleActors(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("bulb")
-        self.actor1 = Actor("dmitri")
-        self.actor2 = Actor("kate")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "bulb")
+        self.actor1 = Actor(self.game, "dmitri")
+        self.actor2 = Actor(self.game, "kate")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.sale_item)
         self.actor1.addWillBuy(self.sale_item, self.currency, 1, 1)
         self.start_room.addThing(self.actor1)
@@ -535,12 +535,12 @@ class TestSellInRoomWithMultipleActors(IFPTestCase):
 class TestSellInRoomWithNoActors(IFPTestCase):
     def setUp(self):
         super().setUp()
-        self.sale_item = Thing("bulb")
-        self.currency = Thing("penny")
+        self.sale_item = Thing(self.game, "bulb")
+        self.currency = Thing(self.game, "penny")
         self.me.addThing(self.sale_item)
 
     def test_sell(self):
-        sellVerb._runVerbFuncAndEvents(self.game, self.sale_item)
+        SellVerb()._runVerbFuncAndEvents(self.game, self.sale_item)
 
         msg = self.app.print_stack.pop()
         NOONE_HERE_MSG = "There's no one obvious here to sell to. "

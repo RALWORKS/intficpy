@@ -10,25 +10,20 @@ from intficpy.room import Room
 
 
 def make_thing_instantiation_test(thing_class):
-    requires_me_classes = (Surface, Container, UnderSpace)
-
     def test(self):
-        if thing_class in requires_me_classes:
-            item = thing_class(thing_class.__name__)
-        else:
-            item = thing_class(thing_class.__name__)
+        item = thing_class(self.game, thing_class.__name__)
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            IFPObject.instances,
+            self.game.ifp_objects,
             f"Tried to create a {thing_class.__name__}, but index not in "
             "things obj_map",
         )
         self.assertIs(
-            IFPObject.instances[item.ix],
+            self.game.ifp_objects[item.ix],
             item,
             f"New {thing_class.__name__} index successfully added to "
-            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
+            f"object_map, but {self.game.ifp_objects[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
@@ -47,50 +42,50 @@ def add_thing_instantiation_tests():
 
 class TestCreateAllTypes(IFPTestCase):
     def test_create_Liquid(self):
-        item = Liquid(Liquid.__name__, "water")
+        item = Liquid(self.game, Liquid.__name__, "water")
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            IFPObject.instances,
+            self.game.ifp_objects,
             f"Tried to create a {Liquid.__name__}, but index not in things obj_map",
         )
         self.assertIs(
-            IFPObject.instances[item.ix],
+            self.game.ifp_objects[item.ix],
             item,
             f"New {Liquid.__name__} index successfully added to "
-            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
+            f"object_map, but {self.game.ifp_objects[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
     def test_create_Actor(self):
-        item = Actor(Actor.__name__)
+        item = Actor(self.game, Actor.__name__)
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            IFPObject.instances,
+            self.game.ifp_objects,
             f"Tried to create a {Actor.__name__}, but index not in things obj_map",
         )
         self.assertIs(
-            IFPObject.instances[item.ix],
+            self.game.ifp_objects[item.ix],
             item,
             f"New {Actor.__name__} index successfully added to "
-            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
+            f"object_map, but {self.game.ifp_objects[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
     def test_create_Lock(self):
-        item = Lock(Lock.__name__, None)
+        item = Lock(self.game, self.game, Lock.__name__, None)
         self.assertTrue(item.ix)
         self.assertIn(
             item.ix,
-            IFPObject.instances,
+            self.game.ifp_objects,
             f"Tried to create a {Lock.__name__}, but index not in things obj_map",
         )
         self.assertIs(
-            IFPObject.instances[item.ix],
+            self.game.ifp_objects[item.ix],
             item,
             f"New {Lock.__name__} index successfully added to "
-            f"object_map, but {IFPObject.instances[item.ix]} found under key instead of "
+            f"object_map, but {self.game.ifp_objects[item.ix]} found under key instead of "
             f"the new instance {item}",
         )
 
@@ -161,106 +156,106 @@ class TestAddRemoveThing(IFPTestCase):
             )
 
     def test_add_remove_from_Surface(self):
-        parent = Surface("parent")
-        child = Thing("child")
+        parent = Surface(self.game, "parent")
+        child = Thing(self.game, "child")
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_from_Container(self):
-        parent = Container("parent")
-        child = Thing("child")
+        parent = Container(self.game, "parent")
+        child = Thing(self.game, "child")
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_from_UnderSpace(self):
-        parent = UnderSpace("parent")
+        parent = UnderSpace(self.game, "parent")
         parent.revealed = True
-        child = Thing("child")
+        child = Thing(self.game, "child")
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_from_Room(self):
-        parent = Room("parent", "This is a room. ")
-        child = Thing("child")
+        parent = Room(self.game, "parent", "This is a room. ")
+        child = Thing(self.game, "child")
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_Surface(self):
-        parent = Surface("parent")
-        child = Thing("child")
-        sub = Thing("sub")
+        parent = Surface(self.game, "parent")
+        child = Thing(self.game, "child")
+        sub = Thing(self.game, "sub")
         child.addComposite(sub)
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_Container(self):
-        parent = Container("parent")
-        child = Thing("child")
-        sub = Thing("sub")
+        parent = Container(self.game, "parent")
+        child = Thing(self.game, "child")
+        sub = Thing(self.game, "sub")
         child.addComposite(sub)
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_UnderSpace(self):
-        parent = UnderSpace("parent")
+        parent = UnderSpace(self.game, "parent")
         parent.revealed = True
-        child = Thing("child")
-        sub = Thing("sub")
+        child = Thing(self.game, "child")
+        sub = Thing(self.game, "sub")
         child.addComposite(sub)
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_composite_item_from_Room(self):
-        parent = Room("parent", "This is a room. ")
-        child = Thing("child")
-        sub = Thing("sub")
+        parent = Room(self.game, "parent", "This is a room. ")
+        child = Thing(self.game, "child")
+        sub = Thing(self.game, "sub")
         child.addComposite(sub)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_Surface(self):
-        parent = Surface("parent")
-        child = Container("child")
+        parent = Surface(self.game, "parent")
+        child = Container(self.game, "child")
         child.has_lid = True
-        lock = Lock("lock", None)
+        lock = Lock(self.game, "lock", None)
         child.setLock(lock)
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_Container(self):
-        parent = Container("parent")
-        child = Container("child")
+        parent = Container(self.game, "parent")
+        child = Container(self.game, "child")
         child.has_lid = True
-        lock = Lock("lock", None)
+        lock = Lock(self.game, "lock", None)
         child.setLock(lock)
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_UnderSpace(self):
-        parent = UnderSpace("parent")
+        parent = UnderSpace(self.game, "parent")
         parent.revealed = True
-        child = Container("child")
+        child = Container(self.game, "child")
         child.has_lid = True
-        lock = Lock("lock", None)
+        lock = Lock(self.game, "lock", None)
         child.setLock(lock)
         self.start_room.addThing(parent)
         self._assert_can_add_remove(parent, child)
 
     def test_add_remove_item_with_lock_from_Room(self):
-        parent = Room("parent", "This is a room. ")
+        parent = Room(self.game, "parent", "This is a room. ")
         parent.revealed = True
-        child = Container("child")
+        child = Container(self.game, "child")
         child.has_lid = True
-        lock = Lock("lock", None)
+        lock = Lock(self.game, "lock", None)
         child.setLock(lock)
         self._assert_can_add_remove(parent, child)
 
 
 class TestMoveTo(IFPTestCase):
     def test_move_to_removes_item_from_old_location_and_adds_to_new_location(self):
-        old = Room("old", "It is old")
-        child = Thing("child")
+        old = Room(self.game, "old", "It is old")
+        child = Thing(self.game, "child")
         old.addThing(child)
 
-        new = Container("new")
+        new = Container(self.game, "new")
         child.moveTo(new)
 
         self.assertItemIn(child, new.contains, "Item not added to new location")
@@ -268,9 +263,9 @@ class TestMoveTo(IFPTestCase):
         self.assertIs(child.location, new, "Item not added to new location")
 
     def test_adds_to_new_location_if_no_previous_location(self):
-        child = Thing("child")
+        child = Thing(self.game, "child")
 
-        new = Container("new")
+        new = Container(self.game, "new")
         child.moveTo(new)
 
         self.assertItemIn(child, new.contains, "Item not added to new location")

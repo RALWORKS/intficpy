@@ -1,13 +1,11 @@
 class IFPObject:
-    instances = {}
-    _ix_iteration = 0
-
-    def __init__(self):
+    def __init__(self, game):
+        self.game = game
         self.registerNewIndex()
         self.is_top_level_location = False
 
     def registerNewIndex(self):
-        ix = f"{type(self).__name__}__{IFPObject._ix_iteration}"
+        ix = f"{type(self).__name__}__{self.game.next_obj_ix}"
         self.ix = ix
-        IFPObject._ix_iteration += 1
-        self.instances[ix] = self
+        self.game.next_obj_ix += 1
+        self.game.ifp_objects[ix] = self

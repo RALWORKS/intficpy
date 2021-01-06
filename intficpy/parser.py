@@ -3,15 +3,14 @@ import string
 import re
 
 from .vocab import english
-from .vocab import english, verbDict, nounDict
 from .grammar import Command, GrammarObject
 from .verb import (
-    scoreVerb,
-    fullScoreVerb,
-    helpVerbVerb,
-    getVerb,
-    standUpVerb,
-    dropVerb,
+    ScoreVerb,
+    FullScoreVerb,
+    HelpVerbVerb,
+    GetVerb,
+    StandUpVerb,
+    DropVerb,
 )
 from .thing_base import Thing
 from .things import Container, Surface, UnderSpace, Liquid
@@ -122,8 +121,10 @@ class Parser:
         The second is True if potential verb matches were found, False otherwise
         """
         # look up first word in verb dictionary
-        if self.command.primary_verb_token in verbDict:
-            self.command.verb_matches = list(verbDict[self.command.primary_verb_token])
+        if self.command.primary_verb_token in self.game.verbs:
+            self.command.verb_matches = list(
+                self.game.verbs[self.command.primary_verb_token]
+            )
             self.matchPrepKeywords()
             self.verbByObjects()
             if self.command.verb:
@@ -245,8 +246,8 @@ class Parser:
                 if word in english.prepositions or word in english.keywords:
                     noun = dobj[-1]
                     exempt = False
-                    if noun in nounDict:
-                        for item in nounDict[noun]:
+                    if noun in self.game.nouns:
+                        for item in self.game.nouns[noun]:
                             if word in item.adjectives:
                                 exempt = True
                                 break
@@ -267,8 +268,8 @@ class Parser:
                 if word in english.prepositions or word in english.keywords:
                     noun = iobj[-1]
                     exempt = False
-                    if noun in nounDict:
-                        for item in nounDict[noun]:
+                    if noun in self.game.nouns:
+                        for item in self.game.nouns[noun]:
                             if word in item.adjectives:
                                 exempt = True
                                 break
@@ -303,13 +304,13 @@ class Parser:
                     ix = self.command.tokens.index(p) + 1
                     if ix < len(self.command.tokens):
                         noun = self.command.tokens[ix]
-                        while not noun in nounDict:
+                        while not noun in self.game.nouns:
                             ix = ix + 1
                             if ix >= len(self.command.tokens):
                                 break
                             noun = self.command.tokens[ix]
-                        if noun in nounDict:
-                            for item in nounDict[noun]:
+                        if noun in self.game.nouns:
+                            for item in self.game.nouns[noun]:
                                 if p in item.adjectives:
                                     exempt = True
                     if p in ["up", "down", "in", "out"]:
@@ -327,13 +328,13 @@ class Parser:
                     ix = self.command.tokens.index(p) + 1
                     if ix < len(self.command.tokens):
                         noun = self.command.tokens[ix]
-                        while not noun in nounDict:
+                        while not noun in self.game.nouns:
                             ix = ix + 1
                             if ix >= len(self.command.tokens):
                                 break
                             noun = self.command.tokens[ix]
-                        if noun in nounDict:
-                            for item in nounDict[noun]:
+                        if noun in self.game.nouns:
+                            for item in self.game.nouns[noun]:
                                 if p in item.adjectives:
                                     exempt = True
                     if not (verb.keywords or not p in verb.keywords) and not exempt:
@@ -409,9 +410,9 @@ class Parser:
             thing_follows_string = False
 
         if thing_follows_string:
-            if not objs[-1] in nounDict or len(objs) < 2:
+            if not objs[-1] in self.game.nouns or len(objs) < 2:
                 return None
-            things = nounDict[objs[-1]]
+            things = self.game.nouns[objs[-1]]
             end_str = len(objs) - 1
             while end_str > 1:
                 accounted = False
@@ -430,7 +431,7 @@ class Parser:
         else:  # string follows thing
             noun = None
             for word in objs:
-                if word in nounDict:
+                if word in self.game.nouns:
                     noun = word
                     break
             if not noun:
@@ -482,7 +483,7 @@ class Parser:
             and not self.command.dobj.tokens
             and self.command.verb.impDobj
         ):
-            self.command.dobj.target = self.command.verb.getImpDobj(self.game)
+            self.command.dobj.target = self.command.verb().getImpDobj(self.game)
             if not self.command.dobj.target:
                 implicit_get_failed = True
 
@@ -491,7 +492,7 @@ class Parser:
             and not self.command.iobj.tokens
             and self.command.verb.impIobj
         ):
-            self.command.iobj.target = self.command.verb.getImpIobj(self.game)
+            self.command.iobj.target = self.command.verb().getImpIobj(self.game)
             if not self.command.iobj.target:
                 implicit_get_failed = True
 
@@ -514,13 +515,13 @@ class Parser:
             # if there is more than one, reject any that double as adjectives
             nounlist = []
             for word in self.command.tokens:
-                if word in nounDict:
+                if word in self.game.nouns:
                     nounlist.append(word)
             if len(nounlist) > 2:
                 i = 0
                 delnoun = []
                 while i < (len(nounlist) - 1):
-                    for item in nounDict[nounlist[i]]:
+                    for item in self.game.nouns[nounlist[i]]:
                         if (
                             nounlist[i] in item.adjectives
                             and not nounlist[i] in delnoun
@@ -541,13 +542,13 @@ class Parser:
                 # if there is more than one, reject any that double as adjectives
                 nounlist = []
                 for word in self.command.tokens:
-                    if word in nounDict:
+                    if word in self.game.nouns:
                         nounlist.append(word)
                 if len(nounlist) > 2:
                     i = 0
                     delnoun = []
                     while i < (len(nounlist) - 1):
-                        for item in nounDict[nounlist[i]]:
+                        for item in self.game.nouns[nounlist[i]]:
                             if (
                                 nounlist[i] in item.adjectives
                                 and not nounlist[i] in delnoun
@@ -719,7 +720,7 @@ class Parser:
             for thing in things:
                 if not self.roomRangeCheck(thing) and self.invRangeCheck(thing):
                     # implicit drop
-                    dropVerb.verbFunc(self.game, thing)
+                    DropVerb().verbFunc(self.game, thing)
                     pass
                 elif not self.roomRangeCheck(thing):
                     out_range.append(thing)
@@ -817,8 +818,8 @@ class Parser:
 
         noun = noun_adj_arr[-1]
         # get list of associated Things
-        if noun in nounDict:
-            things = list(nounDict[noun])
+        if noun in self.game.nouns:
+            things = list(self.game.nouns[noun])
 
         elif self.previous_command.things and adj_disambig_candidates:
             # assume tokens are adjectives for a Thing from the previous command
@@ -1082,8 +1083,8 @@ class Parser:
             if (
                 self.command.verb.dscope != "inv" or self.command.verb.iscope != "inv"
             ) and self.game.me.position != "standing":
-                standUpVerb.verbFunc(self.game)
-            self.command.verb.verbFunc(
+                StandUpVerb().verbFunc(self.game)
+            self.command.verb().verbFunc(
                 self.game, self.command.dobj.target, self.command.iobj.target
             )
         elif self.command.verb.hasDobj:
@@ -1092,18 +1093,18 @@ class Parser:
                 and self.command.verb.dscope != "invflex"
                 and self.game.me.position != "standing"
             ):
-                standUpVerb.verbFunc(self.game)
-            self.command.verb.verbFunc(self.game, self.command.dobj.target)
+                StandUpVerb().verbFunc(self.game)
+            self.command.verb().verbFunc(self.game, self.command.dobj.target)
         elif self.command.verb.hasIobj:
             if (
                 self.command.verb.iscope != "inv"
                 and self.command.verb.iscope != "invflex"
                 and self.game.me.position != "standing"
             ):
-                standUpVerb.verbFunc(self.game)
-            self.command.verb.verbFunc(self.game, self.command.iobj.target)
+                StandUpVerb().verbFunc(self.game)
+            self.command.verb().verbFunc(self.game, self.command.iobj.target)
         else:
-            self.command.verb.verbFunc(self.game)
+            self.command.verb().verbFunc(self.game)
         return True
 
     def disambig(self):
@@ -1216,7 +1217,7 @@ class Parser:
                     + self.command.dobj.target.location.verbose_name
                     + ")",
                 )
-                success = verb.removeFromVerb.verbFunc(
+                success = verb.removeFromVerb().verbFunc(
                     self.game,
                     elf.command.dobj.target,
                     self.command.dobj.target.location,
@@ -1246,7 +1247,7 @@ class Parser:
                     + self.command.iobj.target.location.verbose_name
                     + ")",
                 )
-                success = verb.removeFromVerb.verbFunc(
+                success = verb.removeFromVerb().verbFunc(
                     self.game,
                     self.command.iobj.target,
                     self.command.iobj.target.location,
@@ -1302,7 +1303,7 @@ class Parser:
             return obj
 
         if scope == "room" and self.invRangeCheck(obj):
-            dropVerb.verbFunc(self.game, obj)
+            DropVerb().verbFunc(self.game, obj)
         elif (
             scope in ("inv", "invflex")
             and obj is not self.game.me
@@ -1315,12 +1316,12 @@ class Parser:
                 + obj.verbose_name
                 + ") ",
             )
-            success = getVerb.verbFunc(self.game, obj)
+            success = GetVerb().verbFunc(self.game, obj)
             if not success:
                 raise AbortTurn(f"Implicit take failed. Could not take {obj}")
 
         elif scope == "inv" and self.wearRangeCheck(obj):
-            success = verb.doffVerb.verbFunc(self.game, obj)
+            success = verb.doffVerb().verbFunc(self.game, obj)
             if not success:
                 raise AbortTurn(f"Implicit doff failed. Could not doff {obj}")
 
@@ -1417,7 +1418,7 @@ class Parser:
             self.command.tokens[0:2] == ["help", "verb"]
             or self.command.tokens[0:2] == ["verb", "help"]
         ) and len(self.command.tokens) > 2:
-            helpVerbVerb.verbFunc(self.game, self.command.tokens[2:])
+            HelpVerbVerb().verbFunc(self.game, self.command.tokens[2:])
             return
         elif self.command.tokens[0:2] == ["help", "verb"] or self.command.tokens[
             0:2
@@ -1468,11 +1469,11 @@ class Parser:
             return
 
         if self.command.tokens == ["full", "score"]:
-            fullScoreVerb.verbFunc(self.game)
+            FullScoreVerb().verbFunc(self.game)
         elif self.command.tokens == ["score"]:
-            scoreVerb.verbFunc(self.game)
+            ScoreVerb().verbFunc(self.game)
         elif self.command.tokens == ["fullscore"]:
-            fullScoreVerb.verbFunc(self.game)
+            FullScoreVerb().verbFunc(self.game)
         elif self.command.tokens == ["about"]:
             self.game.aboutGame.printAbout(self.game)
         else:

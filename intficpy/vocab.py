@@ -1,12 +1,7 @@
 ##############################################################
-# VOCAB.PY - the vocabulary dictionaries for IntFicPy
-# Defines the nounDict and verbDict dictionaries
+# VOCAB.PY - the standard vocabulary dictionaries for IntFicPy
 ##############################################################
 
-# dictionary linking natural language nouns to arrays of related Thing objects
-nounDict = {}
-# dictionary of verb names
-verbDict = {}
 # vocab standard to the language
 class VocabObject:
     def __init__(self):

@@ -3,7 +3,6 @@ import random
 
 from intficpy.actor import Player
 from intficpy.room import Room
-from intficpy.vocab import nounDict
 from intficpy.ifp_game import IFPGame
 
 
@@ -19,11 +18,11 @@ class TestApp:
 class IFPTestCase(TestCase):
     def setUp(self):
         self.app = TestApp()
-        self.me = Player("me")
-        self.game = IFPGame(self.me, self.app, main=__name__)
-        self.start_room = Room("room", "desc")
+        self.game = IFPGame(self.app, main=__name__)
+        self.me = Player(self.game, "me")
+        self.start_room = Room(self.game, "room", "desc")
         self.start_room.addThing(self.me)
-        self.me.setPlayer()
+        self.game.setPlayer(self.me)
         self.game.initGame()
 
     def _insert_dobj_into_phrase(self, phrase, dobj):
@@ -43,7 +42,7 @@ class IFPTestCase(TestCase):
 
     def _get_unique_noun(self):
         noun = str(random.getrandbits(128))
-        if noun in nounDict:
+        if noun in self.game.nouns:
             noun = self._get_unique_noun()
         return noun
 

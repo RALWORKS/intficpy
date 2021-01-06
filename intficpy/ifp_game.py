@@ -1,8 +1,8 @@
 from .parser import Parser
 from .daemons import DaemonManager
-from .vocab import verbDict
+from .score import AbstractScore, HintSystem
 from .event import IFPEvent
-from .things import reflexive
+from .verb import get_base_verbset
 
 
 class GameInfo:
@@ -31,14 +31,6 @@ class GameInfo:
         self.showVerbs = True
         self.betaTesterCredit = None
         self.customMsg = None
-        self.verbs = [
-            verb.list_word
-            for name, verblist in verbDict.items()
-            for verb in verblist
-            if verb.list_by_default
-        ]
-        self.verbs = sorted(set(self.verbs))
-        self.discovered_verbs = []
         self.help_msg = None
 
     def setInfo(self, title, author):
@@ -79,22 +71,23 @@ class GameInfo:
         game.addTextToEvent(
             "turn", "<b>This game accepts the following basic verbs: </b>"
         )
-        verb_list = ""
+        verb_listing = [
+            verb.list_word
+            for name, verblist in self.verbs.items()
+            for verb in verblist
+            if verb.list_by_default
+        ]
+        self.verb_listing = sorted(set(self.verb_listing))
+
         for verb in self.verbs:
             verb_list = verb_list + verb
             if verb != self.verbs[-1]:
                 verb_list = verb_list + ", "
-        game.addTextToEvent("turn", verb_list)
-        if len(self.discovered_verbs) > 0:
-            game.addTextToEvent(
-                "turn", "<b>You have discovered the following additional verbs: </b>"
-            )
-            d_verb_list = ""
-            for verb in self.discovered_verbs:
-                verb_list = verb_list + verb
-                if verb != self.verbs[-1]:
-                    d_verb_list = d_verb_list + ", "
-            game.addTextToEvent("turn", d_verb_list)
+
+        joined_verb_list = ", ".join(verb_list) + "."
+
+        game.addTextToEvent("turn", joined_verb_list)
+
         game.addTextToEvent(
             "turn",
             'For help with phrasing, type "verb help" followed by a verb for a '
@@ -104,16 +97,22 @@ class GameInfo:
 
 
 class IFPGame:
-    def __init__(self, me, app, main="__main__"):
+    def __init__(self, app, main="__main__"):
+        # Track the game objects and their vocublary
+        self.ifp_objects = {}
+        self.next_obj_ix = 0
+        self.nouns = {}
+        self.verbs = get_base_verbset()
+
         self.app = app
         app.game = self
+
         self.main = __import__(main)
-        self.me = me
-        me.setPlayer()
-        me.game = self
-        self.parser = Parser(self)
         self.aboutGame = GameInfo()
-        self.daemons = DaemonManager()
+
+        self.daemons = DaemonManager(self)
+        self.parser = Parser(self)
+
         self.ended = False
         self.next_events = {}
 
@@ -139,7 +138,19 @@ class IFPGame:
         pass
 
     def initGame(self):
-        reflexive.makeKnown(self.me)
+        from .things import Abstract
+
+        # HACK: trick the parser into recognizing reflexive pronouns as valid nouns
+        self.reflexive = Abstract(self, "itself")
+        self.reflexive.addSynonym("himself")
+        self.reflexive.addSynonym("herself")
+        self.reflexive.addSynonym("themself")
+        self.reflexive.addSynonym("themselves")
+        self.reflexive.makeKnown(self.me)
+
+        self.score = AbstractScore(self)
+        self.hints = HintSystem(self)
+
         self.addEvent("turn", 5, style=self.turn_event_style)
         self.gameOpening(self)
         self.parser.roomDescribe()
@@ -233,3 +244,7 @@ class IFPGame:
         if self.back >= len(self.turn_list):
             self.back = 0
         return self.turn_list[self.back]
+
+    def setPlayer(self, player):
+        self.me = player
+        self.me.setPlayer()

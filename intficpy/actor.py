@@ -14,9 +14,9 @@ class Actor(Thing):
 
     POSITION_STATE_DESC_KEY = "position_state_desc"
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """Intitializes the Actor instance and sets essential properties """
-        super().__init__(name)
+        super().__init__(game, name)
 
         self.can_be_led = False
         self.for_sale = {}
@@ -42,11 +42,6 @@ class Actor(Thing):
         self.wearing = {}
         self.invItem = False
         self.cannotTakeMsg = "You cannot take a person. "
-
-        # initializing the game with this Player will automatically set this
-        # any other Players will need to have this manually set in order
-        # for them to know if they are the current active player
-        self.game = None
 
     @property
     def verb_to_be(self):
@@ -190,7 +185,7 @@ class Actor(Thing):
             stock    - the number of a given Thing the Actor has to sell (set to True for infinite)
         """
         if item.ix not in self.for_sale:
-            self.for_sale[item.ix] = SaleItem(item, currency, price, stock)
+            self.for_sale[item.ix] = SaleItem(self.game, item, currency, price, stock)
 
     def addWillBuy(self, item, currency, price, max_wanted):
         """
@@ -203,7 +198,9 @@ class Actor(Thing):
                          (set to True for infinite)
         """
         if item.ix not in self.will_buy:
-            self.will_buy[item.ix] = SaleItem(item, currency, price, max_wanted)
+            self.will_buy[item.ix] = SaleItem(
+                self.game, item, currency, price, max_wanted
+            )
 
 
 class Player(Actor):
@@ -213,8 +210,8 @@ class Player(Actor):
     Currently, the game only supports a single Player character.
     """
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, game, name):
+        super().__init__(game, name)
 
     def setPlayer(self):
         self.addSynonym("me")
@@ -240,8 +237,8 @@ class Player(Actor):
 class Topic(IFPObject):
     """class for conversation topics"""
 
-    def __init__(self, topic_text):
-        super().__init__()
+    def __init__(self, game, topic_text):
+        super().__init__(game)
 
         self.text = topic_text
         self.owner = None
@@ -279,8 +276,8 @@ class Topic(IFPObject):
 class SpecialTopic(Topic):
     """class for conversation topics"""
 
-    def __init__(self, suggestion, topic_text):
-        super().__init__(topic_text)
+    def __init__(self, game, suggestion, topic_text):
+        super().__init__(game, topic_text)
 
         self.suggestion = suggestion
         self.alternate_phrasings = []
@@ -290,8 +287,8 @@ class SpecialTopic(Topic):
 
 
 class SaleItem(IFPObject):
-    def __init__(self, item, currency, price, number):
-        super().__init__()
+    def __init__(self, game, item, currency, price, number):
+        super().__init__(game)
         self.thing = item
         self.currency = currency
         self.price = price

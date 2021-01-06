@@ -12,8 +12,8 @@ from .things import Container, LightSource, Unremarkable
 class Room(PhysicalEntity):
     """Room is the overarching class for all locations in an .game """
 
-    def __init__(self, name, desc):
-        super().__init__()
+    def __init__(self, game, name, desc):
+        super().__init__(game)
         self.is_top_level_location = True
 
         self.discovered = False
@@ -68,35 +68,35 @@ class Room(PhysicalEntity):
         self.dark_visible_exits = []
         self.walls = []
 
-        self.floor = Unremarkable("floor")
+        self.floor = Unremarkable(self.game, "floor")
         self.floor.addSynonym("ground")
         self.addThing(self.floor)
 
-        self.ceiling = Unremarkable("ceiling")
+        self.ceiling = Unremarkable(self.game, "ceiling")
         self.addThing(self.ceiling)
 
-        self.north_wall = Unremarkable("wall")
+        self.north_wall = Unremarkable(self.game, "wall")
         self.north_wall.addSynonym("walls")
         self.north_wall.setAdjectives(["north"])
 
         self.addThing(self.north_wall)
         self.walls.append(self.north_wall)
 
-        self.south_wall = Unremarkable("wall")
+        self.south_wall = Unremarkable(self.game, "wall")
         self.south_wall.addSynonym("walls")
         self.south_wall.setAdjectives(["south"])
 
         self.addThing(self.south_wall)
         self.walls.append(self.south_wall)
 
-        self.east_wall = Unremarkable("wall")
+        self.east_wall = Unremarkable(self.game, "wall")
         self.east_wall.addSynonym("walls")
         self.east_wall.setAdjectives(["east"])
 
         self.addThing(self.east_wall)
         self.walls.append(self.east_wall)
 
-        self.west_wall = Unremarkable("wall")
+        self.west_wall = Unremarkable(self.game, "wall")
         self.west_wall.addSynonym("walls")
         self.west_wall.setAdjectives(["west"])
 
@@ -314,10 +314,10 @@ class OutdoorRoom(Room):
     """Room is the class for outdoor locations in an .game
 	OutdoorRooms have no walls, and the floor is called ground"""
 
-    def __init__(self, name, desc):
+    def __init__(self, game, name, desc):
         """Initially set basic properties for the OutdoorRoom instance """
         # indexing for save
-        super().__init__(name, desc)
+        super().__init__(game, name, desc)
 
         for wall in self.walls:
             self.removeThing(wall)
@@ -341,8 +341,8 @@ class OutdoorRoom(Room):
 class RoomGroup(IFPObject):
     """Group similar Rooms and OutdoorRooms to modify shared features """
 
-    def __init__(self):
-        super().__init__
+    def __init__(self, game):
+        super().__init__(game)
         self.members = []
         self.ceiling = None
         self.floor = None

@@ -28,9 +28,9 @@ class TestSaveLoadOneRoomWithPlayer(IFPTestCase):
         initial_obj = None
 
         for i in range(0, 5):
-            SaveGame(self.path)
+            SaveGame(self.game, self.path)
             size.append(os.path.getsize(self.path))
-            l = LoadGame(self.path)
+            l = LoadGame(self.game, self.path)
             self.assertTrue(l.is_valid())
 
             locs_bytes.append(len(pickle.dumps(l.validated_data["locations"])))
@@ -124,11 +124,11 @@ class TestSaveLoadNested(IFPTestCase):
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
 
-        self.item1 = Surface("table")
-        self.item2 = Container("box")
-        self.item3 = Container("cup")
-        self.item4 = Thing("bean")
-        self.item5 = Thing("spider")
+        self.item1 = Surface(self.game, "table")
+        self.item2 = Container(self.game, "box")
+        self.item3 = Container(self.game, "cup")
+        self.item4 = Thing(self.game, "bean")
+        self.item5 = Thing(self.game, "spider")
 
         self.start_room.addThing(self.item1)
         self.item1.addThing(self.item2)
@@ -136,7 +136,7 @@ class TestSaveLoadNested(IFPTestCase):
         self.item3.addThing(self.item4)
         self.item2.addThing(self.item5)
 
-        SaveGame(self.path)
+        SaveGame(self.game, self.path)
         self.start_room.removeThing(self.item1)
         self.item1.removeThing(self.item2)
         self.item2.removeThing(self.item3)
@@ -144,7 +144,7 @@ class TestSaveLoadNested(IFPTestCase):
         self.item2.removeThing(self.item5)
 
     def test_load(self):
-        l = LoadGame(self.path)
+        l = LoadGame(self.game, self.path)
         self.assertTrue(l.is_valid(), "Save file invalid. Cannot proceed.")
         l.load()
 
@@ -181,8 +181,8 @@ class TestSaveLoadComplexAttribute(IFPTestCase):
         path = os.path.dirname(os.path.realpath(__file__))
         self.path = os.path.join(path, FILENAME)
 
-        self.item1 = Surface("table")
-        self.item2 = Container("box")
+        self.item1 = Surface(self.game, "table")
+        self.item2 = Container(self.game, "box")
 
         self.EXPECTED_ATTR = {
             "data": {"sarah_has_seen": True, "containers": [self.item1],},
@@ -191,7 +191,7 @@ class TestSaveLoadComplexAttribute(IFPTestCase):
 
         self.item1.custom_attr = self.EXPECTED_ATTR.copy()
 
-        SaveGame(self.path)
+        SaveGame(self.game, self.path)
         self.item1.custom_attr.clear()
 
     def test_load(self):
@@ -200,7 +200,7 @@ class TestSaveLoadComplexAttribute(IFPTestCase):
             "This test needs custom_attr to be intitially empty.",
         )
 
-        l = LoadGame(self.path)
+        l = LoadGame(self.game, self.path)
         self.assertTrue(l.is_valid(), "Save file invalid. Cannot proceed.")
         l.load()
 
@@ -228,11 +228,11 @@ class TestSaveLoadDaemon(IFPTestCase):
         self.path = os.path.join(path, FILENAME)
 
         self.initial_counter = 0
-        self.daemon = Daemon(self._daemon_func)
+        self.daemon = Daemon(self.game, self._daemon_func)
         self.daemon.counter = 0
         self.game.daemons.add(self.daemon)
 
-        SaveGame(self.path)
+        SaveGame(self.game, self.path)
         self.daemon.counter = 67
         self.game.daemons.remove(self.daemon)
 
@@ -251,7 +251,7 @@ class TestSaveLoadDaemon(IFPTestCase):
             self.daemon, self.game.daemons.active, "Daemon should start as inactive."
         )
 
-        l = LoadGame(self.path)
+        l = LoadGame(self.game, self.path)
         self.assertTrue(l.is_valid(), "Save file invalid. Cannot proceed.")
         l.load()
 

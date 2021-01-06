@@ -2,8 +2,8 @@ from .ifp_object import IFPObject
 
 
 class PhysicalEntity(IFPObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, game):
+        super().__init__(game)
 
         self.location = None
 

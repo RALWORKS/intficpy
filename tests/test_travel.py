@@ -25,7 +25,7 @@ from intficpy.travel import (
 
 class TestDirectionTravel(IFPTestCase):
     def test_cannot_travel_if_not_connection(self):
-        room1 = Room("A place", "Description of a place. ")
+        room1 = Room(self.game, "A place", "Description of a place. ")
         self.assertTrue(
             (
                 not room1.north
@@ -95,8 +95,10 @@ class TestDirectionTravel(IFPTestCase):
         self.assertEqual(self.app.print_stack.pop(), room1.exit_false_msg)
 
     def test_travel_north_south(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
         room1.north = room2
         room2.south = room1
         self.me.location.removeThing(self.me)
@@ -127,8 +129,10 @@ class TestDirectionTravel(IFPTestCase):
         )
 
     def test_travel_northeast_southwest(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
         room1.northeast = room2
         room2.southwest = room1
         self.me.location.removeThing(self.me)
@@ -160,8 +164,10 @@ class TestDirectionTravel(IFPTestCase):
         )
 
     def test_travel_east_west(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
         room1.east = room2
         room2.west = room1
         self.me.location.removeThing(self.me)
@@ -193,8 +199,10 @@ class TestDirectionTravel(IFPTestCase):
         )
 
     def test_travel_southeast_northwest(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
         room1.southeast = room2
         room2.northwest = room1
         self.me.location.removeThing(self.me)
@@ -226,8 +234,10 @@ class TestDirectionTravel(IFPTestCase):
         )
 
     def test_travel_up_down(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
         room1.up = room2
         room2.down = room1
         self.me.location.removeThing(self.me)
@@ -258,8 +268,10 @@ class TestDirectionTravel(IFPTestCase):
         )
 
     def test_travel_in_out(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
         room1.entrance = room2
         room2.exit = room1
         self.me.location.removeThing(self.me)
@@ -316,30 +328,38 @@ class TestTravelConnectors(IFPTestCase):
         )
 
     def test_can_travel_TravelConnector(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
-        c = TravelConnector(room1, "n", room2, "s")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = TravelConnector(self.game, room1, "n", room2, "s")
 
         self._assert_can_travel(room1, room2, c)
 
     def test_can_travel_DoorConnector(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
-        c = DoorConnector(room1, "n", room2, "s")
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = DoorConnector(self.game, room1, "n", room2, "s")
 
         self._assert_can_travel(room1, room2, c)
 
     def test_can_travel_LadderConnector(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
-        c = LadderConnector(room1, room2)
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = LadderConnector(self.game, room1, room2)
 
         self._assert_can_travel(room1, room2, c)
 
     def test_can_travel_StaircaseConnector(self):
-        room1 = Room("A place", "Description of a place. ")
-        room2 = Room("A different place", "Description of a different place. ")
-        c = StaircaseConnector(room1, room2)
+        room1 = Room(self.game, "A place", "Description of a place. ")
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = StaircaseConnector(self.game, room1, room2)
 
         self._assert_can_travel(room1, room2, c)
 

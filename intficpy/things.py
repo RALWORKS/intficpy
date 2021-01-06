@@ -1,6 +1,5 @@
 import copy
 
-from .vocab import nounDict
 from .actor import Actor, Player
 from .thing_base import Thing
 from .daemons import Daemon
@@ -62,9 +61,9 @@ class Unremarkable(Thing):
 class Surface(Thing):
     """Class for Things that can have other Things placed on them """
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """Sets the essential properties for a new Surface object """
-        super().__init__(name)
+        super().__init__(game, name)
 
         self.contains_preposition = "on"
         self.contains_on = True
@@ -81,12 +80,12 @@ class Surface(Thing):
 class Container(Openable):
     """Things that can contain other Things """
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """
         Set basic properties for the Container instance
         Takes argument name, a single noun (string)
         """
-        super().__init__(name)
+        super().__init__(game, name)
         self.size = 50
         self.desc_reveal = True
         self.xdesc_reveal = True
@@ -188,12 +187,12 @@ class LightSource(Thing):
 
     IS_LIT_DESC_KEY = "is_lit_desc"
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """
         Set basic properties for the LightSource instance
         Takes argument name, a single noun (string)
         """
-        super().__init__(name)
+        super().__init__(game, name)
 
         # LightSource properties
         self.is_lit = False
@@ -217,7 +216,9 @@ class LightSource(Thing):
         self.not_lit_desc = "It is currently not lit. "
         self.expired_desc = "It is burnt out. "
 
-        self.consumeLightSourceDaemon = Daemon(self.consumeLightSourceDaemonFunc)
+        self.consumeLightSourceDaemon = Daemon(
+            self.game, self.consumeLightSourceDaemonFunc
+        )
 
         self.state_descriptors.append(self.IS_LIT_DESC_KEY)
 
@@ -292,9 +293,9 @@ class AbstractClimbable(Thing):
     """Represents one end of a staircase or ladder.
 	Creators should generally use a LadderConnector or StaircaseConnector (travel.py) rather than directly creating AbstractClimbable instances. """
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """Sets essential properties for the AbstractClimbable instance """
-        super().__init__(name)
+        super().__init__(game, name)
         self.invItem = False
 
 
@@ -306,9 +307,9 @@ class Door(Openable):
     directly.
     """
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """Sets essential properties for the Door instance """
-        super().__init__(name)
+        super().__init__(game, name)
         self.invItem = False
 
         self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
@@ -331,9 +332,9 @@ class Door(Openable):
 class Key(Thing):
     """Class for keys """
 
-    def __init__(self, name="key"):
+    def __init__(self, game, name="key"):
         """Sets essential properties for the Thing instance """
-        super().__init__(name)
+        super().__init__(game, name)
 
 
 class Lock(Thing):
@@ -341,9 +342,9 @@ class Lock(Thing):
 
     IS_LOCKED_DESC_KEY = "is_locked_desc"
 
-    def __init__(self, is_locked, key_obj, name="lock"):
+    def __init__(self, game, is_locked, key_obj, name="lock"):
         """Sets essential properties for the Lock instance """
-        super().__init__(name)
+        super().__init__(game, name)
 
         self.is_locked = is_locked
         self.key_obj = key_obj
@@ -382,15 +383,15 @@ class Lock(Thing):
 class Abstract(Thing):
     """Class for abstract game items with no location, such as ideas"""
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, game, name):
+        super().__init__(game, name)
 
 
 class UnderSpace(Thing):
     """Things that can have other Things underneath """
 
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, game, name):
+        super().__init__(game, name)
 
         self.size = 50
         self.contains_preposition = "under"
@@ -473,9 +474,9 @@ class Transparent(Thing):
 	Set the look_through_desc property to print the same string every time look through [instance as dobj] is used
 	Replace default lookThrough method for more complicated behaviour """
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """Sets essential properties for the Transparent instance """
-        super().__init__(name)
+        super().__init__(game, name)
 
     def lookThrough(self, game):
         """Called when the Transparent instance is dobj for verb look through
@@ -492,9 +493,9 @@ class Readable(Thing):
     Replace default readText method for more complicated behaviour
     """
 
-    def __init__(self, name, text="There's nothing written here. "):
+    def __init__(self, game, name, text="There's nothing written here. "):
         """Sets essential properties for the Readable instance """
-        super().__init__(name)
+        super().__init__(game, name)
 
         self.read_desc = text  # the default description for the examine command
 
@@ -507,7 +508,7 @@ class Readable(Thing):
 class Book(Openable, Readable):
     """Readable that can be opened """
 
-    def __init__(self, name, text="There's nothing written here. "):
+    def __init__(self, game, name, text="There's nothing written here. "):
         """Sets essential properties for the Book instance """
         super().__init__(name, text)
         self.is_open = False
@@ -521,9 +522,9 @@ class Pressable(Thing):
     events when the PRESS/PUSH verb is used
     """
 
-    def __init__(self, name):
+    def __init__(self, game, name):
         """Sets essential properties for the Pressable instance """
-        super().__init__(name)
+        super().__init__(game, name)
 
     def pressThing(self, game):
         """Game creators should redefine this method for their Pressable instances """
@@ -539,7 +540,7 @@ class Liquid(Thing):
     trigger events when the press/push verb is used
     """
 
-    def __init__(self, name, liquid_type):
+    def __init__(self, game, name, liquid_type):
         """
         Sets essential properties for the Liquid instance
 
@@ -548,7 +549,7 @@ class Liquid(Thing):
         This will be used to determine what liquids can be merged and mixed
         Replace the mixWith property to allow mixing of Liquids
         """
-        super().__init__(name)
+        super().__init__(game, name)
 
         self.can_drink = True
         self.can_pour_out = True
@@ -619,11 +620,3 @@ class Liquid(Thing):
         """Replace for custom effects for drinking the Liquid """
         self.location.removeThing(self)
         return True
-
-
-# hacky solution for reflexive pronouns (himself/herself/itself)
-reflexive = Abstract("itself")
-reflexive.addSynonym("himself")
-reflexive.addSynonym("herself")
-reflexive.addSynonym("themself")
-reflexive.addSynonym("themselves")
