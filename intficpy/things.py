@@ -409,7 +409,7 @@ class UnderSpace(Thing):
         This avoids descriptions like, "There is a dresser. Under the dresser is here."
         being produced by default.
         """
-        return self.desc if self.description else ""
+        return self.desc if self.description is not None else ""
 
     def revealUnder(self):
         self.revealed = True
