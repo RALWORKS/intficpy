@@ -61,3 +61,20 @@ class AbortTurn(Exception):
     """
 
     pass
+
+
+class NoMatchingSuggestion(Exception):
+    def __init__(self, query, options, matches):
+        self.query = query
+        self.options = options
+        self.matches = matches
+
+        msg = (
+            f"Unable to unambiguaously match a suggestion from options {options} "
+            f"with query `{query}`. Not excluded: {matches}."
+        )
+        super().__init__(msg)
+
+
+class IFPError(Exception):
+    pass

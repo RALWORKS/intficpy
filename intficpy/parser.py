@@ -18,6 +18,7 @@ from .room import Room
 from .travel import directionDict
 from .tokenizer import cleanInput, tokenize, removeArticles
 from .exceptions import (
+    NoMatchingSuggestion,
     VerbDefinitionError,
     VerbMatchError,
     ObjectMatchError,
@@ -132,7 +133,9 @@ class Parser:
         self.checkForConvCommand()
 
         self.command.err = True
-        if self.previous_command.specialTopics:
+        if self.previous_command.specialTopics or (
+            self.game.cutscene and self.game.cutscene.options
+        ):
             raise ParserError(
                 f"{' '.join(self.command.tokens).capitalize()} is not enough information "
                 "to match a suggestion. "
@@ -147,9 +150,10 @@ class Parser:
         )
 
     def checkForConvCommand(self):
-        if self.previous_command.specialTopics:
-            if self.getConvCommand():
-                raise AbortTurn("Accepted conversation suggestion")
+        if (
+            self.previous_command.specialTopics and self.getConvCommand()
+        ) or self.checkForCutsceneChoice():
+            raise AbortTurn("Accepted conversation suggestion")
 
     def verbByObjects(self):
         """
@@ -1408,6 +1412,15 @@ class Parser:
             x = revised_possible_topics[0]
             self.previous_command.specialTopics[x].func(self.game)
             return True
+
+    def checkForCutsceneChoice(self):
+        if not self.game.cutscene or not self.game.cutscene.options:
+            return False
+        try:
+            self.game.cutscene.choose(self.command.tokens)
+        except NoMatchingSuggestion:
+            return False
+        return True
 
     def runTurnCommand(self):
         if len(self.command.tokens) == 0:

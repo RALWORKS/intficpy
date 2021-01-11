@@ -127,6 +127,8 @@ class IFPGame:
         self.score = AbstractScore(self)
         self.hints = HintSystem(self)
 
+        self.cutscene = None
+
     def runTurnEvents(self):
         events = sorted(
             [

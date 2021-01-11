@@ -19,6 +19,7 @@ class SaveGame:
         self.data = {
             "ifp_objects": self.save_ifp_objects(),
             "locations": self.save_locations(),
+            "active_cutscene": self.serialize_attribute(game.cutscene),
         }
         self.file = open(self.filename, "wb+")
         pickle.dump(self.data, self.file, 0)
@@ -123,6 +124,9 @@ class SaveGame:
 
 
 class LoadGame:
+    single_object_keys = ["active_cutscene"]
+    allowed_keys = ["ifp_objects", "locations", "active_cutscene"]
+
     def __init__(self, game, filename):
         self.game = game
         self.filename = filename
@@ -137,6 +141,15 @@ class LoadGame:
         On failure, delete the temporary objects, and return False
         """
         for key, subdict in self.data.items():
+            if not key in self.allowed_keys:
+                return False
+            if key in self.single_object_keys:
+                try:
+                    self.deserialize_attribute(value)
+                except DeserializationError:
+                    return False
+                continue
+
             for ix, obj in subdict.items():
                 if not ix in self.game.ifp_objects:
                     return False
@@ -155,6 +168,9 @@ class LoadGame:
             raise DeserializationError("Call is_valid before loading game.")
         self.load_ifp_objects()
         self.load_locations()
+        self.game.cutscene = self.deserialize_attribute(
+            self.validated_data["active_cutscene"]
+        )
         return True
 
     def load_ifp_objects(self):
