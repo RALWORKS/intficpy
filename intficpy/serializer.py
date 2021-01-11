@@ -19,7 +19,9 @@ class SaveGame:
         self.data = {
             "ifp_objects": self.save_ifp_objects(),
             "locations": self.save_locations(),
-            "active_cutscene": self.serialize_attribute(game.cutscene),
+            "active_cutscene": self.serialize_attribute(
+                game.parser.previous_command.cutscene
+            ),
         }
         self.file = open(self.filename, "wb+")
         pickle.dump(self.data, self.file, 0)
@@ -168,7 +170,7 @@ class LoadGame:
             raise DeserializationError("Call is_valid before loading game.")
         self.load_ifp_objects()
         self.load_locations()
-        self.game.cutscene = self.deserialize_attribute(
+        self.game.parser.previous_command.cutscene = self.deserialize_attribute(
             self.validated_data["active_cutscene"]
         )
         return True

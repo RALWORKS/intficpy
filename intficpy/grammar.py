@@ -34,6 +34,7 @@ class Command(object):
         self.disambig_objects = []
 
         self.specialTopics = {}
+        self.cutscene = None
 
     @property
     def primary_verb_token(self):

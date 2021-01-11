@@ -134,7 +134,7 @@ class Parser:
 
         self.command.err = True
         if self.previous_command.specialTopics or (
-            self.game.cutscene and self.game.cutscene.options
+            self.previous_command.cutscene and self.previous_command.cutscene.options
         ):
             raise ParserError(
                 f"{' '.join(self.command.tokens).capitalize()} is not enough information "
@@ -1414,10 +1414,13 @@ class Parser:
             return True
 
     def checkForCutsceneChoice(self):
-        if not self.game.cutscene or not self.game.cutscene.options:
+        if (
+            not self.previous_command.cutscene
+            or not self.previous_command.cutscene.options
+        ):
             return False
         try:
-            self.game.cutscene.choose(self.command.tokens)
+            self.previous_command.cutscene.choose(self.command.tokens)
         except NoMatchingSuggestion:
             return False
         return True

@@ -16,18 +16,20 @@ class TestCutscene(IFPTestCase):
 
         cutscene.on_complete = ended
 
-        self.assertIsNone(self.game.cutscene)
+        self.assertIsNone(self.game.parser.previous_command.cutscene)
         cutscene.start()
-        self.assertIs(self.game.cutscene, cutscene)
+        self.assertIs(self.game.parser.command.cutscene, cutscene)
         self.game.runTurnEvents()
         self.assertIn(cutscene.template[0], self.app.print_stack)
 
         self.game.turnMain("1")
+        self.assertIs(self.game.parser.command.cutscene, cutscene)
 
-        self.assertIsNone(self.game.cutscene)
         self.assertIn(cutscene.template[1]["the only option"][0], self.app.print_stack)
-
         self.assertTrue(cutscene.a_wonderful_strange)
+
+        self.game.turnMain("l")
+        self.assertIsNone(self.game.parser.command.cutscene)
 
     def test_select_cutscene_option_by_keywords(self):
         cutscene = Cutscene(

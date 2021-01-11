@@ -93,7 +93,6 @@ class Cutscene(IFPObject):
 
     def start(self):
         self.position = [0]
-        self.game.cutscene = self
         self.play()
 
     @property
@@ -107,6 +106,8 @@ class Cutscene(IFPObject):
         return self._get_section(self.position[:-1])
 
     def next(self):
+        self.game.parser.command.cutscene = self
+
         ret = self._read_item(self.current_item)
         if isinstance(ret, self.Pause):
             return ret
@@ -119,7 +120,6 @@ class Cutscene(IFPObject):
                 return
             while isinstance(ret, self.NodeComplete):
                 if len(self.position) == 1:
-                    self.game.cutscene = None
                     self.on_complete()
                     return
                 self.position = self.position[
