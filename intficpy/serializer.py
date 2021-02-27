@@ -19,8 +19,8 @@ class SaveGame:
         self.data = {
             "ifp_objects": self.save_ifp_objects(),
             "locations": self.save_locations(),
-            "active_cutscene": self.serialize_attribute(
-                game.parser.previous_command.cutscene
+            "active_sequence": self.serialize_attribute(
+                game.parser.previous_command.sequence
             ),
         }
         self.file = open(self.filename, "wb+")
@@ -126,8 +126,8 @@ class SaveGame:
 
 
 class LoadGame:
-    single_object_keys = ["active_cutscene"]
-    allowed_keys = ["ifp_objects", "locations", "active_cutscene"]
+    single_object_keys = ["active_sequence"]
+    allowed_keys = ["ifp_objects", "locations", "active_sequence"]
 
     def __init__(self, game, filename):
         self.game = game
@@ -170,8 +170,8 @@ class LoadGame:
             raise DeserializationError("Call is_valid before loading game.")
         self.load_ifp_objects()
         self.load_locations()
-        self.game.parser.previous_command.cutscene = self.deserialize_attribute(
-            self.validated_data["active_cutscene"]
+        self.game.parser.previous_command.sequence = self.deserialize_attribute(
+            self.validated_data["active_sequence"]
         )
         return True
 

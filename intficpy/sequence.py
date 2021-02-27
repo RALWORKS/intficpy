@@ -1,10 +1,10 @@
 """
 Considerations:
-- must be able to store exact position in cutscene
-- cutscenes are *branching* simple API
+- must be able to store exact position in sequence
+- sequences are *branching* simple API
 
 ```
-cutscene1 = Cutscene([
+sequence1 = Sequence([
     "You are in a dark room. Light filters in through a cracked, dirty window.",
     "What will you do?",
     {
@@ -34,32 +34,32 @@ cutscene1 = Cutscene([
 ```
 If we start from this ^ API, what does that imply?
 
-The top level of a Cutscene is an Array, representing events that occur in order
+The top level of a Sequence is an Array, representing events that occur in order
 I like that
 But I'm a little confused about this
 
 Let's say:
 - the list items are read in order
-- strings are added, in order, to the "cutscene" event
+- strings are added, in order, to the "sequence" event
 - when a dict is reached, we create a MENU (in the form of conv. suggestions)
-  and we PAUSE the cutscene (AKA stop reading in array items)
+  and we PAUSE the sequence (AKA stop reading in array items)
   THEN the user SELECTS an option, and we PUSH into its array
   We read the items as we did for the top level array
   When we reach the END of an array, we POP out to the next level
-  When we reach the END of the main array, we end the cutscene
+  When we reach the END of the main array, we end the sequence
 
 So, how do we remember our position?
 Use nested indeces
 If you just did "Break the window", your position is
 [2]["Break the window"] or [2, "Break the window"] ([2, "Break the window", 2] maybe?)
 
-Cutscene commands
+Sequence commands
 
 <up> pops the navigation stack
 <prompt somevarname> save user input to the scene.data dict under key "somevarname"
 
 Allow creators to define an "on complete" function
-could be used for transfering data out of the cutscene, and onto other objects
+could be used for transfering data out of the sequence, and onto other objects
 
 
 """
@@ -70,7 +70,7 @@ from .ifp_object import IFPObject
 from .tokenizer import cleanInput, tokenize
 
 
-class Cutscene(IFPObject):
+class Sequence(IFPObject):
     class Event:
         pass
 
@@ -105,17 +105,17 @@ class Cutscene(IFPObject):
             return self.template
         return self._get_section(self.position[:-1])
 
-    def next(self):
-        self.game.parser.command.cutscene = self
+    def next(self, event):
+        self.game.parser.command.sequence = self
 
-        ret = self._read_item(self.current_item)
+        ret = self._read_item(self.current_item, event)
         if isinstance(ret, self.Pause):
             return ret
         return self._iterate()
 
-    def play(self):
+    def play(self, event="turn"):
         while True:
-            ret = self.next()
+            ret = self.next(event)
             if isinstance(ret, self.Pause):
                 return
             while isinstance(ret, self.NodeComplete):
@@ -163,22 +163,22 @@ class Cutscene(IFPObject):
             section = section[ix]
         return section
 
-    def _read_item(self, item):
+    def _read_item(self, item, event):
         self.options = []
         if type(item) is str:
-            self.game.addText(item)
+            self.game.addTextToEvent(event, item)
 
         elif callable(item):
             ret = item()
             if type(ret) is str:
-                self.game.addText(ret)
+                self.game.addTextToEvent(event, ret)
 
         else:
             self.options = list(item.keys())
             options = "\n".join(
                 [f"{i + 1}) {self.options[i]}" for i in range(len(self.options))]
             )
-            self.game.addText(options)
+            self.game.addTextToEvent(event, options)
             return self.Pause()
 
     def _iterate(self):
@@ -191,7 +191,7 @@ class Cutscene(IFPObject):
 
         if not type(node) is list:
             raise IFPError(
-                "Expected Cutscene node (list); found {node}" f"\nLocation: {stack}"
+                "Expected Sequence node (list); found {node}" f"\nLocation: {stack}"
             )
         for i in range(0, len(node)):
             stack.append(i)
@@ -205,9 +205,9 @@ class Cutscene(IFPObject):
                 sig = signature(item)
                 if [p for p in sig.parameters]:
                     raise IFPError(
-                        f"{item} found in Cutscene. "
+                        f"{item} found in Sequence. "
                         "Callables with that accept parameters cannot be used "
-                        "as Cutscene items."
+                        "as Sequence items."
                         f"\nLocation: {stack}"
                     )
                 stack.pop()
@@ -216,7 +216,7 @@ class Cutscene(IFPObject):
                 for key, sub_node in item.items():
                     if type(key) is not str:
                         raise IFPError(
-                            "Only strings can be used as option names (dict keys) in Cutscenes. "
+                            "Only strings can be used as option names (dict keys) in Sequences. "
                             f"Found {key} ({type(key)})\nLocation: {stack}"
                         )
                     stack.append(key)
@@ -224,7 +224,7 @@ class Cutscene(IFPObject):
                     stack.pop()
             except AttributeError:
                 raise IFPError(
-                    f"Expected Cutscene item (string, function, or dict); found {item}"
+                    f"Expected Sequence item (string, function, or dict); found {item}"
                     f"\nLocation: {stack}"
                 )
             stack.pop()

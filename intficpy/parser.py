@@ -134,7 +134,7 @@ class Parser:
 
         self.command.err = True
         if self.previous_command.specialTopics or (
-            self.previous_command.cutscene and self.previous_command.cutscene.options
+            self.previous_command.sequence and self.previous_command.sequence.options
         ):
             raise ParserError(
                 f"{' '.join(self.command.tokens).capitalize()} is not enough information "
@@ -152,7 +152,7 @@ class Parser:
     def checkForConvCommand(self):
         if (
             self.previous_command.specialTopics and self.getConvCommand()
-        ) or self.checkForCutsceneChoice():
+        ) or self.checkForSequenceChoice():
             raise AbortTurn("Accepted conversation suggestion")
 
     def verbByObjects(self):
@@ -1413,14 +1413,14 @@ class Parser:
             self.previous_command.specialTopics[x].func(self.game)
             return True
 
-    def checkForCutsceneChoice(self):
+    def checkForSequenceChoice(self):
         if (
-            not self.previous_command.cutscene
-            or not self.previous_command.cutscene.options
+            not self.previous_command.sequence
+            or not self.previous_command.sequence.options
         ):
             return False
         try:
-            self.previous_command.cutscene.choose(self.command.tokens)
+            self.previous_command.sequence.choose(self.command.tokens)
         except NoMatchingSuggestion:
             return False
         return True

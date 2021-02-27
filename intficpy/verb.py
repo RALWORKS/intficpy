@@ -57,7 +57,7 @@ class Verb(ABC):
     dscope = "room"  # "knows", "near", "room" or "inv"
     iscope = "room"
 
-    allow_in_cutscene = False
+    allow_in_sequence = False
 
     def verbFunc(self, game, skip=False):
         """
@@ -863,7 +863,7 @@ class InvVerb(Verb):
     synonyms = ["i"]
     syntax = [["inventory"], ["i"]]
 
-    allow_in_cutscene = True
+    allow_in_sequence = True
 
     def verbFunc(self, game):
         """View the player's contains
@@ -947,7 +947,7 @@ class ScoreVerb(Verb):
     word = "score"
     syntax = [["score"]]
 
-    allow_in_cutscene = True
+    allow_in_sequence = True
 
     def verbFunc(self, game):
         """
@@ -964,7 +964,7 @@ class FullScoreVerb(Verb):
     synonyms = ["full"]
     syntax = [["fullscore"], ["full", "score"]]
 
-    allow_in_cutscene = True
+    allow_in_sequence = True
 
     def verbFunc(self, game):
         """View the current score
@@ -3588,7 +3588,7 @@ class SaveVerb(Verb):
     word = "save"
     syntax = [["save"]]
 
-    allow_in_cutscene = True
+    allow_in_sequence = True
 
     def verbFunc(self, game):
         f = game.app.saveFilePrompt(".sav", "Save files", "Enter a file to save to")
@@ -3606,7 +3606,7 @@ class LoadVerb(Verb):
     word = "load"
     syntax = [["load"]]
 
-    allow_in_cutscene = True
+    allow_in_sequence = True
 
     def verbFunc(self, game):
         f = game.app.openFilePrompt(".sav", "Save files", "Enter a file to load")
