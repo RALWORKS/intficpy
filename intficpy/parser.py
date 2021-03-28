@@ -93,25 +93,19 @@ class Parser:
         """
         Check for direction statement as in "west" or "ne"
         Called every turn by self.parseInput
-        Returns a Boolean specifying whether the input is a travel command
+        Raises AbortTurn on discovering & executing a travel command
         """
         d = self.command.tokens[0]
-        # if first word is "go", skip first word, assume next word is a direction
-        if self.command.primary_verb_token == "go" and len(self.command.tokens) == 2:
-            d = self.command.tokens[1]
-            if d in directionDict:
-                directionDict[d](self.game)
-                return True
-        elif d in directionDict and len(self.command.tokens) == 1:
+        if d in directionDict and len(self.command.tokens) == 1:
             if self.previous_command.ambiguous:
                 candidates = []
                 for obj in self.previous_command.things:
                     if d in obj.adjectives:
                         return False
             directionDict[d](self.game)
-            return True
-        else:
-            return False
+
+            raise AbortTurn("Executed direction statement")
+        return
 
     def getCurVerb(self):
         """
@@ -144,6 +138,8 @@ class Parser:
         if self.previous_command.ambiguous or self.previous_command.specialTopics:
             self.disambig()
             raise AbortTurn("Disambiguation complete.")
+
+        self.getDirection()
 
         raise VerbMatchError(
             f"I don't understand the verb: {self.command.primary_verb_token}"
@@ -1443,9 +1439,7 @@ class Parser:
             self.game.addTextToEvent("turn", "Please specify a verb for help. ")
             return 0
         # if input is a travel command, move player
-        d = self.getDirection()
-        if d:
-            return
+
         self.getCurVerb()
         if not self.command.verb:
             return

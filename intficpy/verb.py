@@ -3135,12 +3135,16 @@ class LockWithVerb(IndirectObjectVerb):
             return False
 
 
-# GO (empty verb added to improve "I don't understand" messages for invalid directions)
 # transitive verb, no indirect object
 class GoVerb(DirectObjectVerb):
     word = "go"
     syntax = [["go", "<dobj>"]]
     dscope = "direction"
+
+    def verbFunc(self, game, dobj):
+        from .travel import directionDict
+
+        directionDict[dobj](game)
 
 
 # LIGHT (LightSource)
