@@ -62,6 +62,23 @@ Allow creators to define an "on complete" function
 could be used for transfering data out of the sequence, and onto other objects
 
 
+def has_done_thing(sequence):
+    if sequence.this_was_done:
+        return [2, 1]
+    return [2, 3]
+
+--
+    Sequence.Navigator(has_done_thing)
+
+---
+    Sequence.Navigator(lambda seq: [2, 1] if seq.this_was_done else [2, 3])
+---
+
+TODO:
+- Rework parser.checkForSequenceChoice to ALWAYS send the input to the sequence (if ther is a sequence) and let the sequence use or reject it, and report back to the parser (in preparation for the prompt node)
+- Sequence Prompt Node
+- Conditional logic & flow control - Idea: controller/navigator node where author defines a function (array of functions evaluated in sequence?) to determine where to read next
+
 """
 from inspect import signature
 
@@ -127,7 +144,17 @@ class Sequence(IFPObject):
                 ]  # pop out of the list and its parent dict
                 ret = self._iterate()
 
+    def accept_input(self, tokens):
+        """
+        Pass current input tokens from the parser, to the method corresponding to the
+        type of input we are currently expecting
+        """
+        self.choose(tokens)  # by default, we interpret input as a menu choice
+
     def choose(self, tokens):
+        """
+        Try to use input tokens from the parser to choose an option in the current menu
+        """
         ix = None
         if len(tokens) == 1:
             try:
@@ -137,11 +164,15 @@ class Sequence(IFPObject):
         if ix is not None and ix <= len(self.options):
             self.position += [self.options[ix], 0]
         else:
-            answer = self._get_option_for(tokens)
+            answer = self._match_text_to_suggestion(tokens)
             self.position += [answer, 0]
         self.play()
 
-    def _get_option_for(self, query_tokens):
+    def _match_text_to_suggestion(self, query_tokens):
+        """
+        Try to match tokens to a single suggestion from the current options
+        Raises NoMatchingSuggestion on failure
+        """
         tokenized_options = [tokenize(cleanInput(option)) for option in self.options]
         match_indeces = []
 

@@ -150,9 +150,8 @@ class Parser:
         )
 
     def checkForConvCommand(self):
-        if (
-            self.previous_command.specialTopics and self.getConvCommand()
-        ) or self.checkForSequenceChoice():
+        self.sendTokensToCurrentSequence()
+        if self.previous_command.specialTopics and self.getConvCommand():
             raise AbortTurn("Accepted conversation suggestion")
 
     def verbByObjects(self):
@@ -1413,17 +1412,19 @@ class Parser:
             self.previous_command.specialTopics[x].func(self.game)
             return True
 
-    def checkForSequenceChoice(self):
-        if (
-            not self.previous_command.sequence
-            or not self.previous_command.sequence.options
-        ):
-            return False
+    def sendTokensToCurrentSequence(self):
+        """
+        If there is a sequence in progress, pass in current tokens
+
+        """
+        if not self.previous_command.sequence:
+            return
         try:
-            self.previous_command.sequence.choose(self.command.tokens)
+            self.previous_command.sequence.accept_input(self.command.tokens)
         except NoMatchingSuggestion:
-            return False
-        return True
+            return
+
+        raise AbortTurn("Input handled by current Sequence")
 
     def runTurnCommand(self):
         if len(self.command.tokens) == 0:
