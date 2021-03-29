@@ -1,58 +1,75 @@
-# INTFICPY - Write Parser Based Interactive Fiction in Python
-IntFicPy is a tool for building parser based interactive fiction using Python. Currently, IntFicPy is in preparation for the first Beta release. A demo game, planned to be released for IFComp 2019, is in early development.
+# TODO
 
-## TODO: CHANGES
+## Refactoring
 
-### Save/Load and Serializer
-+ check validity of save file before trying to load
-+ reevaluate WHAT we want to save. might decide to explicitly not save anything that is
-  not an IFP object.
+### Preparing to move all state to a DB
+1. *Auto-register all subclasses of IFPObject*
+    IFP will need to be able to reconstruct the object instances from the class, and the
+    saved attributes. This means that the ORM layer will need to be able to identify &
+    access the correct class object *even if this class is not part of standard IFP.*
+    To facilitate this, IFPObject will track its own subclasses.
 
-### Terminal Mode & Alternate UI Support
-+ purge all non graphical functionality from the GUI App class
-+ replace the style parameter of app.printToGUI with a string? we could even pass in a
-  CSS class
-+ some non graphical features may not be available in terminal mode
-+ replace html tags
-+ make sure new version of inline functions works correctly
+1. *Standardise the structure of an IFP project, and create a tool to help authors set it up*
+    In the new paradigm, IFPObjects will be instantiated when they are needed (turn-by-turn),
+    rather than being kept alive over the whole course of the playtime. The starting objects
+    that the author creates will become, essentially, data migrations. We need to create
+    an intuitive, standardised project structure that keeps these data migrations separate
+    from the author's custom classes.
 
-### Travel
+1. *Replace the save file with a database*
+    Replace the save file with a single-file/embeddable non-relational db.
+    The save file may eventually become a json dump *of* the db that tracks progress
+    during play, but maybe this is a useful intermediate step?
+
+1. *Update the save system*
+    In the old paradigm, the save system is designed to associate each item of its data
+    to a *live IFPObject instance*. This means that it does not currently save all the
+    needed to *create* the instance when it is needed (once IFPObject instances cease
+    to persist between turns.) Most importantly, the current save system lacks a record
+    of which IFPObject subclass the reconstructed object should be an instance of.
+    The goal here is to create a save/load system that has all the data needed for both
+    old and new paradigm saving.
+
+1. *Allow authors to explicitly set an entry's key for querying, and prevent duplicates*
+    Currently, the keys for all IFPObjects are generated automatically, completely
+    behind the scenes. In order to give authors an easy way to uniquely identify the
+    IFPObjects they create in their starting state/data migration code, we will allow
+    authors to specify their own string key for any of their IFPObjects that they wish,
+    and auto-generate the key as before otherwise.
+
+1. *Build the query system*
+    We need to be able to 1) explicitly look up & rehydrate an object using its
+    specified key, without immediately rehydrating every IFPObject attatched to it, 2)
+    look up & rehydrate any associated IFPObject seamlessly & automatically when
+    the attribute is accessed, and 3) keep track of changes made to all rehydrated
+    objects over their lifetime, so the changes can be saved.
+
+1. *Create a migrate tool to create the initial database*
+    Find a way to protect this db to prevent modification during play.
+
+1. *Create a temporary db on game startup to store state during play*
+    Save/load becomes a json dump/load.
+
+1. *Initially load the game from the starting state db, not the starting state code*
+    Use the query system to load the game from the db. Stop running the starting state
+    IFPObject generation code during play.
+
+1. *Only save changed attributes in the current state db & save files*
+    Each save file does not need to keep a copy of the entire game.
+
+
+### Minor
++ pull out printed strings to instance properties
++ clean up travel.py
 + put some more info into directionDict, so we can use it to get rid of the giant
   if/else blocks in the TravelConnector inits
 
-### Refactoring
-#### Major Refactoring
-+ IFP Turn Events System:
-  - app.newBox is the wrong level of abstraction.
-    Box implies **event** so handle events instead of boxes. Let creaters of UIs for
-    IFP interpret an event the way they want.
-    Examples of events:
-    - the player's action on their turn
-    - an NPC walks into a room (triggered by a timer)
-    - the ground shakes and a monster rises up from the deep (triggered by the player's action)
-    IFP and the game creator can assign ordering priorities to events from 0-9
-    Player action event runs every turn with priority 5
-    Add print strings to the events on the current turn, then evaluate all events in order.
-    The game sends app.evaluateEvent (triggerEvent? runEvent? printEvent?)
-    The UI app handles this however it wants.
-+ replace <<m>> with an app.morePrompt (event? function tied into an event? property on an event?)
-  Or don't, and just let the app handle it?
-+ refactor Parser to use a new exception ParserError instead of passing around None all the time
-
-#### Minor Ugliness
-+ pull out printed strings to instance properties
-+ clean up travel.py
-
-
-## TODO: TESTING
+## Testing
++ make sure new version of inline functions works correctly in terminal mode
 + the MORE or m built in inline function needs more testing and possible refining
 + Abstract class - try breaking it with features that shouldn't be used
 + inline functions with multiple arguments
 + give thing with give enabled
-
-### Test Parser
-
-### Travel
 
 ### Things
 + remove all contents
@@ -62,43 +79,13 @@ IntFicPy is a tool for building parser based interactive fiction using Python. C
 + test HintSystem pending_daemon
 
 ### Test Verbs
-#### Test Movement
-+ climb
-+ exit
-+ enter
-+ lead
-#### Test Positions
-+ stand
-+ sit
-+ lie down
-#### Test Liquids
-+ pour
-+ fill
-+ drink
-#### Test Misc Verbs
-+ press
-+ push
-+ light
-+ extinguish
-+ wear
-+ doff
-#### Test Score
-+ score
-+ fullscore
-#### Test Help
-+ help
-+ about
-+ verbs
-+ herb help
-+ hint
-+ instructions
-#### Test Record/Playback
-+ record on
-+ record off
-+ playback
-#### Test Placeholder Verbs
-+ jump
-+ kill
-+ kick
-+ break
-
++ movement (climb, exit, enter, lead)
++ positions (stand, sit, lie down)
++ liquids (pour, fill, drink)
++ press, push,
++ light sources (light, extinguish)
++ clothing (wear, doff)
++ score & fullscore
++ help, about, verbs, herb help, hint, instructions
++ record & playback (record on, record off, playback)
++ built-in placeholders (jump, kill, kick, break)

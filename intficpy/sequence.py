@@ -1,88 +1,26 @@
 """
-Considerations:
-- must be able to store exact position in sequence
-- sequences are *branching* simple API
-
-```
-sequence1 = Sequence([
-    "You are in a dark room. Light filters in through a cracked, dirty window.",
-    "What will you do?",
-    {
-        "Break the window": [
-            "You smash the window.",
-            "Acid gas flows into the room.",
-            {
-                "Cover your mouth with your shirt": [
-                    "It doesn't help. You die anyway.",
-                    me.die(),
-                ],
-                "Hide": [
-                    "You hide. It's pointless. You die.",
-                    me.die(),
-                ]
-            }
-        ],
-        "Do nothing": [
-            "You do nothing.",
-            "Nothing happens for a while, but then...",
-            "You don't die.",
-            me.win(),
-        ]
-    },
-    "This would happen after the choice's outcome."
-])
-```
-If we start from this ^ API, what does that imply?
-
-The top level of a Sequence is an Array, representing events that occur in order
-I like that
-But I'm a little confused about this
-
-Let's say:
-- the list items are read in order
-- strings are added, in order, to the "sequence" event
-- when a dict is reached, we create a MENU (in the form of conv. suggestions)
-  and we PAUSE the sequence (AKA stop reading in array items)
-  THEN the user SELECTS an option, and we PUSH into its array
-  We read the items as we did for the top level array
-  When we reach the END of an array, we POP out to the next level
-  When we reach the END of the main array, we end the sequence
-
-So, how do we remember our position?
-Use nested indeces
-If you just did "Break the window", your position is
-[2]["Break the window"] or [2, "Break the window"] ([2, "Break the window", 2] maybe?)
-
-Sequence commands
-
-<up> pops the navigation stack
-<prompt somevarname> save user input to the scene.data dict under key "somevarname"
-
-Allow creators to define an "on complete" function
-could be used for transfering data out of the sequence, and onto other objects
-
-
-def has_done_thing(sequence):
-    if sequence.this_was_done:
-        return [2, 1]
-    return [2, 3]
-
---
-    Sequence.Navigator(has_done_thing)
-
----
-    Sequence.Navigator(lambda seq: [2, 1] if seq.this_was_done else [2, 3])
----
 
 TODO:
-- Sequence SaveData Node
-- Sequence Prompt Node
-- Conditional logic & flow control - Idea: controller/navigator node where author defines a function (array of functions evaluated in sequence?) to determine where to read next
+* An "Up" ControlItem (pop)
+* "Label" ControlItem? - create a more human friendly interface for jumps/procedural navigation
+* Conditional logic & flow control - Idea: controller/navigator node where author defines a function (array of functions evaluated in sequence?) to determine where to read next
+    ```
+        # example function to pass to a Navigator
+        def has_done_thing(sequence):
+            if sequence.this_was_done:
+                return [2, 1]
+            return [2, 3]
+    ```
+    Use in a Sequence template:
+    ```
+        [
+            Sequence.Navigator(has_done_thing),
+            ...,
+            # or with a labmbda
+            Sequence.Navigator(lambda seq: [2, 1] if seq.this_was_done else [2, 3]),
+        ]
+    ```
 
-
-special items
-+ Prompt
-+ Navigator
 """
 from inspect import signature
 
