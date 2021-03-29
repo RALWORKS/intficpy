@@ -108,6 +108,85 @@ class TestSequence(IFPTestCase):
         self.assertNotIn(str(locusts_swarm()), self.app.print_stack)
         self.assertTrue(self.game.locusts_evaluated)
 
+    def test_sequence_data_replacements(self):
+        MC_NAME = "edmund"
+        self.game.an_extra_something = "swamp"
+        sequence = Sequence(
+            self.game,
+            ["{name}, here is a {game.an_extra_something}.",],
+            data={"name": MC_NAME},
+        )
+        sequence.start()
+        self.game.runTurnEvents()
+        self.assertIn(
+            sequence.template[0].format(name=MC_NAME, game=self.game),
+            self.app.print_stack,
+        )
+
+
+class TextSaveData(IFPTestCase):
+    def test_save_data_control_item(self):
+        MC_NAME = "edmund"
+        self.game.an_extra_something = "swamp"
+        sequence = Sequence(
+            self.game, [Sequence.SaveData("name", MC_NAME)], data={"name": None}
+        )
+        self.assertFalse(sequence.data["name"])
+        sequence.start()
+        self.game.runTurnEvents()
+        self.assertEqual(sequence.data["name"], MC_NAME)
+
+
+class TestSequencePrompt(IFPTestCase):
+    def test_can_respond_to_prompt_and_retrieve_data(self):
+        MC_NAME = "edmund"
+        LABEL = "Your name"
+        DATA_KEY = "mc_name"
+        QUESTION = "What's your name?"
+        sequence = Sequence(
+            self.game,
+            [
+                "My name's Izzy. What's yours?",
+                Sequence.Prompt(DATA_KEY, LABEL, QUESTION),
+                "Good to meet you.",
+            ],
+        )
+        sequence.start()
+        self.game.runTurnEvents()
+        self.assertIn(sequence.template[0], self.app.print_stack)
+        self.game.turnMain(MC_NAME)
+        self.assertIn(f"{LABEL}: {MC_NAME}? (y/n)", self.app.print_stack)
+        self.game.turnMain("y")
+        self.assertEqual(sequence.data[DATA_KEY], MC_NAME)
+        self.assertIn(sequence.template[2], self.app.print_stack)
+
+    def test_can_make_correction_before_submitting(self):
+        TYPO_NAME = "edumd"
+        MC_NAME = "edmund"
+        LABEL = "Your name"
+        DATA_KEY = "mc_name"
+        QUESTION = "What's your name?"
+        sequence = Sequence(
+            self.game,
+            [
+                "My name's Izzy. What's yours?",
+                Sequence.Prompt(DATA_KEY, LABEL, QUESTION),
+                "Good to meet you.",
+            ],
+        )
+        sequence.start()
+        self.game.runTurnEvents()
+        self.assertIn(sequence.template[0], self.app.print_stack)
+        self.game.turnMain(TYPO_NAME)
+        self.assertIn(f"{LABEL}: {TYPO_NAME}? (y/n)", self.app.print_stack)
+        self.game.turnMain("n")
+        self.assertIn(QUESTION, self.app.print_stack)
+        self.game.turnMain(MC_NAME)
+        self.game.turnMain("y")
+
+        self.assertEqual(sequence.data[DATA_KEY], MC_NAME)
+        self.assertIn(sequence.template[2], self.app.print_stack)
+
 
 class TestValidateSequenceTemplate(IFPTestCase):
     def test_invalid_top_level_template_node(self):

@@ -9,6 +9,8 @@ class VocabObject:
         self.articles = []
         self.keywords = []
         self.no_space_before = []
+        self.yes = []
+        self.no = []
 
 
 english = VocabObject()
@@ -48,3 +50,5 @@ english.no_space_before = [
     "'ll",
     "'ll",
 ]
+english.yes = ["yes", "y"]
+english.no = ["no", "n"]

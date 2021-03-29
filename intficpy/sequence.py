@@ -75,16 +75,21 @@ def has_done_thing(sequence):
 ---
 
 TODO:
-- Rework parser.checkForSequenceChoice to ALWAYS send the input to the sequence (if ther is a sequence) and let the sequence use or reject it, and report back to the parser (in preparation for the prompt node)
+- Sequence SaveData Node
 - Sequence Prompt Node
 - Conditional logic & flow control - Idea: controller/navigator node where author defines a function (array of functions evaluated in sequence?) to determine where to read next
 
+
+special items
++ Prompt
++ Navigator
 """
 from inspect import signature
 
 from .exceptions import IFPError, NoMatchingSuggestion
 from .ifp_object import IFPObject
 from .tokenizer import cleanInput, tokenize
+from .vocab import english
 
 
 class Sequence(IFPObject):
@@ -97,13 +102,71 @@ class Sequence(IFPObject):
     class NodeComplete(Event):
         pass
 
-    def __init__(self, game, template):
+    class ControlItem:
+        def read(self):
+            raise NotImplementedError(
+                "Sequence control classes must define a read method"
+            )
+
+    class Prompt(ControlItem):
+        def __init__(self, save_key, label, question):
+            self.save_key = save_key
+            self.label = label
+            self.question = question
+            self.answer = None
+            self.sequence = None
+            self._submitted = False
+
+        def read(self, game, event="turn"):
+            if self._submitted:
+                return
+            if self.answer:
+                game.addTextToEvent(event, f"{self.label}: {self.answer}? (y/n)")
+            else:
+                game.addTextToEvent(event, self.question)
+            return self.sequence.Pause()
+
+        def try_again(self):
+            self.answer = None
+            self.sequence.play()
+
+        def submit(self):
+            self.sequence.data[self.save_key] = self.answer
+            self._submitted = True
+            self.sequence.play()
+
+        def accept_input(self, tokens):
+            if self.answer:
+                if " ".join(tokens) in english.yes:
+                    self.submit()
+                elif " ".join(tokens) in english.no:
+                    self.try_again()
+                else:
+                    raise NoMatchingSuggestion(
+                        "Expected yes/no answer", english.yes + english.no, []
+                    )
+            else:
+                self.answer = " ".join(tokens)
+                self.sequence.play()
+
+    class SaveData(ControlItem):
+        def __init__(self, save_key, value):
+            self.save_key = save_key
+            self.value = value
+            self.sequence = None
+
+        def read(self, *args, **kwargs):
+            self.sequence.data[self.save_key] = self.value
+
+    def __init__(self, game, template, data=None):
         super().__init__(game)
         self._validate(template)
         self.template = template
 
         self.position = [0]
         self.options = []
+        self.data = data or {}
+        self.data["game"] = game
 
     def on_complete(self):
         pass
@@ -149,7 +212,10 @@ class Sequence(IFPObject):
         Pass current input tokens from the parser, to the method corresponding to the
         type of input we are currently expecting
         """
-        self.choose(tokens)  # by default, we interpret input as a menu choice
+        if isinstance(self.current_item, self.Prompt):
+            self.current_item.accept_input(tokens)
+        else:
+            self.choose(tokens)  # by default, we interpret input as a menu choice
 
     def choose(self, tokens):
         """
@@ -197,12 +263,15 @@ class Sequence(IFPObject):
     def _read_item(self, item, event):
         self.options = []
         if type(item) is str:
-            self.game.addTextToEvent(event, item)
+            self.game.addTextToEvent(event, item.format(**self.data))
 
         elif callable(item):
             ret = item()
             if type(ret) is str:
                 self.game.addTextToEvent(event, ret)
+
+        elif isinstance(item, self.ControlItem):
+            return item.read(self.game, event)
 
         else:
             self.options = list(item.keys())
@@ -229,6 +298,11 @@ class Sequence(IFPObject):
             item = node[i]
 
             if type(item) is str:
+                stack.pop()
+                continue
+
+            if isinstance(item, self.ControlItem):
+                item.sequence = self
                 stack.pop()
                 continue
 
