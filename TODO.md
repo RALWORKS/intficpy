@@ -3,64 +3,64 @@
 ## Refactoring
 
 ### Preparing to move all state to a DB
-1. *Auto-register all subclasses of IFPObject*
+1. **Auto-register all subclasses of IFPObject** -
     IFP will need to be able to reconstruct the object instances from the class, and the
     saved attributes. This means that the ORM layer will need to be able to identify &
-    access the correct class object *even if this class is not part of standard IFP.*
+    access the correct class object **even if this class is not part of standard IFP.**
     To facilitate this, IFPObject will track its own subclasses.
 
-1. *Standardise the instantiation API for all IFPObject subclasses*
+1. **Standardise the instantiation API for all IFPObject subclasses** -
     Instantiation kwargs = setting attributes on the instance. You can specify some params
     as required (and possibly some attributes as protected?) on the class.
     This will make it possible to for the query system to quickly generate needed objects
     from the db, as well as just being a much nicer API for humans.
 
-1. *Standardise the structure of an IFP project, and create a tool to help authors set it up*
+1. **Standardise the structure of an IFP project, and create a tool to help authors set it up** -
     In the new paradigm, IFPObjects will be instantiated when they are needed (turn-by-turn),
     rather than being kept alive over the whole course of the playtime. The starting objects
     that the author creates will become, essentially, data migrations. We need to create
     an intuitive, standardised project structure that keeps these data migrations separate
     from the author's custom classes.
 
-1. *Replace the save file with a database*
+1. **Replace the save file with a database** -
     Replace the save file with a single-file/embeddable non-relational db.
-    The save file may eventually become a json dump *of* the db that tracks progress
+    The save file may eventually become a json dump **of** the db that tracks progress
     during play, but maybe this is a useful intermediate step?
 
-1. *Update the save system*
+1. **Update the save system** -
     In the old paradigm, the save system is designed to associate each item of its data
-    to a *live IFPObject instance*. This means that it does not currently save all the
-    needed to *create* the instance when it is needed (once IFPObject instances cease
+    to a **live IFPObject instance**. This means that it does not currently save all the
+    needed to **create** the instance when it is needed (once IFPObject instances cease
     to persist between turns.) Most importantly, the current save system lacks a record
     of which IFPObject subclass the reconstructed object should be an instance of.
     The goal here is to create a save/load system that has all the data needed for both
     old and new paradigm saving.
 
-1. *Allow authors to explicitly set an entry's key for querying, and prevent duplicates*
+1. **Allow authors to explicitly set an entry's key for querying, and prevent duplicates** -
     Currently, the keys for all IFPObjects are generated automatically, completely
     behind the scenes. In order to give authors an easy way to uniquely identify the
     IFPObjects they create in their starting state/data migration code, we will allow
     authors to specify their own string key for any of their IFPObjects that they wish,
     and auto-generate the key as before otherwise.
 
-1. *Build the query system*
+1. **Build the query system** -
     We need to be able to 1) explicitly look up & rehydrate an object using its
     specified key, without immediately rehydrating every IFPObject attatched to it, 2)
     look up & rehydrate any associated IFPObject seamlessly & automatically when
     the attribute is accessed, and 3) keep track of changes made to all rehydrated
     objects over their lifetime, so the changes can be saved.
 
-1. *Create a migrate tool to create the initial database*
+1. **Create a migrate tool to create the initial database** -
     Find a way to protect this db to prevent modification during play.
 
-1. *Create a temporary db on game startup to store state during play*
+1. **Create a temporary db on game startup to store state during play** -
     Save/load becomes a json dump/load.
 
-1. *Initially load the game from the starting state db, not the starting state code*
+1. **Initially load the game from the starting state db, not the starting state code** -
     Use the query system to load the game from the db. Stop running the starting state
     IFPObject generation code during play.
 
-1. *Only save changed attributes in the current state db & save files*
+1. **Only save changed attributes in the current state db & save files** -
     Each save file does not need to keep a copy of the entire game.
 
 
