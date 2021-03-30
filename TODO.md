@@ -9,6 +9,12 @@
     access the correct class object *even if this class is not part of standard IFP.*
     To facilitate this, IFPObject will track its own subclasses.
 
+1. *Standardise the instantiation API for all IFPObject subclasses*
+    Instantiation kwargs = setting attributes on the instance. You can specify some params
+    as required (and possibly some attributes as protected?) on the class.
+    This will make it possible to for the query system to quickly generate needed objects
+    from the db, as well as just being a much nicer API for humans.
+
 1. *Standardise the structure of an IFP project, and create a tool to help authors set it up*
     In the new paradigm, IFPObjects will be instantiated when they are needed (turn-by-turn),
     rather than being kept alive over the whole course of the playtime. The starting objects
