@@ -124,6 +124,45 @@ class TestSequence(IFPTestCase):
         )
 
 
+class TestSequenceNavigator(IFPTestCase):
+    def test_can_navigate_by_label(self):
+        START_ITEM = "Hello."
+        SKIPPED_ITEM = "NEVER!"
+        END_ITEM = "Goodbye."
+        L = "sidestep"
+
+        sequence = Sequence(
+            self.game,
+            [
+                START_ITEM,
+                Sequence.Navigator(lambda s: L),
+                SKIPPED_ITEM,
+                Sequence.Label(L),
+                END_ITEM,
+            ],
+        )
+        sequence.start()
+        self.game.runTurnEvents()
+        self.assertIn(START_ITEM, self.app.print_stack)
+        self.assertIn(END_ITEM, self.app.print_stack)
+        self.assertNotIn(SKIPPED_ITEM, self.app.print_stack)
+
+    def test_can_navigate_by_index(self):
+        START_ITEM = "Hello."
+        SKIPPED_ITEM = "NEVER!"
+        END_ITEM = "Goodbye."
+
+        sequence = Sequence(
+            self.game,
+            [START_ITEM, Sequence.Navigator(lambda s: [2]), SKIPPED_ITEM, END_ITEM,],
+        )
+        sequence.start()
+        self.game.runTurnEvents()
+        self.assertIn(START_ITEM, self.app.print_stack)
+        self.assertIn(END_ITEM, self.app.print_stack)
+        self.assertNotIn(SKIPPED_ITEM, self.app.print_stack)
+
+
 class TextSaveData(IFPTestCase):
     def test_save_data_control_item(self):
         MC_NAME = "edmund"
@@ -211,3 +250,8 @@ class TestValidateSequenceTemplate(IFPTestCase):
 
         with self.assertRaises(IFPError):
             Sequence(self.game, [heron_event])
+
+    def test_label_name_cannot_be_used_twice(self):
+        L = "label"
+        with self.assertRaises(IFPError):
+            Sequence(self.game, [Sequence.Label(L), Sequence.Label(L)])

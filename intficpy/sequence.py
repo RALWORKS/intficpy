@@ -96,9 +96,25 @@ class Sequence(IFPObject):
         def read(self, *args, **kwargs):
             self.sequence.data[self.save_key] = self.value
 
+    class Label(ControlItem):
+        def __init__(self, name):
+            self.name = name
+
+        def read(self, game, event):
+            pass  # a label does nothing when read
+
+    class Navigator(ControlItem):
+        def __init__(self, nav_func):
+            self.nav_func = nav_func
+            self.sequence = None
+
+        def read(self, game, event):
+            self.sequence.jump_to(self.nav_func(self.sequence))
+
     def __init__(self, game, template, data=None):
         super().__init__(game)
-        self._validate(template)
+        self.labels = {}
+        self._parse_template_node(template)
         self.template = template
 
         self.position = [0]
@@ -108,13 +124,13 @@ class Sequence(IFPObject):
 
     @property
     def current_item(self):
-        return self._get_section(self.position)
+        return self._get_section_by_location(self.position)
 
     @property
     def current_node(self):
         if len(self.position) < 2:
             return self.template
-        return self._get_section(self.position[:-1])
+        return self._get_section_by_location(self.position[:-1])
 
     def start(self):
         self.position = [0]
@@ -141,6 +157,15 @@ class Sequence(IFPObject):
                     :-2
                 ]  # pop out of the list and its parent dict
                 ret = self._iterate()
+
+    def jump_to(self, value):
+        """
+        Read the sequence from the specified point.
+        Accepts a string that is registered as a label on the Sequence
+        or an array specifying an index on the Sequence template
+        """
+        loc = self._normalize_location(value)
+        self.position = loc
 
     def on_complete(self):
         pass
@@ -192,11 +217,24 @@ class Sequence(IFPObject):
 
         return self.options[match_indeces[0]]
 
-    def _get_section(self, location):
+    def _get_section_by_location(self, location):
         section = self.template
         for ix in location:
             section = section[ix]
         return section
+
+    def _normalize_location(self, value):
+        if type(value) is str:
+            try:
+                loc = self.labels[value]
+            except KeyError as e:
+                raise KeyError(
+                    f'"{value}" is not a valid label for Sequence {self}.\n'
+                    f"This Sequence has the following labels: {self.labels.keys()}"
+                ) from e
+            return loc
+        else:
+            return value
 
     def _read_item(self, item, event):
         self.options = []
@@ -225,7 +263,10 @@ class Sequence(IFPObject):
             return self.NodeComplete()
         self.position[-1] += 1
 
-    def _validate(self, node, stack=None):
+    def _parse_template_node(self, node, stack=None):
+        """
+        Parse, validate, and prepare the template for reading
+        """
         stack = stack or []
 
         if not type(node) is list:
@@ -235,6 +276,16 @@ class Sequence(IFPObject):
         for i in range(0, len(node)):
             stack.append(i)
             item = node[i]
+
+            if isinstance(item, self.Label):
+                if item.name in self.labels:
+                    raise IFPError(
+                        "Sequence Labels must be uniquely named within the Sequence. "
+                        f'Label "{item.name}" at location {stack} was previously defined '
+                        "for this Sequence."
+                    )
+                self.labels[item.name] = stack
+                continue
 
             if type(item) is str or isinstance(item, self.ControlItem):
                 stack.pop()
@@ -259,7 +310,7 @@ class Sequence(IFPObject):
                             f"Found {key} ({type(key)})\nLocation: {stack}"
                         )
                     stack.append(key)
-                    self._validate(sub_node, stack=stack)
+                    self._parse_template_node(sub_node, stack=stack)
                     stack.pop()
             except AttributeError:
                 raise IFPError(
