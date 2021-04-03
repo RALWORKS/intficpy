@@ -6,21 +6,18 @@ from .helpers import IFPTestCase
 
 class TestSequence(IFPTestCase):
     def test_sequence_lifecycle(self):
-        class MySequence(Sequence):
-            game = self.game
-            template = ["This is the start", {"the only option": ["the outcome"]}]
+        sequence = Sequence(
+            self.game, ["This is the start", {"the only option": ["the outcome"]}]
+        )
+        sequence.a_wonderful_strange = None
 
-            def __init__(self):
-                super().__init__()
-                self.a_wonderful_strange = None
+        def ended():
+            sequence.a_wonderful_strange = True
 
-            def on_complete(self):
-                self.a_wonderful_strange = True
+        sequence.on_complete = ended
 
         self.assertIsNone(self.game.parser.previous_command.sequence)
-
-        sequence = MySequence()
-
+        sequence.start()
         self.assertIs(self.game.parser.command.sequence, sequence)
         self.game.runTurnEvents()
         self.assertIn(sequence.template[0], self.app.print_stack)
@@ -35,12 +32,10 @@ class TestSequence(IFPTestCase):
         self.assertIsNone(self.game.parser.command.sequence)
 
     def test_select_sequence_option_by_keywords(self):
-        class MySequence(Sequence):
-            game = self.game
-            template = [{"here it is": ["we shall"], "not here": ["no way"]}]
-
-        sequence = MySequence()
-
+        sequence = Sequence(
+            self.game, [{"here it is": ["we shall"], "not here": ["no way"]}]
+        )
+        sequence.start()
         self.game.runTurnEvents()
 
         key = sequence.options[0]
@@ -49,12 +44,10 @@ class TestSequence(IFPTestCase):
         self.assertIn(sequence.template[0][key][0], self.app.print_stack)
 
     def test_no_matching_suggestion(self):
-        class MySequence(Sequence):
-            game = self.game
-            template = [{"here it is": ["we shall"], "not here": ["no way"]}]
-
-        sequence = MySequence()
-
+        sequence = Sequence(
+            self.game, [{"here it is": ["we shall"], "not here": ["no way"]}]
+        )
+        sequence.start()
         self.game.runTurnEvents()
 
         self.game.turnMain("The invisible man turns the invisible key")
@@ -62,12 +55,10 @@ class TestSequence(IFPTestCase):
         self.assertIn("not enough information", self.app.print_stack.pop())
 
     def test_out_of_bound_option_index(self):
-        class MySequence(Sequence):
-            game = self.game
-            template = [{"here it is": ["we shall"], "not here": ["no way"]}]
-
-        sequence = MySequence()
-
+        sequence = Sequence(
+            self.game, [{"here it is": ["we shall"], "not here": ["no way"]}]
+        )
+        sequence.start()
         self.game.runTurnEvents()
 
         ix = 333
@@ -78,12 +69,10 @@ class TestSequence(IFPTestCase):
         self.assertIn("not enough information", self.app.print_stack.pop())
 
     def test_accept_selection_with_single_word_non_index(self):
-        class MySequence(Sequence):
-            game = self.game
-            template = [{"here it is": ["we shall"], "not here": ["no way"]}]
-
-        sequence = MySequence()
-
+        sequence = Sequence(
+            self.game, [{"here it is": ["we shall"], "not here": ["no way"]}]
+        )
+        sequence.start()
         self.game.runTurnEvents()
 
         self.game.turnMain("not")
@@ -94,12 +83,9 @@ class TestSequence(IFPTestCase):
         def locusts_swarm():
             return "A swarm of locusts descends upon the land."
 
-        class MySequence(Sequence):
-            game = self.game
-            template = [locusts_swarm]
+        sequence = Sequence(self.game, [locusts_swarm])
 
-        sequence = MySequence()
-
+        sequence.start()
         self.game.runTurnEvents()
 
         self.assertIn(locusts_swarm(), self.app.print_stack)
@@ -113,12 +99,9 @@ class TestSequence(IFPTestCase):
             self.game.locusts_evaluated = True
             return 17
 
-        class MySequence(Sequence):
-            game = self.game
-            template = [locusts_swarm]
+        sequence = Sequence(self.game, [locusts_swarm])
 
-        sequence = MySequence()
-
+        sequence.start()
         self.game.runTurnEvents()
 
         self.assertNotIn(locusts_swarm(), self.app.print_stack)
@@ -128,16 +111,12 @@ class TestSequence(IFPTestCase):
     def test_sequence_data_replacements(self):
         MC_NAME = "edmund"
         self.game.an_extra_something = "swamp"
-
-        class MySequence(Sequence):
-            game = self.game
-            template = [
-                "{name}, here is a {game.an_extra_something}.",
-            ]
-            starting_data = {"name": MC_NAME}
-
-        sequence = MySequence()
-
+        sequence = Sequence(
+            self.game,
+            ["{name}, here is a {game.an_extra_something}.",],
+            data={"name": MC_NAME},
+        )
+        sequence.start()
         self.game.runTurnEvents()
         self.assertIn(
             sequence.template[0].format(name=MC_NAME, game=self.game),
@@ -148,14 +127,12 @@ class TestSequence(IFPTestCase):
 class TextSaveData(IFPTestCase):
     def test_save_data_control_item(self):
         MC_NAME = "edmund"
-
-        class MySequence(Sequence):
-            game = self.game
-            template = [Sequence.SaveData("name", MC_NAME)]
-            starting_data = {"name": None}
-
-        self.assertFalse(MySequence.starting_data["name"])
-        sequence = MySequence()
+        self.game.an_extra_something = "swamp"
+        sequence = Sequence(
+            self.game, [Sequence.SaveData("name", MC_NAME)], data={"name": None}
+        )
+        self.assertFalse(sequence.data["name"])
+        sequence.start()
         self.game.runTurnEvents()
         self.assertEqual(sequence.data["name"], MC_NAME)
 
@@ -166,18 +143,15 @@ class TestSequencePrompt(IFPTestCase):
         LABEL = "Your name"
         DATA_KEY = "mc_name"
         QUESTION = "What's your name?"
-
-        class MySequence(Sequence):
-            game = self.game
-            template = [
+        sequence = Sequence(
+            self.game,
+            [
                 "My name's Izzy. What's yours?",
                 Sequence.Prompt(DATA_KEY, LABEL, QUESTION),
                 "Good to meet you.",
-            ]
-            starting_data = {"name": MC_NAME}
-
-        sequence = MySequence()
-
+            ],
+        )
+        sequence.start()
         self.game.runTurnEvents()
         self.assertIn(sequence.template[0], self.app.print_stack)
         self.game.turnMain(MC_NAME)
@@ -192,18 +166,15 @@ class TestSequencePrompt(IFPTestCase):
         LABEL = "Your name"
         DATA_KEY = "mc_name"
         QUESTION = "What's your name?"
-
-        class MySequence(Sequence):
-            game = self.game
-            template = [
+        sequence = Sequence(
+            self.game,
+            [
                 "My name's Izzy. What's yours?",
                 Sequence.Prompt(DATA_KEY, LABEL, QUESTION),
                 "Good to meet you.",
-            ]
-            starting_data = {"name": MC_NAME}
-
-        sequence = MySequence()
-
+            ],
+        )
+        sequence.start()
         self.game.runTurnEvents()
         self.assertIn(sequence.template[0], self.app.print_stack)
         self.game.turnMain(TYPO_NAME)
@@ -220,38 +191,23 @@ class TestSequencePrompt(IFPTestCase):
 class TestValidateSequenceTemplate(IFPTestCase):
     def test_invalid_top_level_template_node(self):
         with self.assertRaises(IFPError):
-
-            class MySequence(Sequence):
-                game = self.game
-                template = 8
+            Sequence(self.game, 8)
 
     def test_invalid_inner_template_node(self):
         with self.assertRaises(IFPError):
-
-            class MySequence(Sequence):
-                game = self.game
-                template = [{"hello": "string not list"}]
+            Sequence(self.game, [{"hello": "string not list"}])
 
     def test_invalid_sequence_item_type(self):
         with self.assertRaises(IFPError):
-
-            class MySequence(Sequence):
-                game = self.game
-                template = [8]
+            Sequence(self.game, [8])
 
     def test_dict_key_for_option_name_must_be_string(self):
         with self.assertRaises(IFPError):
-
-            class MySequence(Sequence):
-                game = self.game
-                template = [{6: ["item"]}]
+            Sequence(self.game, [{6: ["item"]}])
 
     def test_callable_accepting_arguments_is_invalid_item(self):
         def heron_event(n_herons):
             return f"There are {n_herons} herons."
 
         with self.assertRaises(IFPError):
-
-            class MySequence(Sequence):
-                game = self.game
-                template = [heron_event]
+            Sequence(self.game, [heron_event])

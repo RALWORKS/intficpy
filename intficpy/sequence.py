@@ -31,10 +31,6 @@ from .vocab import english
 
 
 class Sequence(IFPObject):
-    template = []
-    starting_data = {}
-    game = None
-
     class Event:
         pass
 
@@ -100,77 +96,40 @@ class Sequence(IFPObject):
         def read(self, *args, **kwargs):
             self.sequence.data[self.save_key] = self.value
 
-    def __init_subclass__(cls, **kwargs):
-        cls.validate(cls.template)
-        super().__init_subclass__(**kwargs)
+    def __init__(self, game, template, data=None):
+        super().__init__(game)
+        self._validate(template)
+        self.template = template
 
-    def __init__(self):
-        super().__init__(self.game)
         self.position = [0]
         self.options = []
-        self.data = dict(self.starting_data)
-        self.data["game"] = self.game
-
-        self.start()
-
-    @classmethod
-    def validate(cls, node, stack=None):
-        """
-        Recursively validate the template of the Sequence subclass
-        """
-
-        stack = stack or []
-
-        if not type(node) is list:
-            raise IFPError(
-                "Expected Sequence node (list); found {node}" f"\nLocation: {stack}"
-            )
-        for i in range(0, len(node)):
-            stack.append(i)
-            item = node[i]
-
-            if type(item) is str or isinstance(item, cls.ControlItem):
-                stack.pop()
-                continue
-
-            if callable(item):
-                sig = signature(item)
-                if [p for p in sig.parameters]:
-                    raise IFPError(
-                        f"{item} found in Sequence. "
-                        "Callables with that accept parameters cannot be used "
-                        "as Sequence items."
-                        f"\nLocation: {stack}"
-                    )
-                stack.pop()
-                continue
-            try:
-                for key, sub_node in item.items():
-                    if type(key) is not str:
-                        raise IFPError(
-                            "Only strings can be used as option names (dict keys) in Sequences. "
-                            f"Found {key} ({type(key)})\nLocation: {stack}"
-                        )
-                    stack.append(key)
-                    cls.validate(sub_node, stack=stack)
-                    stack.pop()
-            except AttributeError:
-                raise IFPError(
-                    f"Expected Sequence item (string, function, or dict); found {item}"
-                    f"\nLocation: {stack}"
-                )
-            stack.pop()
+        self.data = data or {}
+        self.data["game"] = game
 
     def on_complete(self):
-        """
-        Evaluates on completion of the Sequence.
-        Subclasses should override this to add behaviour on completion.
-        """
         pass
 
     def start(self):
         self.position = [0]
         self.play()
+
+    @property
+    def current_item(self):
+        return self._get_section(self.position)
+
+    @property
+    def current_node(self):
+        if len(self.position) < 2:
+            return self.template
+        return self._get_section(self.position[:-1])
+
+    def next(self, event):
+        self.game.parser.command.sequence = self
+
+        ret = self._read_item(self.current_item, event)
+        if isinstance(ret, self.Pause):
+            return ret
+        return self._iterate()
 
     def play(self, event="turn"):
         while True:
@@ -185,14 +144,6 @@ class Sequence(IFPObject):
                     :-2
                 ]  # pop out of the list and its parent dict
                 ret = self._iterate()
-
-    def next(self, event):
-        self.game.parser.command.sequence = self
-
-        ret = self._read_item(self.current_item, event)
-        if isinstance(ret, self.Pause):
-            return ret
-        return self._iterate()
 
     def accept_input(self, tokens):
         """
@@ -258,7 +209,6 @@ class Sequence(IFPObject):
                 self.game.addTextToEvent(event, ret)
 
         elif isinstance(item, self.ControlItem):
-            item.sequence = self
             return item.read(self.game, event)
 
         else:
@@ -274,12 +224,50 @@ class Sequence(IFPObject):
             return self.NodeComplete()
         self.position[-1] += 1
 
-    @property
-    def current_item(self):
-        return self._get_section(self.position)
+    def _validate(self, node, stack=None):
+        stack = stack or []
 
-    @property
-    def current_node(self):
-        if len(self.position) < 2:
-            return self.template
-        return self._get_section(self.position[:-1])
+        if not type(node) is list:
+            raise IFPError(
+                "Expected Sequence node (list); found {node}" f"\nLocation: {stack}"
+            )
+        for i in range(0, len(node)):
+            stack.append(i)
+            item = node[i]
+
+            if type(item) is str:
+                stack.pop()
+                continue
+
+            if isinstance(item, self.ControlItem):
+                item.sequence = self
+                stack.pop()
+                continue
+
+            if callable(item):
+                sig = signature(item)
+                if [p for p in sig.parameters]:
+                    raise IFPError(
+                        f"{item} found in Sequence. "
+                        "Callables with that accept parameters cannot be used "
+                        "as Sequence items."
+                        f"\nLocation: {stack}"
+                    )
+                stack.pop()
+                continue
+            try:
+                for key, sub_node in item.items():
+                    if type(key) is not str:
+                        raise IFPError(
+                            "Only strings can be used as option names (dict keys) in Sequences. "
+                            f"Found {key} ({type(key)})\nLocation: {stack}"
+                        )
+                    stack.append(key)
+                    self._validate(sub_node, stack=stack)
+                    stack.pop()
+            except AttributeError:
+                raise IFPError(
+                    f"Expected Sequence item (string, function, or dict); found {item}"
+                    f"\nLocation: {stack}"
+                )
+            stack.pop()
