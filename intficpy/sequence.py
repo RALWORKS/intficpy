@@ -209,6 +209,7 @@ class Sequence(IFPObject):
                 self.game.addTextToEvent(event, ret)
 
         elif isinstance(item, self.ControlItem):
+            item.sequence = self
             return item.read(self.game, event)
 
         else:
@@ -235,12 +236,7 @@ class Sequence(IFPObject):
             stack.append(i)
             item = node[i]
 
-            if type(item) is str:
-                stack.pop()
-                continue
-
-            if isinstance(item, self.ControlItem):
-                item.sequence = self
+            if type(item) is str or isinstance(item, self.ControlItem):
                 stack.pop()
                 continue
 
