@@ -106,13 +106,6 @@ class Sequence(IFPObject):
         self.data = data or {}
         self.data["game"] = game
 
-    def on_complete(self):
-        pass
-
-    def start(self):
-        self.position = [0]
-        self.play()
-
     @property
     def current_item(self):
         return self._get_section(self.position)
@@ -122,6 +115,10 @@ class Sequence(IFPObject):
         if len(self.position) < 2:
             return self.template
         return self._get_section(self.position[:-1])
+
+    def start(self):
+        self.position = [0]
+        self.play()
 
     def next(self, event):
         self.game.parser.command.sequence = self
@@ -144,6 +141,9 @@ class Sequence(IFPObject):
                     :-2
                 ]  # pop out of the list and its parent dict
                 ret = self._iterate()
+
+    def on_complete(self):
+        pass
 
     def accept_input(self, tokens):
         """
