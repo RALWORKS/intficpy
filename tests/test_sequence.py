@@ -123,6 +123,17 @@ class TestSequence(IFPTestCase):
             self.app.print_stack,
         )
 
+    def test_chaining_sequences(self):
+        ITEM1 = "Hello"
+        ITEM2 = "Again hello"
+        sequence1 = Sequence(self.game, [ITEM1],)
+        sequence2 = Sequence(self.game, [ITEM2],)
+        sequence1.next_sequence = sequence2
+        sequence1.start()
+        self.game.runTurnEvents()
+        self.assertIn(ITEM1, self.app.print_stack)
+        self.assertIn(ITEM2, self.app.print_stack)
+
 
 class TestSequenceJump(IFPTestCase):
     def test_can_jump_by_label(self):

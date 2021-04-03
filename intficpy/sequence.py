@@ -134,6 +134,8 @@ class Sequence(IFPObject):
         self.data = data or {}
         self.data["game"] = game
 
+        self.next_sequence = None
+
     @property
     def current_item(self):
         return self._get_section_by_location(self.position)
@@ -180,7 +182,8 @@ class Sequence(IFPObject):
         self.position = loc
 
     def on_complete(self):
-        pass
+        if self.next_sequence:
+            self.next_sequence.start()
 
     def accept_input(self, tokens):
         """
