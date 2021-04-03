@@ -103,6 +103,18 @@ class Sequence(IFPObject):
         def read(self, game, event):
             pass  # a label does nothing when read
 
+    class Jump(ControlItem):
+        """
+        Unconditionally jump to a label or index
+        """
+
+        def __init__(self, destination):
+            self.sequence = None
+            self.destination = destination
+
+        def read(self, game, event):
+            self.sequence.jump_to(self.destination)
+
     class Navigator(ControlItem):
         def __init__(self, nav_func):
             self.nav_func = nav_func
