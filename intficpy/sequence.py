@@ -155,14 +155,13 @@ class Sequence(IFPObject):
         self.play()
 
     def next(self, event):
-        self.game.parser.command.sequence = self
-
         ret = self._read_item(self.current_item, event)
         if isinstance(ret, self._PauseEvent):
             return ret
         return self._iterate()
 
     def play(self, event="turn"):
+        self.game.parser.command.sequence = self
         while True:
             ret = self.next(event)
             if isinstance(ret, self._PauseEvent):
