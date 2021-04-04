@@ -209,7 +209,7 @@ class Sequence(IFPObject):
                 ix = int(tokens[0]) - 1
             except ValueError:
                 pass
-        if ix is not None and ix <= len(self.options):
+        if ix is not None and ix < len(self.options):
             self.position += [self.options[ix], 0]
         else:
             answer = self._match_text_to_suggestion(tokens)
