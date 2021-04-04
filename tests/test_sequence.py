@@ -134,6 +134,16 @@ class TestSequence(IFPTestCase):
         self.assertIn(ITEM1, self.app.print_stack)
         self.assertIn(ITEM2, self.app.print_stack)
 
+    def test_manual_pause(self):
+        START_ITEM = "Hello."
+        SKIPPED_ITEM = "NEVER!"
+
+        sequence = Sequence(self.game, [START_ITEM, Sequence.Pause(), SKIPPED_ITEM,])
+        sequence.start()
+        self.game.runTurnEvents()
+        self.assertIn(START_ITEM, self.app.print_stack)
+        self.assertNotIn(SKIPPED_ITEM, self.app.print_stack)
+
 
 class TestSequenceJump(IFPTestCase):
     def test_can_jump_by_label(self):

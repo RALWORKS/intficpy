@@ -31,13 +31,13 @@ from .vocab import english
 
 
 class Sequence(IFPObject):
-    class Event:
+    class _Event:
         pass
 
-    class Pause(Event):
+    class _PauseEvent(_Event):
         pass
 
-    class NodeComplete(Event):
+    class _NodeComplete(_Event):
         pass
 
     class ControlItem:
@@ -62,7 +62,7 @@ class Sequence(IFPObject):
                 game.addTextToEvent(event, f"{self.label}: {self.answer}? (y/n)")
             else:
                 game.addTextToEvent(event, self.question)
-            return self.sequence.Pause()
+            return self.sequence._PauseEvent()
 
         def try_again(self):
             self.answer = None
@@ -102,6 +102,10 @@ class Sequence(IFPObject):
 
         def read(self, game, event):
             pass  # a label does nothing when read
+
+    class Pause(ControlItem):
+        def read(self, game, event):
+            return Sequence._PauseEvent()
 
     class Jump(ControlItem):
         """
@@ -154,16 +158,16 @@ class Sequence(IFPObject):
         self.game.parser.command.sequence = self
 
         ret = self._read_item(self.current_item, event)
-        if isinstance(ret, self.Pause):
+        if isinstance(ret, self._PauseEvent):
             return ret
         return self._iterate()
 
     def play(self, event="turn"):
         while True:
             ret = self.next(event)
-            if isinstance(ret, self.Pause):
+            if isinstance(ret, self._PauseEvent):
                 return
-            while isinstance(ret, self.NodeComplete):
+            while isinstance(ret, self._NodeComplete):
                 if len(self.position) == 1:
                     self.on_complete()
                     return
@@ -271,11 +275,11 @@ class Sequence(IFPObject):
                 [f"{i + 1}) {self.options[i]}" for i in range(len(self.options))]
             )
             self.game.addTextToEvent(event, options)
-            return self.Pause()
+            return self._PauseEvent()
 
     def _iterate(self):
         if self.position[-1] >= len(self.current_node) - 1:
-            return self.NodeComplete()
+            return self._NodeComplete()
         self.position[-1] += 1
 
     def _parse_template_node(self, node, stack=None):
@@ -329,7 +333,8 @@ class Sequence(IFPObject):
                     stack.pop()
             except AttributeError:
                 raise IFPError(
-                    f"Expected Sequence item (string, function, or dict); found {item}"
+                    f"Expected Sequence item (string, function, dict or Sequence "
+                    f"ControlItem); found {item}"
                     f"\nLocation: {stack}"
                 )
             stack.pop()
