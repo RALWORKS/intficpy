@@ -510,7 +510,7 @@ class Book(Openable, Readable):
 
     def __init__(self, game, name, text="There's nothing written here. "):
         """Sets essential properties for the Book instance """
-        super().__init__(name, text)
+        super().__init__(game, name, text)
         self.is_open = False
         self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
 
