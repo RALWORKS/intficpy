@@ -1467,6 +1467,8 @@ class Parser:
         self.recordInput(input_string)
 
         self.command = Command(input_string)
+        if self.previous_command.has_sticky_sequence:
+            self.command.sequence = self.previous_command.sequence
 
         if not self.game.ended:
             try:
@@ -1475,6 +1477,8 @@ class Parser:
                 self.game.addTextToEvent(
                     "turn", e.__str__(),
                 )
+                if self.previous_command.has_active_sequence:
+                    self.previous_command.sequence.play()
             except AbortTurn:
                 pass
             return

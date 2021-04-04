@@ -72,6 +72,8 @@ class Sequence(IFPObject):
             self.sequence.data[self.save_key] = self.answer
             self._submitted = True
             self.sequence.play()
+            self.answer = None
+            self._submitted = False
 
         def accept_input(self, tokens):
             if self.answer:
@@ -127,16 +129,18 @@ class Sequence(IFPObject):
         def read(self, game, event):
             self.sequence.jump_to(self.nav_func(self.sequence))
 
-    def __init__(self, game, template, data=None):
+    def __init__(self, game, template, data=None, sticky=False):
         super().__init__(game)
         self.labels = {}
         self._parse_template_node(template)
         self.template = template
+        self.sticky = sticky
 
         self.position = [0]
         self.options = []
         self.data = data or {}
         self.data["game"] = game
+        self.active = False
 
         self.next_sequence = None
 
@@ -151,6 +155,7 @@ class Sequence(IFPObject):
         return self._get_section_by_location(self.position[:-1])
 
     def start(self):
+        self.active = True
         self.position = [0]
         self.play()
 
@@ -185,6 +190,7 @@ class Sequence(IFPObject):
         self.position = loc
 
     def on_complete(self):
+        self.active = False
         if self.next_sequence:
             self.next_sequence.start()
 

@@ -52,6 +52,7 @@ class TestSequence(IFPTestCase):
 
         self.game.turnMain("The invisible man turns the invisible key")
 
+        self.assertIn("here it is", self.app.print_stack.pop())
         self.assertIn("not enough information", self.app.print_stack.pop())
 
     def test_out_of_bound_option_index(self):
@@ -66,6 +67,7 @@ class TestSequence(IFPTestCase):
 
         self.game.turnMain(str(ix))
 
+        self.assertIn("here it is", self.app.print_stack.pop())
         self.assertIn("not enough information", self.app.print_stack.pop())
 
     def test_accept_selection_with_single_word_non_index(self):

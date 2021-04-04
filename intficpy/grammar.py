@@ -47,3 +47,11 @@ class Command(object):
         if self.iobj and self.iobj.entity_matches and not self.iobj.target:
             return iobj
         return None
+
+    @property
+    def has_active_sequence(self):
+        return self.sequence and self.sequence.active
+
+    @property
+    def has_sticky_sequence(self):
+        return self.has_active_sequence and self.sequence.sticky
