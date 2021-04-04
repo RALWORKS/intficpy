@@ -261,7 +261,7 @@ class Sequence(IFPObject):
             self.game.addTextToEvent(event, item.format(**self.data))
 
         elif callable(item):
-            ret = item()
+            ret = item(self)
             if type(ret) is str:
                 self.game.addTextToEvent(event, ret)
 
@@ -312,11 +312,11 @@ class Sequence(IFPObject):
 
             if callable(item):
                 sig = signature(item)
-                if [p for p in sig.parameters]:
+                if len([p for p in sig.parameters]) != 1:
                     raise IFPError(
                         f"{item} found in Sequence. "
-                        "Callables with that accept parameters cannot be used "
-                        "as Sequence items."
+                        "Callables used as Sequence items must accept the Sequence instance "
+                        "as the only argument."
                         f"\nLocation: {stack}"
                     )
                 stack.pop()

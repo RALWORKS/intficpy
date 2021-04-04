@@ -80,7 +80,7 @@ class TestSequence(IFPTestCase):
         self.assertIn(sequence.template[0]["not here"][0], self.app.print_stack.pop())
 
     def test_callable_as_sequence_item_prints_return_value_if_string(self):
-        def locusts_swarm():
+        def locusts_swarm(seq):
             return "A swarm of locusts descends upon the land."
 
         sequence = Sequence(self.game, [locusts_swarm])
@@ -88,14 +88,14 @@ class TestSequence(IFPTestCase):
         sequence.start()
         self.game.runTurnEvents()
 
-        self.assertIn(locusts_swarm(), self.app.print_stack)
+        self.assertIn(locusts_swarm(sequence), self.app.print_stack)
 
     def test_callable_as_sequence_runs_and_does_not_print_if_return_value_not_string(
         self,
     ):
         self.game.locusts_evaluated = False
 
-        def locusts_swarm():
+        def locusts_swarm(seq):
             self.game.locusts_evaluated = True
             return 17
 
@@ -104,8 +104,8 @@ class TestSequence(IFPTestCase):
         sequence.start()
         self.game.runTurnEvents()
 
-        self.assertNotIn(locusts_swarm(), self.app.print_stack)
-        self.assertNotIn(str(locusts_swarm()), self.app.print_stack)
+        self.assertNotIn(locusts_swarm(sequence), self.app.print_stack)
+        self.assertNotIn(str(locusts_swarm(sequence)), self.app.print_stack)
         self.assertTrue(self.game.locusts_evaluated)
 
     def test_sequence_data_replacements(self):
@@ -297,9 +297,16 @@ class TestValidateSequenceTemplate(IFPTestCase):
         with self.assertRaises(IFPError):
             Sequence(self.game, [{6: ["item"]}])
 
-    def test_callable_accepting_arguments_is_invalid_item(self):
-        def heron_event(n_herons):
+    def test_callable_accepting_too_many_arguments_is_invalid_item(self):
+        def heron_event(seq, n_herons):
             return f"There are {n_herons} herons."
+
+        with self.assertRaises(IFPError):
+            Sequence(self.game, [heron_event])
+
+    def test_callable_accepting_no_arguments_is_invalid_item(self):
+        def heron_event():
+            return f"There are 2 herons."
 
         with self.assertRaises(IFPError):
             Sequence(self.game, [heron_event])
