@@ -1,5 +1,10 @@
 # TODO
 
+# Bugs
++ Parser.checkExtra: currently fails to detect nonsensically placed duplicates of words
+  that are accounted for. Catches `>climb happy on desk` as invalid, but reads
+  `>climb desk on desk` as equivalent to `>climb on desk`.
+
 ## Refactoring
 
 ### Add the ability to store state in a DB instead of in live Python objects

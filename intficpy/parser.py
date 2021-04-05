@@ -238,52 +238,45 @@ class Parser:
 
         accounted = []
         extra = list(self.command.tokens)
+
         for word in extra:
-            if word in verb_form:
+            if word in english.prepositions or word in english.keywords:
+
+                if word in verb_form:
+                    accounted.append(word)
+                    continue
+
+                for obj in [dobj, iobj]:
+                    if not obj:
+                        break
+                    noun = obj[-1]
+                    if noun in self.game.nouns:
+                        for item in self.game.nouns[noun]:
+                            if word in item.adjectives:
+                                accounted.append(word)
+                                break
+                        if word in accounted:
+                            break
+
+                if (
+                    word in ("up", "down", "in", "out")
+                    and verb.iscope == "direction"
+                    and (
+                        (iobj and len(iobj) == 1 and word in iobj)
+                        or (dobj and len(dobj) == 1 and word in dobj)
+                    )
+                ):
+                    accounted.append(word)
+
+            elif word in verb_form:
                 accounted.append(word)
-            if dobj:
-                if word in english.prepositions or word in english.keywords:
-                    noun = dobj[-1]
-                    exempt = False
-                    if noun in self.game.nouns:
-                        for item in self.game.nouns[noun]:
-                            if word in item.adjectives:
-                                exempt = True
-                                break
-                    if (
-                        len(dobj) == 1
-                        and word in dobj
-                        and word in ("up", "down", "in", "out")
-                        and verb.dscope == "direction"
-                    ):
-                        exempt = True
 
-                    if exempt:
-                        accounted.append(word)
-                else:
-                    accounted.append(word)
+            elif dobj and word in dobj:
+                accounted.append(word)
 
-            if iobj:
-                if word in english.prepositions or word in english.keywords:
-                    noun = iobj[-1]
-                    exempt = False
-                    if noun in self.game.nouns:
-                        for item in self.game.nouns[noun]:
-                            if word in item.adjectives:
-                                exempt = True
-                                break
-                    if (
-                        len(iobj) == 1
-                        and word in iobj
-                        and word in ("up", "down", "in", "out")
-                        and verb.iscope == "direction"
-                    ):
-                        exempt = True
+            elif iobj and word in iobj:
+                accounted.append(word)
 
-                    if exempt:
-                        accounted.append(word)
-                else:
-                    accounted.append(word)
         for word in accounted:
             if word in extra:
                 extra.remove(word)
