@@ -1217,7 +1217,7 @@ class LookUnderVerb(DirectObjectVerb):
                 )
                 return True
         elif dobj.invItem:
-            getVerbFunc(game, dobj)
+            GetVerb().verbFunc(game, dobj)
             game.addTextToEvent("turn", "You find nothing underneath. ")
             return False
         else:

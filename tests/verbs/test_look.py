@@ -77,6 +77,34 @@ class TestLookVerbs(IFPTestCase):
             f"{look_under_desc}",
         )
 
+    def test_look_under_empty_underspace(self):
+        parent = UnderSpace(self.game, "table")
+        parent.moveTo(self.start_room)
+
+        self.game.turnMain("look under table")
+
+        self.assertIn("There is nothing under the table. ", self.app.print_stack)
+
+    def test_look_under_non_underspace_inv_item(self):
+        child = Thing(self.game, "penny")
+        child.moveTo(self.start_room)
+
+        self.game.turnMain("look under penny")
+
+        self.assertIn("You take the penny. ", self.app.print_stack)
+        self.assertIn("You find nothing underneath. ", self.app.print_stack)
+
+    def test_look_under_non_underspace_non_inv_item(self):
+        child = Thing(self.game, "mountain")
+        child.invItem = False
+        child.moveTo(self.start_room)
+
+        self.game.turnMain("look under mountain")
+
+        self.assertIn(
+            "There's no reason to look under the mountain. ", self.app.print_stack
+        )
+
     def test_read(self):
         item = Readable(self.game, "note", "I'm sorry, but I have to do this. ")
         item.moveTo(self.start_room)
