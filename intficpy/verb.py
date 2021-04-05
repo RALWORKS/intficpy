@@ -2410,9 +2410,7 @@ class ClimbOutOfVerb(DirectObjectVerb):
                     + game.me.location.verbose_name
                     + ". ",
                 )
-                outer_loc = game.me.location.location
-                game.me.location.removeThing(game.me)
-                outer_loc.addThing(game.me)
+                game.me.moveTo(dobj.location)
                 return True
             else:
                 game.addTextToEvent("turn", "You cannot climb out of here. ")
