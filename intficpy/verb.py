@@ -442,7 +442,7 @@ class RemoveFromVerb(IndirectObjectVerb):
                 if not success:
                     return False
         if not dobj.invItem:
-            print(dobj.cannotTakeMsg)
+            game.addTextToEvent("turn", dobj.cannotTakeMsg)
             return False
         if dobj.parent_obj:
             game.addTextToEvent(
