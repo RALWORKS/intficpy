@@ -1,6 +1,7 @@
 from ..helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
+from intficpy.things import Surface, Container
 from intficpy.verb import GetVerb
 
 
@@ -41,3 +42,33 @@ class TestGetVerb(IFPTestCase):
         self.assertFalse(success)
 
         self.assertEqual(len(self.me.contains[item.ix]), 1)
+
+    def test_get_item_when_pc_is_in_container(self):
+        loc = Container(self.game, "box")
+        loc.moveTo(self.start_room)
+        loc.can_contain_standing_player = True
+
+        sub_loc = Container(self.game, "vase")
+        sub_loc.moveTo(loc)
+        sub_loc.can_contain_standing_player = True
+
+        self.game.me.moveTo(sub_loc)
+
+        self.game.turnMain(f"take box")
+
+        self.assertIn("You climb out of the box. ", self.app.print_stack)
+
+    def test_get_item_when_pc_is_on_surface(self):
+        loc = Surface(self.game, "desk")
+        loc.moveTo(self.start_room)
+        loc.can_contain_standing_player = True
+
+        sub_loc = Surface(self.game, "box")
+        sub_loc.moveTo(loc)
+        sub_loc.can_contain_standing_player = True
+
+        self.game.me.moveTo(sub_loc)
+
+        self.game.turnMain(f"take desk")
+
+        self.assertIn("You climb down from the desk. ", self.app.print_stack)

@@ -292,24 +292,14 @@ class GetVerb(DirectObjectVerb):
         super().verbFunc(game, dobj, skip=skip)
 
         # first check if dobj can be taken
-        while game.me.ix in dobj.sub_contains:
+        while dobj.containsItem(game.me):
             if isinstance(game.me.location, Container):
-                verbFunc(self, game, dobj)
+                ClimbOutOfVerb().verbFunc(game, game.me.location)
             elif isinstance(game.me.location, Surface):
-                verbFunc(self, game, dobj)
+                ClimbDownVerb().verbFunc(game, game.me.location)
             else:
                 game.addTextToEvent(
-                    "turn", "Could not move player out of " + dobj.verbose_name
-                )
-                return False
-        if game.me.ix in dobj.contains:
-            if isinstance(dobj, Container):
-                verbFunc(self, game, dobj)
-            elif isinstance(dobj, Surface):
-                verbFunc(self, game, dobj)
-            else:
-                game.addTextToEvent(
-                    "turn", "Could not move player out of " + dobj.verbose_name
+                    "turn", "Could not move player out of " + game.me.location.name
                 )
                 return False
 
