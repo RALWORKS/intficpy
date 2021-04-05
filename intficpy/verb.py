@@ -1248,7 +1248,7 @@ class ReadVerb(DirectObjectVerb):
 
         if isinstance(dobj, Book):
             if not dobj.is_open:
-                verbFunc(self, game, dobj)
+                OpenVerb().verbFunc(game, dobj)
             dobj.readText(game)
         elif isinstance(dobj, Readable):
             dobj.readText(game)

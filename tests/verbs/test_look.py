@@ -7,6 +7,7 @@ from intficpy.things import (
     Container,
     UnderSpace,
     Readable,
+    Book,
 )
 
 
@@ -118,3 +119,20 @@ class TestLookVerbs(IFPTestCase):
             item.read_desc,
             f"Item text printed incorrectly. Expecting {item.read_desc}, got {read_desc}",
         )
+
+    def test_read_book_starting_from_closed(self):
+        item = Book(self.game, "note", "I'm sorry, but I have to do this. ")
+        item.moveTo(self.start_room)
+
+        self.game.turnMain("read note")
+
+        self.assertIn("You open the note. ", self.app.print_stack)
+        self.assertIn(item.read_desc, self.app.print_stack)
+
+    def test_read_non_readable(self):
+        item = Surface(self.game, "desk")
+        item.moveTo(self.start_room)
+
+        self.game.turnMain("read desk")
+
+        self.assertIn("There's nothing written there. ", self.app.print_stack)
