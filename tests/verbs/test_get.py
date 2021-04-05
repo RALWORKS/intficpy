@@ -72,3 +72,55 @@ class TestGetVerb(IFPTestCase):
         self.game.turnMain(f"take desk")
 
         self.assertIn("You climb down from the desk. ", self.app.print_stack)
+
+
+class TestTakeAll(IFPTestCase):
+    def test_take_all_takes_all_known_top_level_invitems(self):
+        hat = Thing(self.game, "hat")
+        hat.moveTo(self.start_room)
+        cat = Thing(self.game, "cat")
+        cat.moveTo(self.start_room)
+
+        self.game.turnMain("l")
+        self.game.turnMain("take all")
+
+        self.assertTrue(self.game.me.containsItem(hat))
+        self.assertTrue(self.game.me.containsItem(cat))
+
+    def test_no_items_are_taken_unless_they_are_known(self):
+        hat = Thing(self.game, "hat")
+        hat.moveTo(self.start_room)
+        cat = Thing(self.game, "cat")
+        cat.moveTo(self.start_room)
+
+        # self.game.turnMain("l") # we haven't looked, so we don't know
+        self.game.turnMain("take all")
+
+        self.assertFalse(self.game.me.containsItem(hat))
+        self.assertFalse(self.game.me.containsItem(cat))
+
+    def test_take_all_takes_known_objects_from_sub_locations(self):
+        desk = Surface(self.game, "desk")
+        desk.inv_item = False
+        desk.desc_reveal = True
+        desk.moveTo(self.start_room)
+        hat = Thing(self.game, "hat")
+        hat.moveTo(desk)
+
+        self.game.turnMain("l")
+        self.game.turnMain("take all")
+
+        self.assertTrue(self.game.me.containsItem(hat))
+
+    def test_take_all_does_not_take_items_that_are_not_discovered(self):
+        desk = Surface(self.game, "desk")
+        desk.inv_item = False
+        desk.desc_reveal = False  # don't reveal the contents with "look"
+        desk.moveTo(self.start_room)
+        hat = Thing(self.game, "hat")
+        hat.moveTo(desk)
+
+        self.game.turnMain("l")
+        self.game.turnMain("take all")
+
+        self.assertTrue(self.game.me.containsItem(hat))

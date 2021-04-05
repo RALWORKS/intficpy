@@ -393,23 +393,11 @@ class GetAllVerb(Verb):
                     items_found.append(item)
         items_already = 0
         for item in items_found:
-            if item.ix in game.me.contains:
-                if not item in game.me.contains[item.ix]:
-                    GetVerb().verbFunc(game, item)
-                elif item in game.me.contains[item.ix]:
-                    items_already = items_already + 1
-                elif item.ix in game.me.sub_contains:
-                    if not item in game.me.sub_contains[item.ix]:
-                        verbFunc(self, game, item)
-                    else:
-                        items_already = items_already + 1
-            elif item.ix in game.me.sub_contains:
-                if not item in game.me.sub_contains[item.ix]:
-                    verbFunc(self, game, item)
-                else:
-                    items_already = items_already + 1
+            if game.me.containsItem(item):
+                items_already += 1
             else:
                 GetVerb().verbFunc(game, item)
+
         if len(items_found) == items_already:
             game.addTextToEvent("turn", "There are no obvious items here to take. ")
 
