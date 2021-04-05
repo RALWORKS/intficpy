@@ -253,3 +253,10 @@ class IFPGame:
     def setPlayer(self, player):
         self.me = player
         self.me.setPlayer()
+
+    def addVerb(self, verb):
+        for key in [verb.word, *verb.synonyms]:
+            if key in self.verbs:
+                self.verbs[key].append(verb)
+            else:
+                self.verbs[key] = [verb]
