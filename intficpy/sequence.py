@@ -308,7 +308,8 @@ class Sequence(IFPObject):
                         f'Label "{item.name}" at location {stack} was previously defined '
                         "for this Sequence."
                     )
-                self.labels[item.name] = stack
+                self.labels[item.name] = list(stack)
+                stack.pop()
                 continue
 
             if type(item) is str or isinstance(item, self.ControlItem):
