@@ -2545,8 +2545,8 @@ class ExitVerb(Verb):
         from .travel import travelOut
 
         out_loc = game.me.getOutermostLocation()
-        if isinstance(game.me.location, Thing):
-            verbFunc(self, game, game.me.location)
+        if isinstance(game.me.location, Container):
+            ClimbOutOfVerb().verbFunc(game, game.me.location)
         elif out_loc.exit:
             travelOut(game)
         else:

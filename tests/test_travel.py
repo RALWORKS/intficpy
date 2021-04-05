@@ -3,6 +3,7 @@ import unittest
 from .helpers import IFPTestCase
 
 from intficpy.room import Room
+from intficpy.things import Container, Surface
 from intficpy.travel import (
     travelN,
     travelNE,
@@ -362,6 +363,32 @@ class TestTravelConnectors(IFPTestCase):
         c = StaircaseConnector(self.game, room1, room2)
 
         self._assert_can_travel(room1, room2, c)
+
+
+class TestExitVerb(IFPTestCase):
+    def test_exit_container(self):
+        thing = Container(self.game, "box")
+        thing.moveTo(self.start_room)
+        self.game.me.moveTo(thing)
+
+        self.game.turnMain("exit")
+
+        self.assertFalse(
+            thing.containsItem(self.game.me), "Player should have left the Container"
+        )
+
+    def test_exit_surface_gives_no_obvious_exit(self):
+        thing = Surface(self.game, "tray")
+        thing.moveTo(self.start_room)
+        self.game.me.moveTo(thing)
+
+        self.game.turnMain("exit")
+
+        self.assertIn("There is no obvious exit. ", self.app.print_stack)
+
+        self.assertTrue(
+            thing.containsItem(self.game.me), "Player should remain on the Surface"
+        )
 
 
 if __name__ == "__main__":
