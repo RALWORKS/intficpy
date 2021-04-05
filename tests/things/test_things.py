@@ -262,6 +262,26 @@ class TestMoveTo(IFPTestCase):
         self.assertItemNotIn(child, old.contains, "Item not removed from old location")
         self.assertIs(child.location, new, "Item not added to new location")
 
+    def test_move_to_removes_item_from_old_superlocation_subcontains(self):
+        room = Room(self.game, "old", "It is old")
+        old = Container(self.game, "box")
+        room.addThing(old)
+        child = Thing(self.game, "child")
+        old.addThing(child)
+
+        new = Container(self.game, "new")
+
+        self.assertItemIn(
+            child, room.sub_contains, "Item not removed from old location"
+        )
+
+        child.moveTo(new)
+
+        self.assertItemNotIn(
+            child, room.sub_contains, "Item not removed from old location"
+        )
+        self.assertIs(child.location, new, "Item not added to new location")
+
     def test_adds_to_new_location_if_no_previous_location(self):
         child = Thing(self.game, "child")
 

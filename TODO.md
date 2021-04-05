@@ -7,6 +7,8 @@
 
 ## Refactoring
 
++ Refactor `PhysicalEntity.sub_contains` into a calculated property
+
 ### Add the ability to store state in a DB instead of in live Python objects
 Currently, IFP stores state in live objects in Python while the game is running. It
 serializes the objects and dumps to a text file for save/load.
