@@ -1,0 +1,162 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>IntFicPy Guide &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Introduction to Rooms" href="rooms.html" />
+    <link rel="prev" title="Welcome to IntFicPy" href="../index.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="intficpy-guide">
+<h1>IntFicPy Guide<a class="headerlink" href="#intficpy-guide" title="Permalink to this headline">¶</a></h1>
+<section id="basic-topics">
+<h2>Basic Topics<a class="headerlink" href="#basic-topics" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="rooms.html">Introduction to Rooms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rooms.html#creating-a-room">Creating a room</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rooms.html#connecting-rooms-together">Connecting rooms together</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rooms.html#room-vs-outdoorroom">Room vs. OutdoorRoom</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="items.html">Introduction to Items</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="items.html#creating-an-item">Creating an item</a></li>
+<li class="toctree-l2"><a class="reference internal" href="items.html#describing-an-item">Describing an item</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="characters.html">Introduction to Characters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="characters.html#creating-a-character">Creating a character</a></li>
+<li class="toctree-l2"><a class="reference internal" href="characters.html#customizing-a-character">Customizing a character</a></li>
+<li class="toctree-l2"><a class="reference internal" href="characters.html#building-conversations">Building conversations</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="advanced-topics">
+<h2>Advanced Topics<a class="headerlink" href="#advanced-topics" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ifp_objects.html">Introduction to IFPObjects</a></li>
+</ul>
+</div>
+</section>
+<section id="running-the-example-game">
+<h2>Running the example game<a class="headerlink" href="#running-the-example-game" title="Permalink to this headline">¶</a></h2>
+<p>To get a feel for IntFicPy quickly, let’s use the example game as a jumping off point.</p>
+<p>First, get a copy of IntFicPy.
+IntFicPy is currently distributed only in source. Download or clone it from <a class="reference external" href="https://github.com/JSMaika/intficpy">the IntFicPy GitHub repository</a>.</p>
+<p>Once you have IntFicPy, find the <cite>testgame.py</cite> module in the <cite>examples</cite> directory, and copy it to a place where you can work with it.</p>
+<p>In the Python environment where you’re going to work on <cite>testgame.py</cite>, install the IntFicPy module,
+and its dependencies. Install intficpy with <cite>pip install ../path/to/intficpy</cite>.</p>
+<p>This should be enough for the test game to run.</p>
+<p><cite>python testgame.py</cite></p>
+<p>The game will run in the terminal by default, however, it can be configured to run in a GUI.</p>
+<p>At the time of writing (November 2020), there is one official GUI for IntFicPy, built using PyQt5.
+It can be found <a class="reference external" href="https://github.com/JSMaika/IFP-Qt-GUI">here</a>.</p>
+</section>
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">IntFicPy Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-topics">Basic Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-example-game">Running the example game</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">intficpy API doc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="../index.html" title="previous chapter">Welcome to IntFicPy</a></li>
+      <li>Next: <a href="rooms.html" title="next chapter">Introduction to Rooms</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/guide/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

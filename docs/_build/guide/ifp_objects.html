@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>Introduction to IFPObjects &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy API doc" href="../api/index.html" />
+    <link rel="prev" title="Introduction to Characters" href="characters.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="introduction-to-ifpobjects">
+<h1>Introduction to IFPObjects<a class="headerlink" href="#introduction-to-ifpobjects" title="Permalink to this headline">¶</a></h1>
+<p>The base class for all saveable objects in IntFicPy is <cite>IFPObject</cite></p>
+<p>The direct descendents of IFPObject (as of January 2020) are:</p>
+<ul class="simple">
+<li><p>AbstractScore (the score tracker for a game)</p></li>
+<li><p>Achievement</p></li>
+<li><p>Daemon (timers and scheduled/recurring events)</p></li>
+<li><p>DaemonManager (the system that tracks active Daemons in a game)</p></li>
+<li><p>Ending</p></li>
+<li><p>HintNode (A collection of Hints)</p></li>
+<li><p>HintSystem (the system that tracks hints for a game)</p></li>
+<li><p>PhysicalEntity (base class of Thing and Room)</p></li>
+<li><p>RoomGroup</p></li>
+<li><p>SaleItem</p></li>
+<li><p>Topic</p></li>
+<li><p>TravelConnector</p></li>
+</ul>
+<p>The game (IFPGame instance) keeps track of every IFPObject associated with it by way of
+its “ifp_objects” attribute - a dictionary of IFPObjects each with a unique index.</p>
+<p>All IFPObjects need to be instantiated with a game object, so that they can be registered.</p>
+<p>The “ifp_objects” dictionary is used to gather and organize the objects for serializing/saving.</p>
+<p>Multiple IFPObjects can be stored under the same index, but the save/load system will treat
+any such objects as identical or interchangable. This is sometimes useful for identical
+items generated during play.</p>
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">IntFicPy Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="index.html#basic-topics">Basic Topics</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#running-the-example-game">Running the example game</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">intficpy API doc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">IntFicPy Guide</a><ul>
+      <li>Previous: <a href="characters.html" title="previous chapter">Introduction to Characters</a></li>
+      <li>Next: <a href="../api/index.html" title="next chapter">intficpy API doc</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/guide/ifp_objects.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,13 @@
+.class {
+    margin: 2em 0em;
+    padding: 1em 0em;
+    border-bottom: 1px solid gray;
+}
+
+.field-list {
+    margin: 2em 0em;
+}
+
+.method {
+    margin: 2em 0em;
+}

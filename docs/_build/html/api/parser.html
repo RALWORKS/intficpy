@@ -1,0 +1,427 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>intficpy.parser module &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy.physical_entity module" href="physical_entity.html" />
+    <link rel="prev" title="intficpy.ifp_object module" href="ifp_object.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="module-intficpy.parser">
+<span id="intficpy-parser-module"></span><h1>intficpy.parser module<a class="headerlink" href="#module-intficpy.parser" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="intficpy.parser.Parser">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.parser.</span></code><code class="sig-name descname"><span class="pre">Parser</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="intficpy.parser.Parser.callVerb">
+<code class="sig-name descname"><span class="pre">callVerb</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.callVerb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the Thing objects (if any) referred to in the player command, then calls
+the verb function</p>
+<p>Returns a Boolean, True if a verb function is successfully called, False
+otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.checkAdjectives">
+<code class="sig-name descname"><span class="pre">checkAdjectives</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noun_adj_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noun</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">things</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">far_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_direction</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.checkAdjectives" title="Permalink to this definition">¶</a></dt>
+<dd><p>If there are multiple Thing objects matching the noun, check the adjectives to
+narrow down to exactly 1
+Takes arguments self.game.app, noun_adj_arr, a list of strings referring to an in game item,
+taken from the player command,noun (string), things, a list of Thing objects
+(things.py) that are     candidates for the target of the player’s action, and
+scope, a string specifying the range of the verb
+Returns a single Thing object or None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.checkComponentObjects">
+<code class="sig-name descname"><span class="pre">checkComponentObjects</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.checkComponentObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if any of the identified objects have subcomponents that are better
+candidates as objects of the current verb.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.checkExtra">
+<code class="sig-name descname"><span class="pre">checkExtra</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verb</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verb_form</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dobj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iobj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.checkExtra" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks for words unaccounted for by verb form</p>
+<p>Returns a list, empty or containing one word strings (extra words)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.checkForConvCommand">
+<code class="sig-name descname"><span class="pre">checkForConvCommand</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.checkForConvCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.checkForImplicitObjects">
+<code class="sig-name descname"><span class="pre">checkForImplicitObjects</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.checkForImplicitObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises AbortTurn in the event of a missing direct or indirect
+object.</p>
+<p>Returns None, or a list of two items, either lists of strings, or None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.checkRange">
+<code class="sig-name descname"><span class="pre">checkRange</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">things</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.checkRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eliminates all grammatical object candidates that are not within the scope of the
+current verb
+Takes arguments self.game.me, things, a list of Thing objects (thing.py) that are candidates
+for the target of a player’s action, and scope, a string representing the range of
+the verb
+Returns a list of Thing objects, or an empty list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.clearCommand">
+<code class="sig-name descname"><span class="pre">clearCommand</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.clearCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.directionRangeCheck">
+<code class="sig-name descname"><span class="pre">directionRangeCheck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.directionRangeCheck" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.disambig">
+<code class="sig-name descname"><span class="pre">disambig</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.disambig" title="Permalink to this definition">¶</a></dt>
+<dd><p>When disambiguation mode is active, use the player input to specify the target for
+the previous turn’s ambiguous command
+called by self.parseInput
+Returns a Boolean, True if disambiguation</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.generateVerbScopeErrorMsg">
+<code class="sig-name descname"><span class="pre">generateVerbScopeErrorMsg</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">noun_adj_arr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.generateVerbScopeErrorMsg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the appropriate Thing out of scope message
+Takes arguments, scope, a string, and noun_adj_arr, a
+list of strings
+Returns None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getConvCommand">
+<code class="sig-name descname"><span class="pre">getConvCommand</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getConvCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getCurVerb">
+<code class="sig-name descname"><span class="pre">getCurVerb</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getCurVerb" title="Permalink to this definition">¶</a></dt>
+<dd><p>Identify the verb
+Called every turn by self.parseInput
+Returns a two item list. The first is a Verb object and an associated verb form
+(list of strings), or None.
+The second is True if potential verb matches were found, False otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getDirection">
+<code class="sig-name descname"><span class="pre">getDirection</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getDirection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check for direction statement as in “west” or “ne”
+Called every turn by self.parseInput
+Raises AbortTurn on discovering &amp; executing a travel command</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getDisambigIndexFromCommand">
+<code class="sig-name descname"><span class="pre">getDisambigIndexFromCommand</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getDisambigIndexFromCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getGrammarObj">
+<code class="sig-name descname"><span class="pre">getGrammarObj</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getGrammarObj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Analyze input using the chosen verb_form to find any objects</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getObjWords">
+<code class="sig-name descname"><span class="pre">getObjWords</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">after</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getObjWords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a list of all nouns and adjectives (strings) referring to a direct or
+indirect object
+Takes arguments
+- before, the word expected before the grammatical object (string),
+- after, the word expected after the grammatical object (string or None),
+Called by self._analyzeSyntax
+Returns an array of strings or None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getObjectTargets">
+<code class="sig-name descname"><span class="pre">getObjectTargets</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getObjectTargets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the IFPObject instances for each of the grammar objects, if applicable</p>
+<p>Arguments:
+- obj_words, array of words or IFPObjects for dobj, iobj</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getThing">
+<code class="sig-name descname"><span class="pre">getThing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">noun_adj_arr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scope</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">far_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obj_direction</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getThing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the Thing object in range associated with a list of adjectives and a noun
+Takes arguments noun_adj_array, a list of strings referring to an in game
+item, taken from the player command,
+and scope, a string specifying the range of the verb
+Called by self.callVerb
+Returns a single Thing object (thing.py) or None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.getUniqueConcepts">
+<code class="sig-name descname"><span class="pre">getUniqueConcepts</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">things</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.getUniqueConcepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Eliminates all items with duplicate known_ix properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.implicitRemoveNestedInventory">
+<code class="sig-name descname"><span class="pre">implicitRemoveNestedInventory</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.implicitRemoveNestedInventory" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.invRangeCheck">
+<code class="sig-name descname"><span class="pre">invRangeCheck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.invRangeCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the Thing is in the Player contains
+Takes arguments self.game.me, pointing to the Player, and thing, a Thing
+Returns True if within range, False otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.knowsRangeCheck">
+<code class="sig-name descname"><span class="pre">knowsRangeCheck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.knowsRangeCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the Player knows about a Thing
+Takes arguments self.game.me, pointing to the Player, and thing, a Thing
+Returns True if within range, False otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.locationsDistinct">
+<code class="sig-name descname"><span class="pre">locationsDistinct</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">things</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.locationsDistinct" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if identically named items can be distinguished by their locations
+Takes a list of items to check
+Returns False if all locations are the same, True otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.matchPrepKeywords">
+<code class="sig-name descname"><span class="pre">matchPrepKeywords</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.matchPrepKeywords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check for prepositions in the self.tokenized player command, and remove any candidate
+verbs whose preposition does not match
+Returns a list of Verb objects or an empty list</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.nearRangeCheck">
+<code class="sig-name descname"><span class="pre">nearRangeCheck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.nearRangeCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the Thing is near (room or contains)
+Takes arguments self.game.me, pointing to the Player, and thing, a Thing
+Returns True if within range, False otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.parseInput">
+<code class="sig-name descname"><span class="pre">parseInput</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.parseInput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse player input, and respond to commands each turn
+Takes argument input_string, the raw player input
+Called by mainLoop in terminal version, turnMain (gui.py) in GUI version
+Returns 0 when complete</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.recordInput">
+<code class="sig-name descname"><span class="pre">recordInput</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.recordInput" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.replace_string_vars">
+<code class="sig-name descname"><span class="pre">replace_string_vars</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.replace_string_vars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform string replacements for text in the format
+&lt;&lt;main_module.module.attribute … &gt;&gt;</p>
+<p>This should be called by the Game instance when text is
+added to an event</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.resolveGrammarObjLocations">
+<code class="sig-name descname"><span class="pre">resolveGrammarObjLocations</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.resolveGrammarObjLocations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform implicit actions to bring the objects into verb range where possible.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.roomDescribe">
+<code class="sig-name descname"><span class="pre">roomDescribe</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.roomDescribe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper for room describe function (room.py)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.roomRangeCheck">
+<code class="sig-name descname"><span class="pre">roomRangeCheck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.roomRangeCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the Thing is in the current room
+Takes arguments self.game.me, pointing to the Player, and thing, a Thing
+Returns True if within range, False otherwise</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.runTurnCommand">
+<code class="sig-name descname"><span class="pre">runTurnCommand</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.runTurnCommand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.sendTokensToCurrentSequence">
+<code class="sig-name descname"><span class="pre">sendTokensToCurrentSequence</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.sendTokensToCurrentSequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>If there is a sequence in progress, pass in current tokens</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.verbByObjects">
+<code class="sig-name descname"><span class="pre">verbByObjects</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.verbByObjects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disambiguates verbs based on syntax used
+Iterates through verb list, comparing syntax in input to the entries in the
+.syntax attribute of the verb</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.verboseNamesMatch">
+<code class="sig-name descname"><span class="pre">verboseNamesMatch</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">things</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.verboseNamesMatch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if any of the potential grammatical objects have identical verbose names
+Takes the list of things associated with the direct or indirect object
+Returns a list of two items:</p>
+<blockquote>
+<div><p>Item one is True if duplicates are present, else False
+Item two is dictionary mapping verbose names to lists of Things from the input
+with that name</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.parser.Parser.wearRangeCheck">
+<code class="sig-name descname"><span class="pre">wearRangeCheck</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">thing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.parser.Parser.wearRangeCheck" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if the Thing is being worn
+Takes arguments self.game.me, pointing to the Player, and thing, a Thing
+Returns True if within range, False otherwise</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">IntFicPy Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">intficpy API doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="actor.html">intficpy.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">intficpy.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daemons.html">intficpy.daemons module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html">intficpy.event module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">intficpy.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html">intficpy.grammar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_game.html">intficpy.ifp_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_object.html">intficpy.ifp_object module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">intficpy.parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physical_entity.html">intficpy.physical_entity module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="room.html">intficpy.room module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="score.html">intficpy.score module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">intficpy.sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializer.html">intficpy.serializer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thing_base.html">intficpy.thing_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="things.html">intficpy.things module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokenizer.html">intficpy.tokenizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="travel.html">intficpy.travel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verb.html">intficpy.verb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocab.html">intficpy.vocab module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">intficpy API doc</a><ul>
+      <li>Previous: <a href="ifp_object.html" title="previous chapter">intficpy.ifp_object module</a></li>
+      <li>Next: <a href="physical_entity.html" title="next chapter">intficpy.physical_entity module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/api/parser.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

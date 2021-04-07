@@ -1,0 +1,173 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>Introduction to Rooms &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Introduction to Items" href="items.html" />
+    <link rel="prev" title="IntFicPy Guide" href="index.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="introduction-to-rooms">
+<h1>Introduction to Rooms<a class="headerlink" href="#introduction-to-rooms" title="Permalink to this headline">¶</a></h1>
+<section id="creating-a-room">
+<h2>Creating a room<a class="headerlink" href="#creating-a-room" title="Permalink to this headline">¶</a></h2>
+<p>Rooms in IntFicPy are objects inheriting from the <cite>Room</cite> class.</p>
+<p>Every IntFicPy game needs at least one room, where the Player object is placed at the
+start of the game.</p>
+<p>For instance, we might have a starting room like this.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">start_room</span> <span class="o">=</span> <span class="n">Room</span><span class="p">(</span>
+    <span class="n">game</span><span class="p">,</span>
+    <span class="s2">&quot;Shack interior&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;A little room. Four walls, a floor, and a ceiling. &quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">startroom</span><span class="o">.</span><span class="n">addThing</span><span class="p">(</span><span class="n">me</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We can create more rooms in the same way.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">intficpy.room</span> <span class="kn">import</span> <span class="n">Room</span>
+
+<span class="kn">from</span> <span class="nn">.main</span> <span class="kn">import</span> <span class="n">game</span>
+
+
+<span class="n">bathroom</span> <span class="o">=</span> <span class="n">Room</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="s2">&quot;Bathroom&quot;</span><span class="p">,</span> <span class="s2">&quot;This bathroom is small and bright. &quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To create a Room, you need to pass in two parameters: name first, then description.
+When the player enters our new room, the game will print</p>
+<p><strong>Bathroom</strong></p>
+<p>This bathroom is small and bright.</p>
+</section>
+<section id="connecting-rooms-together">
+<h2>Connecting rooms together<a class="headerlink" href="#connecting-rooms-together" title="Permalink to this headline">¶</a></h2>
+<p>You can connect your room to existing rooms using the rooms’ direction attributes.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">.start_room</span> <span class="kn">import</span> <span class="n">start_room</span>
+<span class="kn">from</span> <span class="nn">.bathroom</span> <span class="kn">import</span> <span class="n">bathroom</span> <span class="c1"># here&#39;s our new room</span>
+
+
+<span class="n">start_room</span><span class="o">.</span><span class="n">north</span> <span class="o">=</span> <span class="n">bathroom</span>
+<span class="n">bathroom</span><span class="o">.</span><span class="n">south</span> <span class="o">=</span> <span class="n">start_room</span>
+</pre></div>
+</div>
+<p>Rooms can be connected to the north, northeast, east, southeast, south, southwest, west, and south,
+as well as up, down, entrance, and exit.</p>
+<p>Connections are one way, so if you want the player to be able to go back the way they
+came, make sure to set the reverse direction.</p>
+</section>
+<section id="room-vs-outdoorroom">
+<h2>Room vs. OutdoorRoom<a class="headerlink" href="#room-vs-outdoorroom" title="Permalink to this headline">¶</a></h2>
+<p>A <cite>Room</cite> has walls and a ceiling, where an <cite>OutdoorRoom</cite> does not.
+If you want to create an OutdoorRoom, replace <cite>Room</cite> in the examples above with <cite>OutdoorRoom</cite>
+# Adding items &amp; scenery to a Room
+For information about creating items, look at [items](items.md).</p>
+<p>Once you have an item, you can add it to a room like this.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">toilet</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="n">bathroom</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">IntFicPy Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#basic-topics">Basic Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#running-the-example-game">Running the example game</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">intficpy API doc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">IntFicPy Guide</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">IntFicPy Guide</a></li>
+      <li>Next: <a href="items.html" title="next chapter">Introduction to Items</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/guide/rooms.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

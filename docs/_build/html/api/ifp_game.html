@@ -1,0 +1,254 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>intficpy.ifp_game module &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy.ifp_object module" href="ifp_object.html" />
+    <link rel="prev" title="intficpy.grammar module" href="grammar.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="module-intficpy.ifp_game">
+<span id="intficpy-ifp-game-module"></span><h1>intficpy.ifp_game module<a class="headerlink" href="#module-intficpy.ifp_game" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="intficpy.ifp_game.GameInfo">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.ifp_game.</span></code><code class="sig-name descname"><span class="pre">GameInfo</span></code><a class="headerlink" href="#intficpy.ifp_game.GameInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="intficpy.ifp_game.GameInfo.printAbout">
+<code class="sig-name descname"><span class="pre">printAbout</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.GameInfo.printAbout" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.GameInfo.printHelp">
+<code class="sig-name descname"><span class="pre">printHelp</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.GameInfo.printHelp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.GameInfo.printInstructions">
+<code class="sig-name descname"><span class="pre">printInstructions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.GameInfo.printInstructions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.GameInfo.printVerbs">
+<code class="sig-name descname"><span class="pre">printVerbs</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.GameInfo.printVerbs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.GameInfo.setInfo">
+<code class="sig-name descname"><span class="pre">setInfo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">author</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.GameInfo.setInfo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.ifp_game.IFPGame">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.ifp_game.</span></code><code class="sig-name descname"><span class="pre">IFPGame</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">main</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'__main__'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.addEvent">
+<code class="sig-name descname"><span class="pre">addEvent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">priority</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.addEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an event to the current turn</p>
+<p>Raises ValueError if an event of the specified name is already defined
+for this turn</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.addText">
+<code class="sig-name descname"><span class="pre">addText</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.addText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shortcut to add text to the turn event</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.addTextToEvent">
+<code class="sig-name descname"><span class="pre">addTextToEvent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.addTextToEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add text to an event in the current turn</p>
+<p>Raises KeyError if the specified event name is not defined for this
+turn</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.addVerb">
+<code class="sig-name descname"><span class="pre">addVerb</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verb</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.addVerb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.gameOpening">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">gameOpening</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.gameOpening" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.getCommandDown">
+<code class="sig-name descname"><span class="pre">getCommandDown</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.getCommandDown" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move forward by 1 through the list of previous commands
+Analogous to pressing the Down key in most terminals</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.getCommandUp">
+<code class="sig-name descname"><span class="pre">getCommandUp</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.getCommandUp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Move backward by 1 through the list of previous commands
+Analogous to pressing the Up key in most terminals</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.initGame">
+<code class="sig-name descname"><span class="pre">initGame</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.initGame" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.recordOff">
+<code class="sig-name descname"><span class="pre">recordOff</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.recordOff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.recordOn">
+<code class="sig-name descname"><span class="pre">recordOn</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.recordOn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try opening the specified file for recording,
+creating it if it doesn’t exist.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.runTurnEvents">
+<code class="sig-name descname"><span class="pre">runTurnEvents</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.runTurnEvents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.setPlayer">
+<code class="sig-name descname"><span class="pre">setPlayer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">player</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.setPlayer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.ifp_game.IFPGame.turnMain">
+<code class="sig-name descname"><span class="pre">turnMain</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.ifp_game.IFPGame.turnMain" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends user input to the parser each turn
+Runs daemons
+Runs turn events
+Takes argument input_string, the cleaned user input string</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">IntFicPy Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">intficpy API doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="actor.html">intficpy.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">intficpy.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daemons.html">intficpy.daemons module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html">intficpy.event module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">intficpy.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html">intficpy.grammar module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">intficpy.ifp_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_object.html">intficpy.ifp_object module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parser.html">intficpy.parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physical_entity.html">intficpy.physical_entity module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="room.html">intficpy.room module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="score.html">intficpy.score module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">intficpy.sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializer.html">intficpy.serializer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thing_base.html">intficpy.thing_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="things.html">intficpy.things module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokenizer.html">intficpy.tokenizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="travel.html">intficpy.travel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verb.html">intficpy.verb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocab.html">intficpy.vocab module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">intficpy API doc</a><ul>
+      <li>Previous: <a href="grammar.html" title="previous chapter">intficpy.grammar module</a></li>
+      <li>Next: <a href="ifp_object.html" title="next chapter">intficpy.ifp_object module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/api/ifp_game.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

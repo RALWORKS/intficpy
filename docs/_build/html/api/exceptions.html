@@ -1,0 +1,204 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>intficpy.exceptions module &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy.grammar module" href="grammar.html" />
+    <link rel="prev" title="intficpy.event module" href="event.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="module-intficpy.exceptions">
+<span id="intficpy-exceptions-module"></span><h1>intficpy.exceptions module<a class="headerlink" href="#module-intficpy.exceptions" title="Permalink to this headline">¶</a></h1>
+<dl class="py exception">
+<dt id="intficpy.exceptions.AbortTurn">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">AbortTurn</span></code><a class="headerlink" href="#intficpy.exceptions.AbortTurn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Abort the current turn. Error message will not be printed.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.DeserializationError">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">DeserializationError</span></code><a class="headerlink" href="#intficpy.exceptions.DeserializationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Error deserializing a value during game load</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.IFPError">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">IFPError</span></code><a class="headerlink" href="#intficpy.exceptions.IFPError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.NoMatchingSuggestion">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">NoMatchingSuggestion</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">options</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">matches</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.exceptions.NoMatchingSuggestion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.ObjectMatchError">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">ObjectMatchError</span></code><a class="headerlink" href="#intficpy.exceptions.ObjectMatchError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.exceptions.ParserError" title="intficpy.exceptions.ParserError"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.exceptions.ParserError</span></code></a></p>
+<p>No matching IFPObject could be found for either the direct or indirect object
+in the player command</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.OutOfRange">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">OutOfRange</span></code><a class="headerlink" href="#intficpy.exceptions.OutOfRange" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.exceptions.ParserError" title="intficpy.exceptions.ParserError"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.exceptions.ParserError</span></code></a></p>
+<p>The specified object is out of range for the current verb</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.ParserError">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">ParserError</span></code><a class="headerlink" href="#intficpy.exceptions.ParserError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Error parsing the player command</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.Unserializable">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">Unserializable</span></code><a class="headerlink" href="#intficpy.exceptions.Unserializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>The item is not serializable by the save system.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.VerbDefinitionError">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">VerbDefinitionError</span></code><a class="headerlink" href="#intficpy.exceptions.VerbDefinitionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>A verb is defined in an incorrect or inconsistent way</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="intficpy.exceptions.VerbMatchError">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.exceptions.</span></code><code class="sig-name descname"><span class="pre">VerbMatchError</span></code><a class="headerlink" href="#intficpy.exceptions.VerbMatchError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.exceptions.ParserError" title="intficpy.exceptions.ParserError"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.exceptions.ParserError</span></code></a></p>
+<p>No matching verb could be identified from the player input</p>
+</dd></dl>
+
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">IntFicPy Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">intficpy API doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="actor.html">intficpy.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">intficpy.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daemons.html">intficpy.daemons module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html">intficpy.event module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">intficpy.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html">intficpy.grammar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_game.html">intficpy.ifp_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_object.html">intficpy.ifp_object module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parser.html">intficpy.parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physical_entity.html">intficpy.physical_entity module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="room.html">intficpy.room module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="score.html">intficpy.score module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">intficpy.sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializer.html">intficpy.serializer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thing_base.html">intficpy.thing_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="things.html">intficpy.things module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokenizer.html">intficpy.tokenizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="travel.html">intficpy.travel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verb.html">intficpy.verb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocab.html">intficpy.vocab module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">intficpy API doc</a><ul>
+      <li>Previous: <a href="event.html" title="previous chapter">intficpy.event module</a></li>
+      <li>Next: <a href="grammar.html" title="next chapter">intficpy.grammar module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/api/exceptions.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

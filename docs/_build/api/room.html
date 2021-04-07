@@ -1,0 +1,239 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>intficpy.room module &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy.score module" href="score.html" />
+    <link rel="prev" title="intficpy.physical_entity module" href="physical_entity.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="module-intficpy.room">
+<span id="intficpy-room-module"></span><h1>intficpy.room module<a class="headerlink" href="#module-intficpy.room" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="intficpy.room.OutdoorRoom">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.room.</span></code><code class="sig-name descname"><span class="pre">OutdoorRoom</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.OutdoorRoom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.room.Room" title="intficpy.room.Room"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.room.Room</span></code></a></p>
+<p>Room is the class for outdoor locations in an .game
+OutdoorRooms have no walls, and the floor is called ground</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.room.Room">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.room.</span></code><code class="sig-name descname"><span class="pre">Room</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">desc</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="physical_entity.html#intficpy.physical_entity.PhysicalEntity" title="intficpy.physical_entity.PhysicalEntity"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.physical_entity.PhysicalEntity</span></code></a></p>
+<p>Room is the overarching class for all locations in an .game</p>
+<dl class="py method">
+<dt id="intficpy.room.Room.arriveFunc">
+<code class="sig-name descname"><span class="pre">arriveFunc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.arriveFunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operations to perform each time the player arrives in the room, before the description is printed. Empty by default. Override for custom events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.contentsByClass">
+<code class="sig-name descname"><span class="pre">contentsByClass</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">class_ref</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.contentsByClass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all top level contents of a given class</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.descFunc">
+<code class="sig-name descname"><span class="pre">descFunc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.descFunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operations to perform immediately after printing the room description. Empty by default. Override for custom events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.describe">
+<code class="sig-name descname"><span class="pre">describe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.describe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints the Room title and description and lists items in the Room</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.describeDark">
+<code class="sig-name descname"><span class="pre">describeDark</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.describeDark" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.getLocContents">
+<code class="sig-name descname"><span class="pre">getLocContents</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.getLocContents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.onDiscover">
+<code class="sig-name descname"><span class="pre">onDiscover</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.onDiscover" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operations to perform the first time the room is described. Empty by default. Override for custom events.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.resolveDarkness">
+<code class="sig-name descname"><span class="pre">resolveDarkness</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.resolveDarkness" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.updateDiscovered">
+<code class="sig-name descname"><span class="pre">updateDiscovered</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.Room.updateDiscovered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call onDiscovery if not discovered yet. Set discovered to true.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.Room.contentsList">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">contentsList</span></code><a class="headerlink" href="#intficpy.room.Room.contentsList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the room contents as a flattened list</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.room.RoomGroup">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.room.</span></code><code class="sig-name descname"><span class="pre">RoomGroup</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.RoomGroup" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ifp_object.html#intficpy.ifp_object.IFPObject" title="intficpy.ifp_object.IFPObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.ifp_object.IFPObject</span></code></a></p>
+<p>Group similar Rooms and OutdoorRooms to modify shared features</p>
+<dl class="py method">
+<dt id="intficpy.room.RoomGroup.addMember">
+<code class="sig-name descname"><span class="pre">addMember</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">member</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.RoomGroup.addMember" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.RoomGroup.setGroupCeiling">
+<code class="sig-name descname"><span class="pre">setGroupCeiling</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ceiling</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.RoomGroup.setGroupCeiling" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.RoomGroup.setGroupFloor">
+<code class="sig-name descname"><span class="pre">setGroupFloor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">floor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.RoomGroup.setGroupFloor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.RoomGroup.setMembers">
+<code class="sig-name descname"><span class="pre">setMembers</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">members_arr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.RoomGroup.setMembers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.room.RoomGroup.updateMembers">
+<code class="sig-name descname"><span class="pre">updateMembers</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.room.RoomGroup.updateMembers" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">IntFicPy Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">intficpy API doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="actor.html">intficpy.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">intficpy.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daemons.html">intficpy.daemons module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html">intficpy.event module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">intficpy.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html">intficpy.grammar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_game.html">intficpy.ifp_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_object.html">intficpy.ifp_object module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parser.html">intficpy.parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physical_entity.html">intficpy.physical_entity module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">intficpy.room module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="score.html">intficpy.score module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">intficpy.sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializer.html">intficpy.serializer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thing_base.html">intficpy.thing_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="things.html">intficpy.things module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokenizer.html">intficpy.tokenizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="travel.html">intficpy.travel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verb.html">intficpy.verb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocab.html">intficpy.vocab module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">intficpy API doc</a><ul>
+      <li>Previous: <a href="physical_entity.html" title="previous chapter">intficpy.physical_entity module</a></li>
+      <li>Next: <a href="score.html" title="next chapter">intficpy.score module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/api/room.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

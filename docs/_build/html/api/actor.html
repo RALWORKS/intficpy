@@ -1,0 +1,641 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>intficpy.actor module &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy.cli module" href="cli.html" />
+    <link rel="prev" title="intficpy API doc" href="index.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="module-intficpy.actor">
+<span id="intficpy-actor-module"></span><h1>intficpy.actor module<a class="headerlink" href="#module-intficpy.actor" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="intficpy.actor.Actor">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.actor.</span></code><code class="sig-name descname"><span class="pre">Actor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Actor class, used for characters in the game.</p>
+<p>Actors are Things that are capable of conversations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p></li>
+<li><p><strong>name</strong> (<em>str</em>) – a single noun to use as the Actor’s initial name (synonyms/adjectives/
+_verbose_name can be customized after initialization)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="intficpy.actor.Actor.addSelling">
+<code class="sig-name descname"><span class="pre">addSelling</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">currency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stock</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.addSelling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an item that the Actor sells.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item</strong> (<a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><em>Thing</em></a>) – the Thing for sale (by the unit)</p></li>
+<li><p><strong>currency</strong> (<a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><em>Thing</em></a>) – Thing to offer in exchange (use currency.copyThing() for duplicates)</p></li>
+<li><p><strong>price</strong> (<em>int</em>) – the number of the currency Things required</p></li>
+<li><p><strong>stock</strong> (<em>int</em><em> or </em><em>True</em>) – the number of a given Thing the Actor has to sell (set to True for infinite)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.addSpecialTopic">
+<code class="sig-name descname"><span class="pre">addSpecialTopic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.addSpecialTopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a SpecialTopic for this Actor. This will immediately add it to the
+available suggestions for the Actor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topic</strong> (<a class="reference internal" href="#intficpy.actor.SpecialTopic" title="intficpy.actor.SpecialTopic"><em>SpecialTopic</em></a>) – the SpecialTopic to add</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.addTopic">
+<code class="sig-name descname"><span class="pre">addTopic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ask_tell_give_show</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.addTopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a conversation topic (ask/tell/give/show) to the Actor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ask_tell_give_show</strong> (<em>str</em>) – specifies one or more conversation verbs
+(ask, tell, give, and/or show) to which the actor should respond with
+the specified topic, when the direct object is the specified thing.
+For every substring “ask”, “tell”, “give” and “show” present in
+this string, the Topic will be registered under the corresponding
+topic category for the given Thing. For instance, passing in “ask show”
+for this parameter will cause the Topic to be saved as both an ask
+topic, (“ask selena about rice”) and a show topic (“show selena rice”)
+Ordering of ask/tell/give/show in the string does not matter.</p></li>
+<li><p><strong>topic</strong> (<a class="reference internal" href="#intficpy.actor.Topic" title="intficpy.actor.Topic"><em>Topic</em></a>) – the Topic you want to add to the Actor</p></li>
+<li><p><strong>thing</strong> (<a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><em>Thing</em></a>) – the Thing you want to associate the Topic to, ie. what you want to
+ask about, tell about, or give, or show to the Actor</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.addWillBuy">
+<code class="sig-name descname"><span class="pre">addWillBuy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">currency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_wanted</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.addWillBuy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an item that the Actor is willing to buy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>item</strong> (<a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><em>Thing</em></a>) – the Thing the Actor wishes to purchase (by the unit)</p></li>
+<li><p><strong>currency</strong> (<a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><em>Thing</em></a>) – the Thing the Actor will offer in exchange (by the unit)</p></li>
+<li><p><strong>price</strong> (<em>int</em>) – the number of the currency Things the Actor will give for a single unit
+of the item</p></li>
+<li><p><strong>max_wanted</strong> (<em>int</em><em> or </em><em>True</em>) – the number of a given Thing the Actor is willing to buy
+(set to True for infinite)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.defaultTopic">
+<code class="sig-name descname"><span class="pre">defaultTopic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.defaultTopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>The default function for an Actor’s default topic. Can be overwritten by the
+game creator for an instance to create special responses</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.makeLying">
+<code class="sig-name descname"><span class="pre">makeLying</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.makeLying" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Actor’s position to lying</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.makeProper">
+<code class="sig-name descname"><span class="pre">makeProper</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">proper_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.makeProper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Give this character a proper name. Updates <cite>has_proper_name</cite> as well as
+<cite>name</cite>, <cite>_verbose_name</cite>, synonyms, and adjectives for this Actor based on
+the new name given. The intended use is to facilitate having the player
+character “learn” the initially unknown name of another character.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>proper_name</strong> (<em>str</em>) – the name of this character</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.makeSitting">
+<code class="sig-name descname"><span class="pre">makeSitting</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.makeSitting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Actor’s position to sitting</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.makeStanding">
+<code class="sig-name descname"><span class="pre">makeStanding</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.makeStanding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the Actor’s position to standing</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.printSuggestions">
+<code class="sig-name descname"><span class="pre">printSuggestions</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.printSuggestions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print out (to the current turn event) all SpecialTopics currently available on
+this Actor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.removeAllSpecialTopics">
+<code class="sig-name descname"><span class="pre">removeAllSpecialTopics</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.removeAllSpecialTopics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear all SpecialTopics from this Actor. This removes all conversation
+suggestions. The SpecialTopic objects will remain unchanged, and can be
+added back later.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.removeAllTopics">
+<code class="sig-name descname"><span class="pre">removeAllTopics</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.removeAllTopics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clear all ask/tell/give/show Topics from this Actor. The Actor will no longer
+have responses to being asked or told about anything, or to being given or shown
+anything. The Topic objects will remain unchanged, and can be
+added back later.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.removeHermitTopic">
+<code class="sig-name descname"><span class="pre">removeHermitTopic</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.removeHermitTopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the Actor’s hermit topic, if there is one. Equivalent to setting
+<cite>some_actor.hermit_topic = None</cite></p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.removeSpecialTopic">
+<code class="sig-name descname"><span class="pre">removeSpecialTopic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">topic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.removeSpecialTopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the specified SpecialTopic from this Actor. The SpecialTopic will no
+longer appear in the Actor’s conversation suggestions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>topic</strong> (<a class="reference internal" href="#intficpy.actor.SpecialTopic" title="intficpy.actor.SpecialTopic"><em>SpecialTopic</em></a>) – the SpecialTopic to remove</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.setHermitTopic">
+<code class="sig-name descname"><span class="pre">setHermitTopic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hermit_topic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.setHermitTopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set a hermit topic for this Actor. While the hermit topic is set, it will be the
+only response the Actor gives to any conversation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>hermit_topic</strong> (<a class="reference internal" href="#intficpy.actor.Topic" title="intficpy.actor.Topic"><em>Topic</em></a>) – the topic to set as the Actor’s hermit topic</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.setHiTopics">
+<code class="sig-name descname"><span class="pre">setHiTopics</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">hi_topic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_hi_topic</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Actor.setHiTopics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the hi topics for this Actor. Sets both the initial greeting, and the
+greeting to show at the start of subsequent interactions. To make both greetings
+the same, pass in the same Topic for both.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>hi_topic</strong> (<a class="reference internal" href="#intficpy.actor.Topic" title="intficpy.actor.Topic"><em>Topic</em></a><em>, </em><em>None</em>) – the Topic to open when the player first talks to this Actor
+None skips directly to the topic at hand.</p></li>
+<li><p><strong>return_hi_topic</strong> (<a class="reference internal" href="#intficpy.actor.Topic" title="intficpy.actor.Topic"><em>Topic</em></a><em>, </em><em>None</em>) – the Topic to open when the the player uses “hi” or
+“talk to” after having previously interacted with the Actor. None skips
+directly to the topic at hand.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="intficpy.actor.Actor.POSITION_STATE_DESC_KEY">
+<code class="sig-name descname"><span class="pre">POSITION_STATE_DESC_KEY</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'position_state_desc'</span></em><a class="headerlink" href="#intficpy.actor.Actor.POSITION_STATE_DESC_KEY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.contains_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">contains_desc</span></code><a class="headerlink" href="#intficpy.actor.Actor.contains_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Do not describe an actor’s inventory on room/examine desc</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.is_current_player">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_current_player</span></code><a class="headerlink" href="#intficpy.actor.Actor.is_current_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is this Actor the current player character?</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.position_state_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">position_state_desc</span></code><a class="headerlink" href="#intficpy.actor.Actor.position_state_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A description of an Actor’s position (standing, lying, etc.), to be appended to
+that Actor’s description in the room. Standing is assumed to be default, and is
+not specially described.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.verb_to_be">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">verb_to_be</span></code><a class="headerlink" href="#intficpy.actor.Actor.verb_to_be" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the simple present tense of the verb “to be” for this Actor. Returns “is”
+unless the Actor is the current player (i.e. “you”), in which case it returns
+“are”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Actor.verbose_name">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">verbose_name</span></code><a class="headerlink" href="#intficpy.actor.Actor.verbose_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name the game will use to describe this Actor to the player. Returns “you”
+if this Actor is currently the player character, otherwise defaults to the logic
+from the superclass.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.actor.Player">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.actor.</span></code><code class="sig-name descname"><span class="pre">Player</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.actor.Actor" title="intficpy.actor.Actor"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.actor.Actor</span></code></a></p>
+<p>A playable Actor.</p>
+<p>Currently, the game only supports a single player character.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="intficpy.actor.Player.setPlayer">
+<code class="sig-name descname"><span class="pre">setPlayer</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Player.setPlayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add some default synomyms for this Player object that players are likely to try
+to use to refer to their character</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Player.default_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">default_desc</span></code><a class="headerlink" href="#intficpy.actor.Player.default_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describe this Player in the room.
+By default, the Player is not described in the room description.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Player.default_xdesc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">default_xdesc</span></code><a class="headerlink" href="#intficpy.actor.Player.default_xdesc" title="Permalink to this definition">¶</a></dt>
+<dd><p>The base description of the Player, if a description has not been specified.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.actor.SaleItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.actor.</span></code><code class="sig-name descname"><span class="pre">SaleItem</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">currency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">price</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ifp_object.html#intficpy.ifp_object.IFPObject" title="intficpy.ifp_object.IFPObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.ifp_object.IFPObject</span></code></a></p>
+<p>Stores information about an Actor’s ability to sell a particular item to the player.
+SaleItems are created automatically by the Actor method <cite>addSelling</cite>, and game creators
+should not generally need to create them manually.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p></li>
+<li><p><strong>item</strong> (<a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><em>Thing</em></a>) – the item the Actor sells</p></li>
+<li><p><strong>currency</strong> (<a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><em>Thing</em></a>) – the item the Actor expects to receive in return, as currency</p></li>
+<li><p><strong>price</strong> (<em>int</em>) – the number of the currency item required to purchase 1 of the item
+for sale</p></li>
+<li><p><strong>number</strong> (<em>int</em><em> or </em><em>True</em>) – the number of the item the Actor has in stock (True for infinite)</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.afterBuy">
+<code class="sig-name descname"><span class="pre">afterBuy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.afterBuy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this to trigger behaviour after a unit of the item is bought.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.afterSell">
+<code class="sig-name descname"><span class="pre">afterSell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.afterSell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this to trigger behaviour after the player sells a unit of the item.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.beforeBuy">
+<code class="sig-name descname"><span class="pre">beforeBuy</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.beforeBuy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this to trigger behaviour before a unit of the item is bought.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.beforeSell">
+<code class="sig-name descname"><span class="pre">beforeSell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.beforeSell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this to trigger behaviour before the player sells a unit of the item.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.boughtAll">
+<code class="sig-name descname"><span class="pre">boughtAll</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.boughtAll" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this to trigger behaviour when the Actor has bought all of the item
+that they are willing to buy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.buyUnit">
+<code class="sig-name descname"><span class="pre">buyUnit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.buyUnit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Buy one unit of the item for sale.</p>
+<p>Removes the needed amount of currency from the player’s inventory, adds the
+purchased item, and prints the interaction messages to the turn.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.sellUnit">
+<code class="sig-name descname"><span class="pre">sellUnit</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.sellUnit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sell one unit of the item for sale.</p>
+<p>Removes the item from the player’s inventory, adds the needed amount of
+currency, and prints the interaction messages to the turn.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.SaleItem.soldOut">
+<code class="sig-name descname"><span class="pre">soldOut</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SaleItem.soldOut" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this to trigger behaviour when the item sells out.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.actor.SpecialTopic">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.actor.</span></code><code class="sig-name descname"><span class="pre">SpecialTopic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suggestion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic_text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SpecialTopic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.actor.Topic" title="intficpy.actor.Topic"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.actor.Topic</span></code></a></p>
+<p>A Topic accessed by responding to a printed suggestion during
+conversation, instead of through the use of the ask/tell/give/show verbs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p></li>
+<li><p><strong>suggestion</strong> (<em>str</em>) – the prompt or suggestion that will lead the player to this
+SpecialTopic</p></li>
+<li><p><strong>topic_text</strong> (<em>str</em>) – the text that should print when this Topic is opened</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="intficpy.actor.SpecialTopic.addAlternatePhrasing">
+<code class="sig-name descname"><span class="pre">addAlternatePhrasing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">phrasing</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.SpecialTopic.addAlternatePhrasing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a possible alternate phrasing for this suggestion.
+Alternate phrasings will not be printed to the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>phrasing</strong> (<em>str</em>) – the alternate phrasing to add</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.actor.Topic">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.actor.</span></code><code class="sig-name descname"><span class="pre">Topic</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">topic_text</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ifp_object.html#intficpy.ifp_object.IFPObject" title="intficpy.ifp_object.IFPObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.ifp_object.IFPObject</span></code></a></p>
+<p>An ask/tell/give/show topic.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p></li>
+<li><p><strong>topic_text</strong> (<em>str</em>) – the text that should print when this Topic is opened</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="intficpy.actor.Topic.func">
+<code class="sig-name descname"><span class="pre">func</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">suggest</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Topic.func" title="Permalink to this definition">¶</a></dt>
+<dd><p>What happens when this Topic is opened.
+Prints the topic text and suggestions to the turn.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p></li>
+<li><p><strong>suggest</strong> (<em>bool</em><em>, </em><em>optional</em>) – should we print the current suggested SpecialTopics?</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Topic.on_trigger">
+<code class="sig-name descname"><span class="pre">on_trigger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Topic.on_trigger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Override this to add custom behaviour when the Topic function runs</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>game</strong> (<a class="reference internal" href="ifp_game.html#intficpy.ifp_game.IFPGame" title="intficpy.ifp_game.IFPGame"><em>IFPGame</em></a>) – the current game</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.actor.Topic.update_suggestions">
+<code class="sig-name descname"><span class="pre">update_suggestions</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.actor.Topic.update_suggestions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read this Topic’s <cite>new_suggestions</cite> and <cite>expire_suggestions</cite>, and add/remove
+SpecialTopic suggestions from the Actor as needed.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">IntFicPy Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">intficpy API doc</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">intficpy.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">intficpy.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daemons.html">intficpy.daemons module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html">intficpy.event module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">intficpy.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html">intficpy.grammar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_game.html">intficpy.ifp_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_object.html">intficpy.ifp_object module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parser.html">intficpy.parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physical_entity.html">intficpy.physical_entity module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="room.html">intficpy.room module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="score.html">intficpy.score module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">intficpy.sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializer.html">intficpy.serializer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thing_base.html">intficpy.thing_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="things.html">intficpy.things module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokenizer.html">intficpy.tokenizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="travel.html">intficpy.travel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verb.html">intficpy.verb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocab.html">intficpy.vocab module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">intficpy API doc</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter">intficpy API doc</a></li>
+      <li>Next: <a href="cli.html" title="next chapter">intficpy.cli module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/api/actor.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

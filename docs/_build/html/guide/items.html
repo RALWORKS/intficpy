@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>Introduction to Items &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Introduction to Characters" href="characters.html" />
+    <link rel="prev" title="Introduction to Rooms" href="rooms.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="introduction-to-items">
+<h1>Introduction to Items<a class="headerlink" href="#introduction-to-items" title="Permalink to this headline">¶</a></h1>
+<section id="creating-an-item">
+<h2>Creating an item<a class="headerlink" href="#creating-an-item" title="Permalink to this headline">¶</a></h2>
+<p>IFP has many types of item, like, Surface, Container, UnderSpace, LightSource, Lock,
+and Key. Even Actor, the class for <a class="reference external" href="characters.html">characters</a> is a type of item.
+All types of item (with the exception of <cite>Actor</cite>, which is in <cite>intficpy.actor</cite>) can
+be imported from <cite>intficpy.things</cite>.</p>
+<p>Let’s create a <cite>Surface</cite> in <cite>rooms/bathroom.py</cite></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">intficpy.room</span> <span class="kn">import</span> <span class="n">Room</span>
+<span class="kn">from</span> <span class="nn">intficpy.things</span> <span class="kn">import</span> <span class="n">Surface</span>
+
+<span class="kn">from</span> <span class="nn">.main</span> <span class="kn">import</span> <span class="n">game</span>
+
+
+<span class="n">bathroom</span> <span class="o">=</span> <span class="n">Room</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="s2">&quot;Bathroom&quot;</span><span class="p">,</span> <span class="s2">&quot;This bathroom is small and bright. &quot;</span><span class="p">)</span>
+
+<span class="n">high_shelf</span> <span class="o">=</span> <span class="n">Surface</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="s2">&quot;shelf&quot;</span><span class="p">)</span>
+<span class="n">high_shelf</span><span class="o">.</span><span class="n">setAdjectives</span><span class="p">([</span><span class="s2">&quot;high&quot;</span><span class="p">])</span>
+
+<span class="n">high_shelf</span><span class="o">.</span><span class="n">moveTo</span><span class="p">(</span><span class="n">bathroom</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A couple of things happened here.</p>
+<p>First, we created our Surface, <cite>high_shelf</cite>. Most types of item only need one parameter
+for creation, which is the <strong>name</strong> of the item. The name should be one word, and it
+should be the final word of the name we use to describe it.</p>
+<p>So “car starter” gets “starter” for a name; “can of nails” gets “nails”. If we also want
+to be able to refer to “can of nails” as “can”, then we have to do</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">can_of_nails</span> <span class="o">=</span> <span class="n">Container</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="s2">&quot;nails&quot;</span><span class="p">)</span>
+<span class="n">can_of_nails</span><span class="o">.</span><span class="n">setAdjectives</span><span class="p">([</span><span class="s2">&quot;can&quot;</span><span class="p">,</span> <span class="s2">&quot;of&quot;</span><span class="p">])</span>
+<span class="n">can_of_nails</span><span class="o">.</span><span class="n">addSynonym</span><span class="p">(</span><span class="s2">&quot;can&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then, we set the adjectives, as demonstrated above. Give this function a list of adjectives that can describe the item. Order matters here, as the game will try to string them together to create the name it will use to talk about the item (its verbose name).</p>
+<p>If we want to <em>give</em> the game a phrase to use for the verbose name, instead of generating
+one automatically, we should set</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">high_shelf</span> <span class="o">=</span> <span class="n">Surface</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="s2">&quot;shelf&quot;</span><span class="p">)</span>
+
+<span class="n">high_shelf</span><span class="o">.</span><span class="n">_verbose_name</span> <span class="o">=</span> <span class="s2">&quot;high shelf&quot;</span>
+</pre></div>
+</div>
+<p>Finally, we placed the item in the bathroom with <cite>high_shelf.moveTo(bathroom)</cite></p>
+</section>
+<section id="describing-an-item">
+<h2>Describing an item<a class="headerlink" href="#describing-an-item" title="Permalink to this headline">¶</a></h2>
+<p>We now have a high shelf in the bathroom. When we look at the room, or examine the shelf,
+the game prints a generic description, like</p>
+<p>fThere is a shelf here.</p>
+<p>We don’t have to stick with this - we can modify it to say whatever we like!</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">high_shelf</span> <span class="o">=</span> <span class="n">Surface</span><span class="p">(</span><span class="n">game</span><span class="p">,</span> <span class="s2">&quot;shelf&quot;</span><span class="p">)</span>
+
+<span class="c1"># this is the description that will print when you look around the room</span>
+<span class="n">high_shelf</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;A high shelf stand in the corner of the room.&quot;</span>
+
+<span class="c1"># this is the description that will print when you look at the shelf specifically</span>
+<span class="n">high_shelf</span><span class="o">.</span><span class="n">x_description</span> <span class="o">=</span> <span class="s2">&quot;The shelf is high, and bare.&quot;</span>
+</pre></div>
+</div>
+<p>As you describe items in the room, keep in mind the adjectives you’re using, and try to
+make sure that you set them as acceptable adjectives for the item (with <cite>item.setAdjectives</cite>)</p>
+</section>
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">IntFicPy Guide</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="index.html#basic-topics">Basic Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#advanced-topics">Advanced Topics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#running-the-example-game">Running the example game</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">intficpy API doc</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">IntFicPy Guide</a><ul>
+      <li>Previous: <a href="rooms.html" title="previous chapter">Introduction to Rooms</a></li>
+      <li>Next: <a href="characters.html" title="next chapter">Introduction to Characters</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/guide/items.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

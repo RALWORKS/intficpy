@@ -1,0 +1,485 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>intficpy.things module &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy.tokenizer module" href="tokenizer.html" />
+    <link rel="prev" title="intficpy.thing_base module" href="thing_base.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="module-intficpy.things">
+<span id="intficpy-things-module"></span><h1>intficpy.things module<a class="headerlink" href="#module-intficpy.things" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt id="intficpy.things.Abstract">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Abstract</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Abstract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Class for abstract game items with no location, such as ideas</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.AbstractClimbable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">AbstractClimbable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.AbstractClimbable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Represents one end of a staircase or ladder.
+Creators should generally use a LadderConnector or StaircaseConnector (travel.py) rather than directly creating AbstractClimbable instances.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Book">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Book</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;There's</span> <span class="pre">nothing</span> <span class="pre">written</span> <span class="pre">here.</span> <span class="pre">&quot;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Book" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.things.Openable" title="intficpy.things.Openable"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.things.Openable</span></code></a>, <a class="reference internal" href="#intficpy.things.Readable" title="intficpy.things.Readable"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.things.Readable</span></code></a></p>
+<p>Readable that can be opened</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Clothing">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Clothing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Clothing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Class for Things that can be worn</p>
+<dl class="py attribute">
+<dt id="intficpy.things.Clothing.wearable">
+<code class="sig-name descname"><span class="pre">wearable</span></code><em class="property"> <span class="pre">=</span> <span class="pre">True</span></em><a class="headerlink" href="#intficpy.things.Clothing.wearable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Container">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Container</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.things.Openable" title="intficpy.things.Openable"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.things.Openable</span></code></a></p>
+<p>Things that can contain other Things</p>
+<dl class="py method">
+<dt id="intficpy.things.Container.containsLiquid">
+<code class="sig-name descname"><span class="pre">containsLiquid</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.containsLiquid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns  the first Liquid found in the Container or None</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.giveLid">
+<code class="sig-name descname"><span class="pre">giveLid</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.giveLid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.hideContents">
+<code class="sig-name descname"><span class="pre">hideContents</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.hideContents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.liquidRoomLeft">
+<code class="sig-name descname"><span class="pre">liquidRoomLeft</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.liquidRoomLeft" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the portion of the Container’s size not taken up by a liquid</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.makeClosed">
+<code class="sig-name descname"><span class="pre">makeClosed</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.makeClosed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.makeOpen">
+<code class="sig-name descname"><span class="pre">makeOpen</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.makeOpen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.revealContents">
+<code class="sig-name descname"><span class="pre">revealContents</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.revealContents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.setLock">
+<code class="sig-name descname"><span class="pre">setLock</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lock_obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Container.setLock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Container.contains_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">contains_desc</span></code><a class="headerlink" href="#intficpy.things.Container.contains_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describe the contents of an item</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Door">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Door</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Door" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.things.Openable" title="intficpy.things.Openable"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.things.Openable</span></code></a></p>
+<p>Represents one side of a door. Always define with a twin, and set a direction.
+Can be open or closed.
+Creators should generally use DoorConnectors (travel.py) rather than defining Doors
+directly.</p>
+<dl class="py method">
+<dt id="intficpy.things.Door.makeClosed">
+<code class="sig-name descname"><span class="pre">makeClosed</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Door.makeClosed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Door.makeOpen">
+<code class="sig-name descname"><span class="pre">makeOpen</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Door.makeOpen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Key">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Key</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'key'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Class for keys</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.LightSource">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">LightSource</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.LightSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Class for Things that are light sources</p>
+<dl class="py method">
+<dt id="intficpy.things.LightSource.consumeLightSourceDaemonFunc">
+<code class="sig-name descname"><span class="pre">consumeLightSourceDaemonFunc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.LightSource.consumeLightSourceDaemonFunc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs every turn while a consumable light source is active, to keep track of
+time left.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.LightSource.extinguish">
+<code class="sig-name descname"><span class="pre">extinguish</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.LightSource.extinguish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.LightSource.light">
+<code class="sig-name descname"><span class="pre">light</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.LightSource.light" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="intficpy.things.LightSource.IS_LIT_DESC_KEY">
+<code class="sig-name descname"><span class="pre">IS_LIT_DESC_KEY</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'is_lit_desc'</span></em><a class="headerlink" href="#intficpy.things.LightSource.IS_LIT_DESC_KEY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.LightSource.is_lit_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_lit_desc</span></code><a class="headerlink" href="#intficpy.things.LightSource.is_lit_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describe whether the light source is lit, not lit, or burnt out</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Liquid">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Liquid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">liquid_type</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Liquid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Can fill a container where holds_liquid is True, can be poured, and can
+optionally be drunk</p>
+<p>Game creators should redefine the pressThing method for the instance to
+trigger events when the press/push verb is used</p>
+<dl class="py method">
+<dt id="intficpy.things.Liquid.drinkLiquid">
+<code class="sig-name descname"><span class="pre">drinkLiquid</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Liquid.drinkLiquid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace for custom effects for drinking the Liquid</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Liquid.dumpLiquid">
+<code class="sig-name descname"><span class="pre">dumpLiquid</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Liquid.dumpLiquid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines what happens when the Liquid is dumped out</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Liquid.fillVessel">
+<code class="sig-name descname"><span class="pre">fillVessel</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vessel</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Liquid.fillVessel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Used for verbs fill from and pour into</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Liquid.getContainer">
+<code class="sig-name descname"><span class="pre">getContainer</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Liquid.getContainer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Redirect to the Container rather than the Liquid for certain verbs (i.e. take)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Liquid.mixWith">
+<code class="sig-name descname"><span class="pre">mixWith</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base_liquid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mix_in</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Liquid.mixWith" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace to allow mixing of specific Liquids
+Return True when a mixture is allowed, False otherwise</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Lock">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Lock</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_locked</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key_obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'lock'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Lock is the class for lock items in the game</p>
+<dl class="py method">
+<dt id="intficpy.things.Lock.makeLocked">
+<code class="sig-name descname"><span class="pre">makeLocked</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Lock.makeLocked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Lock.makeUnlocked">
+<code class="sig-name descname"><span class="pre">makeUnlocked</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Lock.makeUnlocked" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="intficpy.things.Lock.IS_LOCKED_DESC_KEY">
+<code class="sig-name descname"><span class="pre">IS_LOCKED_DESC_KEY</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'is_locked_desc'</span></em><a class="headerlink" href="#intficpy.things.Lock.IS_LOCKED_DESC_KEY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Lock.is_locked_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_locked_desc</span></code><a class="headerlink" href="#intficpy.things.Lock.is_locked_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Descripe the item’s locked/unlocked state in words</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Openable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Openable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Openable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>An item that can be opened.
+Inheriting from this class means that instances can be made openable</p>
+<dl class="py method">
+<dt id="intficpy.things.Openable.makeClosed">
+<code class="sig-name descname"><span class="pre">makeClosed</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Openable.makeClosed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Openable.makeOpen">
+<code class="sig-name descname"><span class="pre">makeOpen</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Openable.makeOpen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="intficpy.things.Openable.IS_OPEN_DESC_KEY">
+<code class="sig-name descname"><span class="pre">IS_OPEN_DESC_KEY</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'is_open_desc'</span></em><a class="headerlink" href="#intficpy.things.Openable.IS_OPEN_DESC_KEY" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Openable.is_locked_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_locked_desc</span></code><a class="headerlink" href="#intficpy.things.Openable.is_locked_desc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.Openable.is_open_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">is_open_desc</span></code><a class="headerlink" href="#intficpy.things.Openable.is_open_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Describes the objects open/closed state in words</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Pressable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Pressable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Pressable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Things that do something when pressed
+Game creators should redefine the pressThing method for the instance to trigger
+events when the PRESS/PUSH verb is used</p>
+<dl class="py method">
+<dt id="intficpy.things.Pressable.pressThing">
+<code class="sig-name descname"><span class="pre">pressThing</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Pressable.pressThing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Game creators should redefine this method for their Pressable instances</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Readable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Readable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">&quot;There's</span> <span class="pre">nothing</span> <span class="pre">written</span> <span class="pre">here.</span> <span class="pre">&quot;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Readable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Readable Things
+Set the read_desc property to print the same string every time
+READ [instance as dobj] is used.</p>
+<p>Replace default readText method for more complicated behaviour</p>
+<dl class="py method">
+<dt id="intficpy.things.Readable.readText">
+<code class="sig-name descname"><span class="pre">readText</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Readable.readText" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the Transparent instance is dobj for verb look through
+Creators should overwrite for more complex behaviour</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Surface">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Surface</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Surface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Class for Things that can have other Things placed on them</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Transparent">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Transparent</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Transparent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Transparent Things
+Set the look_through_desc property to print the same string every time look through [instance as dobj] is used
+Replace default lookThrough method for more complicated behaviour</p>
+<dl class="py method">
+<dt id="intficpy.things.Transparent.lookThrough">
+<code class="sig-name descname"><span class="pre">lookThrough</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Transparent.lookThrough" title="Permalink to this definition">¶</a></dt>
+<dd><p>Called when the Transparent instance is dobj for verb look through
+Creators should overwrite for more complex behaviour</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.UnderSpace">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">UnderSpace</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.UnderSpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>Things that can have other Things underneath</p>
+<dl class="py method">
+<dt id="intficpy.things.UnderSpace.moveContentsOut">
+<code class="sig-name descname"><span class="pre">moveContentsOut</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.UnderSpace.moveContentsOut" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.UnderSpace.revealUnder">
+<code class="sig-name descname"><span class="pre">revealUnder</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.UnderSpace.revealUnder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.things.UnderSpace.component_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">component_desc</span></code><a class="headerlink" href="#intficpy.things.UnderSpace.component_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>How the item is described when it is a component of another item</p>
+<p>UnderSpaces that are a component of another item are only described
+if they are given an explicit description.</p>
+<p>This avoids descriptions like, “There is a dresser. Under the dresser is here.”
+being produced by default.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.things.Unremarkable">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.things.</span></code><code class="sig-name descname"><span class="pre">Unremarkable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.things.Unremarkable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="thing_base.html#intficpy.thing_base.Thing" title="intficpy.thing_base.Thing"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.thing_base.Thing</span></code></a></p>
+<p>An item that does not need to be explicitly brought to the Player’s attention
+most of the time.</p>
+<dl class="py method">
+<dt id="intficpy.things.Unremarkable.default_desc">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">default_desc</span></code><a class="headerlink" href="#intficpy.things.Unremarkable.default_desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>By default, do not describe in the room description.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">IntFicPy Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">intficpy API doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="actor.html">intficpy.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">intficpy.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daemons.html">intficpy.daemons module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html">intficpy.event module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">intficpy.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html">intficpy.grammar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_game.html">intficpy.ifp_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_object.html">intficpy.ifp_object module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parser.html">intficpy.parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physical_entity.html">intficpy.physical_entity module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="room.html">intficpy.room module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="score.html">intficpy.score module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sequence.html">intficpy.sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializer.html">intficpy.serializer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thing_base.html">intficpy.thing_base module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">intficpy.things module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokenizer.html">intficpy.tokenizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="travel.html">intficpy.travel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verb.html">intficpy.verb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocab.html">intficpy.vocab module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">intficpy API doc</a><ul>
+      <li>Previous: <a href="thing_base.html" title="previous chapter">intficpy.thing_base module</a></li>
+      <li>Next: <a href="tokenizer.html" title="next chapter">intficpy.tokenizer module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/api/things.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>

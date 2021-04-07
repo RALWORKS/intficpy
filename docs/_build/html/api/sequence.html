@@ -1,0 +1,317 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+    <title>intficpy.sequence module &#8212; IntFicPy  documentation</title>
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/css/modules.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="intficpy.serializer module" href="serializer.html" />
+    <link rel="prev" title="intficpy.score module" href="score.html" />
+
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+
+
+          <div class="body" role="main">
+
+  <section id="module-intficpy.sequence">
+<span id="intficpy-sequence-module"></span><h1>intficpy.sequence module<a class="headerlink" href="#module-intficpy.sequence" title="Permalink to this headline">¶</a></h1>
+<p>TODO:
+* An “Up” ControlItem (pop)
+* “Label” ControlItem? - create a more human friendly interface for jumps/procedural navigation
+* Conditional logic &amp; flow control - Idea: controller/navigator node where author defines a function (array of functions evaluated in sequence?) to determine where to read next</p>
+<blockquote>
+<div><dl>
+<dt><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></dt><dd><p># example function to pass to a Navigator
+def has_done_thing(sequence):</p>
+<blockquote>
+<div><dl class="simple">
+<dt>if sequence.this_was_done:</dt><dd><p>return [2, 1]</p>
+</dd>
+</dl>
+<p>return [2, 3]</p>
+</div></blockquote>
+</dd>
+</dl>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">Use</span> <span class="pre">in</span> <span class="pre">a</span> <span class="pre">Sequence</span> <span class="pre">template:</span>
+<span class="pre">`</span></code></p>
+<blockquote>
+<div><dl class="simple">
+<dt>[</dt><dd><p>Sequence.Navigator(has_done_thing),
+…,
+# or with a labmbda
+Sequence.Navigator(lambda seq: [2, 1] if seq.this_was_done else [2, 3]),</p>
+</dd>
+</dl>
+<p>]</p>
+</div></blockquote>
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+</div></blockquote>
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">intficpy.sequence.</span></code><code class="sig-name descname"><span class="pre">Sequence</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">template</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sticky</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="ifp_object.html#intficpy.ifp_object.IFPObject" title="intficpy.ifp_object.IFPObject"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.ifp_object.IFPObject</span></code></a></p>
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence.ControlItem">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">ControlItem</span></code><a class="headerlink" href="#intficpy.sequence.Sequence.ControlItem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.ControlItem.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.ControlItem.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence.Jump">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Jump</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">destination</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Jump" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.sequence.Sequence.ControlItem" title="intficpy.sequence.Sequence.ControlItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.sequence.Sequence.ControlItem</span></code></a></p>
+<p>Unconditionally jump to a label or index</p>
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Jump.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Jump.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence.Label">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Label</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Label" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.sequence.Sequence.ControlItem" title="intficpy.sequence.Sequence.ControlItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.sequence.Sequence.ControlItem</span></code></a></p>
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Label.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Label.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence.Navigator">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Navigator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nav_func</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Navigator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.sequence.Sequence.ControlItem" title="intficpy.sequence.Sequence.ControlItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.sequence.Sequence.ControlItem</span></code></a></p>
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Navigator.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Navigator.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence.Pause">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Pause</span></code><a class="headerlink" href="#intficpy.sequence.Sequence.Pause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.sequence.Sequence.ControlItem" title="intficpy.sequence.Sequence.ControlItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.sequence.Sequence.ControlItem</span></code></a></p>
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Pause.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Pause.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence.Prompt">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">Prompt</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">question</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Prompt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.sequence.Sequence.ControlItem" title="intficpy.sequence.Sequence.ControlItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.sequence.Sequence.ControlItem</span></code></a></p>
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Prompt.accept_input">
+<code class="sig-name descname"><span class="pre">accept_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Prompt.accept_input" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Prompt.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'turn'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Prompt.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Prompt.submit">
+<code class="sig-name descname"><span class="pre">submit</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Prompt.submit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.Prompt.try_again">
+<code class="sig-name descname"><span class="pre">try_again</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.Prompt.try_again" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="intficpy.sequence.Sequence.SaveData">
+<em class="property"><span class="pre">class</span> </em><code class="sig-name descname"><span class="pre">SaveData</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.SaveData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#intficpy.sequence.Sequence.ControlItem" title="intficpy.sequence.Sequence.ControlItem"><code class="xref py py-class docutils literal notranslate"><span class="pre">intficpy.sequence.Sequence.ControlItem</span></code></a></p>
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.SaveData.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.SaveData.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.accept_input">
+<code class="sig-name descname"><span class="pre">accept_input</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.accept_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pass current input tokens from the parser, to the method corresponding to the
+type of input we are currently expecting</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.choose">
+<code class="sig-name descname"><span class="pre">choose</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">tokens</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.choose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Try to use input tokens from the parser to choose an option in the current menu</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.jump_to">
+<code class="sig-name descname"><span class="pre">jump_to</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.jump_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Read the sequence from the specified point.
+Accepts a string that is registered as a label on the Sequence
+or an array specifying an index on the Sequence template</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.next">
+<code class="sig-name descname"><span class="pre">next</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.next" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.on_complete">
+<code class="sig-name descname"><span class="pre">on_complete</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.on_complete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.play">
+<code class="sig-name descname"><span class="pre">play</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'turn'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.play" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.start">
+<code class="sig-name descname"><span class="pre">start</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#intficpy.sequence.Sequence.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.current_item">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">current_item</span></code><a class="headerlink" href="#intficpy.sequence.Sequence.current_item" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="intficpy.sequence.Sequence.current_node">
+<em class="property"><span class="pre">property</span> </em><code class="sig-name descname"><span class="pre">current_node</span></code><a class="headerlink" href="#intficpy.sequence.Sequence.current_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+          </div>
+
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">IntFicPy</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../guide/index.html">IntFicPy Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">intficpy API doc</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="actor.html">intficpy.actor module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli.html">intficpy.cli module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="daemons.html">intficpy.daemons module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="event.html">intficpy.event module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="exceptions.html">intficpy.exceptions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="grammar.html">intficpy.grammar module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_game.html">intficpy.ifp_game module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ifp_object.html">intficpy.ifp_object module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parser.html">intficpy.parser module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="physical_entity.html">intficpy.physical_entity module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="room.html">intficpy.room module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="score.html">intficpy.score module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">intficpy.sequence module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="serializer.html">intficpy.serializer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="thing_base.html">intficpy.thing_base module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="things.html">intficpy.things module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tokenizer.html">intficpy.tokenizer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="travel.html">intficpy.travel module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="verb.html">intficpy.verb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vocab.html">intficpy.vocab module</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">intficpy API doc</a><ul>
+      <li>Previous: <a href="score.html" title="previous chapter">intficpy.score module</a></li>
+      <li>Next: <a href="serializer.html" title="next chapter">intficpy.serializer module</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, JSMaika.
+
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+
+      |
+      <a href="../_sources/api/sequence.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+
+
+
+  </body>
+</html>
