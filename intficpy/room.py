@@ -10,7 +10,27 @@ from .things import Container, LightSource, Unremarkable
 
 
 class Room(PhysicalEntity):
-    """Room is the overarching class for all locations in an .game """
+    """A Room is a top-level location in the game.
+
+    By default, a Room is assumed to be an indoor location with four walls,
+    (north, south, east, and west), a floor, and a ceiling.
+
+    Rooms can be connected directly to other Rooms by setting the direction
+    attributes (north, northeast, etc.) of the Room.
+
+    If a Room's `dark` attribute is set to True, the player will not be able
+    to see while in the Room, unless a LightSource is present.
+
+    :param game: the current game
+    :type game: IFPObject
+    :param name: the title of the room, to print when the player enters or looks
+        around. Spaces are allowed. This name will *not* become a part of the
+        parser's vocabulary.
+    :type name: str
+    :param desc: the base Room description, to be printed when the player enters this
+        Room, or looks around. The descriptions of any Things the Room contains will
+        be appeneded to this base.
+    """
 
     def __init__(self, game, name, desc):
         super().__init__(game)
@@ -106,6 +126,17 @@ class Room(PhysicalEntity):
             wall.known_ix = None
 
     def getLocContents(self, game):
+        """
+        Create a sentence listing the other items in the player's immediate location,
+        aside from the player.
+
+        This is used in describing the Room when the player is inside/on top of/underneath
+        or otherwise nested in a Thing inside this Room.
+
+        :param game: the current game
+        :type game: IFPGame
+        :rtype: str, None
+        """
         if len(game.me.location.contains.items()) > 1:
             onlist = (
                 "Also "
@@ -141,6 +172,13 @@ class Room(PhysicalEntity):
             self.fulldesc = self.fulldesc + onlist
 
     def resolveDarkness(self, game):
+        """
+        Determine if the player can see, based on this Room's `dark` attribute, and
+        whether there is a lit LightSource present
+
+        :param game: the current game
+        :type game: IFPGame
+        """
         can_see = True
         if self.dark:
             lightsource = None
@@ -161,6 +199,18 @@ class Room(PhysicalEntity):
         return can_see
 
     def describeDark(self, game):
+        """
+        If this Room is currently dark, describe the darkness. If the Room
+        is lit by a LightSource, describe how the LightSource lights the
+        Room.
+
+        Return True if the player will be unable to see anything but darkness,
+        and False otherwise.
+
+        :param game: the current game
+        :type game: IFPGame
+        :rtype: bool
+        """
         if not self.dark:
             return False
 
@@ -190,7 +240,19 @@ class Room(PhysicalEntity):
         return True
 
     def describe(self, game):
-        """Prints the Room title and description and lists items in the Room """
+        """Generates and prints the Room description shown when the player enters this
+        Room, or looks around.
+
+        If it is too dark to see, only describe the darkness.
+        Otherwise, print the Room description, and the descriptions of the Things that
+        that are currently here.
+
+        Returns False if it is too dark to see, and True otherwise.
+
+        :param game: the current game
+        :type game: IFPGame
+        :rtype: bool
+        """
         if self.describeDark(game):
             return False
 
@@ -277,26 +339,64 @@ class Room(PhysicalEntity):
         return True
 
     def updateDiscovered(self, game):
-        """Call onDiscovery if not discovered yet. Set discovered to true. """
+        """Check if the player has discovered this Room before. If not, carry out any
+        behaviour that the creator has specified should occur on this Room's discovery,
+        and mark this Room as discovered.
+
+        :param game: the current game
+        :type game: IFPGame
+        """
         if not self.discovered:
             self.onDiscover(game)
             self.discovered = True
 
     def onDiscover(self, game):
-        """Operations to perform the first time the room is described. Empty by default. Override for custom events. """
+        """Override this to trigger custom behaviour when the player "discovers" this
+        Room.
+
+        Discovery is not triggered until the player receives the description of this
+        Room with full light, i.e. by entering/looking while *either* this Room's
+        `dark` attribute is set to False (default), *or* a lit LightSource is present.
+
+        :param game: the current game
+        :type game: IFPGame
+        """
         pass
 
     def arriveFunc(self, game):
-        """Operations to perform each time the player arrives in the room, before the description is printed. Empty by default. Override for custom events. """
+        """Override this to trigger custom behaviour when the player enters this room
+        or looks around, *before* the room description is printed.
+
+        This will *not* trigger unless a LightSource is present if the Room is set
+        to `dark=True`.
+
+        :param game: the current game
+        :type game: IFPGame
+        """
         pass
 
     def descFunc(self, game):
-        """Operations to perform immediately after printing the room description. Empty by default. Override for custom events. """
+        """Override this to trigger custom behaviour when the player enters this room
+        or looks around, *after* the room description is printed.
+
+        This will *not* trigger unless a LightSource is present if the Room is set
+        to `dark=True`.
+
+        :param game: the current game
+        :type game: IFPGame
+        """
         pass
 
     def contentsByClass(self, class_ref):
-        """
-        Get all top level contents of a given class
+        """Get every Thing in the top level contents of this Room (i.e., not inside
+        another Thing) that is an instance of a given Thing subclass. (For instance,
+        get all top level Surfaces.)
+
+        :param game: the current game
+        :type game: IFPGame
+        :param class_ref: the class to filter items on
+        :type class_ref: type
+        :rtype: list
         """
         return list(filter(lambda item: isinstance(item, class_ref), self.contentsList))
 
@@ -304,6 +404,8 @@ class Room(PhysicalEntity):
     def contentsList(self):
         """
         Return the room contents as a flattened list
+
+        :rtype: list
         """
         return [item for ix, sublist in self.contains.items() for item in sublist] + [
             item for ix, sublist in self.sub_contains.items() for item in sublist
@@ -311,8 +413,19 @@ class Room(PhysicalEntity):
 
 
 class OutdoorRoom(Room):
-    """Room is the class for outdoor locations in an .game
-	OutdoorRooms have no walls, and the floor is called ground"""
+    """An OutdoorRoom is a Room with no walls, with ground instead of a floor, and with
+    sky instead of a ceiling.
+
+    :param game: the current game
+    :type game: IFPObject
+    :param name: the title of the room, to print when the player enters or looks
+        around. Spaces are allowed. This name will *not* become a part of the
+        parser's vocabulary.
+    :type name: str
+    :param desc: the base Room description, to be printed when the player enters this
+        Room, or looks around. The descriptions of any Things the Room contains will
+        be appeneded to this base.
+    """
 
     def __init__(self, game, name, desc):
         """Initially set basic properties for the OutdoorRoom instance """
@@ -339,7 +452,20 @@ class OutdoorRoom(Room):
 
 
 class RoomGroup(IFPObject):
-    """Group similar Rooms and OutdoorRooms to modify shared features """
+    """RoomGroup provides convenience features for modifying aspects of several Rooms
+    at once. In particular, it allows creators to quickly set & update the ceilings and
+    or floors of all Rooms in the group at once.
+
+    This can be useful for making larger scale changes during play. For instance,
+    RoomGroup allows the creator to update the skies of a group of OutdoorRooms all
+    at once, identically, to reflect weather.
+
+    Member Rooms can be added individually with `addMember`, or in a bulk with `setMembers`.
+    The members can be updated all at once with `updateMembers`
+
+    :param game: the current game
+    :type game: IFPObject
+    """
 
     def __init__(self, game):
         super().__init__(game)
@@ -351,22 +477,44 @@ class RoomGroup(IFPObject):
         self.smell_desc = None
 
     def setGroupCeiling(self, ceiling):
+        """Change the ceiling/sky for all member Rooms to match the ceiling (Thing) provided.
+
+        :param ceiling: a Thing instance with attributes set to the desired values. The
+            ceilings/skies of all Rooms and OutdoorRooms in this RoomGroup will have their
+            attributes set to match those of the Thing provided.
+        :type ceiling: Thing
+        """
         self.ceiling = ceiling
         if self.ceiling:
             for item in self.members:
                 item.ceiling.setFromPrototype(ceiling)
 
     def setGroupFloor(self, floor):
+        """Change the floor/ground for all member Rooms to match the floor (Thing) provided.
+
+        :param floor: a Thing instance with attributes set to the desired values. The
+            floors/ground of all Rooms and OutdoorRooms in this RoomGroup will have their
+            attributes set to match those of the Thing provided.
+        :type floor: Thing
+        """
         self.floor = floor
         if self.floor:
             for item in self.members:
                 item.floor.setFromPrototype(floor)
 
     def updateMembers(self):
+        """Refresh the member Rooms to match the current ceiling, floor, etc. for this
+        RoomGroup
+        """
         self.setGroupFloor(self.floor)
         self.setGroupCeiling(self.floor)
 
     def addMember(self, member):
+        """Add a single Room to this RoomGroup
+
+        :param member: the Room or OutdoorRoom to add to this RoomGroup
+        :type member: Room
+        """
         self.members.append(member)
         if self.ceiling:
             member.ceiling.setFromPrototype(self.ceiling)
@@ -375,6 +523,11 @@ class RoomGroup(IFPObject):
         member.room_group = self
 
     def setMembers(self, members_arr):
+        """Add a list of Rooms to this RoomGroup
+
+        :param members_arr: the list of Rooms to add to this RoomGroup
+        :type members_arr: list of Room objects
+        """
         self.members = []
         for item in members_arr:
             self.addMember(item)
