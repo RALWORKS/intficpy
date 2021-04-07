@@ -1,6 +1,8 @@
 # About IntFicPy
 A python library for writing parser-based interactive fiction. Currently in early development.
 
+[IntFicPy Docs](https://jsmaika.github.io/intficpy-docs/)
+
 ## Parser-based interactive fiction
 Parser based interactive fiction, sometimes called text adventure, is a story displayed through text, that the reader/player interacts with by typing out commands. Typing "get lamp", for instance, will cause the character to take the lamp.
 
