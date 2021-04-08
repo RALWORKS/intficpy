@@ -389,7 +389,24 @@ class Player(Actor):
 
 
 class Topic(IFPObject):
-    """An ask/tell/give/show topic.
+    """Topic represents a topic in conversation.
+
+    Topic (base) meant to be added to an Actor as an ask/tell/give/show topic - that is
+    to say a conversation topic that is triggered when a player asks about, tells
+    about, shows, or gives a Thing or Abstract.
+
+    As well as printing text, a Topic can add and remove SpecialTopics from its Actor
+    when it is triggered. Set SpecialTopics to *add* to the Actor by adding the
+    SpecialTopic objects to the Topic's `new_suggestions`. Add them to `expire_suggestions`
+    to remove them.
+
+    The Topic itself contains no reference to any Thing or Abstract to which a given
+    Actor will associate it. This connection is created when the Topic is added to the
+    Actor with addTopic, and then, exists only on the Actor object. This means that the
+    same Topic can be added as a response to multiple things.
+
+    A single Topic should *not* be added to multiple Actors at the same time, as this
+    will break suggestion functionality.
 
     :param game: the current game
     :type game: IFPGame
@@ -447,8 +464,10 @@ class Topic(IFPObject):
 
 
 class SpecialTopic(Topic):
-    """A Topic accessed by responding to a printed suggestion during
+    """A SpecialTopic is is a Topic accessed by responding to a printed suggestion during
     conversation, instead of through the use of the ask/tell/give/show verbs.
+
+    A SpecialTopic can be added to an Actor using `Actor.addSpecialTopic`
 
     :param game: the current game
     :type game: IFPGame
