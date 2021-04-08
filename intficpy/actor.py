@@ -11,9 +11,32 @@ from .tokenizer import cleanInput, tokenize, removeArticles
 
 class Actor(Thing):
     """
-    Actor class, used for characters in the game.
-
     Actors are Things that are capable of conversations.
+
+    Topics can be added using the `addTopic` method. SpecialTopics are added using the
+    `addSpecialTopic` method.
+
+    Actors track their available topics in dictionaries, depending on topic type.
+    Each Actor has a dicitonary for `ask_topics`, `tell_topics`, `give_topics`, and
+    `show_topics`, to which Topic objects can be added, as well as a `special_topics`
+    dictionary for SpecialTopics.
+
+    All topics that are currently in these dictionaries are considered to be active, and
+    will be available in converstions.
+
+    Actors can also buy and sell items. This can be enabled by adding an item using the
+    `addSelling` or `addWillBuy` methods.
+
+    Items the Actor is willing to sell or buy are stored in the `for_sale` and `will_buy`
+    dictionaries on the Actor object. More specifically, objects of the SaleItem class
+    are stored here, serving as records of what is for sale/what is wanted, and templates
+    for the transactions.
+
+    If you need to access a SaleItem created by `addSelling`/`addWillBuy`, you can look
+    it up in the Actor's `for_sale` or `will_buy` dictionary. The key is the IFPObject
+    index of the relevant Thing, which can be found in the Thing's `ix` attribute.
+    For example, if an Actor `person` sells a Thing called `item`, we can look up the
+    SaleItem with `person.for_sale[item.ix]`.
 
     :param game: the current game
     :type game: IFPGame
@@ -454,9 +477,13 @@ class SpecialTopic(Topic):
 
 
 class SaleItem(IFPObject):
-    """Stores information about an Actor's ability to sell a particular item to the player.
-    SaleItems are created automatically by the Actor method `addSelling`, and game creators
-    should not generally need to create them manually.
+    """Stores information about an Actor's ability to sell a particular item to the player,
+    or buy a particular item from the player.
+    SaleItems are created automatically by the Actor methods `addSelling` and `addWillBuy`,
+    and game creators should not generally need to create them manually.
+
+    Once created, SaleItems can be accessed in the Actor's `for_sale` and `will_buy`
+    dictionaries by looking up the `ix` of the Thing in question.
 
     :param game: the current game
     :type game: IFPGame
