@@ -391,8 +391,8 @@ class Player(Actor):
 class Topic(IFPObject):
     """Topic represents a topic in conversation.
 
-    Topic (base) meant to be added to an Actor as an ask/tell/give/show topic - that is
-    to say a conversation topic that is triggered when a player asks about, tells
+    Topic (base) is meant to be added to an Actor as an ask/tell/give/show topic -
+    a conversation topic that is triggered when a player asks about, tells
     about, shows, or gives a Thing or Abstract.
 
     As well as printing text, a Topic can add and remove SpecialTopics from its Actor
