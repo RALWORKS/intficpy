@@ -145,7 +145,7 @@ class PhysicalEntity(IFPObject):
     @property
     def contentsList(self):
         """
-        Return the contents from contains and sub_container as a flattened list
+        Return the contents from contains and sub_contains as a flattened list
 
         :rtype: list
         """
