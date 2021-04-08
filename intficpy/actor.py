@@ -88,8 +88,8 @@ class Actor(Thing):
 
     @property
     def contains_desc(self):
-        """
-        Do not describe an actor's inventory on room/examine desc
+        """Return an empty string. We do not want to describe an actor's inventory on
+        room/examine desc.
         """
         return ""
 
@@ -259,8 +259,8 @@ class Actor(Thing):
         self.show_topics = {}
 
     def printSuggestions(self, game):
-        """Print out (to the current turn event) all SpecialTopics currently available on
-        this Actor.
+        """Print the suggestions for this all of this Actor's current SpecialTopics in the
+        format, "(You could {suggestion)".
 
         :param game: the current game
         :type game: IFPGame
@@ -277,8 +277,8 @@ class Actor(Thing):
                 ] = self.special_topics_alternate_keys[phrasing]
 
     def defaultTopic(self, game):
-        """The default function for an Actor's default topic. Can be overwritten by the
-        game creator for an instance to create special responses
+        """Called when the Actor's default topic is triggered. Prints the `default_topic`
+        text, and the current SpecialTopic suggestions.
 
         :param game: the current game
         :type game: IFPGame
