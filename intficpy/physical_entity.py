@@ -123,3 +123,30 @@ class PhysicalEntity(IFPObject):
         while x.location:
             x = x.location
         return x
+
+    @property
+    def topLevelContentsList(self):
+        """
+        Return the top level contents as a flattened list
+
+        :rtype: list
+        """
+        return [item for ix, sublist in self.contains.items() for item in sublist]
+
+    @property
+    def subLevelContentsList(self):
+        """
+        Return the sub contents as a flattened list
+
+        :rtype: list
+        """
+        return [item for ix, sublist in self.sub_contains.items() for item in sublist]
+
+    @property
+    def contentsList(self):
+        """
+        Return the contents from contains and sub_container as a flattened list
+
+        :rtype: list
+        """
+        return self.topLevelContentsList + self.subLevelContentsList

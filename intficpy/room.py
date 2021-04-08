@@ -400,17 +400,6 @@ class Room(PhysicalEntity):
         """
         return list(filter(lambda item: isinstance(item, class_ref), self.contentsList))
 
-    @property
-    def contentsList(self):
-        """
-        Return the room contents as a flattened list
-
-        :rtype: list
-        """
-        return [item for ix, sublist in self.contains.items() for item in sublist] + [
-            item for ix, sublist in self.sub_contains.items() for item in sublist
-        ]
-
 
 class OutdoorRoom(Room):
     """An OutdoorRoom is a Room with no walls, with ground instead of a floor, and with
