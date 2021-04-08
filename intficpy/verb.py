@@ -285,9 +285,21 @@ class GetVerb(DirectObjectVerb):
     preposition = ["up"]
     dscope = "roomflex"
 
+    def revealUnderSpace(self, game, dobj):
+        """
+        When an UnderSpace is taken, move its contents out into the main Room, and
+        describe them.
+        """
+        msg, plural = dobj.moveContentsOut()
+        if plural:
+            msg = msg.capitalize() + " are revealed. "
+        else:
+            msg = msg.capitalize() + " is revealed. "
+        game.addTextToEvent("turn", msg)
+
     def verbFunc(self, game, dobj, skip=False):
         """
-        Take a Thing from the room
+        Take a Thing from the Room.
         """
         super().verbFunc(game, dobj, skip=skip)
 
@@ -303,61 +315,48 @@ class GetVerb(DirectObjectVerb):
                 )
                 return False
 
-        if not game.me.position == "standing":
-            game.addTextToEvent("turn", "(First standing up)")
-            before = StandUpVerb()
-            before.verbFunc(game)
-
         if isinstance(dobj, Liquid):
             container = dobj.getContainer()
             if container:
                 dobj = container
-        if dobj.invItem:
-            if game.me.containsItem(dobj):
-                if dobj.location == game.me:
-                    game.addTextToEvent(
-                        "turn",
-                        "You already have "
-                        + dobj.getArticle(True)
-                        + dobj.verbose_name
-                        + ". ",
-                    )
-                    return False
-                elif not isinstance(dobj.location, Room):
-                    return RemoveFromVerb().verbFunc(game, dobj, dobj.location)
-            # print the action message
-            game.addTextToEvent(
-                "turn", "You take " + dobj.getArticle(True) + dobj.verbose_name + ". "
-            )
-            if isinstance(dobj, UnderSpace) and not dobj.contains == {}:
-                results = dobj.moveContentsOut()
-                msg = results[0]
-                plural = results[1]
-                if plural:
-                    msg = msg.capitalize() + " are revealed. "
-                else:
-                    msg = msg.capitalize() + " is revealed. "
-                game.addTextToEvent("turn", msg)
-            if dobj.is_composite:
-                for item in dobj.child_UnderSpaces:
-                    if not item.contains == {}:
-                        results = item.moveContentsOut()
-                        msg = results[0]
-                        plural = results[1]
-                        if plural:
-                            msg = msg.capitalize() + " are revealed. "
-                        else:
-                            msg = msg.capitalize() + " is revealed. "
-                        game.addTextToEvent("turn", msg)
-            dobj.moveTo(game.me)
-            return True
-        elif dobj.parent_obj:
-            game.addTextToEvent("turn", dobj.cannotTakeMsg)
-            return False
-        else:
+
+        if not dobj.invItem:
             # if the dobj can't be taken, print the message
             game.addTextToEvent("turn", dobj.cannotTakeMsg)
             return False
+
+        if dobj.parent_obj:
+            game.addTextToEvent("turn", dobj.cannotTakeMsg)
+            return False
+
+        if game.me.containsItem(dobj):
+            if dobj.location == game.me:
+                game.addTextToEvent(
+                    "turn",
+                    "You already have "
+                    + dobj.getArticle(True)
+                    + dobj.verbose_name
+                    + ". ",
+                )
+                return False
+            elif dobj.location and not isinstance(dobj.location, Room):
+                return RemoveFromVerb().verbFunc(game, dobj, dobj.location)
+
+        # print the action message
+        game.addTextToEvent(
+            "turn", "You take " + dobj.getArticle(True) + dobj.verbose_name + ". "
+        )
+
+        if isinstance(dobj, UnderSpace) and dobj.contains:
+            self.revealUnderSpace(game, dobj)
+
+        if dobj.is_composite:
+            for item in dobj.child_UnderSpaces:
+                if item.contains:
+                    self.revealUnderSpace(game, item)
+
+        dobj.moveTo(game.me)
+        return True
 
 
 # GET/TAKE ALL
@@ -438,7 +437,7 @@ class RemoveFromVerb(IndirectObjectVerb):
                 game.addTextToEvent(
                     "turn", "(First trying to open " + iobj.lowNameArticle(True) + ")"
                 )
-                success = verbFunc(self, game, iobj)
+                success = OpenVerb().verbFunc(game, iobj)
                 if not success:
                     return False
         if not dobj.invItem:

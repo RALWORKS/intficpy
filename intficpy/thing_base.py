@@ -248,23 +248,6 @@ class Thing(PhysicalEntity):
         if self.known_ix and (not self.known_ix in me.knows_about):
             me.knows_about.append(self.known_ix)
 
-    def containsItem(self, item):
-        """Returns True if item is in the Thing's contains or sub_contains dictionary """
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                return True
-        if item.ix in self.sub_contains:
-            if item in self.sub_contains[item.ix]:
-                return True
-        return False
-
-    def strictContainsItem(self, item):
-        """Returns True only if item is in the Thing's contains dictionary (top level)"""
-        if item.ix in self.contains:
-            if item in self.contains[item.ix]:
-                return True
-        return False
-
     def addSynonym(self, word):
         """Adds a synonym (noun) that can be used to refer to a Thing
         Takes argument word, a string, which should be a single noun """

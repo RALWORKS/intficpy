@@ -1,5 +1,3 @@
-import unittest
-
 from ..helpers import IFPTestCase
 
 from intficpy.ifp_object import IFPObject
@@ -291,8 +289,55 @@ class TestMoveTo(IFPTestCase):
         self.assertItemIn(child, new.contains, "Item not added to new location")
         self.assertIs(child.location, new, "Item not added to new location")
 
+    def test_move_item_to_nested_adding_container_first_then_item(self):
+        container = Container(self.game, "cup")
+        item = Thing(self.game, "bead")
+
+        container.moveTo(self.start_room)
+        self.assertIs(container.location, self.start_room)
+
+        item.moveTo(container)
+
+        self.assertIs(item.location, container)
+        self.assertTrue(container.topLevelContainsItem(item))
+
+    def test_move_item_to_nested_adding_item_first_then_container(self):
+        container = Container(self.game, "cup")
+        item = Thing(self.game, "bead")
+
+        item.moveTo(container)
+        self.assertIs(
+            item.location,
+            container,
+            "Move item to container failed to set item location when container location was None",
+        )
+
+        container.moveTo(self.start_room)
+
+        self.assertIs(item.location, container)
+        self.assertTrue(container.topLevelContainsItem(item))
+
+    def test_move_nested_item_between_locations(self):
+        room2 = Room(self.game, "room", "here")
+        container = Container(self.game, "cup")
+        item = Thing(self.game, "bead")
+
+        item.moveTo(container)
+        container.moveTo(self.start_room)
+
+        self.assertIs(container.location, self.start_room)
+        self.assertIs(item.location, container)
+        self.assertTrue(container.topLevelContainsItem(item))
+
+        container.moveTo(room2)
+
+        self.assertIs(container.location, room2)
+        self.assertIs(
+            item.location,
+            container,
+            "Nested item location was updated when container was moved",
+        )
+        self.assertTrue(container.topLevelContainsItem(item))
+
 
 add_thing_instantiation_tests()
-
-if __name__ == "__main__":
-    unittest.main()

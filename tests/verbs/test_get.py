@@ -1,7 +1,7 @@
 from ..helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
-from intficpy.things import Surface, Container
+from intficpy.things import Surface, Container, Liquid, UnderSpace
 from intficpy.verb import GetVerb
 
 
@@ -54,7 +54,7 @@ class TestGetVerb(IFPTestCase):
 
         self.game.me.moveTo(sub_loc)
 
-        self.game.turnMain(f"take box")
+        self.game.turnMain("take box")
 
         self.assertIn("You climb out of the box. ", self.app.print_stack)
 
@@ -69,9 +69,110 @@ class TestGetVerb(IFPTestCase):
 
         self.game.me.moveTo(sub_loc)
 
-        self.game.turnMain(f"take desk")
+        self.game.turnMain("take desk")
 
         self.assertIn("You climb down from the desk. ", self.app.print_stack)
+
+    def test_get_item_when_pc_is_in_thing_with_no_corresponding_exit_verb(self):
+        loc = Thing(self.game, "brick")
+        loc.moveTo(self.start_room)
+        loc.can_contain_standing_player = True
+        self.game.me.moveTo(loc)
+
+        self.game.turnMain("take brick")
+
+        self.assertIn("Could not move player out of brick", self.app.print_stack)
+
+    def test_get_item_when_pc_sitting(self):
+        item = Thing(self.game, "bob")
+        item.moveTo(self.start_room)
+        self.game.me.position = "sitting"
+
+        self.game.turnMain("take bob")
+
+        self.assertIn("You stand up. ", self.app.print_stack)
+        self.assertEqual(self.game.me.position, "standing")
+
+    def test_get_liquid_in_container_gets_container(self):
+        container = Container(self.game, "cup")
+        container.moveTo(self.start_room)
+        item = Liquid(self.game, "broth", "broth")
+        item.moveTo(container)
+
+        self.game.turnMain("take broth")
+
+        self.assertIn("You take the cup. ", self.app.print_stack)
+
+    def test_get_thing_nested_in_thing_in_inventory(self):
+        container = Container(self.game, "cup")
+        container.moveTo(self.start_room)
+        item = Thing(self.game, "bead")
+
+        container.moveTo(self.game.me)
+        item.moveTo(container)
+
+        self.game.turnMain("look in cup")
+
+        self.game.turnMain("take bead")
+
+        self.assertIn("You remove the bead from the cup. ", self.app.print_stack)
+
+    def test_get_explicitly_invitem_component_of_composite_object(self):
+        parent = Thing(self.game, "cube")
+        child = Thing(self.game, "knob")
+        parent.addComposite(child)
+        parent.moveTo(self.start_room)
+        child.invItem = True
+
+        self.game.turnMain("take knob")
+        self.assertIn("The knob is attached to the cube. ", self.app.print_stack)
+
+    def test_get_underspace_reveals_single_contained_item(self):
+        parent = UnderSpace(self.game, "rug")
+        child = Thing(self.game, "penny")
+        parent.moveTo(self.start_room)
+        child.moveTo(parent)
+
+        self.game.turnMain("take rug")
+        self.assertIn("A penny is revealed. ", self.app.print_stack)
+
+    def test_get_underspace_reveals_multiple_contained_items(self):
+        parent = UnderSpace(self.game, "rug")
+        child = Thing(self.game, "penny")
+        child2 = Thing(self.game, "rock")
+        parent.moveTo(self.start_room)
+        child.moveTo(parent)
+        child2.moveTo(parent)
+
+        self.game.turnMain("take rug")
+        self.assertIn("are revealed", self.app.print_stack.pop())
+
+    def test_get_composite_underspace_reveals_contained_item(self):
+        item = Container(self.game, "box")
+        parent = UnderSpace(self.game, "space")
+        child = Thing(self.game, "penny")
+        item.addComposite(parent)
+        item.moveTo(self.start_room)
+        child.moveTo(parent)
+
+        self.game.turnMain("take box")
+        self.assertIn("A penny is revealed. ", self.app.print_stack)
+
+    def test_get_object_from_closed_container_in_inventory(self):
+        box = Container(self.game, "box")
+        box.giveLid()
+        item = Thing(self.game, "bead")
+        item.moveTo(box)
+        box.makeOpen()
+        box.moveTo(self.game.me)
+
+        self.assertFalse(self.game.me.topLevelContainsItem(item))
+        self.game.turnMain("look in box")
+        self.assertIn("bead", self.app.print_stack.pop())
+        self.game.turnMain("close box")
+        self.assertFalse(box.is_open, "Failed to close box")
+        self.game.turnMain("take bead")
+        self.assertTrue(self.game.me.topLevelContainsItem(item))
 
 
 class TestTakeAll(IFPTestCase):
