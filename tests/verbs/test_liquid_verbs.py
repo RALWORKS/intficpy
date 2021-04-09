@@ -168,6 +168,11 @@ class TestFillFromVerb(IFPTestCase):
         self.old_container.moveTo(self.start_room)
         self.new_container.moveTo(self.start_room)
 
+    def test_fill_container_with_liquid(self):
+        self.game.turnMain("fill bowl with wine")
+        self.assertIn("You fill the bowl", self.app.print_stack.pop())
+        self.assertTrue(self.new_container.topLevelContainsItem(self.liquid))
+
     def test_fill_non_container(self):
         item = Thing(self.game, "bead")
         item.moveTo(self.start_room)

@@ -4054,10 +4054,11 @@ class FillFromVerb(IndirectObjectVerb):
     syntax = [
         ["fill", "<dobj>", "from", "<iobj>"],
         ["fill", "<dobj>", "in", "<iobj>"],
+        ["fill", "<dobj>", "with", "<iobj>"],
     ]
     dscope = "invflex"
     iscope = "near"
-    preposition = ["from", "in"]
+    preposition = ["from", "in", "with"]
 
     def verbFunc(self, game, dobj, iobj, skip=False):
         """Pour a Liquid from one Container to another """
@@ -4163,91 +4164,6 @@ class FillFromVerb(IndirectObjectVerb):
                 + ", taking all of it. ",
             )
         return liquid.fillVessel(dobj)
-
-
-# FILL WITH
-# transitive verb, with indirect object
-class FillWithVerb(IndirectObjectVerb):
-    word = "fill"
-    syntax = [["fill", "<dobj>", "with", "<iobj>"]]
-    dscope = "invflex"
-    iscope = "near"
-    preposition = ["with"]
-
-    def verbFunc(self, game, dobj, iobj, skip=False):
-        """Pour a Liquid from one Container to another """
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        if not isinstance(dobj, Container):
-            game.addTextToEvent(
-                "turn", "You cannot fill " + dobj.lowNameArticle(True) + ". "
-            )
-            return False
-        if isinstance(iobj, Liquid):
-            if not dobj.holds_liquid:
-                game.addTextToEvent(
-                    "turn", dobj.capNameArticle(True) + " cannot hold a liquid. "
-                )
-                return False
-            if dobj.has_lid:
-                if not dobj.is_open:
-                    game.addTextToEvent(
-                        "turn", dobj.capNameArticle(True) + " is closed. "
-                    )
-                    return False
-            spaceleft = dobj.liquidRoomLeft()
-            liquid_contents = dobj.containsLiquid()
-            if dobj.contains != {} and not liquid_contents:
-                game.addTextToEvent(
-                    "turn",
-                    "(First attempting to empty " + iobj.lowNameArticle(True) + ")",
-                )
-                success = PourOutVerb().verbFunc(game, iobj)
-                if not success:
-                    return False
-            if not iobj.can_fill_from:
-                game.addTextToEvent("turn", iobj.cannot_fill_from_msg)
-                return False
-            if liquid_contents and liquid_contents.liquid_type != iobj.liquid_type:
-                success = liquid_contents.mixWith(game, liquid_contents, dobj)
-                if not success:
-                    game.addTextToEvent(
-                        "turn",
-                        "There is already "
-                        + liquid_contents.lowNameArticle()
-                        + " in "
-                        + dobj.lowNameArticle(True)
-                        + ". ",
-                    )
-                    return False
-                else:
-                    return True
-            container = iobj.getContainer()
-            if iobj.infinite_well:
-                game.addTextToEvent(
-                    "turn",
-                    "You fill "
-                    + dobj.lowNameArticle(True)
-                    + " with "
-                    + iobj.lowNameArticle()
-                    + ". ",
-                )
-            else:
-                game.addTextToEvent(
-                    "turn",
-                    "You fill "
-                    + dobj.lowNameArticle(True)
-                    + " with "
-                    + iobj.lowNameArticle()
-                    + ", taking all of it. ",
-                )
-            return iobj.fillVessel(dobj)
-        game.addTextToEvent(
-            "turn", "You can't fill " + dobj.lowNameArticle(True) + " with that. "
-        )
-        return False
 
 
 def get_base_verbset():
