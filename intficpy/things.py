@@ -80,6 +80,8 @@ class Surface(Thing):
 class Container(Openable):
     """Things that can contain other Things """
 
+    holds_liquid = False
+
     def __init__(self, game, name):
         """
         Set basic properties for the Container instance

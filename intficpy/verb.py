@@ -4065,95 +4065,104 @@ class FillFromVerb(IndirectObjectVerb):
         if ret is not None:
             return ret
 
+        liquid = None
+        container = None
         if isinstance(iobj, Container):
-            loc = game.me.getOutermostLocation()
-            if iobj.has_lid:
-                if not iobj.is_open:
-                    game.addTextToEvent(
-                        "turn", iobj.capNameArticle(True) + " is closed. "
-                    )
-                    return False
-            if iobj.contains == {}:
-                game.addTextToEvent("turn", iobj.capNameArticle(True) + " is empty. ")
-                return True
+            container = iobj
             liquid = iobj.containsLiquid()
-            if not liquid:
-                if iobj is game.me:
-                    game.addTextToEvent(
-                        "turn", "You cannot fill anything from yourself. "
-                    )
-                else:
-                    game.addTextToEvent(
-                        "turn",
-                        "There is no liquid in " + dobj.lowNameArticle(True) + ". ",
-                    )
+        elif isinstance(iobj, Liquid):
+            container = iobj.getContainer()
+            liquid = iobj
+        if not liquid:
+            if iobj is game.me:
+                game.addTextToEvent("turn", "You cannot fill anything from yourself. ")
+            else:
+                game.addTextToEvent(
+                    "turn", "There is no liquid in " + iobj.lowNameArticle(True) + ". ",
+                )
+            return False
+
+        if not isinstance(dobj, Container):
+            game.addTextToEvent("turn", "You can't fill that. ")
+            return False
+
+            loc = game.me.getOutermostLocation()
+
+        if not liquid.can_fill_from:
+            game.addTextToEvent("turn", liquid.cannot_fill_from_msg)
+            return False
+
+        if container.has_lid and not iobj.is_open:
+            game.addTextToEvent("turn", container.capNameArticle(True) + " is closed. ")
+            return False
+
+        if dobj.has_lid and not iobj.is_open:
+            game.addTextToEvent("turn", dobj.capNameArticle(True) + " is closed. ")
+            return False
+
+        if not dobj.holds_liquid:
+            game.addTextToEvent(
+                "turn", dobj.capNameArticle(True) + " cannot hold a liquid. "
+            )
+            return False
+
+        spaceleft = dobj.liquidRoomLeft()
+
+        liquid_contents = dobj.containsLiquid()
+
+        if dobj.contains != {} and not liquid_contents:
+            game.addTextToEvent(
+                "turn", "(First attempting to empty " + dobj.lowNameArticle(True) + ")",
+            )
+            success = PourOutVerb().verbFunc(game, dobj)
+
+            if not success:
+                return False
+
+        if liquid_contents and liquid_contents.liquid_type == liquid.liquid_type:
+            game.addTextToEvent(
+                "turn",
+                f"There is already {liquid_contents.liquid_type} in "
+                f"{dobj.lowNameArticle(True)}. ",
+            )
+            return False
+
+        elif liquid_contents:
+            success = liquid_contents.mixWith(game, liquid_contents, liquid)
+            if not success:
+                game.addTextToEvent(
+                    "turn",
+                    "There is already "
+                    + liquid_contents.lowNameArticle()
+                    + " in "
+                    + dobj.lowNameArticle(True)
+                    + ". ",
+                )
                 return False
             else:
-                if not dobj.holds_liquid:
-                    game.addTextToEvent(
-                        "turn", dobj.capNameArticle(True) + " cannot hold a liquid. "
-                    )
-                    return False
-                if dobj.has_lid:
-                    if not dobj.is_open:
-                        game.addTextToEvent(
-                            "turn", dobj.capNameArticle(True) + " is closed. "
-                        )
-                        return False
-                spaceleft = dobj.liquidRoomLeft()
-                liquid_contents = dobj.containsLiquid()
-                if dobj.contains != {} and not liquid_contents:
-                    game.addTextToEvent(
-                        "turn",
-                        "(First attempting to empty " + iobj.lowNameArticle(True) + ")",
-                    )
-                    success = verbFunc(self, game, iobj)
-                    if not success:
-                        return False
-                if not liquid.can_fill_from:
-                    game.addTextToEvent("turn", liquid.cannot_fill_from_msg)
-                    return False
-                if (
-                    liquid_contents
-                    and liquid_contents.liquid_type != liquid.liquid_type
-                ):
-                    success = liquid_contents.mixWith(game, liquid_contents, dobj)
-                    if not success:
-                        game.addTextToEvent(
-                            "turn",
-                            "There is already "
-                            + liquid_contents.lowNameArticle()
-                            + " in "
-                            + dobj.lowNameArticle(True)
-                            + ". ",
-                        )
-                        return False
-                    else:
-                        return True
+                return True
 
-                elif liquid.infinite_well:
-                    game.addTextToEvent(
-                        "turn",
-                        "You fill "
-                        + dobj.lowNameArticle(True)
-                        + " with "
-                        + liquid.lowNameArticle()
-                        + " from "
-                        + iobj.lowNameArticle(True)
-                        + ". ",
-                    )
-                else:
-                    game.addTextToEvent(
-                        "turn",
-                        "You fill "
-                        + dobj.lowNameArticle(True)
-                        + " with "
-                        + liquid.lowNameArticle()
-                        + ", taking all of it. ",
-                    )
-                return liquid.fillVessel(dobj)
-        game.addTextToEvent("turn", "You can't fill that. ")
-        return False
+        if liquid.infinite_well:
+            game.addTextToEvent(
+                "turn",
+                "You fill "
+                + dobj.lowNameArticle(True)
+                + " with "
+                + liquid.lowNameArticle()
+                + " from "
+                + iobj.lowNameArticle(True)
+                + ". ",
+            )
+        else:
+            game.addTextToEvent(
+                "turn",
+                "You fill "
+                + dobj.lowNameArticle(True)
+                + " with "
+                + liquid.lowNameArticle()
+                + ", taking all of it. ",
+            )
+        return liquid.fillVessel(dobj)
 
 
 # FILL WITH
@@ -4195,7 +4204,7 @@ class FillWithVerb(IndirectObjectVerb):
                     "turn",
                     "(First attempting to empty " + iobj.lowNameArticle(True) + ")",
                 )
-                success = verbFunc(self, game, iobj)
+                success = PourOutVerb().verbFunc(game, iobj)
                 if not success:
                     return False
             if not iobj.can_fill_from:
