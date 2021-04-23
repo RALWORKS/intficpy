@@ -135,7 +135,7 @@ bench.addComposite(underbench)
 # Set description to an empty string so we can show what's underneath without
 # having to print an actual description of the UnderSpace
 underbench.description = ""
-underbench._verbose_name = "space under the bench"
+underbench.full_name = "space under the bench"
 
 box = Container(game, "box")
 box.giveLid()

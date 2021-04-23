@@ -41,7 +41,7 @@ class Actor(Thing):
     :param game: the current game
     :type game: IFPGame
     :param name: a single noun to use as the Actor's initial name (synonyms/adjectives/
-        _verbose_name can be customized after initialization)
+        full_name can be customized after initialization)
     :type name: str
     """
 
@@ -130,7 +130,7 @@ class Actor(Thing):
 
     def makeProper(self, proper_name):
         """Give this character a proper name. Updates `has_proper_name` as well as
-        `name`, `_verbose_name`, synonyms, and adjectives for this Actor based on
+        `name`, `full_name`, synonyms, and adjectives for this Actor based on
         the new name given. The intended use is to facilitate having the player
         character "learn" the initially unknown name of another character.
 
@@ -146,7 +146,7 @@ class Actor(Thing):
         self.setAdjectives(self.adjectives + token_name)
         for tok in token_name:
             self.addSynonym(tok)
-        self._verbose_name = proper_name
+        self.full_name = proper_name
         self.has_proper_name = True
 
     def makeStanding(self):

@@ -82,7 +82,7 @@ class Thing(PhysicalEntity):
         self.adjectives = []
         self.name = name
         self.synonyms = []
-        self._verbose_name = None
+        self.full_name = None
 
         # CAPABILITIES
         # can I do x with this?
@@ -135,9 +135,23 @@ class Thing(PhysicalEntity):
         """
         The name that will be printed for descriptions.
         """
-        if self._verbose_name is not None:
-            return self._verbose_name
+        if self.full_name is not None:
+            return self.full_name
         return " ".join(self.adjectives + [self.name])
+
+    @property
+    def _verbose_name(self):
+        """
+        Alias for Thing.full_name. To be deprecated.
+        """
+        return self.full_name
+
+    @_verbose_name.setter
+    def _verbose_name(self, value):
+        """
+        Alias for Thing.full_name. To be deprecated.
+        """
+        self.full_name = value
 
     @property
     def default_desc(self):
@@ -326,7 +340,7 @@ class Thing(PhysicalEntity):
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
             self.game.nouns[synonym].append(out)
-        out._verbose_name = self._verbose_name
+        out.full_name = self.full_name
         out.contains = {}
         out.sub_contains = {}
         return out
@@ -344,7 +358,7 @@ class Thing(PhysicalEntity):
         out.setAdjectives(out.adjectives)
         for synonym in out.synonyms:
             self.game.nouns[synonym].append(out)
-        out._verbose_name = self._verbose_name
+        out.full_name = self.full_name
         out.contains = {}
         out.sub_contains = {}
         return out

@@ -125,10 +125,18 @@ class TestVerboseName(IFPTestCase):
         expected_name = " ".join(ADJECTIVES + [subject.name])
         self.assertEqual(expected_name, subject.verbose_name)
 
-    def test_verbose_name_is__verbose_name_if_overridden(self):
+    def test_verbose_name_is_full_name_if_overridden(self):
         subject = Thing(self.game, "flower")
         ADJECTIVES = ["grandma's", "big", "bright", "yellow"]
         subject.setAdjectives(ADJECTIVES)
         NAME = "sasquatch"
-        subject._verbose_name = NAME
+        subject.full_name = NAME
         self.assertEqual(NAME, subject.verbose_name)
+
+    def test_legacy_underscore_verbose_name_attr_alias(self):
+        subject = Thing(self.game, "flower")
+        self.assertFalse(subject.full_name)
+        FULL_NAME = "daisy flower"
+        subject._verbose_name = FULL_NAME
+        self.assertEqual(subject._verbose_name, FULL_NAME)
+        self.assertEqual(subject.full_name, FULL_NAME)
