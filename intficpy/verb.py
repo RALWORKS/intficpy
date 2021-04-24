@@ -3121,7 +3121,7 @@ class GoVerb(DirectObjectVerb):
     def verbFunc(self, game, dobj):
         from .travel import directionDict
 
-        directionDict[dobj](game)
+        directionDict[dobj]["func"](game)
 
 
 # LIGHT (LightSource)

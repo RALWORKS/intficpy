@@ -102,7 +102,7 @@ class Parser:
                 for obj in self.previous_command.things:
                     if d in obj.adjectives:
                         return False
-            directionDict[d](self.game)
+            directionDict[d]["func"](self.game)
 
             raise AbortTurn("Executed direction statement")
         return
