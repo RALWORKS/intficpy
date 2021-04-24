@@ -87,11 +87,11 @@ class TestDirectionTravel(IFPTestCase):
 
         self.game.turnMain("in")
         self.assertIs(self.me.location, room1)
-        self.assertEqual(self.app.print_stack.pop(), room1.entrance_false_msg)
+        self.assertEqual(self.app.print_stack.pop(), room1.in_false_msg)
 
         self.game.turnMain("out")
         self.assertIs(self.me.location, room1)
-        self.assertEqual(self.app.print_stack.pop(), room1.exit_false_msg)
+        self.assertEqual(self.app.print_stack.pop(), room1.out_false_msg)
 
     def test_travel_north_south(self):
         room1 = Room(self.game, "A place", "Description of a place. ")
@@ -281,7 +281,7 @@ class TestDirectionTravel(IFPTestCase):
 
         self.game.turnMain("enter")
 
-        self.assertEqual(self.app.print_stack[-3], room1.entrance_msg)
+        self.assertEqual(self.app.print_stack[-3], room1.in_msg)
 
         self.assertIs(
             self.me.location,
@@ -292,7 +292,7 @@ class TestDirectionTravel(IFPTestCase):
 
         self.game.turnMain("exit")
 
-        self.assertEqual(self.app.print_stack[-3], room1.exit_msg)
+        self.assertEqual(self.app.print_stack[-3], room1.out_msg)
 
         self.assertIs(
             self.me.location,

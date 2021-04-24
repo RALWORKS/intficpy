@@ -71,11 +71,11 @@ class Room(PhysicalEntity):
         self.d_false_msg = "You cannot go down from here. "
         self.d_msg = "You go down. "
         self.entrance = None
-        self.entrance_false_msg = "There is no obvious entrance here. "
-        self.entrance_msg = "You enter. "
+        self.in_false_msg = "There is no obvious entrance here. "
+        self.in_msg = "You enter. "
         self.exit = None
-        self.exit_false_msg = "There is no obvious exit here. "
-        self.exit_msg = "You exit. "
+        self.out_false_msg = "There is no obvious exit here. "
+        self.out_msg = "You exit. "
 
         # room properties
         self.name = name

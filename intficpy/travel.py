@@ -710,237 +710,98 @@ def getDirectionFromString(loc, input_string):
         return False
 
 
-def travelN(game):
-    """Travel north
+def travelDirection(game, direction):
+    """Travel in the specified direction
     """
+    short = directionDict[direction]["short"]
+    full = directionDict[direction]["full"]
+
     loc = game.me.getOutermostLocation()
     if game.me.position != "standing":
         StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("n" not in loc.dark_visible_exits):
+    if not loc.resolveDarkness(game) and (short not in loc.dark_visible_exits):
         game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.north:
-        game.addTextToEvent("turn", loc.n_false_msg)
-    elif isinstance(loc.north, TravelConnector):
-        loc.north.travel(game)
+
+    connector = getattr(loc, full)
+
+    if not connector:
+        game.addTextToEvent("turn", getattr(loc, f"{short}_false_msg"))
+        return
+
+    if isinstance(connector, TravelConnector):
+        connector.travel(game)
     else:
         preRemovePlayer(game)
         if game.me.location:
             game.me.location.removeThing(game.me)
-        game.me.location = loc.north
+        game.me.location = connector
         game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.n_msg)
+        game.addTextToEvent("turn", getattr(loc, f"{short}_msg"))
 
         game.me.location.describe(game)
+
+
+def travelN(game):
+    """Travel north
+    """
+    return travelDirection(game, "n")
 
 
 def travelNE(game):
     """Travel northeast
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("ne" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.northeast:
-        game.addTextToEvent("turn", loc.ne_false_msg)
-    elif isinstance(loc.northeast, TravelConnector):
-        loc.northeast.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.northeast
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.ne_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "ne")
 
 
 def travelE(game):
     """Travel east
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("e" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.east:
-        game.addTextToEvent("turn", loc.e_false_msg)
-    elif isinstance(loc.east, TravelConnector):
-        loc.east.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.east
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.e_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "e")
 
 
 def travelSE(game):
     """Travel southeast
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("se" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.southeast:
-        game.addTextToEvent("turn", loc.se_false_msg)
-    elif isinstance(loc.southeast, TravelConnector):
-        loc.southeast.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.southeast
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.se_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "se")
 
 
 def travelS(game):
     """Travel south
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("s" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.south:
-        game.addTextToEvent("turn", loc.s_false_msg)
-    elif isinstance(loc.south, TravelConnector):
-        loc.south.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.south
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.s_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "s")
 
 
 def travelSW(game):
     """Travel southwest
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("sw" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.southwest:
-        game.addTextToEvent("turn", loc.sw_false_msg)
-    elif isinstance(loc.southwest, TravelConnector):
-        loc.southwest.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.southwest
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.sw_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "sw")
 
 
 def travelW(game):
     """Travel west
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("w" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.west:
-        game.addTextToEvent("turn", loc.w_false_msg)
-    elif isinstance(loc.west, TravelConnector):
-        loc.west.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.west
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.w_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "w")
 
 
 # travel northwest
 def travelNW(game):
     """Travel northwest
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("nw" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.northwest:
-        game.addTextToEvent("turn", loc.nw_false_msg)
-    elif isinstance(loc.northwest, TravelConnector):
-        loc.northwest.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.northwest
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.nw_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "nw")
 
 
 # travel up
 def travelU(game):
     """Travel upward
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("u" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.up:
-        game.addTextToEvent("turn", loc.u_false_msg)
-    elif isinstance(loc.up, TravelConnector):
-        loc.up.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.up
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.u_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "u")
 
 
 # travel down
 def travelD(game):
     """Travel downward
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("d" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.down:
-        game.addTextToEvent("turn", loc.d_false_msg)
-    elif isinstance(loc.down, TravelConnector):
-        loc.down.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.down
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.d_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "d")
 
 
 # go out
@@ -948,24 +809,7 @@ def travelD(game):
 def travelOut(game):
     """Travel out
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("exit" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.exit:
-        game.addTextToEvent("turn", loc.exit_false_msg)
-    elif isinstance(loc.exit, TravelConnector):
-        loc.exit.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.exit
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.exit_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "out")
 
 
 # go in
@@ -973,24 +817,7 @@ def travelOut(game):
 def travelIn(game):
     """Travel through entance
     """
-    loc = game.me.getOutermostLocation()
-    if game.me.position != "standing":
-        StandUpVerb().verbFunc(game)
-    if not loc.resolveDarkness(game) and ("entrance" not in loc.dark_visible_exits):
-        game.addTextToEvent("turn", loc.dark_msg)
-    elif not loc.entrance:
-        game.addTextToEvent("turn", loc.entrance_false_msg)
-    elif isinstance(loc.entrance, TravelConnector):
-        loc.entrance.travel(game)
-    else:
-        preRemovePlayer(game)
-        if game.me.location:
-            game.me.location.removeThing(game.me)
-        game.me.location = loc.entrance
-        game.me.location.addThing(game.me)
-        game.addTextToEvent("turn", loc.entrance_msg)
-
-        game.me.location.describe(game)
+    return travelDirection(game, "in")
 
 
 # maps user input to travel functions
@@ -1017,6 +844,6 @@ directionDict = {
     "down": {"func": travelD, "full": "down", "short": "d",},
     "d": {"func": travelD, "full": "down", "short": "d",},
     "downward": {"func": travelD, "full": "down", "short": "d",},
-    "in": {"func": travelIn, "full": "in", "short": "in",},
-    "out": {"func": travelOut, "full": "out", "short": "out",},
+    "in": {"func": travelIn, "full": "entrance", "short": "in",},
+    "out": {"func": travelOut, "full": "exit", "short": "out",},
 }
