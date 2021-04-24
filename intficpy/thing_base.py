@@ -36,7 +36,6 @@ class Thing(PhysicalEntity):
         # TODO: these should default to in/out (out of?) to eliminate the null check
         self.contains_preposition = "on"
         self.contains_preposition_inverse = "off"
-        self.revealed = False
         self.desc_reveal = True
         self.xdesc_reveal = True
 
@@ -342,7 +341,6 @@ class Thing(PhysicalEntity):
             self.game.nouns[synonym].append(out)
         out.full_name = self.full_name
         out.contains = {}
-        out.sub_contains = {}
         return out
 
     def copyThingUniqueIx(self):
@@ -360,7 +358,6 @@ class Thing(PhysicalEntity):
             self.game.nouns[synonym].append(out)
         out.full_name = self.full_name
         out.contains = {}
-        out.sub_contains = {}
         return out
 
     def setFromPrototype(self, item):
@@ -434,20 +431,3 @@ class Thing(PhysicalEntity):
     def describeChildren(self, description):
         self.children_desc = description
         self.containsListUpdate()
-
-    def getNested(self):
-        """
-        Find revealed nested Things
-        """
-        # list to populate with found Things
-        nested = []
-        # iterate through top level contents
-        if self.has_lid and not self.is_open:
-            return []
-        for key in self.contains:
-            for item in self.contains[key]:
-                nested.append(item)
-        for key in self.sub_contains:
-            for item in self.sub_contains[key]:
-                nested.append(item)
-        return nested

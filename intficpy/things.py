@@ -105,22 +105,7 @@ class Container(Openable):
         return super().contains_desc
 
     def revealContents(self):
-        list_version = list(self.contains.keys())
-        for key in list_version:
-            for item in self.contains[key]:
-                nested = item.getNested()
-                next_loc = self.location
-                while next_loc:
-                    for x in nested:
-                        if x.ix in next_loc.sub_contains:
-                            next_loc.sub_contains[x.ix].append(x)
-                        else:
-                            next_loc.sub_contains[x.ix] = [x]
-                    if item.ix in next_loc.sub_contains:
-                        next_loc.sub_contains[item.ix].append(item)
-                    else:
-                        next_loc.sub_contains[item.ix] = [item]
-                    next_loc = next_loc.location
+        self.revealed = True
 
     def hideContents(self):
         self.desc_reveal = True
@@ -163,6 +148,7 @@ class Container(Openable):
     def giveLid(self):
         self.has_lid = True
         self.is_open = False
+        self.revealed = False
         if not self.IS_OPEN_DESC_KEY in self.state_descriptors:
             self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
 
@@ -399,6 +385,7 @@ class UnderSpace(Thing):
         self.contains_preposition = "under"
         self.contains_under = True
         self.contains_preposition_inverse = "out"
+        self.revealed = False
 
     @property
     def component_desc(self):
@@ -415,30 +402,6 @@ class UnderSpace(Thing):
 
     def revealUnder(self):
         self.revealed = True
-        for key in self.contains:
-            next_loc = self.location
-            for item in self.contains[key]:
-                contentshidden = False
-                if isinstance(item, Container):
-                    if item.has_lid:
-                        if item.is_open == False:
-                            contentshidden = True
-                while next_loc:
-                    if not contentshidden:
-                        nested = item.getNested()
-                        if not isinstance(item, Actor):
-                            for t in nested:
-                                if t.ix in next_loc.sub_contains:
-                                    if not t in next_loc.sub_contains[t.ix]:
-                                        next_loc.sub_contains[t.ix].append(t)
-                                else:
-                                    next_loc.sub_contains[t.ix] = [t]
-                    if item.ix in next_loc.sub_contains:
-                        if not item in next_loc.sub_contains[item.ix]:
-                            next_loc.sub_contains[item.ix].append(item)
-                    else:
-                        next_loc.sub_contains[item.ix] = [item]
-                    next_loc = next_loc.location
 
     def moveContentsOut(self):
         contents = copy.copy(self.contains)

@@ -204,7 +204,6 @@ class LoadGame:
             if obj.containsItem(item):
                 self.empty_contains(item)
                 obj.removeThing(item)
-        obj.sub_contains.clear()
 
     def add_thing_by_ix(self, destination, ix):
         """

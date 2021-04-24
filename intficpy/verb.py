@@ -2362,7 +2362,7 @@ class ClimbOutVerb(Verb):
         if ret is not None:
             return ret
 
-        if isinstance(game.me.location, Container):
+        if isinstance(game.me.location, Container) or isinstance(game.me, UnderSpace):
             game.addTextToEvent(
                 "turn",
                 "You climb out of "
@@ -2401,7 +2401,9 @@ class ClimbOutOfVerb(DirectObjectVerb):
             return ret
 
         if game.me.location == dobj:
-            if isinstance(game.me.location, Container):
+            if isinstance(game.me.location, Container) or isinstance(
+                game.me, UnderSpace
+            ):
                 game.addTextToEvent(
                     "turn",
                     "You climb out of "
@@ -2544,8 +2546,10 @@ class ExitVerb(Verb):
         from .travel import travelOut
 
         out_loc = game.me.getOutermostLocation()
-        if isinstance(game.me.location, Container):
+        if isinstance(game.me.location, Container) or isinstance(game.me, UnderSpace):
             ClimbOutOfVerb().verbFunc(game, game.me.location)
+        if isinstance(game.me.location, Surface):
+            ClimbDownFromVerb().verbFunc(game, game.me.location)
         elif out_loc.exit:
             travelOut(game)
         else:
@@ -2559,8 +2563,6 @@ class EnterVerb(Verb):
     syntax = [["enter"]]
 
     def verbFunc(self, game):
-        """Climb out of a Container you currently occupy
-         """
         from .travel import travelIn
 
         out_loc = game.me.getOutermostLocation()

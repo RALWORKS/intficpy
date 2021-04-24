@@ -9,7 +9,7 @@ class PhysicalEntity(IFPObject):
 
         # CONTENTS
         self.contains = {}
-        self.sub_contains = {}
+        self.revealed = True
 
     def containsItem(self, item):
         """Returns True if item is in the contains or sub_contains dictionary """
@@ -35,19 +35,8 @@ class PhysicalEntity(IFPObject):
             if not self.containsItem(child):
                 self.addTopLevelContains(child)
 
-        # nested items
-        item_nested = item.getNested()
-        for t in item_nested:
-            self.addSubLevelContains(t)
         # top level item
         self.addTopLevelContains(item)
-
-        if not self.location:
-            return True
-
-        self_nested = self.getNested()
-        for t in self_nested:
-            self.location.addSubLevelContains(t)
 
         return True
 
@@ -57,12 +46,6 @@ class PhysicalEntity(IFPObject):
         else:
             self.contains[item.ix] = [item]
         item.location = self
-
-    def addSubLevelContains(self, item):
-        if item.ix in self.sub_contains:
-            self.sub_contains[item.ix].append(item)
-        else:
-            self.sub_contains[item.ix] = [item]
 
     def removeThing(self, item):
         if not self.containsItem(item):
@@ -94,25 +77,18 @@ class PhysicalEntity(IFPObject):
     def removeContains(self, item):
         ret = False  # we have not removed anything yet
         loc = self
-        while loc:
-            if loc.topLevelContainsItem(item):
-                loc.contains[item.ix].remove(item)
-                if not loc.contains[item.ix]:
-                    del loc.contains[item.ix]
-                ret = True
 
-            if loc.subLevelContainsItem(item):
-                loc.sub_contains[item.ix].remove(item)
-                if not loc.sub_contains[item.ix]:
-                    del loc.sub_contains[item.ix]
-                ret = True
-
-            loc = loc.location
-
-        if ret:
+        if self.topLevelContainsItem(item):
+            self.contains[item.ix].remove(item)
+            if not self.contains[item.ix]:
+                del self.contains[item.ix]
             item.location = None
+            return True
 
-        return ret
+        if self.subLevelContainsItem(item):
+            return item.location.removeThing(item)
+
+        return False
 
     def getOutermostLocation(self):
         if self.location is self:
@@ -123,6 +99,44 @@ class PhysicalEntity(IFPObject):
         while x.location:
             x = x.location
         return x
+
+    def getNested(self):
+        """
+        Find revealed nested Things
+        """
+        # list to populate with found Things
+        nested = []
+        # iterate through top level contents
+        if not self.revealed:
+            return []
+        for key in self.contains:
+            for item in self.contains[key]:
+                nested.append(item)
+        for key in self.sub_contains:
+            for item in self.sub_contains[key]:
+                nested.append(item)
+        return nested
+
+    @property
+    def visible_nested_contents(self):
+        if not self.revealed:
+            return []
+        ret = self.topLevelContentsList
+        for item in self.topLevelContentsList:
+            ret += item.visible_nested_contents
+        return ret
+
+    @property
+    def sub_contains(self):
+        ret = {}
+        for item in self.topLevelContentsList:
+            flat = item.visible_nested_contents
+            for sub in flat:
+                if sub.ix in ret:
+                    ret[sub.ix].append(sub)
+                else:
+                    ret[sub.ix] = [sub]
+        return ret
 
     @property
     def topLevelContentsList(self):

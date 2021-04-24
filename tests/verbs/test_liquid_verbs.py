@@ -77,6 +77,7 @@ class TestPourIntoVerb(IFPTestCase):
     def test_pour_liquid_from_closed_container_referencing_liquid_directly(self):
         self.old_container.giveLid()
         self.old_container.makeClosed()
+        self.old_container.revealed = True
 
         self.game.turnMain("pour wine into bowl")
         self.assertIn("is closed", self.app.print_stack.pop())
