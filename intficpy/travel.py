@@ -1,3 +1,4 @@
+from .exceptions import IFPError
 from .ifp_object import IFPObject
 from .thing_base import Thing
 from .things import Door, Lock, AbstractClimbable, Surface
@@ -681,33 +682,13 @@ def preRemovePlayer(game):
 
 
 def getDirectionFromString(loc, input_string):
-    if input_string in ["n", "north"]:
-        return loc.north
-    elif input_string in ["ne", "northeast"]:
-        return loc.northeast
-    elif input_string in ["e", "east"]:
-        return loc.east
-    elif input_string in ["se", "southeast"]:
-        return loc.southeast
-    elif input_string in ["s", "south"]:
-        return loc.south
-    elif input_string in ["sw", "southwest"]:
-        return loc.southwest
-    elif input_string in ["w", "west"]:
-        return loc.west
-    elif input_string in ["nw", "northwest"]:
-        return loc.northwest
-    elif input_string in ["u", "up", "upward"]:
-        return loc.up
-    elif input_string in ["d", "down", "downward"]:
-        return loc.down
-    elif input_string == "in":
-        return loc.entrance
-    elif input_string == "out":
-        return loc.exit
-    else:
-        print(input_string + "not a direction")
-        return False
+    try:
+        return getattr(loc, directionDict[input_string]["full"])
+    except KeyError as e:
+        raise IFPError(
+            f"Tried to get direction from string, but string {input_string} not a direction."
+        )
+    # don't catch the attribute error
 
 
 def travelDirection(game, direction):
