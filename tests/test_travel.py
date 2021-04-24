@@ -1,5 +1,3 @@
-import unittest
-
 from .helpers import IFPTestCase
 
 from intficpy.room import Room
@@ -377,19 +375,34 @@ class TestExitVerb(IFPTestCase):
             thing.containsItem(self.game.me), "Player should have left the Container"
         )
 
-    def test_exit_surface_gives_no_obvious_exit(self):
+    def test_exit_surface(self):
         thing = Surface(self.game, "tray")
         thing.moveTo(self.start_room)
         self.game.me.moveTo(thing)
 
         self.game.turnMain("exit")
 
-        self.assertIn("There is no obvious exit. ", self.app.print_stack)
-
-        self.assertTrue(
-            thing.containsItem(self.game.me), "Player should remain on the Surface"
+        self.assertFalse(
+            thing.containsItem(self.game.me), "Player should have left the Container"
         )
 
 
-if __name__ == "__main__":
-    unittest.main()
+class TestNestedPlayer(IFPTestCase):
+    def test_implicit_exit_container(self):
+        meta_thing = Container(self.game, "metabox")
+        thing = Container(self.game, "box")
+        thing.moveTo(meta_thing)
+        meta_thing.moveTo(self.start_room)
+        self.game.me.moveTo(thing)
+
+        room2 = Room(self.game, "new place", "You are in a new place.")
+        self.start_room.east = room2
+
+        self.assertTrue(self.start_room.subLevelContainsItem(self.game.me))
+
+        self.game.turnMain("e")
+
+        self.assertFalse(
+            thing.containsItem(self.game.me), "Player should have left the Container"
+        )
+        self.assertFalse(self.start_room.subLevelContainsItem(self.game.me))

@@ -670,27 +670,14 @@ class StaircaseConnector(TravelConnector):
 
 # travel functions, called by getDirection in parser.py
 def preRemovePlayer(game):
-    """Remove the Player from the current room
+    """Remove the Player from all nested locations
     Called by travel functions
     """
+    from .verb import ExitVerb
+
     x = game.me.location
-    if isinstance(x, Thing):
-        x.removeThing(game.me)
-        x.containsListUpdate()
-        if isinstance(x, Surface):
-            game.addTextToEvent(
-                "turn", "You get off of " + x.getArticle(True) + x.verbose_name + "."
-            )
-        else:
-            game.addTextToEvent(
-                "turn", "You get out of " + x.getArticle(True) + x.verbose_name + "."
-            )
-        x = x.location
-        while not isinstance(x, Room):
-            x.sub_contains[game.me.ix].remove(game.me)
-            if x.sub_contains[game.me.ix] == []:
-                del x.sub_contains[game.me.ix]
-            x = x.location
+    while isinstance(game.me.location, Thing):
+        ExitVerb().verbFunc(game)
 
 
 def getDirectionFromString(loc, input_string):
