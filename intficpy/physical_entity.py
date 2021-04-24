@@ -57,20 +57,10 @@ class PhysicalEntity(IFPObject):
             if self.containsItem(child):
                 self.removeContains(child)
 
-        # nested items
-        nested = item.getNested()
-        for t in nested:
-            if self.topLevelContainsItem(t):
-                self.removeContains(t)
-
         self.removeContains(item)
 
         if not self.location:
             return True
-
-        # self_nested = self.getNested()
-        for t in nested:
-            self.location.removeContains(t)
 
         return True
 
