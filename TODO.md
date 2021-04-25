@@ -1,4 +1,8 @@
 # TODO
+# Next Goals:
++ 100% test coverage for verbs
++ standardise creation API across Thing & subclasses
+
 
 # Bugs
 + Parser.checkExtra: currently fails to detect nonsensically placed duplicates of words
@@ -6,8 +10,6 @@
   `>climb desk on desk` as equivalent to `>climb on desk`.
 
 ## Refactoring
-
-+ Refactor `PhysicalEntity.sub_contains` into a calculated property
 
 ### Add the ability to store state in a DB instead of in live Python objects
 Currently, IFP stores state in live objects in Python while the game is running. It
@@ -17,13 +19,13 @@ We want to add the ability to optionally store state in a database instead, whil
 keeping the current system available, and the basic authors' API more or less
 unchanged.
 
-Idea: 2 different "data engines" for IFP. Author can choose which to use.
+**Idea:** 2 different "data engines" for IFP. Author can choose which to use.
 The data engine dictates the behaviour of `__getattr__` and `__setattr__` on all
 IFPObjects in the game. First engine simply gets/sets and maybe tracks changes for undo.
 Second engine sets/gets from the db entry for that object, leaving the object itself
 unchanged.
 
-Idea: The parser matches input to IFPObjects by querying the DB. When the match succeeds,
+**Idea:** The parser matches input to IFPObjects by querying the DB. When the match succeeds,
 we *copy* the starting-state object, using a special method that allows us to set all
 attributes from the DB. We pass a special game object in, that lives only as long as this
 turn, and contains a reference to the *current user*. Our `__getattr__` override now
@@ -95,9 +97,6 @@ apply them to the db at the end of the turn.
 
 ### Minor
 + pull out printed strings to instance properties
-+ clean up travel.py
-+ put some more info into directionDict, so we can use it to get rid of the giant
-  if/else blocks in the TravelConnector inits
 
 ## Testing
 + make sure new version of inline functions works correctly in terminal mode
