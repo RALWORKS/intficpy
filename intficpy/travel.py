@@ -12,11 +12,30 @@ from .room import Room
 
 
 class TravelConnector(IFPObject):
-    """Base class for travel connectors
-    Links two rooms together"""
+    """
+    Base class for travel connectors. Links two rooms together, with an interactable
+    Thing on each end.
+
+    By default, this creates a "doorway" on either end, without an opening and closing
+    door.
+
+    :param game: the current game
+    :type game: IFPGame
+    :param room1: the first Room to connect
+    :type room1: Room
+    :param direction1: the direction from `room1` this connector attatches to (ex, pass
+        in "n" to set room1.north to this connector)
+    :type direction1: valid direction string (n/north/se/southeast, etc.)
+    :param room2: the other Room to connect
+    :type room2: Room
+    :param direction1: the direction from `room2` this connector attatches to (ex, pass
+        in "s" to set room2.south to this connector)
+    :type direction1: valid direction string (n/north/se/southeast, etc.)
+    """
 
     EntranceAType = Thing
     EntranceBType = Thing
+    can_pass = True
     cannot_pass_msg = "The way is blocked. "
     default_travel_msg = "You go {preposition} the {entrance.verbose_name}. "
     entrance_a_msg = None
@@ -31,7 +50,6 @@ class TravelConnector(IFPObject):
         super().__init__(game)
         self.point_a = room1
         self.point_b = room2
-        self.can_pass = True
         r = [room1, room2]
         d = [direction1, direction2]
         interactables = []
@@ -149,6 +167,14 @@ class TravelConnector(IFPObject):
         return True
 
     def travel(self, game):
+        """
+        The player travels through this connector.
+
+        Determine if the player is able to pass, and if so, move the player.
+
+        :param game: the current game
+        :type game: IFPGame
+        """
         try:
             barrier = self.barrierFunc(game)
         except:
@@ -166,8 +192,24 @@ class TravelConnector(IFPObject):
 
 
 class DoorConnector(TravelConnector):
-    """Base class for travel connectors
-    Links two rooms together"""
+    """
+    A TravelConnector with a door that opens and closes.
+
+    A lock can be added to the door using setLock
+
+    :param game: the current game
+    :type game: IFPGame
+    :param room1: the first Room to connect
+    :type room1: Room
+    :param direction1: the direction from `room1` this connector attatches to (ex, pass
+        in "n" to set room1.north to this connector)
+    :type direction1: valid direction string (n/north/se/southeast, etc.)
+    :param room2: the other Room to connect
+    :type room2: Room
+    :param direction1: the direction from `room2` this connector attatches to (ex, pass
+        in "s" to set room2.south to this connector)
+    :type direction1: valid direction string (n/north/se/southeast, etc.)
+    """
 
     EntranceAType = Door
     EntranceBType = Door
@@ -181,6 +223,13 @@ class DoorConnector(TravelConnector):
         return True
 
     def setLock(self, lock_obj):
+        """
+        Add a lock to this door.
+
+        :param lock_obj: the Lock to place on this door. Must not already be attached to
+            something.
+        :type game: Lock
+        """
         if not isinstance(lock_obj, Lock):
             raise IFPError(
                 "Cannot set lock_obj for "
@@ -216,10 +265,17 @@ class DoorConnector(TravelConnector):
 
 
 class LadderConnector(TravelConnector):
-    """Class for ladder travel connectors (up/down)
-    Links two rooms together"""
+    """
+    A ladder to connect two rooms, one above, and one below.
 
-    entrance_synonyms = ["stairway", "stairs", "stair"]
+    :param game: the current game
+    :type game: IFPGame
+    :param room1: the lower room
+    :type room1: Room
+    :param room2: the upper room
+    :type room2: Room
+    """
+
     entrance_name = "ladder"
     default_travel_msg = "You climb {preposition} the {entrance.verbose_name}. "
     entrance_a_preposition = "up"
@@ -231,8 +287,16 @@ class LadderConnector(TravelConnector):
 
 
 class StaircaseConnector(TravelConnector):
-    """Class for staircase travel connectors (up/down)
-    Links two rooms together"""
+    """
+    A staircase to connect two rooms, one above, and one below.
+
+    :param game: the current game
+    :type game: IFPGame
+    :param room1: the lower room
+    :type room1: Room
+    :param room2: the upper room
+    :type room2: Room
+    """
 
     entrance_synonyms = ["stairway", "stairs", "stair"]
     entrance_name = "staircase"
@@ -247,8 +311,8 @@ class StaircaseConnector(TravelConnector):
 
 # travel functions, called by getDirection in parser.py
 def preRemovePlayer(game):
-    """Remove the Player from all nested locations
-    Called by travel functions
+    """
+    Remove the Player from all nested locations to prepare for travel
     """
     from .verb import ExitVerb
 
@@ -258,17 +322,32 @@ def preRemovePlayer(game):
 
 
 def getDirectionFromString(loc, input_string):
+    """
+    Given a direction string (n/nw/east, etc.), return the corresponding direction
+    attribute of a given Room
+
+    :param loc: the Room we're in
+    :type loc: Room
+    :param input_string: the string to interpret as direction input
+    :type input_string: str
+    """
     try:
         return getattr(loc, directionDict[input_string]["full"])
     except KeyError as e:
         raise IFPError(
             f"Tried to get direction from string, but string {input_string} not a direction."
         )
-    # don't catch the attribute error
+    # if we somehow receive something that isn't a Room, just let the attribute error happen
 
 
 def travelDirection(game, direction):
-    """Travel in the specified direction
+    """
+    Travel in the specified direction, from the player's current location
+
+    :param game: the current game
+    :type game: IFPGame
+    :param direction: the direction input
+    :type direction: str
     """
     short = directionDict[direction]["short"]
     full = directionDict[direction]["full"]
