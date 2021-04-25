@@ -245,32 +245,33 @@ class TestDoorVerbs(IFPTestCase):
 
     def test_open_door(self):
         self.assertFalse(
-            self.door.entranceA.is_open,
+            self.door.entrance_a.is_open,
             "This test needs the door to be initially closed",
         )
         self.assertFalse(
-            self.door.entranceA.lock_obj.is_locked,
+            self.door.entrance_a.lock_obj.is_locked,
             "This test needs the door to be initially unlocked",
         )
 
-        OpenVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        OpenVerb()._runVerbFuncAndEvents(self.game, self.door.entrance_a)
 
         self.assertTrue(
-            self.door.entranceA.is_open,
+            self.door.entrance_a.is_open,
             "Performed open verb on unlocked door, but door is closed. "
             f"Msg: {self.app.print_stack[-1]}",
         )
 
     def test_close_door(self):
-        self.door.entranceA.makeOpen()
+        self.door.entrance_a.makeOpen()
         self.assertTrue(
-            self.door.entranceA.is_open, "This test needs the door to be initially open"
+            self.door.entrance_a.is_open,
+            "This test needs the door to be initially open",
         )
 
-        CloseVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        CloseVerb()._runVerbFuncAndEvents(self.game, self.door.entrance_a)
 
         self.assertFalse(
-            self.door.entranceA.is_open,
+            self.door.entrance_a.is_open,
             "Performed close verb on open door, but door is open. "
             f"Msg: {self.app.print_stack[-1]}",
         )
@@ -280,7 +281,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        LockVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        LockVerb()._runVerbFuncAndEvents(self.game, self.door.entrance_a)
 
         self.assertTrue(
             self.lock.is_locked,
@@ -293,7 +294,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        UnlockVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        UnlockVerb()._runVerbFuncAndEvents(self.game, self.door.entrance_a)
 
         self.assertFalse(
             self.lock.is_locked,
@@ -306,7 +307,7 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        LockWithVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
+        LockWithVerb()._runVerbFuncAndEvents(self.game, self.door.entrance_a, self.key)
 
         self.assertTrue(
             self.lock.is_locked,
@@ -319,7 +320,9 @@ class TestDoorVerbs(IFPTestCase):
         self.assertIn(self.key.ix, self.me.contains)
         self.assertIn(self.key, self.me.contains[self.key.ix])
 
-        UnlockWithVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA, self.key)
+        UnlockWithVerb()._runVerbFuncAndEvents(
+            self.game, self.door.entrance_a, self.key
+        )
 
         self.assertFalse(
             self.lock.is_locked,
@@ -330,18 +333,18 @@ class TestDoorVerbs(IFPTestCase):
     def test_open_locked_door(self):
         self.lock.is_locked = True
         self.assertFalse(
-            self.door.entranceA.is_open,
+            self.door.entrance_a.is_open,
             "This test needs the door to be initially closed",
         )
         self.assertTrue(
-            self.door.entranceA.lock_obj.is_locked,
+            self.door.entrance_a.lock_obj.is_locked,
             "This test needs the door to be initially locked",
         )
 
-        OpenVerb()._runVerbFuncAndEvents(self.game, self.door.entranceA)
+        OpenVerb()._runVerbFuncAndEvents(self.game, self.door.entrance_a)
 
         self.assertFalse(
-            self.door.entranceA.is_open,
+            self.door.entrance_a.is_open,
             "Performed open verb on locked door, but door is open. "
             f"Msg: {self.app.print_stack[-1]}",
         )

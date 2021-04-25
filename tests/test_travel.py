@@ -1,7 +1,8 @@
 from .helpers import IFPTestCase
 
+from intficpy.exceptions import IFPError
 from intficpy.room import Room
-from intficpy.things import Container, Surface
+from intficpy.things import Container, Surface, Lock
 from intficpy.travel import (
     travelN,
     travelNE,
@@ -303,37 +304,116 @@ class TestDirectionTravel(IFPTestCase):
 
 
 class TestTravelConnectors(IFPTestCase):
-    def _assert_can_travel(self, room1, room2, connector):
+    def _assert_can_travel(self, room1, room2, command, return_command):
         self.me.location.removeThing(self.me)
         room1.addThing(self.me)
         self.assertIs(
             self.me.location, room1, "This test needs the user to start in room1"
         )
 
-        connector.travel(self.game)
+        self.game.turnMain(command)
         self.assertIs(
             self.me.location,
             room2,
-            f"Tried to travel {connector} to {room2}, '{room2.name}', but player in "
+            f"Tried to travel to {room2}, '{room2.name}', but player in "
             f"{self.me.location}",
         )
 
-        connector.travel(self.game)
+        self.game.turnMain(return_command)
         self.assertIs(
             self.me.location,
             room1,
-            f"Tried to travel {connector} to {room1}, '{room1.name}', but player in "
+            f"Tried to travel to {room1}, '{room1.name}', but player in "
             f"{self.me.location}",
         )
 
+    def test_create_TravelConnector_with_invalid_direction(self):
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        with self.assertRaises(IFPError):
+            c = TravelConnector(
+                self.game, self.start_room, "lllllllrrrrrkkkk", room2, "s"
+            )
+
+    def test_cannot_travel_blocked_connector(self):
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = TravelConnector(self.game, self.start_room, "n", room2, "s")
+        c.can_pass = False
+
+        self.assertItemIn(
+            self.me, self.start_room.contains, "test needs player to start here"
+        )
+        self.assertIs(self.start_room.north, c)
+
+        self.game.turnMain("n")
+
+        self.assertIn(c.cannot_pass_msg, self.app.print_stack)
+
+        self.assertIs(self.me.location, self.start_room)
+        self.assertItemIn(
+            self.me, self.start_room.contains, "player should not have moved"
+        )
+
+    def test_cannot_travel_if_barrier_function_blocks(self):
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = TravelConnector(self.game, self.start_room, "n", room2, "s")
+        c.barrierFunc = lambda g: True
+
+        self.assertItemIn(
+            self.me, self.start_room.contains, "test needs player to start here"
+        )
+        self.assertIs(self.start_room.north, c)
+
+        self.game.turnMain("n")
+
+        self.assertIs(self.me.location, self.start_room)
+        self.assertItemIn(
+            self.me, self.start_room.contains, "player should not have moved"
+        )
+
+    def test_cannot_travel_in_darkness(self):
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = TravelConnector(self.game, self.start_room, "n", room2, "s")
+        self.start_room.dark = True
+
+        self.assertItemIn(
+            self.me, self.start_room.contains, "test needs player to start here"
+        )
+        self.assertIs(self.start_room.north, c)
+
+        self.game.turnMain("n")
+
+        self.assertIn("It's too dark to find your way. ", self.app.print_stack)
+
+        self.assertIs(self.me.location, self.start_room)
+        self.assertItemIn(
+            self.me, self.start_room.contains, "player should not have moved"
+        )
+
     def test_can_travel_TravelConnector(self):
+        self.me.position = "sitting"
         room1 = Room(self.game, "A place", "Description of a place. ")
         room2 = Room(
             self.game, "A different place", "Description of a different place. "
         )
         c = TravelConnector(self.game, room1, "n", room2, "s")
+        c.entrance_a_msg = "You creep north. "
 
-        self._assert_can_travel(room1, room2, c)
+        self._assert_can_travel(room1, room2, "n", "s")
+        self.assertIn("You stand up. ", self.app.print_stack)
+        self.assertEqual(self.me.position, "standing")
+        self.assertIn(c.entrance_a_msg, self.app.print_stack)
+        self.assertIn("You go through the south doorway. ", self.app.print_stack)
+        self.assertIn(
+            room1.desc + "There is a doorway to the north. ", self.app.print_stack
+        )
 
     def test_can_travel_DoorConnector(self):
         room1 = Room(self.game, "A place", "Description of a place. ")
@@ -341,8 +421,60 @@ class TestTravelConnectors(IFPTestCase):
             self.game, "A different place", "Description of a different place. "
         )
         c = DoorConnector(self.game, room1, "n", room2, "s")
+        c.entrance_a.makeClosed()
 
-        self._assert_can_travel(room1, room2, c)
+        self._assert_can_travel(room1, room2, "n", "s")
+        self.assertIn("You open the north door. ", self.app.print_stack)
+        self.assertIn("You go through the north door. ", self.app.print_stack)
+        self.assertIn("You go through the south door. ", self.app.print_stack)
+        self.assertIn(
+            room1.desc + "There is a door to the north. It is open. ",
+            self.app.print_stack,
+        )
+
+    def test_cannot_travel_closed_and_locked_door(self):
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = DoorConnector(self.game, self.start_room, "n", room2, "s")
+        lock = Lock(self.game, is_locked=True, key_obj=None)
+        c.setLock(lock)
+
+        self.assertItemIn(
+            self.me, self.start_room.contains, "test needs player to start here"
+        )
+        self.assertIs(self.start_room.north, c)
+
+        self.game.turnMain("n")
+
+        self.assertIn(
+            f"{c.entrance_a.capNameArticle(True)} is locked. ", self.app.print_stack
+        )
+
+        self.assertIs(self.me.location, self.start_room)
+        self.assertItemIn(
+            self.me, self.start_room.contains, "player should not have moved"
+        )
+
+    def test_cannot_set_non_lock_as_door_lock(self):
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = DoorConnector(self.game, self.start_room, "n", room2, "s")
+        lock = Surface(self.game, "lock?")
+        with self.assertRaises(IFPError):
+            c.setLock(lock)
+
+    def test_lock_already_attached_to_something_cannot_be_applied_to_a_door(self):
+        room2 = Room(
+            self.game, "A different place", "Description of a different place. "
+        )
+        c = DoorConnector(self.game, self.start_room, "n", room2, "s")
+        lock = Lock(self.game, is_locked=True, key_obj=None)
+        c.setLock(lock)
+        c2 = DoorConnector(self.game, self.start_room, "e", room2, "w")
+        with self.assertRaises(IFPError):
+            c2.setLock(lock)
 
     def test_can_travel_LadderConnector(self):
         room1 = Room(self.game, "A place", "Description of a place. ")
@@ -351,7 +483,10 @@ class TestTravelConnectors(IFPTestCase):
         )
         c = LadderConnector(self.game, room1, room2)
 
-        self._assert_can_travel(room1, room2, c)
+        self._assert_can_travel(room1, room2, "u", "d")
+        self.assertIn("You climb up the upward ladder. ", self.app.print_stack)
+        self.assertIn("You climb down the downward ladder. ", self.app.print_stack)
+        self.assertIn(room1.desc + "A ladder leads up. ", self.app.print_stack)
 
     def test_can_travel_StaircaseConnector(self):
         room1 = Room(self.game, "A place", "Description of a place. ")
@@ -360,7 +495,10 @@ class TestTravelConnectors(IFPTestCase):
         )
         c = StaircaseConnector(self.game, room1, room2)
 
-        self._assert_can_travel(room1, room2, c)
+        self._assert_can_travel(room1, room2, "u", "d")
+        self.assertIn("You climb up the upward staircase. ", self.app.print_stack)
+        self.assertIn("You climb down the downward staircase. ", self.app.print_stack)
+        self.assertIn(room1.desc + "A staircase leads up. ", self.app.print_stack)
 
 
 class TestExitVerb(IFPTestCase):

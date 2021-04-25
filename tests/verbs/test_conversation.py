@@ -2,6 +2,29 @@ from ..helpers import IFPTestCase
 from intficpy.actor import Actor, Topic, SpecialTopic
 from intficpy.thing_base import Thing
 from intficpy.verb import AskVerb, TellVerb, GiveVerb, ShowVerb
+from intficpy.room import Room
+
+
+class TestLeadDirection(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.actor1 = Actor(self.game, "grocer")
+        self.actor1.can_be_led = True
+        self.start_room.addThing(self.actor1)
+        self.room2 = Room(self.game, "Place", "Words")
+        self.start_room.north = self.room2
+
+    def test_can_lead_actor(self):
+        self.game.turnMain("lead grocer n")
+        self.assertIs(self.me.location, self.room2)
+        self.assertIs(self.actor1.location, self.room2)
+
+    def test_cannot_lead_actor_invalid_direction(self):
+        FAKE = "reft"
+        self.game.turnMain(f"lead grocer {FAKE}")
+        self.assertIn(f"I understood as far as", self.app.print_stack.pop())
+        self.assertIs(self.me.location, self.start_room)
+        self.assertIs(self.actor1.location, self.start_room)
 
 
 class TestGetImpTalkToNobodyNear(IFPTestCase):

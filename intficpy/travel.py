@@ -6,7 +6,7 @@ from .verb import OpenVerb, StandUpVerb
 from .room import Room
 
 ##############################################################
-# ROOM.PY - travel functions for IntFicPy
+# TRAVEL.PY - travel functions for IntFicPy
 # Defines travel functions and the direction vocab dictionary
 ##############################################################
 
@@ -15,147 +15,66 @@ class TravelConnector(IFPObject):
     """Base class for travel connectors
     Links two rooms together"""
 
-    def __init__(
-        self, game, room1, direction1, room2, direction2, name="doorway", prep=0
-    ):
+    EntranceAType = Thing
+    EntranceBType = Thing
+    cannot_pass_msg = "The way is blocked. "
+    default_travel_msg = "You go {preposition} the {entrance.verbose_name}. "
+    entrance_a_msg = None
+    entrance_b_msg = None
+    entrance_synonyms = []
+    entrance_a_preposition = "through"
+    entrance_b_preposition = "through"
+    entrance_name = "doorway"
+    default_description = "There is a {name} to the {full_direction}. "
+
+    def __init__(self, game, room1, direction1, room2, direction2):
         super().__init__(game)
-        self.prep = prep
-        self.pointA = room1
-        self.pointB = room2
-        self.entranceA_msg = None
-        self.entranceB_msg = None
+        self.point_a = room1
+        self.point_b = room2
         self.can_pass = True
-        self.cannot_pass_msg = "The way is blocked. "
         r = [room1, room2]
         d = [direction1, direction2]
         interactables = []
-        self.entranceA = Thing(self.game, name)
-        self.entranceB = Thing(self.game, name)
-        self.entranceA.invItem = False
-        self.entranceB.invItem = False
-        self.entranceA.connection = self
-        self.entranceB.connection = self
-        self.entranceA.direction = direction1
-        self.entranceB.direction = direction2
-        interactables.append(self.entranceA)
-        interactables.append(self.entranceB)
+        self.entrance_a = self.EntranceAType(self.game, self.entrance_name)
+        self.entrance_b = self.EntranceBType(self.game, self.entrance_name)
+        self.entrance_a.invItem = False
+        self.entrance_b.invItem = False
+        self.entrance_a.connection = self
+        self.entrance_b.connection = self
+        self.entrance_a.direction = direction1
+        self.entrance_b.direction = direction2
+        interactables.append(self.entrance_a)
+        interactables.append(self.entrance_b)
+
+        for s in self.entrance_synonyms:
+            self.entrance_a.addSynonym(s)
+        for s in self.entrance_synonyms:
+            self.entrance_b.addSynonym(s)
+
         for x in range(0, 2):
             r[x].addThing(interactables[x])
-            if d[x] == "n":
-                r[x].north = self
-                interactables[x].setAdjectives(["north"])
-                interactables[x].describeThing("There is a " + name + " to the north. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
+            try:
+                short = directionDict[d[x]]["short"]
+                full = directionDict[d[x]]["full"]
+                adj = directionDict[d[x]]["adj"]
+            except KeyError as e:
+                raise IFPError(
+                    f"Tried to create {self.__class__.__name__}, but string {d[x]} not "
+                    "a valid direction string. Use one of: {directionDict.keys()}"
                 )
-            elif d[x] == "s":
-                r[x].south = self
-                interactables[x].setAdjectives(["south"])
-                interactables[x].describeThing("There is a " + name + " to the south. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
+
+            setattr(r[x], full, self)
+            interactables[x].setAdjectives([adj])
+            interactables[x].describeThing(
+                self.default_description.format(
+                    name=self.entrance_name, full_direction=full,
                 )
-            elif d[x] == "e":
-                r[x].east = self
-                interactables[x].setAdjectives(["east"])
-                interactables[x].describeThing("There is a " + name + " to the east. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
-                )
-            elif d[x] == "w":
-                r[x].west = self
-                interactables[x].setAdjectives(["west"])
-                interactables[x].describeThing("There is a " + name + " to the west. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
-                )
-            elif d[x] == "ne":
-                r[x].northeast = self
-                interactables[x].setAdjectives(["northeast"])
-                interactables[x].describeThing(
-                    "There is a " + name + " to the northeast. "
-                )
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
-                )
-            elif d[x] == "nw":
-                r[x].northwest = self
-                interactables[x].setAdjectives(["northwest"])
-                interactables[x].describeThing(
-                    "There is a " + name + " to the northwest. "
-                )
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about  "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
-                )
-            elif d[x] == "se":
-                r[x].southeast = self
-                interactables[x].setAdjectives(["southeast"])
-                interactables[x].describeThing(
-                    "There is a " + name + " to the southeast. "
-                )
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
-                )
-            elif d[x] == "sw":
-                r[x].southwest = self
-                interactables[x].setAdjectives(["southwest"])
-                interactables[x].describeThing(
-                    "There is a " + name + " to the southwest. "
-                )
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about "
-                    + interactables[x].getArticle(True)
-                    + interactables[x].verbose_name
-                    + "."
-                )
-            elif d[x] == "u":
-                r[x].up = self
-                interactables[x].setAdjectives(["upward"])
-                interactables[x].describeThing("There is a " + name + " leading up. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the "
-                    + interactables[x].getArticle(True)
-                    + name
-                    + "."
-                )
-            elif d[x] == "d":
-                r[x].down = self
-                interactables[x].setAdjectives(["downward"])
-                interactables[x].describeThing("There is a " + name + " leading down. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about  "
-                    + interactables[x].getArticle(True)
-                    + name
-                    + "."
-                )
-            else:
-                print("error: invalid direction input for TravelConnector: " + d[x])
+            )
 
     def setFromPrototype(self, connector):
         x = 0
-        self.entranceA_msg = connector.entranceA_msg
-        self.entranceB_msg = connector.entranceB_msg
+        self.entrance_a_msg = connector.entrance_a_msg
+        self.entrance_b_msg = connector.entrance_b_msg
         for x in range(0, 2):
             print(x)
             for synonym in self.interactables[x].synonyms:
@@ -195,6 +114,40 @@ class TravelConnector(IFPObject):
                     self.game.nouns[noun] = [self.interactables[x]]
             x = x + 1
 
+    def _prepareToCross(self, entrance):
+        return True
+
+    def _travelEntrance(self, game, outer_loc, entrance_marker):
+        new_loc = getattr(self, f"point_{'a' if entrance_marker=='b' else 'b'}")
+        msg = getattr(self, f"entrance_{entrance_marker}_msg")
+        entrance = getattr(self, f"entrance_{entrance_marker}")
+
+        can_cross = self._prepareToCross(self.entrance_a)
+        if not can_cross:
+            return False
+
+        if not outer_loc.resolveDarkness(game) and (
+            self.entrance_a.direction not in outer_loc.dark_visible_exits
+        ):
+            return False
+
+        preRemovePlayer(game)
+        game.me.moveTo(new_loc)
+        if msg:
+            game.addTextToEvent("turn", msg)
+        else:
+            game.addTextToEvent(
+                "turn",
+                self.default_travel_msg.format(
+                    entrance=entrance,
+                    preposition=getattr(
+                        self, f"entrance_{entrance_marker}_preposition"
+                    ),
+                ),
+            )
+        game.me.location.describe(game)
+        return True
+
     def travel(self, game):
         try:
             barrier = self.barrierFunc(game)
@@ -206,467 +159,90 @@ class TravelConnector(IFPObject):
         if not self.can_pass:
             game.addTextToEvent("turn", self.cannot_pass_msg)
             return False
-        if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceA.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
-            preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-                game.me.location = self.pointB
-                game.me.location.addThing(game.me)
-                if self.entranceA_msg:
-                    game.addTextToEvent("turn", self.entranceA_msg)
-                else:
-                    if self.prep == 0:
-                        x = "through "
-                    elif self.prep == 1:
-                        x = "into "
-                    else:
-                        x = "up "
-                    game.addTextToEvent(
-                        "turn",
-                        "You go "
-                        + x
-                        + self.entranceA.getArticle(True)
-                        + self.entranceA.name
-                        + ".",
-                    )
-                game.me.location.describe(game)
-                return True
-        elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceB.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
-            preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-                game.me.location = self.pointA
-                game.me.location.addThing(game.me)
-                if self.entranceB_msg:
-                    game.addTextToEvent("turn", self.entranceB_msg)
-                else:
-                    if self.prep == 0:
-                        x = "through "
-                    elif self.prep == 1:
-                        x = "out of "
-                    else:
-                        x = "down "
-                    game.addTextToEvent(
-                        "turn",
-                        "You go "
-                        + x
-                        + self.entranceB.getArticle(True)
-                        + self.entranceB.name
-                        + ".",
-                    )
-                game.me.location.describe(game)
-                return True
-        else:
-            game.addTextToEvent("turn", "You cannot go that way. ")
-            return False
+        if outer_loc == self.point_a:
+            return self._travelEntrance(game, outer_loc, "a")
+        if outer_loc == self.point_b:
+            return self._travelEntrance(game, outer_loc, "b")
 
 
 class DoorConnector(TravelConnector):
     """Base class for travel connectors
     Links two rooms together"""
 
-    def __init__(self, game, room1, direction1, room2, direction2):
-        self.game = game
-        self.registerNewIndex()
-        self.is_top_level_location = False
-        self.pointA = room1
-        self.pointB = room2
-        self.entranceA_msg = None
-        self.entranceB_msg = None
-        r = [room1, room2]
-        d = [direction1, direction2]
-        interactables = []
-        self.can_pass = True
-        self.cannot_pass_msg = "The way is blocked. "
-        self.entranceA = Door(self.game, "door")
-        self.entranceB = Door(self.game, "door")
-        self.entranceA.twin = self.entranceB
-        self.entranceB.twin = self.entranceA
-        self.entranceA.connection = self
-        self.entranceB.connection = self
-        self.entranceA.direction = direction1
-        self.entranceB.direction = direction2
-        interactables.append(self.entranceA)
-        interactables.append(self.entranceB)
-        for x in range(0, 2):
-            r[x].addThing(interactables[x])
-            if d[x] == "n":
-                r[x].north = self
-                interactables[x].setAdjectives(["north"])
-                interactables[x].describeThing("There is a door to the north. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the north door. "
-                )
-            elif d[x] == "s":
-                r[x].south = self
-                interactables[x].setAdjectives(["south"])
-                interactables[x].describeThing("There is a door to the south. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the south door. "
-                )
-            elif d[x] == "e":
-                r[x].east = self
-                interactables[x].setAdjectives(["east"])
-                interactables[x].describeThing("There is a door to the east. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the east door. "
-                )
-            elif d[x] == "w":
-                r[x].west = self
-                interactables[x].setAdjectives(["west"])
-                interactables[x].describeThing("There is a door to the west. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the west door.  "
-                )
-            elif d[x] == "ne":
-                r[x].northeast = self
-                interactables[x].setAdjectives(["northeast"])
-                interactables[x].describeThing(
-                    "You notice nothing remarkable about the northeast door. "
-                )
-            elif d[x] == "nw":
-                r[x].northwest = self
-                interactables[x].setAdjectives(["northwest"])
-                interactables[x].describeThing("There is a door to the northwest. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the northwest door. "
-                )
-            elif d[x] == "se":
-                r[x].southeast = self
-                interactables[x].setAdjectives(["southeast"])
-                interactables[x].describeThing("There is a door to the southeast. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the southeast door. "
-                )
-            elif d[x] == "sw":
-                r[x].southwest = self
-                interactables[x].setAdjectives(["southwest"])
-                interactables[x].describeThing("There is a door to the southwest. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the southwest door. "
-                )
-            else:
-                print("error: invalid direction input for DoorConnector: " + d[x])
+    EntranceAType = Door
+    EntranceBType = Door
+    entrance_name = "door"
+
+    def _prepareToCross(self, entrance):
+        if not entrance.is_open:
+            opened = OpenVerb().verbFunc(self.game, entrance)
+            if not opened:
+                return False
+        return True
 
     def setLock(self, lock_obj):
-        if isinstance(lock_obj, Lock):
-            if not lock_obj.parent_obj:
-                self.entranceA.lock_obj = lock_obj
-                self.entranceB.lock_obj = lock_obj.copyThingUniqueIx()
-                self.entranceA.lock_obj.twin = self.entranceB.lock_obj
-                self.entranceB.lock_obj.twin = self.entranceA.lock_obj
-                self.entranceA.lock_obj.parent_obj = self.entranceA
-                self.entranceB.lock_obj.parent_obj = self.entranceB
-                self.pointA.addThing(self.entranceA.lock_obj)
-                self.pointB.addThing(self.entranceB.lock_obj)
-                self.entranceA.lock_obj.setAdjectives(
-                    self.entranceA.lock_obj.adjectives
-                    + self.entranceA.adjectives
-                    + [self.entranceA.name]
-                )
-                self.entranceB.lock_obj.setAdjectives(
-                    self.entranceB.lock_obj.adjectives
-                    + self.entranceB.adjectives
-                    + [self.entranceB.name]
-                )
-            else:
-                print(
-                    "Cannot set lock_obj for "
-                    + self.entranceA.verbose_name
-                    + ": lock_obj.parent already set "
-                )
-        else:
-            print(
+        if not isinstance(lock_obj, Lock):
+            raise IFPError(
                 "Cannot set lock_obj for "
-                + self.entranceA.verbose_name
+                + self.entrance_a.verbose_name
                 + ": not a Lock "
             )
 
-    def travel(self, game):
-        outer_loc = game.me.getOutermostLocation()
-        preRemovePlayer(game)
-        if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceA.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
-        else:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceB.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
+        if lock_obj.parent_obj:
+            raise IFPError(
+                "Cannot set lock_obj for "
+                + self.entrance_a.verbose_name
+                + ": lock_obj.parent already set "
+            )
 
-        if not self.can_pass:
-            game.addTextToEvent("turn", self.cannot_pass_msg)
-            return False
-        elif outer_loc == self.pointA:
-            if not self.entranceA.is_open:
-                opened = OpenVerb().verbFunc(game, self.entranceA)
-                if not opened:
-                    return False
-            try:
-                barrier = self.barrierFunc(game)
-            except:
-                barrier = False
-            if barrier:
-                return False
-            # preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-            game.me.location = self.pointB
-            game.me.location.addThing(game.me)
-            if self.entranceA_msg:
-                game.addTextToEvent("turn", self.entranceA_msg)
-            else:
-                game.addTextToEvent(
-                    "turn",
-                    "You go through "
-                    + self.entranceA.getArticle(True)
-                    + self.entranceA.verbose_name
-                    + ". ",
-                )
-            game.me.location.describe(game)
-            return True
-        elif outer_loc == self.pointB:
-            if not self.entranceB.is_open:
-                opened = OpenVerb().verbFunc(game, self.entranceB)
-                if not opened:
-                    return False
-            try:
-                barrier = self.barrierFunc(game)
-            except:
-                barrier = False
-            if barrier:
-                return False
-            # preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-            game.me.location = self.pointA
-            game.me.location.addThing(game.me)
-            if self.entranceB_msg:
-                game.addTextToEvent("turn", self.entranceB_msg)
-            else:
-                game.addTextToEvent(
-                    "turn",
-                    "You go through "
-                    + self.entranceB.getArticle(True)
-                    + self.entranceB.verbose_name
-                    + ". ",
-                )
-
-            game.me.location.describe(game)
-            return True
-        else:
-            game.addTextToEvent("turn", "You cannot go that way. ")
-            return False
+        self.entrance_a.lock_obj = lock_obj
+        self.entrance_b.lock_obj = lock_obj.copyThingUniqueIx()
+        self.entrance_a.lock_obj.twin = self.entrance_b.lock_obj
+        self.entrance_b.lock_obj.twin = self.entrance_a.lock_obj
+        self.entrance_a.lock_obj.parent_obj = self.entrance_a
+        self.entrance_b.lock_obj.parent_obj = self.entrance_b
+        self.point_a.addThing(self.entrance_a.lock_obj)
+        self.point_b.addThing(self.entrance_b.lock_obj)
+        self.entrance_a.lock_obj.setAdjectives(
+            self.entrance_a.lock_obj.adjectives
+            + self.entrance_a.adjectives
+            + [self.entrance_a.name]
+        )
+        self.entrance_b.lock_obj.setAdjectives(
+            self.entrance_b.lock_obj.adjectives
+            + self.entrance_b.adjectives
+            + [self.entrance_b.name]
+        )
 
 
 class LadderConnector(TravelConnector):
     """Class for ladder travel connectors (up/down)
     Links two rooms together"""
 
+    entrance_synonyms = ["stairway", "stairs", "stair"]
+    entrance_name = "ladder"
+    default_travel_msg = "You climb {preposition} the {entrance.verbose_name}. "
+    entrance_a_preposition = "up"
+    entrance_b_preposition = "down"
+    default_description = "A {name} leads {full_direction}. "
+
     def __init__(self, game, room1, room2):
-        self.game = game
-        self.registerNewIndex()
-        self.is_top_level_location = False
-        self.pointA = room1
-        self.pointB = room2
-        self.entranceA_msg = None
-        self.entranceB_msg = None
-        r = [room1, room2]
-        d = ["u", "d"]
-        interactables = []
-        self.can_pass = True
-        self.cannot_pass_msg = "The way is blocked. "
-        self.entranceA = AbstractClimbable(self.game, "ladder")
-        self.entranceB = AbstractClimbable(self.game, "ladder")
-        self.interactables = [self.entranceA, self.entranceB]
-        self.entranceA.connection = self
-        self.entranceB.connection = self
-        self.entranceA.direction = "u"
-        self.entranceB.direction = "d"
-        interactables.append(self.entranceA)
-        interactables.append(self.entranceB)
-        for x in range(0, 2):
-            r[x].addThing(interactables[x])
-            if d[x] == "u":
-                r[x].up = self
-                interactables[x].setAdjectives(["upward"])
-                interactables[x].describeThing("There is a ladder leading up. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the ladder. "
-                )
-            elif d[x] == "d":
-                r[x].down = self
-                interactables[x].setAdjectives(["downward"])
-                interactables[x].describeThing("There is a ladder leading down. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the ladder. "
-                )
-            else:
-                print("error: invalid direction input for LadderConnector: " + d[x])
-
-    def travel(self, game):
-        try:
-            barrier = self.barrierFunc(game)
-        except:
-            barrier = False
-        if barrier:
-            return False
-        outer_loc = game.me.getOutermostLocation()
-        if outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceA.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
-            preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-            game.me.location = self.pointB
-            game.me.location.addThing(game.me)
-            if self.entranceA_msg:
-                game.addTextToEvent("turn", self.entranceA_msg)
-            else:
-                game.addTextToEvent("turn", "You climb the ladder. ")
-
-            game.me.location.describe(game)
-            return True
-        elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceB.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
-            preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-            game.me.location = self.pointA
-            game.me.location.addThing(game.me)
-            if self.entranceB_msg:
-                game.addTextToEvent("turn", self.entranceB_msg)
-            else:
-                game.addTextToEvent("turn", "You climb the ladder. ")
-
-            game.me.location.describe(game)
-            return True
-        else:
-            game.addTextToEvent("turn", "You cannot go that way. ")
-            return False
+        super().__init__(game, room1, "up", room2, "d")
 
 
 class StaircaseConnector(TravelConnector):
     """Class for staircase travel connectors (up/down)
     Links two rooms together"""
 
+    entrance_synonyms = ["stairway", "stairs", "stair"]
+    entrance_name = "staircase"
+    default_travel_msg = "You climb {preposition} the {entrance.verbose_name}. "
+    entrance_a_preposition = "up"
+    entrance_b_preposition = "down"
+    default_description = "A {name} leads {full_direction}. "
+
     def __init__(self, game, room1, room2):
-        self.game = game
-        self.registerNewIndex()
-        self.is_top_level_location = False
-        self.pointA = room1
-        self.pointB = room2
-        self.entranceA_msg = False
-        self.entranceB_msg = False
-        r = [room1, room2]
-        d = ["u", "d"]
-        interactables = []
-        self.can_pass = True
-        self.cannot_pass_msg = "The way is blocked. "
-        self.entranceA = AbstractClimbable(self.game, "staircase")
-        self.entranceB = AbstractClimbable(self.game, "staircase")
-        self.entranceA.addSynonym("stairway")
-        self.entranceB.addSynonym("stairway")
-        self.entranceA.addSynonym("stairs")
-        self.entranceB.addSynonym("stairs")
-        self.entranceA.addSynonym("stair")
-        self.entranceB.addSynonym("stair")
-        self.entranceA.connection = self
-        self.entranceB.connection = self
-        self.entranceA.direction = "u"
-        self.entranceB.direction = "d"
-        interactables.append(self.entranceA)
-        interactables.append(self.entranceB)
-        for x in range(0, 2):
-            r[x].addThing(interactables[x])
-            if d[x] == "u":
-                r[x].up = self
-                interactables[x].setAdjectives(["upward"])
-                interactables[x].describeThing("There is a staircase leading up. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the staircase "
-                )
-            elif d[x] == "d":
-                r[x].down = self
-                interactables[x].setAdjectives(["downward"])
-                interactables[x].describeThing("There is a staircase leading down. ")
-                interactables[x].xdescribeThing(
-                    "You notice nothing remarkable about the staircase. "
-                )
-            else:
-                print("error: invalid direction input for StaircaseConnector: " + d[x])
-
-    def travel(self, game):
-        try:
-            barrier = self.barrierFunc(game)
-        except:
-            barrier = False
-        if barrier:
-            return False
-        outer_loc = game.me.getOutermostLocation()
-        if not self.can_pass:
-            game.addTextToEvent("turn", self.cannot_pass_msg)
-            return False
-        elif outer_loc == self.pointA:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceA.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
-            preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-            game.me.location = self.pointB
-            game.me.location.addThing(game.me)
-            if self.entranceA_msg:
-                game.addTextToEvent("turn", self.entranceA_msg)
-            else:
-                game.addTextToEvent("turn", "You climb the staircase. ")
-
-            game.me.location.describe(game)
-            return True
-        elif outer_loc == self.pointB:
-            if not outer_loc.resolveDarkness(game) and (
-                self.entranceB.direction not in outer_loc.dark_visible_exits
-            ):
-                game.addTextToEvent("turn", outer_loc.dark_msg)
-                return False
-            preRemovePlayer(game)
-            if game.me.location:
-                game.me.location.removeThing(game.me)
-            game.me.location = self.pointA
-            game.me.location.addThing(game.me)
-            if self.entranceB_msg:
-                game.addTextToEvent("turn", self.entranceB_msg)
-            else:
-                game.addTextToEvent("turn", "You climb the staircase. ")
-
-            game.me.location.describe(game)
-            return True
-        else:
-            game.addTextToEvent("turn", "You cannot go that way. ")
-            return False
+        super().__init__(game, room1, "up", room2, "d")
 
 
 # travel functions, called by getDirection in parser.py
@@ -803,28 +379,48 @@ def travelIn(game):
 
 # maps user input to travel functions
 directionDict = {
-    "n": {"func": travelN, "full": "north", "short": "n",},
-    "north": {"func": travelN, "full": "north", "short": "n",},
-    "ne": {"func": travelNE, "full": "northeast", "short": "ne",},
-    "northeast": {"func": travelNE, "full": "northeast", "short": "ne",},
-    "e": {"func": travelE, "full": "east", "short": "e",},
-    "east": {"func": travelE, "full": "east", "short": "e",},
-    "se": {"func": travelSE, "full": "southeast", "short": "se",},
-    "southeast": {"func": travelSE, "full": "southeast", "short": "se",},
-    "s": {"func": travelS, "full": "south", "short": "s",},
-    "south": {"func": travelS, "full": "south", "short": "s",},
-    "sw": {"func": travelSW, "full": "southwest", "short": "sw",},
-    "southwest": {"func": travelSW, "full": "southwest", "short": "sw",},
-    "w": {"func": travelW, "full": "west", "short": "w",},
-    "west": {"func": travelW, "full": "west", "short": "w",},
-    "nw": {"func": travelNW, "full": "northwest", "short": "nw",},
-    "northwest": {"func": travelNW, "full": "northwest", "short": "nw",},
-    "up": {"func": travelU, "full": "up", "short": "u",},
-    "u": {"func": travelU, "full": "up", "short": "u",},
-    "upward": {"func": travelU, "full": "up", "short": "u",},
-    "down": {"func": travelD, "full": "down", "short": "d",},
-    "d": {"func": travelD, "full": "down", "short": "d",},
-    "downward": {"func": travelD, "full": "down", "short": "d",},
-    "in": {"func": travelIn, "full": "entrance", "short": "in",},
-    "out": {"func": travelOut, "full": "exit", "short": "out",},
+    "n": {"func": travelN, "full": "north", "short": "n", "adj": "north"},
+    "north": {"func": travelN, "full": "north", "short": "n", "adj": "north"},
+    "ne": {"func": travelNE, "full": "northeast", "short": "ne", "adj": "northeast"},
+    "northeast": {
+        "func": travelNE,
+        "full": "northeast",
+        "short": "ne",
+        "adj": "northeast",
+    },
+    "e": {"func": travelE, "full": "east", "short": "e", "adj": "east"},
+    "east": {"func": travelE, "full": "east", "short": "e", "adj": "east"},
+    "se": {"func": travelSE, "full": "southeast", "short": "se", "adj": "southeast"},
+    "southeast": {
+        "func": travelSE,
+        "full": "southeast",
+        "short": "se",
+        "adj": "southeast",
+    },
+    "s": {"func": travelS, "full": "south", "short": "s", "adj": "south"},
+    "south": {"func": travelS, "full": "south", "short": "s", "adj": "south"},
+    "sw": {"func": travelSW, "full": "southwest", "short": "sw", "adj": "southwest"},
+    "southwest": {
+        "func": travelSW,
+        "full": "southwest",
+        "short": "sw",
+        "adj": "southwest",
+    },
+    "w": {"func": travelW, "full": "west", "short": "w", "adj": "west"},
+    "west": {"func": travelW, "full": "west", "short": "w", "adj": "west"},
+    "nw": {"func": travelNW, "full": "northwest", "short": "nw", "adj": "northwest"},
+    "northwest": {
+        "func": travelNW,
+        "full": "northwest",
+        "short": "nw",
+        "adj": "northwest",
+    },
+    "up": {"func": travelU, "full": "up", "short": "u", "adj": "upward"},
+    "u": {"func": travelU, "full": "up", "short": "u", "adj": "upward"},
+    "upward": {"func": travelU, "full": "up", "short": "u", "adj": "upward"},
+    "down": {"func": travelD, "full": "down", "short": "d", "adj": "downward"},
+    "d": {"func": travelD, "full": "down", "short": "d", "adj": "downward"},
+    "downward": {"func": travelD, "full": "down", "short": "d", "adj": "downward"},
+    "in": {"func": travelIn, "full": "entrance", "short": "in", "adj": "in"},
+    "out": {"func": travelOut, "full": "exit", "short": "out", "adj": "out"},
 }

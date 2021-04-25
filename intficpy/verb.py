@@ -3557,7 +3557,7 @@ class LeadDirVerb(IndirectObjectVerb):
                     destination = destination.pointA
             dobj.location.removeThing(dobj)
             destination.addThing(dobj)
-            directionDict[iobj](game)
+            directionDict[iobj]["func"](game)
         else:
             game.addTextToEvent(
                 "turn", dobj.capNameArticle(True) + " doesn't want to be led. "
