@@ -11,20 +11,17 @@ class Openable(Thing):
     Inheriting from this class means that instances can be made openable
     """
 
+    is_open_desc__true = "It is open. "
+    is_open_desc__false = "It is closed. "
+
     IS_OPEN_DESC_KEY = "is_open_desc"
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._is_open_desc__true = "It is open. "
-        self._is_open_desc__false = "It is closed. "
 
     @property
     def is_open_desc(self):
         """
         Describes the objects open/closed state in words
         """
-        return self._is_open_desc__true if self.is_open else self._is_open_desc__false
+        return self.is_open_desc__true if self.is_open else self.is_open_desc__false
 
     @property
     def is_locked_desc(self):
@@ -45,9 +42,10 @@ class Unremarkable(Thing):
     most of the time.
     """
 
+    invItem = False
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.invItem = False
         self.known_ix = None
 
     @property
@@ -61,19 +59,15 @@ class Unremarkable(Thing):
 class Surface(Thing):
     """Class for Things that can have other Things placed on them """
 
-    def __init__(self, game, name):
-        """Sets the essential properties for a new Surface object """
-        super().__init__(game, name)
+    contains_preposition = "on"
+    contains_on = True
+    contains_preposition_inverse = "off"
 
-        self.contains_preposition = "on"
-        self.contains_on = True
-        self.contains_preposition_inverse = "off"
+    can_contain_sitting_player = False
+    can_contain_standing_player = False
+    can_contain_lying_player = False
 
-        self.can_contain_sitting_player = False
-        self.can_contain_standing_player = False
-        self.can_contain_lying_player = False
-
-        self.desc_reveal = True
+    desc_reveal = True
 
 
 # NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
@@ -82,18 +76,12 @@ class Container(Openable):
 
     holds_liquid = False
 
-    def __init__(self, game, name):
-        """
-        Set basic properties for the Container instance
-        Takes argument name, a single noun (string)
-        """
-        super().__init__(game, name)
-        self.size = 50
-        self.desc_reveal = True
-        self.xdesc_reveal = True
-        self.contains_preposition = "in"
-        self.contains_in = True
-        self.contains_preposition_inverse = "out"
+    size = 50
+    desc_reveal = True
+    xdesc_reveal = True
+    contains_preposition = "in"
+    contains_in = True
+    contains_preposition_inverse = "out"
 
     @property
     def contains_desc(self):
@@ -167,13 +155,32 @@ class Clothing(Thing):
 
     # all clothing is wearable
     wearable = True
-    # uses __init__ from Thing
 
 
 class LightSource(Thing):
     """Class for Things that are light sources """
 
     IS_LIT_DESC_KEY = "is_lit_desc"
+
+    is_lit = False
+    player_can_light = True
+    player_can_extinguish = True
+    consumable = False
+    turns_left = 20
+
+    room_lit_msg = None
+    light_msg = None
+    already_lit_msg = None
+    extinguish_msg = None
+    already_extinguished_msg = None
+    cannot_light_msg = None
+    cannot_extinguish_msg = None
+    cannot_light_expired_msg = None
+    extinguishing_expired_msg = None
+    expiry_warning = None
+    lit_desc = "It is currently lit. "
+    not_lit_desc = "It is currently not lit. "
+    expired_desc = "It is burnt out. "
 
     def __init__(self, game, name):
         """
@@ -183,11 +190,7 @@ class LightSource(Thing):
         super().__init__(game, name)
 
         # LightSource properties
-        self.is_lit = False
-        self.player_can_light = True
-        self.player_can_extinguish = True
-        self.consumable = False
-        self.turns_left = 20
+
         self.room_lit_msg = "The " + self.name + " lights your way. "
         self.light_msg = "You light the " + self.name + ". "
         self.already_lit_msg = "The " + self.name + " is already lit. "
@@ -200,9 +203,6 @@ class LightSource(Thing):
             "The light of the " + self.name + " dims to nothing. "
         )
         self.expiry_warning = "The " + self.name + " flickers. "
-        self.lit_desc = "It is currently lit. "
-        self.not_lit_desc = "It is currently not lit. "
-        self.expired_desc = "It is burnt out. "
 
         self.consumeLightSourceDaemon = Daemon(
             self.game, self.consumeLightSourceDaemonFunc
@@ -281,10 +281,7 @@ class AbstractClimbable(Thing):
     """Represents one end of a staircase or ladder.
 	Creators should generally use a LadderConnector or StaircaseConnector (travel.py) rather than directly creating AbstractClimbable instances. """
 
-    def __init__(self, game, name):
-        """Sets essential properties for the AbstractClimbable instance """
-        super().__init__(game, name)
-        self.invItem = False
+    invItem = False
 
 
 class Door(Openable):
@@ -295,10 +292,11 @@ class Door(Openable):
     directly.
     """
 
+    invItem = False
+
     def __init__(self, game, name):
         """Sets essential properties for the Door instance """
         super().__init__(game, name)
-        self.invItem = False
 
         self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
 
@@ -330,16 +328,20 @@ class Lock(Thing):
 
     IS_LOCKED_DESC_KEY = "is_locked_desc"
 
+    invItem = False
+
+    is_locked = False
+    key_obj = None
+
+    is_locked_desc__true = "It is currently locked. "
+    is_locked_desc__false = "It is currently unlocked. "
+
     def __init__(self, game, is_locked, key_obj, name="lock"):
         """Sets essential properties for the Lock instance """
         super().__init__(game, name)
 
         self.is_locked = is_locked
         self.key_obj = key_obj
-        self.invItem = False
-
-        self._is_locked_desc__true = "It is currently locked. "
-        self._is_locked_desc__flase = "It is currently unlocked. "
         self.state_descriptors.append(self.IS_LOCKED_DESC_KEY)
 
     @property
@@ -348,9 +350,7 @@ class Lock(Thing):
         Descripe the item's locked/unlocked state in words
         """
         return (
-            self._is_locked_desc__true
-            if self.is_locked
-            else self._is_locked_desc__false
+            self.is_locked_desc__true if self.is_locked else self.is_locked_desc__false
         )
 
     def makeUnlocked(self):
@@ -371,21 +371,17 @@ class Lock(Thing):
 class Abstract(Thing):
     """Class for abstract game items with no location, such as ideas"""
 
-    def __init__(self, game, name):
-        super().__init__(game, name)
+    pass
 
 
 class UnderSpace(Thing):
     """Things that can have other Things underneath """
 
-    def __init__(self, game, name):
-        super().__init__(game, name)
-
-        self.size = 50
-        self.contains_preposition = "under"
-        self.contains_under = True
-        self.contains_preposition_inverse = "out"
-        self.revealed = False
+    size = 50
+    contains_preposition = "under"
+    contains_under = True
+    contains_preposition_inverse = "out"
+    revealed = False
 
     @property
     def component_desc(self):
@@ -439,10 +435,6 @@ class Transparent(Thing):
 	Set the look_through_desc property to print the same string every time look through [instance as dobj] is used
 	Replace default lookThrough method for more complicated behaviour """
 
-    def __init__(self, game, name):
-        """Sets essential properties for the Transparent instance """
-        super().__init__(game, name)
-
     def lookThrough(self, game):
         """Called when the Transparent instance is dobj for verb look through
 		Creators should overwrite for more complex behaviour """
@@ -457,6 +449,8 @@ class Readable(Thing):
 
     Replace default readText method for more complicated behaviour
     """
+
+    read_desc = "There's nothing written here. "
 
     def __init__(self, game, name, text="There's nothing written here. "):
         """Sets essential properties for the Readable instance """
@@ -473,10 +467,11 @@ class Readable(Thing):
 class Book(Openable, Readable):
     """Readable that can be opened """
 
+    is_open = False
+
     def __init__(self, game, name, text="There's nothing written here. "):
         """Sets essential properties for the Book instance """
         super().__init__(game, name, text)
-        self.is_open = False
         self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
 
 
@@ -486,10 +481,6 @@ class Pressable(Thing):
     Game creators should redefine the pressThing method for the instance to trigger
     events when the PRESS/PUSH verb is used
     """
-
-    def __init__(self, game, name):
-        """Sets essential properties for the Pressable instance """
-        super().__init__(game, name)
 
     def pressThing(self, game):
         """Game creators should redefine this method for their Pressable instances """
@@ -505,6 +496,18 @@ class Liquid(Thing):
     trigger events when the press/push verb is used
     """
 
+    liquid_type = None
+    liquid_for_transfer = None
+    can_drink = True
+    can_pour_out = True
+    can_fill_from = True
+    infinite_well = False
+    cannot_pour_out_msg = "You shouldn't dump that out. "
+    cannot_drink_msg = "You shouldn't drink that. "
+    cannot_fill_from_msg = None
+
+    is_numberless = True
+
     def __init__(self, game, name, liquid_type):
         """
         Sets essential properties for the Liquid instance
@@ -515,20 +518,11 @@ class Liquid(Thing):
         Replace the mixWith property to allow mixing of Liquids
         """
         super().__init__(game, name)
-
-        self.can_drink = True
-        self.can_pour_out = True
-        self.can_fill_from = True
-        self.infinite_well = False
         self.liquid_for_transfer = self
         self.liquid_type = liquid_type
         self.cannot_fill_from_msg = (
             "You are unable to collect any of the spilled " + name + ". "
         )
-        self.cannot_pour_out_msg = "You shouldn't dump that out. "
-        self.cannot_drink_msg = "You shouldn't drink that. "
-
-        self.is_numberless = True
 
     def getContainer(self):
         """Redirect to the Container rather than the Liquid for certain verbs (i.e. take) """
