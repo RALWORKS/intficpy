@@ -1,7 +1,7 @@
 from ..helpers import IFPTestCase
 
 from intficpy.thing_base import Thing
-from intficpy.things import Surface, Container, Liquid, UnderSpace
+from intficpy.things import Surface, Container, Liquid, UnderSpace, Lock
 from intficpy.verb import GetVerb
 
 
@@ -225,3 +225,110 @@ class TestTakeAll(IFPTestCase):
         self.game.turnMain("take all")
 
         self.assertTrue(self.game.me.containsItem(hat))
+
+
+class TestRemoveFrom(IFPTestCase):
+    def test_remove_me(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        self.game.me.moveTo(box)
+        self.game.turnMain("remove me from box")
+        self.assertIn("cannot take yourself", self.app.print_stack.pop())
+
+    def test_remove_object_from_something_the_object_is_not_in(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        glob = Thing(self.game, "glob")
+        glob.moveTo(self.start_room)
+        self.game.turnMain("remove glob from box")
+        self.assertIn("The glob is not in the box. ", self.app.print_stack)
+
+    def test_remove_object_already_in_top_level_inventory(self):
+        glob = Thing(self.game, "glob")
+        glob.moveTo(self.me)
+        self.game.turnMain("remove glob from me")
+        self.assertIn("You are currently holding the glob. ", self.app.print_stack)
+
+    def test_remove_object_from_locked_closed_container(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        box.giveLid()
+        box.setLock(Lock(self.game, True, None))
+        box.revealed = True
+        glob = Thing(self.game, "glob")
+        glob.moveTo(box)
+        self.game.turnMain("remove glob from box")
+        self.assertIn("The box is locked. ", self.app.print_stack)
+        self.assertIs(glob.location, box)
+
+    def test_remove_non_inv_item(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        glob = Thing(self.game, "glob")
+        glob.invItem = False
+        glob.moveTo(box)
+        self.game.turnMain("remove glob from box")
+        self.assertIn(glob.cannotTakeMsg, self.app.print_stack)
+        self.assertIs(glob.location, box)
+
+    def test_remove_child_composite_object(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        glob = Thing(self.game, "glob")
+        glob.moveTo(box)
+        drip = Thing(self.game, "drip")
+        glob.addComposite(drip)
+        self.game.turnMain("remove drip from box")
+        self.assertIn(drip.cannotTakeMsg, self.app.print_stack)
+        self.assertIs(drip.location, box)
+
+    def test_remove_object_containing_player(self):
+        pedestal = Surface(self.game, "pedestal")
+        pedestal.moveTo(self.start_room)
+        box = Container(self.game, "box")
+        box.moveTo(pedestal)
+        self.me.moveTo(box)
+        self.game.turnMain("remove box from pedestal")
+        self.assertIn("You are currently in the box", self.app.print_stack.pop())
+        self.assertIs(box.location, pedestal)
+
+    def test_remove_underspace_not_containing_items(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        rug = UnderSpace(self.game, "rug")
+        rug.moveTo(box)
+        self.game.turnMain("remove rug from box")
+        msg = self.app.print_stack.pop()
+        self.assertNotIn("revealed", msg)
+
+    def test_remove_underspace_containing_items(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        rug = UnderSpace(self.game, "rug")
+        rug.moveTo(box)
+        penny = Thing(self.game, "penny")
+        bead = Thing(self.game, "bead")
+        penny.moveTo(rug)
+        bead.moveTo(rug)
+        self.game.turnMain("remove rug from box")
+        msg = self.app.print_stack.pop()
+        self.assertIn("penny", msg)
+        self.assertIn("bead", msg)
+        self.assertIn("are revealed", msg)
+        self.assertIs(penny.location, box)
+        self.assertIs(bead.location, box)
+
+    def test_remove_item_with_component_underspace_containing_items(self):
+        box = Container(self.game, "box")
+        box.moveTo(self.start_room)
+        mishmash = Thing(self.game, "mishmash")
+        rug = UnderSpace(self.game, "rug")
+        mishmash.addComposite(rug)
+        mishmash.moveTo(box)
+        penny = Thing(self.game, "penny")
+        penny.moveTo(rug)
+        self.game.turnMain("remove mishmash from box")
+        msg = self.app.print_stack.pop()
+        self.assertIn("penny", msg)
+        self.assertIn("is revealed", msg)
+        self.assertIs(penny.location, box)

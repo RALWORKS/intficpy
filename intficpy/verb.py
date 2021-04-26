@@ -404,11 +404,20 @@ class GetAllVerb(Verb):
 # REMOVE FROM
 # move to top inventory level - used by parser for implicit actions
 class RemoveFromVerb(IndirectObjectVerb):
-    word = None
-    list_by_default = False
-    # syntax = [["remove", "<dobj>", "from", "<iobj>"]]
+    word = "remove"
+    syntax = [["remove", "<dobj>", "from", "<iobj>"]]
     dscope = "near"
-    #     preposition = ["from"]
+    preposition = ["from"]
+
+    def _revealUnderSpace(self, game, item):
+        if not item.contains:
+            return
+        msg, plural = item.moveContentsOut()
+        if plural:
+            msg = msg.capitalize() + " are revealed. "
+        else:
+            msg = msg.capitalize() + " is revealed. "
+        game.addTextToEvent("turn", msg)
 
     def verbFunc(self, game, dobj, iobj, skip=True):
         """Remove a Thing from a Thing
@@ -417,80 +426,47 @@ class RemoveFromVerb(IndirectObjectVerb):
         if dobj == game.me:
             game.addTextToEvent("turn", "You cannot take yourself. ")
             return False
-        elif dobj.location != iobj:
+        if dobj.location != iobj:
             game.addTextToEvent(
                 "turn",
-                dobj.capNameArticle(True)
-                + " is not "
-                + prep
-                + " "
-                + iobj.lowNameArticle(True),
+                f"{dobj.capNameArticle(True)} is not {prep} {iobj.lowNameArticle(True)}. ",
             )
             return False
-        elif iobj == game.me:
+        if iobj == game.me:
             game.addTextToEvent(
-                "turn", "You are currently holding " + dobj.lowNameArticle(True) + ". "
+                "turn", f"You are currently holding {dobj.lowNameArticle(True)}. "
             )
             return True
-        if isinstance(iobj, Container):
-            if not iobj.is_open:
-                game.addTextToEvent(
-                    "turn", "(First trying to open " + iobj.lowNameArticle(True) + ")"
-                )
-                success = OpenVerb().verbFunc(game, iobj)
-                if not success:
-                    return False
+        if isinstance(iobj, Container) and iobj.has_lid and not iobj.is_open:
+            game.addTextToEvent(
+                "turn", f"(First trying to open {iobj.lowNameArticle(True)})"
+            )
+            success = OpenVerb().verbFunc(game, iobj)
+            if not success:
+                return False
         if not dobj.invItem:
             game.addTextToEvent("turn", dobj.cannotTakeMsg)
-            return False
-        if dobj.parent_obj:
-            game.addTextToEvent(
-                "turn",
-                dobj.capNameArticle(True)
-                + " is attached to "
-                + dobj.parent_obj.capNameArticle(True),
-            )
             return False
         if dobj.containsItem(game.me):
             game.addTextToEvent(
                 "turn",
-                "You are currently "
-                + dobj.contains_preposition
-                + " "
-                + dobj.lowNameArticle
-                + ", and therefore cannot take it. ",
+                f"You are currently {dobj.contains_preposition} "
+                f"{dobj.lowNameArticle(True)}, and therefore cannot take it. ",
             )
             return False
         game.addTextToEvent(
             "turn",
-            "You remove "
-            + dobj.lowNameArticle(True)
-            + " from "
-            + iobj.lowNameArticle(True)
-            + ". ",
+            f"You remove {dobj.lowNameArticle(True)} from {iobj.lowNameArticle(True)}. ",
         )
+        if isinstance(dobj, UnderSpace):
+            self._revealUnderSpace(game, dobj)
+        if dobj.is_composite:
+            for item in dobj.child_UnderSpaces:
+                self._revealUnderSpace(game, item)
+
         iobj.removeThing(dobj)
         game.me.addThing(dobj)
-        if isinstance(dobj, UnderSpace) and not dobj.contains == {}:
-            results = dobj.moveContentsOut()
-            msg = results[0]
-            plural = results[1]
-            if plural:
-                msg = msg.capitalize() + " are revealed. "
-            else:
-                msg = msg.capitalize() + " is revealed. "
-            game.addTextToEvent("turn", msg)
-            if dobj.is_composite:
-                for item in dobj.child_UnderSpaces:
-                    if not item.contains == {}:
-                        results = item.moveContentsOut()
-                        msg = results[0]
-                        plural = results[1]
-                        if plural:
-                            msg = msg.capitalize() + " are revealed. "
-                        else:
-                            msg = msg.capitalize() + " is revealed. "
-                        game.addTextToEvent("turn", msg)
+
         return True
 
 
