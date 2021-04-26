@@ -11,90 +11,105 @@ from .physical_entity import PhysicalEntity
 class Thing(PhysicalEntity):
     """Thing is the overarching class for all items that exist in the game """
 
+    ignore_if_ambiguous = False
+    cannot_interact_msg = None
+
+    # TRAVELCONNECTOR FACE
+    twin = None
+    connection = None
+    direction = None
+
+    # CONTENTS
+    # contain type flags
+    contains_on = False
+    contains_in = False
+    contains_under = False
+
+    # is valid Player location?
+    can_contain_sitting_player = False
+    can_contain_standing_player = False
+    can_contain_lying_player = False
+
+    # language
+    # TODO: these should default to in/out (out of?) to eliminate the null check
+    contains_preposition = "on"
+    contains_preposition_inverse = "off"
+    desc_reveal = True
+    xdesc_reveal = True
+
+    # COMPOSITE OBJECTS
+    is_composite = False  # TODO: replace if x.composite with if x.children
+    parent_obj = None
+    lock_obj = None
+    children_desc = None
+
+    # TODO: refactor: duplicate storing of all children seems unnecessary
+    child_Things = None
+    child_Surfaces = None
+    child_Containers = None
+    child_UnderSpaces = None
+    children = None
+
+    # OPEN/CLOSE
+    has_lid = False
+    is_open = False
+
+    # STATES
+    state_descriptors = None
+
+    # thing properties
+    far_away = False
+    size = 50
+
+    # ARTICLES & PLURALIZATION
+    is_plural = False
+    special_plural = None
+    has_proper_name = False
+    is_definite = False
+    is_numberless = False
+
+    # LOCATION & INVITEM STATUS
+    location = None
+    invItem = True
+
+    # ACTION MESSAGES
+    cannotTakeMsg = "You cannot take that."
+
+    # VOCABULARY
+    adjectives = None
+    name = None
+    synonyms = None
+    full_name = None
+
+    # CAPABILITIES
+    # can I do x with this?
+    wearable = False
+    commodity = True
+
+    # TODO: reevalute how this works
+    # should the item take objects given to it? Irrelevant if not Actor
+    give = False
+
+    # DESCRIPTION
+    description = None
+    x_description = None
+
     def __init__(self, game, name):
         super().__init__(game)
 
+        self.name = name
         self.known_ix = self.ix
-        self.ignore_if_ambiguous = False
-        self.cannot_interact_msg = None
 
-        # TRAVELCONNECTOR FACE
-        self.twin = None
-        self.connection = None
-        self.direction = None
-
-        # CONTENTS
-        # contain type flags
-        self.contains_on = False
-        self.contains_in = False
-        self.contains_under = False
-        # is valid Player location?
-        self.can_contain_sitting_player = False
-        self.can_contain_standing_player = False
-        self.can_contain_lying_player = False
-        # language
-        # TODO: these should default to in/out (out of?) to eliminate the null check
-        self.contains_preposition = "on"
-        self.contains_preposition_inverse = "off"
-        self.desc_reveal = True
-        self.xdesc_reveal = True
-
-        # COMPOSITE OBJECTS
-        self.is_composite = False  # TODO: replace if x.composite with if x.children
-        self.parent_obj = None
-        self.lock_obj = None
-        self.children_desc = None
-        # TODO: refactor: duplicate storing of all children seems unnecessary
         self.child_Things = []
         self.child_Surfaces = []
         self.child_Containers = []
         self.child_UnderSpaces = []
         self.children = []
 
-        # OPEN/CLOSE
-        self.has_lid = False
-        self.is_open = False
-
-        # STATES
         self.state_descriptors = []
 
-        # thing properties
-        self.far_away = False
-
-        self.size = 50
-
-        # ARTICLES & PLURALIZATION
-        self.is_plural = False
-        self.special_plural = False
-        self.has_proper_name = False
-        self.is_definite = False
-        self.is_numberless = False
-
-        # LOCATION & INVITEM STATUS
-        self.location = False
-        self.invItem = True
-
-        # ACTION MESSAGES
-        self.cannotTakeMsg = "You cannot take that."
-
-        # VOCABULARY
         self.adjectives = []
-        self.name = name
         self.synonyms = []
-        self.full_name = None
-
-        # CAPABILITIES
-        # can I do x with this?
-        self.wearable = False
-        self.commodity = True
-
-        # TODO: reevalute how this works
-        # should the item take objects given to it? Irrelevant if not Actor
-        self.give = False
-
-        # DESCRIPTION
-        self.description = None
-        self.x_description = None
 
         # add name to list of nouns
         if name in self.game.nouns:
