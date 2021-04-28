@@ -132,7 +132,9 @@ class IFPGame:
             [
                 event
                 for name, event in self.next_events.items()
-                if not ((not self.echo_on) and name == "command")
+                if event.priority is not None
+                and event._text
+                and not ((not self.echo_on) and name == "command")
             ],
             key=lambda x: x.priority,
         )
@@ -190,6 +192,31 @@ class IFPGame:
             )
         self.next_events[name] = IFPEvent(self, priority, text, style)
 
+    def addSubEvent(self, outer_name, name, text=None):
+        """
+        Add a sub event to an event on the current turn
+
+        Raises ValueError if an event of the specified name is already defined
+        for this turn, and KeyError if the outer event is not defined for the
+        current turn
+
+        :param outer_name: the name of the event to add the sub event into
+        :type outer_name: str
+        :param name: the name of the new event (sub event) to add
+        :type name: str
+        """
+        if not outer_name in self.next_events:
+            raise KeyError(
+                f"Cannot add sub event to outer event '{outer_name}': "
+                "Outer event does not exist in the current turn."
+            )
+        if name in self.next_events:
+            raise ValueError(
+                f"Cannot add event with name '{name}': "
+                "Name is already used for current turn."
+            )
+        self.next_events[name] = self.next_events[outer_name].addSubEvent(text=text)
+
     def addTextToEvent(self, name, text):
         """
         Add text to an event in the current turn
@@ -202,7 +229,7 @@ class IFPGame:
             raise KeyError(
                 f"Event with name '{name}' does not yet exist in current turn. "
             )
-        self.next_events[name].text.append(text)
+        self.next_events[name]._text.append(text)
 
     def addText(self, text):
         """
