@@ -73,7 +73,11 @@ class Thing(PhysicalEntity):
     invItem = True
 
     # ACTION MESSAGES
-    cannotTakeMsg = "You cannot take that."
+    cannotTakeMsg = "You cannot take that. "
+    empty_msg = None
+    default_cannot_add_item_msg = (
+        "You cannot put anything {preposition} the {self.verbose_name}. "
+    )
 
     # VOCABULARY
     adjectives = None
@@ -110,6 +114,10 @@ class Thing(PhysicalEntity):
 
         self.adjectives = []
         self.synonyms = []
+
+        self.empty_msg = (
+            f"The {self.name} has nothing {self.contains_preposition or 'in'} " "it. "
+        )
 
         # add name to list of nouns
         if name in self.game.nouns:
@@ -446,3 +454,125 @@ class Thing(PhysicalEntity):
     def describeChildren(self, description):
         self.children_desc = description
         self.containsListUpdate()
+
+    def containsLiquid(self):
+        """Returns the first liquid found in the `contains`, or None"""
+        for key in self.contains:
+            for item in self.contains[key]:
+                if getattr(item, "liquid_type", None):
+                    return item
+        return None
+
+    def liquidRoomLeft(self):
+        """Returns the portion of the Container's size not taken up by a liquid"""
+        liquid = self.containsLiquid()
+        if not liquid:
+            return self.size
+        return self.size - liquid.size
+
+    def playerMovesTo(self, item, event="turn", **kwargs):
+        """
+        The result of a player trying to add this item to some other item's contains.
+        Returns True if this can be done, otherwise, prints a rejection message for
+        the player, and returns False.
+
+        :param item: the item the player is trying to add this Thing into
+        :type item: Thing
+        :rtype: bool
+        """
+        self.moveTo(item)
+        return True
+
+    def implicitAddItemToChild(self, item, preposition, event="turn", **kwargs):
+        """
+        Try to interpret the player's instruction to add an item to this item, as an
+        instruction to add an item to a *component* of this item.
+
+        For example, we might try interpreting "put bead in night table" as an attempt
+        to put the bead in the *drawer* of the night table.
+
+        :param item: the item to attempt to add
+        :type item: Thing
+        :param preposition: the contains preposition (on, in, under, etc.) to search
+            for in the child items
+        :type preposition: str
+        """
+        matching_children = [
+            c for c in self.children if c.contains_preposition == preposition
+        ]
+        if not matching_children:
+            return False
+        success = matching_children[0].playerAddsItem(item, preposition)
+        if success:
+            return True
+
+    def playerAddsItem(self, item, preposition, event="turn", **kwargs):
+        """
+        The result of a player trying to add an item to this item's contents.
+        For base Things, this tries to find an appropriate child item to add to, and
+        prints the default_cannot_add_item_msg failing that.
+
+        Returns True on success, else False.
+
+        :param item: the item to attempt to add
+        :type item: Thing
+        :param preposition: the contains preposition the player wants to add the item with
+            (in/on/etc.)
+        :type preposition: str
+        """
+        success = self.implicitAddItemToChild(item, preposition)
+        if success:
+            return True
+
+        self.game.addText(
+            self.default_cannot_add_item_msg.format(self=self, preposition=preposition)
+        )
+        return False
+
+    def playerDumpsItems(
+        self,
+        into_location=None,
+        success_msg=None,
+        event="turn",
+        preposition="in",
+        **kwargs,
+    ):
+        """
+        The result of a player trying to dump the items.
+
+        Returns True on success, else False.
+
+        :param into_location: the location to dump items into
+        :type into_location: Thing
+        """
+        if not self.topLevelContentsList:
+            self.game.addText(self.empty_msg)
+            return False
+
+        success = False
+
+        IMPLICIT_EVENT = f"{event}_dump_implicit"
+        self.game.addSubEvent(event, IMPLICIT_EVENT)
+        ACTION_EVENT = f"{event}_dump_action"
+        self.game.addSubEvent(event, ACTION_EVENT)
+        RESULTS_EVENT = f"{event}_dump_results"
+        self.game.addSubEvent(event, RESULTS_EVENT)
+
+        if into_location:
+            for t in self.topLevelContentsList:
+                if into_location.playerAddsItem(
+                    t, preposition, event=IMPLICIT_EVENT, results_event=RESULTS_EVENT
+                ):
+                    success = True
+        else:
+            for t in self.topLevelContentsList:
+                t.moveTo(self.game.me.location)
+                success = True
+
+        if not success:
+            return False
+
+        if success_msg:
+            self.game.addTextToEvent(ACTION_EVENT, success_msg)
+
+        return True

@@ -5,6 +5,36 @@ from .thing_base import Thing
 from .daemons import Daemon
 
 
+class Holder(Thing):
+    """
+    An item that can hold or contain another item.
+
+    This is the base class for Surfaces, Container,
+    UnderSpaces, etc.
+    """
+
+    contains_preposition = "in"
+
+    def playerAddsItem(self, item, preposition, event="turn", **kwargs):
+        """
+        The result of a player trying to add an item to this item's contents.
+        If the player is attempting to add an item "in" this item (or, in the case of
+        customized contains preposition, if the the preposition matches that of this
+        item), we move the item to our `contains`.
+
+        Returns True on success, else False.
+
+        :param item: the item to attempt to add
+        :type item: Thing
+        :param preposition: the contains preposition the player wants to add the item with
+            (in/on/etc.)
+        :type preposition: str
+        """
+        if preposition == self.contains_preposition:
+            return item.playerMovesTo(self, event=event, **kwargs)
+        return super().playerAddsItem(item, preposition, event=event, **kwargs)
+
+
 class Openable(Thing):
     """
     An item that can be opened.
@@ -56,7 +86,7 @@ class Unremarkable(Thing):
         return ""
 
 
-class Surface(Thing):
+class Surface(Holder):
     """Class for Things that can have other Things placed on them """
 
     contains_preposition = "on"
@@ -70,8 +100,7 @@ class Surface(Thing):
     desc_reveal = True
 
 
-# NOTE: Container duplicates a lot of code from Surface. Consider a parent class for Things with a contains property
-class Container(Openable):
+class Container(Holder, Openable):
     """Things that can contain other Things """
 
     holds_liquid = False
@@ -82,6 +111,10 @@ class Container(Openable):
     contains_preposition = "in"
     contains_in = True
     contains_preposition_inverse = "out"
+    closed_msg = "The {self.verbose_name} is closed."
+    does_not_fit_msg = (
+        "The {item.verbose_name} is too big to fit inside the {self.verbose_name}. "
+    )
 
     @property
     def contains_desc(self):
@@ -91,6 +124,45 @@ class Container(Openable):
         if self.has_lid and not self.is_open:
             return ""
         return super().contains_desc
+
+    def playerAddsItem(self, item, preposition, event="turn", **kwargs):
+        """
+        We check the item size, and whether this Container has a lid that is currently
+        closed, and continue to the behaviour inherited from Holder if these pass.
+
+        Returns True on success, else False.
+
+        :param item: the item to attempt to add
+        :type item: IFPObject
+        :param preposition: the contains preposition the player wants to add the item with
+            (in/on/etc.)
+        :type preposition: str
+        """
+        if self.has_lid and not self.is_open:
+            self.game.addTextToEvent(
+                event, self.closed_msg.format(self=self, item=item)
+            )
+            return False
+        if item.size > self.size:
+            self.game.addTextToEvent(
+                event, self.does_not_fit_msg.format(self=self, item=item)
+            )
+            return False
+        return super().playerAddsItem(item, preposition, event=event, **kwargs)
+
+    def playerDumpsItems(self, event="turn", **kwargs):
+        """
+        The result of a player trying to dump the items.
+
+        Returns True on success, else False.
+
+        :param into_location: the location to dump items into
+        :type into_location: Thing
+        """
+        if self.has_lid and not self.is_open:
+            self.game.addTextToEvent(event, self.closed_msg.format(self=self))
+            return False
+        return super().playerDumpsItems(event=event, **kwargs)
 
     def revealContents(self):
         self.revealed = True
@@ -117,21 +189,6 @@ class Container(Openable):
             self.location.addThing(lock_obj)
         lock_obj.setAdjectives(lock_obj.adjectives + self.adjectives + [self.name])
         self.state_descriptors.append(lock_obj.IS_LOCKED_DESC_KEY)
-
-    def containsLiquid(self):
-        """Returns  the first Liquid found in the Container or None"""
-        for key in self.contains:
-            for item in self.contains[key]:
-                if isinstance(item, Liquid):
-                    return item
-        return None
-
-    def liquidRoomLeft(self):
-        """Returns the portion of the Container's size not taken up by a liquid"""
-        liquid = self.containsLiquid()
-        if not liquid:
-            return self.size
-        return self.size - liquid.size
 
     def giveLid(self):
         self.has_lid = True
@@ -374,7 +431,7 @@ class Abstract(Thing):
     pass
 
 
-class UnderSpace(Thing):
+class UnderSpace(Holder):
     """Things that can have other Things underneath """
 
     size = 50
@@ -505,6 +562,7 @@ class Liquid(Thing):
     cannot_pour_out_msg = "You shouldn't dump that out. "
     cannot_drink_msg = "You shouldn't drink that. "
     cannot_fill_from_msg = None
+    cannot_take_no_container_msg = None
 
     is_numberless = True
 
@@ -523,6 +581,83 @@ class Liquid(Thing):
         self.cannot_fill_from_msg = (
             "You are unable to collect any of the spilled " + name + ". "
         )
+        self.cannot_take_no_container_msg = (
+            "You are unable to collect any of the spilled " + name + ". "
+        )
+
+    def playerMovesTo(self, item, event="turn", **kwargs):
+        """
+        The result of a player trying to add this item to some other item's contains.
+        Returns True if this can be done, otherwise, prints a rejection message for
+        the player, and returns False.
+
+        :param item: the item the player is trying to add this Thing into
+        :type item: Thing
+        :rtype: bool
+        """
+        if not getattr(item, "holds_liquid", None):
+            self.game.addTextToEvent(
+                event, f"{item.capNameArticle(True)} cannot hold a liquid. "
+            )
+            return False
+
+        existing_liquid = (
+            item if getattr(item, "liquid_type", None) else item.containsLiquid()
+        )
+
+        if (
+            existing_liquid
+            and existing_liquid.liquid_type == self.liquid_type
+            and existing_liquid.infinite_well
+        ):
+            self.location.removeThing(self)
+            return True
+
+        if existing_liquid:
+            success = self.mixWith(
+                self.game,
+                existing_liquid,
+                self,
+                event=kwargs.get("results_event", event),
+            )
+            if success:
+                return True
+            self.game.addTextToEvent(
+                event,
+                f"There is already {existing_liquid.liquid_type} in {item.lowNameArticle(True)}. ",
+            )
+            return False
+        elif item.contains:
+            DUMP_OUT_EVENT = f"{event}_implicit_dump_out"
+            self.game.addSubEvent(
+                event,
+                DUMP_OUT_EVENT,
+                text=(
+                    f"(First trying to dump out {item.lowNameArticle(True)} to make room for "
+                    f"{self.lowNameArticle(True)})"
+                ),
+            )
+            if not item.playerDumpsItems(
+                event=DUMP_OUT_EVENT,
+                success_msg=f"You dump out {item.lowNameArticle(True)}. ",
+            ):
+                return False
+        return super().playerMovesTo(item, event=event, **kwargs)
+
+    def playerDumpsItems(self, event="turn", **kwargs):
+        """
+        The result of a player trying to dump the items.
+
+        Returns True on success, else False.
+
+        :param into_location: the location to dump items into
+        :type into_location: Thing
+        """
+        container = self.getContainer()
+        if not container:
+            self.game.addTextToEvent(event, self.cannot_take_no_container_msg)
+            return False
+        return container.playerDumpsItems(event=event, **kwargs)
 
     def getContainer(self):
         """Redirect to the Container rather than the Liquid for certain verbs (i.e. take) """
@@ -570,7 +705,7 @@ class Liquid(Thing):
                 vessel.addThing(self.liquid_for_transfer)
                 return True
 
-    def mixWith(self, game, base_liquid, mix_in):
+    def mixWith(self, game, base_liquid, mix_in, event="turn"):
         """Replace to allow mixing of specific Liquids
 		Return True when a mixture is allowed, False otherwise """
         return False
