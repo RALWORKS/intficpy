@@ -470,6 +470,17 @@ class Thing(PhysicalEntity):
             return self.size
         return self.size - liquid.size
 
+    def playerAboutToMoveTo(self, item, event="turn", **kwargs):
+        """
+        The preparations we make when the player tries to move this item to another item.
+        Returns True to allow the moveTo, else False.
+
+        :param item: the item the player is trying to add this Thing into
+        :type item: Thing
+        :rtype: bool
+        """
+        return True
+
     def playerMovesTo(self, item, event="turn", **kwargs):
         """
         The result of a player trying to add this item to some other item's contains.
@@ -506,6 +517,27 @@ class Thing(PhysicalEntity):
         if success:
             return True
 
+    def playerAboutToAddItem(self, item, preposition, event="turn", **kwargs):
+        """
+        The prepartations we make when the player is about to try to add an item
+        to this item. Performs any implicit actions needed to add the item.
+        Returns True if the item addition is allowed, False otherwise.
+        :param item: the item to attempt to add
+        :type item: Thing
+        :param preposition: the contains preposition the player wants to add the item with
+            (in/on/etc.)
+        :type preposition: str
+        """
+        matching_children = [
+            c for c in self.children if c.contains_preposition == preposition
+        ]
+        if matching_children:
+            return True
+        self.game.addText(
+            self.default_cannot_add_item_msg.format(self=self, preposition=preposition)
+        )
+        return False
+
     def playerAddsItem(self, item, preposition, event="turn", **kwargs):
         """
         The result of a player trying to add an item to this item's contents.
@@ -520,14 +552,7 @@ class Thing(PhysicalEntity):
             (in/on/etc.)
         :type preposition: str
         """
-        success = self.implicitAddItemToChild(item, preposition)
-        if success:
-            return True
-
-        self.game.addText(
-            self.default_cannot_add_item_msg.format(self=self, preposition=preposition)
-        )
-        return False
+        return self.implicitAddItemToChild(item, preposition)
 
     def playerDumpsItems(
         self,
@@ -549,20 +574,27 @@ class Thing(PhysicalEntity):
             self.game.addText(self.empty_msg)
             return False
 
-        success = False
+        can_move = False
+        if into_location:
+            for t in self.topLevelContentsList:
+                if into_location.playerAboutToAddItem(
+                    t, preposition, event=event, **kwargs
+                ):
+                    can_move = True
+        else:
+            can_move = True
 
-        IMPLICIT_EVENT = f"{event}_dump_implicit"
-        self.game.addSubEvent(event, IMPLICIT_EVENT)
-        ACTION_EVENT = f"{event}_dump_action"
-        self.game.addSubEvent(event, ACTION_EVENT)
-        RESULTS_EVENT = f"{event}_dump_results"
-        self.game.addSubEvent(event, RESULTS_EVENT)
+        if not can_move:
+            return False
+
+        if success_msg:
+            self.game.addTextToEvent(event, success_msg)
+
+        success = False
 
         if into_location:
             for t in self.topLevelContentsList:
-                if into_location.playerAddsItem(
-                    t, preposition, event=IMPLICIT_EVENT, results_event=RESULTS_EVENT
-                ):
+                if into_location.playerAddsItem(t, preposition, event=event, **kwargs):
                     success = True
         else:
             for t in self.topLevelContentsList:
@@ -571,8 +603,5 @@ class Thing(PhysicalEntity):
 
         if not success:
             return False
-
-        if success_msg:
-            self.game.addTextToEvent(ACTION_EVENT, success_msg)
 
         return True

@@ -15,6 +15,23 @@ class Holder(Thing):
 
     contains_preposition = "in"
 
+    def playerAboutToAddItem(self, item, preposition, event="turn", **kwargs):
+        """
+        The prepartations we make when the player is about to try to add an item
+        to this item. Performs any implicit actions needed to add the item.
+        Returns True if the item addition is allowed, False otherwise.
+        :param item: the item to attempt to add
+        :type item: Thing
+        :param preposition: the contains preposition the player wants to add the item with
+            (in/on/etc.)
+        :type preposition: str
+        """
+        if preposition == self.contains_preposition:
+            if not item.playerAboutToMoveTo(self, event=event, **kwargs):
+                return False
+            return True
+        return super().playerAboutToAddItem(item, preposition, event=event, **kwargs)
+
     def playerAddsItem(self, item, preposition, event="turn", **kwargs):
         """
         The result of a player trying to add an item to this item's contents.
@@ -30,9 +47,7 @@ class Holder(Thing):
             (in/on/etc.)
         :type preposition: str
         """
-        if preposition == self.contains_preposition:
-            return item.playerMovesTo(self, event=event, **kwargs)
-        return super().playerAddsItem(item, preposition, event=event, **kwargs)
+        return item.playerMovesTo(self, event=event, **kwargs)
 
 
 class Openable(Thing):
@@ -125,15 +140,13 @@ class Container(Holder, Openable):
             return ""
         return super().contains_desc
 
-    def playerAddsItem(self, item, preposition, event="turn", **kwargs):
+    def playerAboutToAddItem(self, item, preposition, event="turn", **kwargs):
         """
-        We check the item size, and whether this Container has a lid that is currently
-        closed, and continue to the behaviour inherited from Holder if these pass.
-
-        Returns True on success, else False.
-
+        The prepartations we make when the player is about to try to add an item
+        to this item. Performs any implicit actions needed to add the item.
+        Returns True if the item addition is allowed, False otherwise.
         :param item: the item to attempt to add
-        :type item: IFPObject
+        :type item: Thing
         :param preposition: the contains preposition the player wants to add the item with
             (in/on/etc.)
         :type preposition: str
@@ -148,7 +161,7 @@ class Container(Holder, Openable):
                 event, self.does_not_fit_msg.format(self=self, item=item)
             )
             return False
-        return super().playerAddsItem(item, preposition, event=event, **kwargs)
+        return super().playerAboutToAddItem(item, preposition, event=event, **kwargs)
 
     def playerDumpsItems(self, event="turn", **kwargs):
         """
@@ -563,6 +576,7 @@ class Liquid(Thing):
     cannot_drink_msg = "You shouldn't drink that. "
     cannot_fill_from_msg = None
     cannot_take_no_container_msg = None
+    mix_with_liquid_type_allowed = None
 
     is_numberless = True
 
@@ -584,12 +598,12 @@ class Liquid(Thing):
         self.cannot_take_no_container_msg = (
             "You are unable to collect any of the spilled " + name + ". "
         )
+        self.mix_with_liquid_type_allowed = []
 
-    def playerMovesTo(self, item, event="turn", **kwargs):
+    def playerAboutToMoveTo(self, item, event="turn", **kwargs):
         """
-        The result of a player trying to add this item to some other item's contains.
-        Returns True if this can be done, otherwise, prints a rejection message for
-        the player, and returns False.
+        The preparations we make when the player tries to move this item to another item.
+        Returns True to allow the moveTo, else False.
 
         :param item: the item the player is trying to add this Thing into
         :type item: Thing
@@ -605,6 +619,49 @@ class Liquid(Thing):
             item if getattr(item, "liquid_type", None) else item.containsLiquid()
         )
 
+        if existing_liquid:
+            if (
+                existing_liquid.liquid_type not in self.mix_with_liquid_type_allowed
+                and (
+                    not existing_liquid.liquid_type == self.liquid_type
+                    or not existing_liquid.infinite_well
+                )
+            ):
+                self.game.addTextToEvent(
+                    event,
+                    f"There is already {existing_liquid.liquid_type} in {item.lowNameArticle(True)}. ",
+                )
+                return False
+
+        elif item.contains:
+            self.game.addTextToEvent(
+                event,
+                text=(
+                    f"(First trying to dump out {item.lowNameArticle(True)} to make room for "
+                    f"{self.lowNameArticle(True)})"
+                ),
+            )
+            if not item.playerDumpsItems(
+                event=event, success_msg=f"You dump out {item.lowNameArticle(True)}. ",
+            ):
+                return False
+
+        return super().playerAboutToMoveTo(item, event=event, **kwargs)
+
+    def playerMovesTo(self, item, event="turn", **kwargs):
+        """
+        The result of a player trying to add this item to some other item's contains.
+        Returns True if this can be done, otherwise, prints a rejection message for
+        the player, and returns False.
+
+        :param item: the item the player is trying to add this Thing into
+        :type item: Thing
+        :rtype: bool
+        """
+        existing_liquid = (
+            item if getattr(item, "liquid_type", None) else item.containsLiquid()
+        )
+
         if (
             existing_liquid
             and existing_liquid.liquid_type == self.liquid_type
@@ -614,34 +671,9 @@ class Liquid(Thing):
             return True
 
         if existing_liquid:
-            success = self.mixWith(
-                self.game,
-                existing_liquid,
-                self,
-                event=kwargs.get("results_event", event),
-            )
-            if success:
-                return True
-            self.game.addTextToEvent(
-                event,
-                f"There is already {existing_liquid.liquid_type} in {item.lowNameArticle(True)}. ",
-            )
-            return False
-        elif item.contains:
-            DUMP_OUT_EVENT = f"{event}_implicit_dump_out"
-            self.game.addSubEvent(
-                event,
-                DUMP_OUT_EVENT,
-                text=(
-                    f"(First trying to dump out {item.lowNameArticle(True)} to make room for "
-                    f"{self.lowNameArticle(True)})"
-                ),
-            )
-            if not item.playerDumpsItems(
-                event=DUMP_OUT_EVENT,
-                success_msg=f"You dump out {item.lowNameArticle(True)}. ",
-            ):
-                return False
+            success = self.mixWith(self.game, existing_liquid, self,)
+            return success
+
         return super().playerMovesTo(item, event=event, **kwargs)
 
     def playerDumpsItems(self, event="turn", **kwargs):
@@ -707,7 +739,7 @@ class Liquid(Thing):
 
     def mixWith(self, game, base_liquid, mix_in, event="turn"):
         """Replace to allow mixing of specific Liquids
-		Return True when a mixture is allowed, False otherwise """
+        Return True when a mixture is allowed, False otherwise """
         return False
 
     def drinkLiquid(self, game):

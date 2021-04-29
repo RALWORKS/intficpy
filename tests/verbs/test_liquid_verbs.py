@@ -153,6 +153,8 @@ class TestPourIntoVerb(IFPTestCase):
             else:
                 return False
 
+        syrup.mix_with_liquid_type_allowed = ["wine"]
+        self.liquid.mix_with_liquid_type_allowed = ["syrup"]
         syrup.mixWith = mixWith
         self.liquid.mixWith = mixWith
 
