@@ -33,6 +33,7 @@ from .serializer import SaveGame, LoadGame
 class Verb(ABC):
     """Verb objects represent actions the player can take """
 
+    allow_implicit_take = True
     list_word = None
     list_by_default = True
     word = None
@@ -420,6 +421,7 @@ class DropVerb(DirectObjectVerb):
     ]
     dscope = "inv"
     preposition = ["down"]
+    allow_implicit_take = False
 
     def verbFunc(self, game, dobj, skip=False):
         """
@@ -441,12 +443,6 @@ class DropVerb(DirectObjectVerb):
                 + ". ",
             )
             return False
-
-        if not dobj.invItem:
-            # TODO: why are we checking this?
-            raise ValueError(
-                f"{dobj.verbose_name} is not an inventory item. Cannot drop."
-            )
 
         if dobj.parent_obj:
             game.addTextToEvent(

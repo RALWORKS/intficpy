@@ -11,6 +11,7 @@ from .verb import (
     GetVerb,
     StandUpVerb,
     DropVerb,
+    RemoveFromVerb,
 )
 from .thing_base import Thing
 from .things import Container, Surface, UnderSpace, Liquid
@@ -1192,12 +1193,15 @@ class Parser:
 
     def implicitRemoveNestedInventory(self):
         if self.command.dobj and not self.command.verb.dscope in ["text", "direction"]:
-            self._liquidContainerRedirect("dobj", self.command.dobj.target)
             if (
                 self.command.dobj.target
                 and self.command.dobj.target.location
                 and self.command.dobj.target.location.location == self.game.me
                 and self.command.verb.dscope == "inv"
+                and not (
+                    self.command.dobj.target.liquid_type
+                    and self.command.dobj.target.getContainer()
+                )
             ):
                 self.game.addTextToEvent(
                     "turn",
@@ -1209,9 +1213,9 @@ class Parser:
                     + self.command.dobj.target.location.verbose_name
                     + ")",
                 )
-                success = verb.removeFromVerb().verbFunc(
+                success = RemoveFromVerb().verbFunc(
                     self.game,
-                    elf.command.dobj.target,
+                    self.command.dobj.target,
                     self.command.dobj.target.location,
                 )
                 if not success:
@@ -1222,12 +1226,15 @@ class Parser:
                     )
 
         if self.command.iobj and not self.command.verb.iscope in ["text", "direction"]:
-            self._liquidContainerRedirect("iobj", self.command.iobj.target)
             if (
                 self.command.iobj.target
                 and self.command.iobj.target.location
                 and self.command.iobj.target.location.location == self.game.me
                 and self.command.verb.iscope == "inv"
+                and not (
+                    self.command.iobj.target.liquid_type
+                    and self.command.iobj.target.getContainer()
+                )
             ):
                 self.game.addTextToEvent(
                     "turn",
@@ -1299,6 +1306,7 @@ class Parser:
         elif (
             scope in ("inv", "invflex")
             and obj is not self.game.me
+            and self.command.verb.allow_implicit_take
             and self.roomRangeCheck(obj)
         ):
             self.game.addTextToEvent(
