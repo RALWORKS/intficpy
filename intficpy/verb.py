@@ -285,78 +285,16 @@ class GetVerb(DirectObjectVerb):
     preposition = ["up"]
     dscope = "roomflex"
 
-    def revealUnderSpace(self, game, dobj):
-        """
-        When an UnderSpace is taken, move its contents out into the main Room, and
-        describe them.
-        """
-        msg, plural = dobj.moveContentsOut()
-        if plural:
-            msg = msg.capitalize() + " are revealed. "
-        else:
-            msg = msg.capitalize() + " is revealed. "
-        game.addTextToEvent("turn", msg)
-
     def verbFunc(self, game, dobj, skip=False):
         """
         Take a Thing from the Room.
         """
         super().verbFunc(game, dobj, skip=skip)
 
-        # first check if dobj can be taken
-        while dobj.containsItem(game.me):
-            if isinstance(game.me.location, Container):
-                ClimbOutOfVerb().verbFunc(game, game.me.location)
-            elif isinstance(game.me.location, Surface):
-                ClimbDownVerb().verbFunc(game, game.me.location)
-            else:
-                game.addTextToEvent(
-                    "turn", "Could not move player out of " + game.me.location.name
-                )
-                return False
-
-        if isinstance(dobj, Liquid):
-            container = dobj.getContainer()
-            if container:
-                dobj = container
-
-        if not dobj.invItem:
-            # if the dobj can't be taken, print the message
-            game.addTextToEvent("turn", dobj.cannotTakeMsg)
+        if not dobj.playerAboutToTake(event="turn"):
             return False
 
-        if dobj.parent_obj:
-            game.addTextToEvent("turn", dobj.cannotTakeMsg)
-            return False
-
-        if game.me.containsItem(dobj):
-            if dobj.location == game.me:
-                game.addTextToEvent(
-                    "turn",
-                    "You already have "
-                    + dobj.getArticle(True)
-                    + dobj.verbose_name
-                    + ". ",
-                )
-                return False
-            elif dobj.location and not isinstance(dobj.location, Room):
-                return RemoveFromVerb().verbFunc(game, dobj, dobj.location)
-
-        # print the action message
-        game.addTextToEvent(
-            "turn", "You take " + dobj.getArticle(True) + dobj.verbose_name + ". "
-        )
-
-        if isinstance(dobj, UnderSpace) and dobj.contains:
-            self.revealUnderSpace(game, dobj)
-
-        if dobj.is_composite:
-            for item in dobj.child_UnderSpaces:
-                if item.contains:
-                    self.revealUnderSpace(game, item)
-
-        dobj.moveTo(game.me)
-        return True
+        return dobj.playerTakes(event="turn")
 
 
 # GET/TAKE ALL

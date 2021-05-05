@@ -43,27 +43,12 @@ class TestGetVerb(IFPTestCase):
 
         self.assertEqual(len(self.me.contains[item.ix]), 1)
 
-    def test_get_item_when_pc_is_in_container(self):
-        loc = Container(self.game, "box")
-        loc.moveTo(self.start_room)
-        loc.can_contain_standing_player = True
-
-        sub_loc = Container(self.game, "vase")
-        sub_loc.moveTo(loc)
-        sub_loc.can_contain_standing_player = True
-
-        self.game.me.moveTo(sub_loc)
-
-        self.game.turnMain("take box")
-
-        self.assertIn("You climb out of the box. ", self.app.print_stack)
-
     def test_get_item_when_pc_is_on_surface(self):
         loc = Surface(self.game, "desk")
         loc.moveTo(self.start_room)
         loc.can_contain_standing_player = True
 
-        sub_loc = Surface(self.game, "box")
+        sub_loc = Container(self.game, "box")
         sub_loc.moveTo(loc)
         sub_loc.can_contain_standing_player = True
 
@@ -71,17 +56,9 @@ class TestGetVerb(IFPTestCase):
 
         self.game.turnMain("take desk")
 
-        self.assertIn("You climb down from the desk. ", self.app.print_stack)
-
-    def test_get_item_when_pc_is_in_thing_with_no_corresponding_exit_verb(self):
-        loc = Thing(self.game, "brick")
-        loc.moveTo(self.start_room)
-        loc.can_contain_standing_player = True
-        self.game.me.moveTo(loc)
-
-        self.game.turnMain("take brick")
-
-        self.assertIn("Could not move player out of brick", self.app.print_stack)
+        self.assertIn("You take the desk", self.app.print_stack.pop())
+        self.assertIn("You get off of the desk", self.app.print_stack.pop())
+        self.assertIn("You get out of the box", self.app.print_stack.pop())
 
     def test_get_item_when_pc_sitting(self):
         item = Thing(self.game, "bob")
@@ -115,7 +92,9 @@ class TestGetVerb(IFPTestCase):
 
         self.game.turnMain("take bead")
 
-        self.assertIn("You remove the bead from the cup. ", self.app.print_stack)
+        self.assertEqual(
+            "You remove the bead from the cup. ", self.app.print_stack.pop()
+        )
 
     def test_get_explicitly_invitem_component_of_composite_object(self):
         parent = Thing(self.game, "cube")
@@ -173,6 +152,21 @@ class TestGetVerb(IFPTestCase):
         self.assertFalse(box.is_open, "Failed to close box")
         self.game.turnMain("take bead")
         self.assertTrue(self.game.me.topLevelContainsItem(item))
+
+    def test_get_object_from_closed_and_locked_container(self):
+        box = Container(self.game, "box")
+        box.giveLid()
+        item = Thing(self.game, "bead")
+        item.moveTo(box)
+        box.setLock(Lock(self.game, True, None))
+        box.revealed = True
+        box.moveTo(self.start_room)
+
+        self.game.turnMain("get bead")
+        self.assertIn("is locked", self.app.print_stack.pop())
+
+        self.assertTrue(box.containsItem(item))
+        self.assertFalse(box.is_open)
 
 
 class TestTakeAll(IFPTestCase):

@@ -78,6 +78,9 @@ class Thing(PhysicalEntity):
     default_cannot_add_item_msg = (
         "You cannot put anything {preposition} the {self.verbose_name}. "
     )
+    player_exits_msg = (
+        "You get {self.contains_preposition_inverse} of the {self.verbose_name}. "
+    )
 
     # VOCABULARY
     adjectives = None
@@ -598,10 +601,89 @@ class Thing(PhysicalEntity):
                     success = True
         else:
             for t in self.topLevelContentsList:
+                # TODO: implement Room/PhysicalEntity playerAddsItem instead
                 t.moveTo(self.game.me.location)
                 success = True
 
         if not success:
             return False
 
+        return True
+
+    def playerAboutToTake(self, event="turn", **kwargs):
+        """
+        Actions carried out when the player is about to try and take this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        if not self.invItem or self.parent_obj:
+            self.game.addTextToEvent(event, self.cannotTakeMsg)
+            return False
+        if self.game.me.topLevelContainsItem(self):
+            self.game.addTextToEvent(
+                event, f"You already have {self.lowNameArticle(True)}. "
+            )
+            return False
+        if self.containsItem(self.game.me):
+            self.game.addTextToEvent(
+                event, f"(First trying to leave {self.lowNameArticle(True)})"
+            )
+            if not self.playerExits(event=event):
+                return False
+        if not self.location.playerAboutToRemoveItem(self):
+            return False
+        return True
+
+    def playerTakes(self, event="turn", **kwargs):
+        """
+        The result of the player taking this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        if self.game.me.containsItem(self) and not self.game.me.topLevelContainsItem(
+            self
+        ):
+            self.game.addTextToEvent(
+                event,
+                f"You remove {self.lowNameArticle(True)} from "
+                f"{self.location.lowNameArticle(True)}. ",
+            )
+        else:
+            self.game.addTextToEvent(event, f"You take {self.lowNameArticle(True)}. ")
+        self.moveTo(self.game.me)
+
+        for c in self.children:
+            c.playerTakesParentObject(event=event)
+        return True
+
+    def playerTakesParentObject(self, event="turn", **kwargs):
+        """
+        The result of the player taking the composite parent of this item.
+        :param event: the event name to print to
+        :type event: str
+        """
+        return True
+
+    def playerExits(self, event="turn", **kwargs):
+        """
+        The result of the player leaving this item.
+        Returns True if the player is not contained by this item at the time of completion,
+        i.e, if the player has successfully left, or was not inside to begin with.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        if not self.containsItem(self.game.me):
+            f"You are not {self.contains_preposition} {self.lowNameArticle(True)}. "
+            return True
+
+        while self.containsItem(self.game.me.location):
+            if not self.game.me.location.playerExits(event=event):
+                return False
+
+        # TODO: implement Room/PhysicalEntity playerAddsItem instead?
+        self.game.addTextToEvent(event, self.player_exits_msg.format(self=self))
+        self.game.me.moveTo(self.location)
         return True

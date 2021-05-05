@@ -107,6 +107,16 @@ class PhysicalEntity(IFPObject):
                 nested.append(item)
         return nested
 
+    def playerAboutToRemoveItem(self, item, event="turn", **kwargs):
+        """
+        Actions carried out when the player is about to try and remove an item contained
+        by this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        return True
+
     @property
     def visible_nested_contents(self):
         if not self.revealed:

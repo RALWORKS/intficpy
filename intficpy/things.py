@@ -74,6 +74,31 @@ class Openable(Thing):
             return ""
         return self.lock_obj.is_locked_desc
 
+    def playerAboutToOpen(self, event="turn"):
+        """
+        Events run when the player is about to try to open this item.
+        Returns True to allow opening, and False to deny.
+
+        :param event: the event to print messages to
+        :type event: str
+        """
+        if self.lock_obj and self.lock_obj.is_locked:
+            self.game.addTextToEvent(event, f"{self.capNameArticle(True)} is locked. ")
+            return False
+        return True
+
+    def playerOpens(self, event="turn"):
+        """
+        Events run when the player tries to open this item. Returns True on success,
+        and False on failure.
+
+        :param event: the event to print messages to
+        :type event: str
+        """
+        self.game.addTextToEvent(event, f"You open {self.lowNameArticle(True)}. ")
+        self.makeOpen()
+        return True
+
     def makeOpen(self):
         self.is_open = True
 
@@ -140,6 +165,26 @@ class Container(Holder, Openable):
             return ""
         return super().contains_desc
 
+    def checkLidOpen(self, item, event="turn"):
+        """
+        If the lid is currently closed, print the closed message to the specified event,
+        and return False. Otherwise return True
+
+        :param item: the item the player is attempting to add or remove
+        :type item: Thing
+        :param event: the event name to print to
+        :type event: str
+        """
+        if self.has_lid and not self.is_open:
+            self.game.addTextToEvent(
+                event, f"(First trying to open {self.lowNameArticle(True)})"
+            )
+            if not self.playerAboutToOpen(event=event) or not self.playerOpens(
+                event=event
+            ):
+                return False
+        return True
+
     def playerAboutToAddItem(self, item, preposition, event="turn", **kwargs):
         """
         The prepartations we make when the player is about to try to add an item
@@ -151,10 +196,7 @@ class Container(Holder, Openable):
             (in/on/etc.)
         :type preposition: str
         """
-        if self.has_lid and not self.is_open:
-            self.game.addTextToEvent(
-                event, self.closed_msg.format(self=self, item=item)
-            )
+        if not self.checkLidOpen(item, event=event):
             return False
         if item.size > self.size:
             self.game.addTextToEvent(
@@ -162,6 +204,18 @@ class Container(Holder, Openable):
             )
             return False
         return super().playerAboutToAddItem(item, preposition, event=event, **kwargs)
+
+    def playerAboutToRemoveItem(self, item, event="turn", **kwargs):
+        """
+        Actions carried out when the player is about to try and remove an item contained
+        by this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        if not self.checkLidOpen(item, event=event):
+            return False
+        return True
 
     def playerDumpsItems(self, event="turn", **kwargs):
         """
@@ -499,6 +553,45 @@ class UnderSpace(Holder):
         else:
             return [out, False]
 
+    def playerLifts(self, event="turn", **kwargs):
+        """
+        The UnderSpace has been lifted up by the player, revealing its contents.
+        :param event: the event name to print to
+        :type event: str
+        """
+        msg, plural = self.moveContentsOut()
+        if plural:
+            msg = msg.capitalize() + " are revealed. "
+        else:
+            msg = msg.capitalize() + " is revealed. "
+        self.game.addTextToEvent(event, msg)
+        return True
+
+    def playerTakes(self, event="turn", **kwargs):
+        """
+        The result of the player taking this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        success = super().playerTakes(event=event)
+        if not success:
+            return False
+        self.playerLifts(event=event)
+        return True
+
+    def playerTakesParentObject(self, event="turn", **kwargs):
+        """
+        The result of the player taking the composite parent of this item.
+        :param event: the event name to print to
+        :type event: str
+        """
+        success = super().playerTakesParentObject(event=event)
+        if not success:
+            return False
+        self.playerLifts(event=event)
+        return True
+
 
 class Transparent(Thing):
     """Transparent Things
@@ -690,6 +783,31 @@ class Liquid(Thing):
             self.game.addTextToEvent(event, self.cannot_take_no_container_msg)
             return False
         return container.playerDumpsItems(event=event, **kwargs)
+
+    def playerAboutToTake(self, event="turn", **kwargs):
+        """
+        The result of the player taking this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        container = self.getContainer()
+        if not container:
+            self.game.addTextToEvent(event, self.cannot_take_no_container_msg)
+            return False
+        return container.playerAboutToTake(event=event)
+
+    def playerTakes(self, event="turn", **kwargs):
+        """
+        The result of the player taking this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        container = self.getContainer()
+        if not container:
+            return False
+        return container.playerTakes(event=event)
 
     def getContainer(self):
         """Redirect to the Container rather than the Liquid for certain verbs (i.e. take) """
