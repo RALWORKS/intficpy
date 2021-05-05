@@ -33,6 +33,7 @@ from .serializer import SaveGame, LoadGame
 class Verb(ABC):
     """Verb objects represent actions the player can take """
 
+    allow_implicit_take = True
     list_word = None
     list_by_default = True
     word = None
@@ -482,6 +483,7 @@ class DropVerb(DirectObjectVerb):
     ]
     dscope = "inv"
     preposition = ["down"]
+    allow_implicit_take = False
 
     def verbFunc(self, game, dobj, skip=False):
         """

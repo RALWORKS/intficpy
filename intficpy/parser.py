@@ -1299,6 +1299,7 @@ class Parser:
         elif (
             scope in ("inv", "invflex")
             and obj is not self.game.me
+            and self.command.verb.allow_implicit_take
             and self.roomRangeCheck(obj)
         ):
             self.game.addTextToEvent(
