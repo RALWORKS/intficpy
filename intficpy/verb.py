@@ -506,12 +506,6 @@ class DropVerb(DirectObjectVerb):
             )
             return False
 
-        if not dobj.invItem:
-            # TODO: why are we checking this?
-            raise ValueError(
-                f"{dobj.verbose_name} is not an inventory item. Cannot drop."
-            )
-
         if dobj.parent_obj:
             game.addTextToEvent(
                 "turn",
