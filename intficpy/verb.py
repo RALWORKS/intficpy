@@ -515,65 +515,45 @@ class SetOnVerb(IndirectObjectVerb):
 
         super().verbFunc(game, dobj, iobj, skip=skip)
 
+        if dobj.parent_obj:
+            game.addTextToEvent(
+                "turn",
+                (dobj.getArticle(True) + dobj.verbose_name).capitalize()
+                + " is attached to "
+                + dobj.parent_obj.getArticle(True)
+                + dobj.parent_obj.verbose_name
+                + ". ",
+            )
+            return False
+
         outer_loc = game.me.getOutermostLocation()
         if iobj == outer_loc.floor:
-            if game.me.removeThing(dobj):
-                game.addTextToEvent(
-                    "turn",
-                    "You set "
-                    + dobj.getArticle(True)
-                    + dobj.verbose_name
-                    + " on the ground. ",
-                )
-                outer_loc.addThing(dobj)
-                return True
-            elif dobj.parent_obj:
-                game.addTextToEvent(
-                    "turn",
-                    (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                    + " is attached to "
-                    + dobj.parent_obj.getArticle(True)
-                    + dobj.parent_obj.verbose_name
-                    + ". ",
-                )
-                return False
-            else:
-                game.addTextToEvent(
-                    "turn", "ERROR: cannot remove object from inventory "
-                )
-                return False
-        if isinstance(iobj, Surface):
-            if game.me.removeThing(dobj):
-                game.addTextToEvent(
-                    "turn",
-                    "You set "
-                    + dobj.getArticle(True)
-                    + dobj.verbose_name
-                    + " on "
-                    + iobj.getArticle(True)
-                    + iobj.verbose_name
-                    + ". ",
-                )
-                iobj.addThing(dobj)
-                return True
-            elif dobj.parent_obj:
-                game.addTextToEvent(
-                    "turn",
-                    (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                    + " is attached to "
-                    + dobj.parent_obj.getArticle(True)
-                    + dobj.parent_obj.verbose_name
-                    + ". ",
-                )
-                return False
-            else:
-                game.addTextToEvent(
-                    "turn", "ERROR: cannot remove object from inventory "
-                )
-                return False
-        # if iobj is not a Surface
-        else:
+            dobj.moveTo(outer_loc)
+            game.addTextToEvent(
+                "turn",
+                "You set "
+                + dobj.getArticle(True)
+                + dobj.verbose_name
+                + " on the ground. ",
+            )
+            return True
+
+        if not isinstance(iobj, Surface):
             game.addTextToEvent("turn", "You cannot set anything on that. ")
+            return False
+
+        dobj.moveTo(iobj)
+        game.addTextToEvent(
+            "turn",
+            "You set "
+            + dobj.getArticle(True)
+            + dobj.verbose_name
+            + " on "
+            + iobj.getArticle(True)
+            + iobj.verbose_name
+            + ". ",
+        )
+        return True
 
 
 # PUT/SET IN
@@ -614,51 +594,28 @@ class SetInVerb(IndirectObjectVerb):
                 + ". ",
             )
             return False
-        if isinstance(iobj, Container) and iobj.has_lid:
-            if not iobj.is_open:
-                game.addTextToEvent(
-                    "turn",
-                    "You cannot put "
-                    + dobj.getArticle(True)
-                    + dobj.verbose_name
-                    + " inside, as "
-                    + iobj.getArticle(True)
-                    + iobj.verbose_name
-                    + " is closed. ",
-                )
-                return False
-        if isinstance(iobj, Container) and iobj.size >= dobj.size:
-            liquid = iobj.containsLiquid()
-            if liquid:
-                game.addTextToEvent(
-                    "turn",
-                    "You cannot put "
-                    + dobj.getArticle(True)
-                    + dobj.verbose_name
-                    + " inside, as "
-                    + iobj.getArticle(True)
-                    + iobj.verbose_name
-                    + " has "
-                    + liquid.lowNameArticle()
-                    + " in it. ",
-                )
-                return False
+
+        if not isinstance(iobj, Container):
             game.addTextToEvent(
                 "turn",
-                "You set "
+                "There is no way to put it inside the " + iobj.verbose_name + ". ",
+            )
+            return False
+
+        if iobj.has_lid and not iobj.is_open:
+            game.addTextToEvent(
+                "turn",
+                "You cannot put "
                 + dobj.getArticle(True)
                 + dobj.verbose_name
-                + " in "
+                + " inside, as "
                 + iobj.getArticle(True)
                 + iobj.verbose_name
-                + ". ",
+                + " is closed. ",
             )
-            # game.me.contains.remove(dobj)
-            game.me.removeThing(dobj)
+            return False
 
-            iobj.addThing(dobj)
-            return True
-        elif isinstance(iobj, Container):
+        if iobj.size < dobj.size:
             game.addTextToEvent(
                 "turn",
                 dobj.capNameArticle(True)
@@ -667,12 +624,35 @@ class SetInVerb(IndirectObjectVerb):
                 + ". ",
             )
             return False
-        else:
+
+        liquid = iobj.containsLiquid()
+        if liquid:
             game.addTextToEvent(
                 "turn",
-                "There is no way to put it inside the " + iobj.verbose_name + ". ",
+                "You cannot put "
+                + dobj.getArticle(True)
+                + dobj.verbose_name
+                + " inside, as "
+                + iobj.getArticle(True)
+                + iobj.verbose_name
+                + " has "
+                + liquid.lowNameArticle()
+                + " in it. ",
             )
             return False
+
+        game.addTextToEvent(
+            "turn",
+            "You set "
+            + dobj.getArticle(True)
+            + dobj.verbose_name
+            + " in "
+            + iobj.getArticle(True)
+            + iobj.verbose_name
+            + ". ",
+        )
+        dobj.moveTo(iobj)
+        return True
 
 
 # PUT/SET UNDER
