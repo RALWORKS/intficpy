@@ -515,45 +515,15 @@ class SetOnVerb(IndirectObjectVerb):
 
         super().verbFunc(game, dobj, iobj, skip=skip)
 
-        if dobj.parent_obj:
-            game.addTextToEvent(
-                "turn",
-                (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is attached to "
-                + dobj.parent_obj.getArticle(True)
-                + dobj.parent_obj.verbose_name
-                + ". ",
-            )
+        if not iobj.playerAboutToAddItem(dobj, "on", event="turn"):
             return False
 
-        outer_loc = game.me.getOutermostLocation()
-        if iobj == outer_loc.floor:
-            dobj.moveTo(outer_loc)
-            game.addTextToEvent(
-                "turn",
-                "You set "
-                + dobj.getArticle(True)
-                + dobj.verbose_name
-                + " on the ground. ",
-            )
-            return True
-
-        if not isinstance(iobj, Surface):
-            game.addTextToEvent("turn", "You cannot set anything on that. ")
-            return False
-
-        dobj.moveTo(iobj)
-        game.addTextToEvent(
-            "turn",
-            "You set "
-            + dobj.getArticle(True)
-            + dobj.verbose_name
-            + " on "
-            + iobj.getArticle(True)
-            + iobj.verbose_name
-            + ". ",
+        return iobj.playerAddsItem(
+            dobj,
+            "on",
+            event="turn",
+            success_msg=f"You set {dobj.lowNameArticle(True)} on {iobj.lowNameArticle(True)}.",
         )
-        return True
 
 
 # PUT/SET IN
@@ -584,75 +554,15 @@ class SetInVerb(IndirectObjectVerb):
 
         super().verbFunc(game, dobj, iobj, skip=skip)
 
-        if dobj.parent_obj:
-            game.addTextToEvent(
-                "turn",
-                (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is attached to "
-                + dobj.parent_obj.getArticle(True)
-                + dobj.parent_obj.verbose_name
-                + ". ",
-            )
+        if not iobj.playerAboutToAddItem(dobj, "in", event="turn"):
             return False
 
-        if not isinstance(iobj, Container):
-            game.addTextToEvent(
-                "turn",
-                "There is no way to put it inside the " + iobj.verbose_name + ". ",
-            )
-            return False
-
-        if iobj.has_lid and not iobj.is_open:
-            game.addTextToEvent(
-                "turn",
-                "You cannot put "
-                + dobj.getArticle(True)
-                + dobj.verbose_name
-                + " inside, as "
-                + iobj.getArticle(True)
-                + iobj.verbose_name
-                + " is closed. ",
-            )
-            return False
-
-        if iobj.size < dobj.size:
-            game.addTextToEvent(
-                "turn",
-                dobj.capNameArticle(True)
-                + " is too big to fit inside the "
-                + iobj.verbose_name
-                + ". ",
-            )
-            return False
-
-        liquid = iobj.containsLiquid()
-        if liquid:
-            game.addTextToEvent(
-                "turn",
-                "You cannot put "
-                + dobj.getArticle(True)
-                + dobj.verbose_name
-                + " inside, as "
-                + iobj.getArticle(True)
-                + iobj.verbose_name
-                + " has "
-                + liquid.lowNameArticle()
-                + " in it. ",
-            )
-            return False
-
-        game.addTextToEvent(
-            "turn",
-            "You set "
-            + dobj.getArticle(True)
-            + dobj.verbose_name
-            + " in "
-            + iobj.getArticle(True)
-            + iobj.verbose_name
-            + ". ",
+        return iobj.playerAddsItem(
+            dobj,
+            "in",
+            event="turn",
+            success_msg=f"You set {dobj.lowNameArticle(True)} in {iobj.lowNameArticle(True)}.",
         )
-        dobj.moveTo(iobj)
-        return True
 
 
 # PUT/SET UNDER
@@ -681,46 +591,15 @@ class SetUnderVerb(IndirectObjectVerb):
 
         super().verbFunc(game, dobj, iobj, skip=skip)
 
-        outer_loc = game.me.getOutermostLocation()
-        if dobj.parent_obj:
-            game.addTextToEvent(
-                "turn",
-                (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is attached to "
-                + dobj.parent_obj.getArticle(True)
-                + dobj.parent_obj.verbose_name
-                + ". ",
-            )
+        if not iobj.playerAboutToAddItem(dobj, "under", event="turn"):
             return False
-        if isinstance(iobj, UnderSpace) and dobj.size <= iobj.size:
-            game.addTextToEvent(
-                "turn",
-                "You set "
-                + dobj.getArticle(True)
-                + dobj.verbose_name
-                + " "
-                + iobj.contains_preposition
-                + " "
-                + iobj.getArticle(True)
-                + iobj.verbose_name
-                + ". ",
-            )
-            game.me.removeThing(dobj)
-            iobj.addThing(dobj)
-            return True
-        elif dobj.size > iobj.size:
-            game.addTextToEvent(
-                "turn",
-                (dobj.getArticle(True) + dobj.verbose_name).capitalize()
-                + " is too big to fit under "
-                + iobj.getArticle(True)
-                + iobj.verbose_name
-                + ". ",
-            )
-            return False
-        else:
-            game.addTextToEvent("turn", "There is no reason to put it under there. ")
-            return False
+
+        return iobj.playerAddsItem(
+            dobj,
+            "under",
+            event="turn",
+            success_msg=f"You set {dobj.lowNameArticle(True)} in {iobj.lowNameArticle(True)}.",
+        )
 
 
 # VIEW INVENTORY

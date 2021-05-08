@@ -72,7 +72,7 @@ class TestSetVerbs(IFPTestCase):
         self.assertIn("too big", self.app.print_stack.pop())
         self.assertFalse(place.containsItem(item))
 
-    def test_cannot_set_in_closed_container(self):
+    def test_set_in_closed_container_implies_open_it_first(self):
         item = Thing(self.game, "item")
         self.me.addThing(item)
         place = Container(self.game, "place")
@@ -82,8 +82,11 @@ class TestSetVerbs(IFPTestCase):
 
         self.game.turnMain(f"set item in place")
 
-        self.assertIn("is closed", self.app.print_stack.pop())
-        self.assertFalse(place.containsItem(item))
+        self.assertIn("You set the item in the place", self.app.print_stack.pop())
+        self.assertIn("You open the place", self.app.print_stack.pop())
+        self.assertIn("(First trying to open", self.app.print_stack.pop())
+        self.assertTrue(place.is_open)
+        self.assertTrue(place.containsItem(item))
 
     def test_cannot_set_item_in_if_container_already_contains_liquid(self):
         item = Thing(self.game, "item")
@@ -95,7 +98,7 @@ class TestSetVerbs(IFPTestCase):
 
         self.game.turnMain(f"set item in place")
 
-        self.assertIn("has water in it", self.app.print_stack.pop())
+        self.assertIn("already full of water", self.app.print_stack.pop())
         self.assertFalse(place.containsItem(item))
 
     def test_set_on_adds_item(self):

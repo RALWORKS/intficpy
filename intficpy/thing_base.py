@@ -482,6 +482,13 @@ class Thing(PhysicalEntity):
         :type item: Thing
         :rtype: bool
         """
+        if self.parent_obj:
+            self.game.addTextToEvent(
+                event,
+                f"{self.capNameArticle(True)} is attached to "
+                f"{self.parent_obj.lowNameArticle(True)}.",
+            )
+            return False
         return True
 
     def playerMovesTo(self, item, event="turn", **kwargs):
@@ -534,18 +541,29 @@ class Thing(PhysicalEntity):
         matching_children = [
             c for c in self.children if c.contains_preposition == preposition
         ]
-        if matching_children:
+        if len(matching_children) == 1:
+            if not item.playerAboutToMoveTo(matching_children[0], event=event):
+                return False
             return True
+
+        if not item.playerAboutToMoveTo(self, event=event):
+            return False
+
+        if self is self.game.me.getOutermostLocation().floor:
+            return True
+
         self.game.addText(
             self.default_cannot_add_item_msg.format(self=self, preposition=preposition)
         )
         return False
 
-    def playerAddsItem(self, item, preposition, event="turn", **kwargs):
+    def playerAddsItem(
+        self, item, preposition, event="turn", success_msg=None, **kwargs
+    ):
         """
         The result of a player trying to add an item to this item's contents.
-        For base Things, this tries to find an appropriate child item to add to, and
-        prints the default_cannot_add_item_msg failing that.
+        For base Things, first checks if we are the floor, and if so, moves the item to
+        the outer Room, otherwise tries to find an appropriate child item to add to.
 
         Returns True on success, else False.
 
@@ -555,6 +573,13 @@ class Thing(PhysicalEntity):
             (in/on/etc.)
         :type preposition: str
         """
+        outer_loc = self.game.me.getOutermostLocation()
+        if self is outer_loc.floor:
+            if success_msg:
+                self.game.addTextToEvent(event, success_msg)
+            item.moveTo(outer_loc)
+            return True
+
         return self.implicitAddItemToChild(item, preposition)
 
     def playerDumpsItems(

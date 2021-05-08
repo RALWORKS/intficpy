@@ -32,7 +32,9 @@ class Holder(Thing):
             return True
         return super().playerAboutToAddItem(item, preposition, event=event, **kwargs)
 
-    def playerAddsItem(self, item, preposition, event="turn", **kwargs):
+    def playerAddsItem(
+        self, item, preposition, event="turn", success_msg=None, **kwargs
+    ):
         """
         The result of a player trying to add an item to this item's contents.
         If the player is attempting to add an item "in" this item (or, in the case of
@@ -47,6 +49,9 @@ class Holder(Thing):
             (in/on/etc.)
         :type preposition: str
         """
+        if success_msg:
+            self.game.addTextToEvent(event, success_msg)
+
         return item.playerMovesTo(self, event=event, **kwargs)
 
 
@@ -201,6 +206,13 @@ class Container(Holder, Openable):
         if item.size > self.size:
             self.game.addTextToEvent(
                 event, self.does_not_fit_msg.format(self=self, item=item)
+            )
+            return False
+        existing_liquid = self.containsLiquid()
+        if existing_liquid and not getattr(item, "liquid_type", None):
+            self.game.addTextToEvent(
+                event,
+                f"{self.capNameArticle(True)} is already full of {existing_liquid.liquid_type}. ",
             )
             return False
         return super().playerAboutToAddItem(item, preposition, event=event, **kwargs)
@@ -507,6 +519,10 @@ class UnderSpace(Holder):
     contains_preposition_inverse = "out"
     revealed = False
 
+    does_not_fit_msg = (
+        "The {item.verbose_name} is too big to fit under the {self.verbose_name}. "
+    )
+
     @property
     def component_desc(self):
         """
@@ -591,6 +607,24 @@ class UnderSpace(Holder):
             return False
         self.playerLifts(event=event)
         return True
+
+    def playerAboutToAddItem(self, item, preposition, event="turn", **kwargs):
+        """
+        The prepartations we make when the player is about to try to add an item
+        to this item. Performs any implicit actions needed to add the item.
+        Returns True if the item addition is allowed, False otherwise.
+        :param item: the item to attempt to add
+        :type item: Thing
+        :param preposition: the contains preposition the player wants to add the item with
+            (in/on/etc.)
+        :type preposition: str
+        """
+        if item.size > self.size:
+            self.game.addTextToEvent(
+                event, self.does_not_fit_msg.format(self=self, item=item)
+            )
+            return False
+        return super().playerAboutToAddItem(item, preposition, event=event, **kwargs)
 
 
 class Transparent(Thing):
