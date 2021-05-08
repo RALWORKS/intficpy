@@ -35,3 +35,21 @@ class TestVerbsVerb(IFPTestCase):
         # for now, make sure we are printing *some* verbs at least
         self.assertIn("set on", self.app.print_stack.pop())
         self.assertIn("accepts the following basic verbs", self.app.print_stack.pop())
+
+
+class TestVerbHelpVerb(IFPTestCase):
+    def test_verb_help_ask_verb(self):
+        self.game.turnMain("verb help ask")
+        self.assertIn("ask (person) about (thing)", self.app.print_stack.pop())
+
+    def test_verb_help_go_verb(self):
+        self.game.turnMain("verb help go")
+        self.assertIn("go (direction)", self.app.print_stack.pop())
+
+    def test_verb_help_lead_verb(self):
+        self.game.turnMain("verb help lead")
+        self.assertIn("lead (person) (direction)", self.app.print_stack.pop())
+
+    def test_verb_help_nonexistent_verb(self):
+        self.game.turnMain("verb help nevernevernevernevernononono")
+        self.assertIn("I found no verb corresponding to", self.app.print_stack.pop())
