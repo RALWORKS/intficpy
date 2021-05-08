@@ -1,5 +1,6 @@
 from ..helpers import IFPTestCase
 
+from intficpy.actor import Actor
 from intficpy.room import Room
 from intficpy.thing_base import Thing
 from intficpy.things import (
@@ -8,6 +9,7 @@ from intficpy.things import (
     UnderSpace,
     Readable,
     Book,
+    Transparent,
 )
 
 
@@ -136,3 +138,23 @@ class TestLookVerbs(IFPTestCase):
         self.game.turnMain("read desk")
 
         self.assertIn("There's nothing written there. ", self.app.print_stack)
+
+
+class TestLookThrough(IFPTestCase):
+    def test_look_through_transparent_item(self):
+        item = Transparent(self.game, "glass")
+        item.moveTo(self.start_room)
+        self.game.turnMain("look through glass")
+        self.assertIn("nothing in particular", self.app.print_stack.pop())
+
+    def test_look_through_non_transparent_item(self):
+        item = Thing(self.game, "wood")
+        item.moveTo(self.start_room)
+        self.game.turnMain("look through wood")
+        self.assertIn("cannot look through", self.app.print_stack.pop())
+
+    def test_look_through_person(self):
+        item = Actor(self.game, "dude")
+        item.moveTo(self.start_room)
+        self.game.turnMain("look through dude")
+        self.assertIn("cannot look through a person", self.app.print_stack.pop())
