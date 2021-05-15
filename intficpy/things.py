@@ -233,10 +233,9 @@ class Container(Holder, Openable):
 
         Returns True on success, else False.
 
-        :param into_location: the location to dump items into
-        :type into_location: Thing
+        :param event: the event name to print to
+        :type event: str
         """
-        # TODO: missing param into_location?
         if self.has_lid and not self.is_open:
             self.game.addTextToEvent(event, self.closed_msg.format(self=self))
             return False
