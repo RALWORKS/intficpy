@@ -889,17 +889,15 @@ class LookThroughVerb(DirectObjectVerb):
         if ret is not None:
             return ret
 
-        if isinstance(dobj, Transparent):
-            dobj.lookThrough(game)
-            return True
-        elif isinstance(dobj, Actor):
-            game.addTextToEvent("turn", "You cannot look through a person. ")
-            return False
-        else:
+        try:
+            func = dobj.playerLooksThrough
+        except AttributeError:
             game.addTextToEvent(
                 "turn", "You cannot look through " + dobj.lowNameArticle(True) + ". "
             )
             return False
+
+        return func(event="turn")
 
 
 # LOOK IN

@@ -634,9 +634,12 @@ class Transparent(Thing):
 
     look_through_desc = "Looking through reveals nothing in particular. "
 
+    def playerLooksThrough(self, **kwargs):
+        return self.lookThrough(self.game)
+
     def lookThrough(self, game):
         """Called when the Transparent instance is dobj for verb look through
-		Creators should overwrite for more complex behaviour """
+        Creators should overwrite for more complex behaviour """
         game.addTextToEvent("turn", self.look_through_desc)
 
 

@@ -177,4 +177,4 @@ class TestLookThrough(IFPTestCase):
         item = Actor(self.game, "dude")
         item.moveTo(self.start_room)
         self.game.turnMain("look through dude")
-        self.assertIn("cannot look through a person", self.app.print_stack.pop())
+        self.assertIn("cannot look through the dude", self.app.print_stack.pop())
