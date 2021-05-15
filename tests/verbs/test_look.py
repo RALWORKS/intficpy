@@ -63,7 +63,7 @@ class TestLookVerbs(IFPTestCase):
             f"{look_in_desc}",
         )
 
-    def test_look_in_closed_container(self):
+    def test_look_in_closed_container_implies_open_first(self):
         parent = Container(self.game, "shoebox")
         parent.giveLid()
         parent.is_open = False
@@ -73,7 +73,7 @@ class TestLookVerbs(IFPTestCase):
 
         self.game.turnMain("look in shoebox")
 
-        self.assertIn("is closed", self.app.print_stack.pop())
+        self.assertIn("You open the shoebox", self.app.print_stack.pop(-2))
 
     def test_look_in_non_container(self):
         parent = Thing(self.game, "cube")

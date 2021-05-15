@@ -170,13 +170,11 @@ class Container(Holder, Openable):
             return ""
         return super().contains_desc
 
-    def checkLidOpen(self, item, event="turn"):
+    def checkLidOpen(self, event="turn"):
         """
         If the lid is currently closed, print the closed message to the specified event,
         and return False. Otherwise return True
 
-        :param item: the item the player is attempting to add or remove
-        :type item: Thing
         :param event: the event name to print to
         :type event: str
         """
@@ -201,7 +199,7 @@ class Container(Holder, Openable):
             (in/on/etc.)
         :type preposition: str
         """
-        if not self.checkLidOpen(item, event=event):
+        if not self.checkLidOpen(event=event):
             return False
         if item.size > self.size:
             self.game.addTextToEvent(
@@ -225,7 +223,7 @@ class Container(Holder, Openable):
         :param event: the event name to print to
         :type event: str
         """
-        if not self.checkLidOpen(item, event=event):
+        if not self.checkLidOpen(event=event):
             return False
         return True
 
@@ -238,10 +236,34 @@ class Container(Holder, Openable):
         :param into_location: the location to dump items into
         :type into_location: Thing
         """
+        # TODO: missing param into_location?
         if self.has_lid and not self.is_open:
             self.game.addTextToEvent(event, self.closed_msg.format(self=self))
             return False
         return super().playerDumpsItems(event=event, **kwargs)
+
+    def playerAboutToLookIn(self, event="turn", **kwargs):
+        """
+        Actions carried out when the player is about to try and look inside this item.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        if not self.checkLidOpen(event=event):
+            return False
+        return True
+
+    def playerLooksIn(self, event="turn", **kwargs):
+        """
+        The result of a player trying to look in this item.
+
+        Returns True on success, else False.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        self.game.addTextToEvent(event, self.contains_desc)
+        return True
 
     def revealContents(self):
         self.revealed = True

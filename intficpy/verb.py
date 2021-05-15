@@ -916,36 +916,19 @@ class LookInVerb(DirectObjectVerb):
         if ret is not None:
             return ret
 
-        if isinstance(dobj, Container):
-            list_version = list(dobj.contains.keys())
-            if dobj.has_lid:
-                if not dobj.is_open:
-                    game.addTextToEvent(
-                        "turn",
-                        "You cannot see inside "
-                        + dobj.getArticle(True)
-                        + dobj.verbose_name
-                        + " as it is closed. ",
-                    )
-                    return False
-            if len(list_version) > 0:
-                game.addTextToEvent("turn", dobj.contains_desc)
-                for key in dobj.contains:
-                    if key not in game.me.knows_about:
-                        game.me.knows_about.append(key)
-                return True
-            else:
-                game.addTextToEvent("turn", dobj.capNameArticle(True) + " is empty. ")
-                return True
-        else:
+        try:
+            pre = dobj.playerAboutToLookIn
+            func = dobj.playerLooksIn
+        except AttributeError:
             game.addTextToEvent(
-                "turn",
-                "You cannot look inside "
-                + dobj.getArticle(True)
-                + dobj.verbose_name
-                + ". ",
+                "turn", "You cannot look inside " + dobj.lowNameArticle(True) + ". "
             )
             return False
+
+        if not pre(event="turn"):
+            return False
+
+        return func(event="turn")
 
 
 # LOOK UNDER
