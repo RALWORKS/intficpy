@@ -31,22 +31,29 @@ class TestFullInventory(IFPTestCase):
         super().setUp()
         self.parent = Thing(self.game, "cube")
         self.child = Container(self.game, "slot")
+        self.container = Container(self.game, "box")
+        self.nested_item = Thing(self.game, "bead")
+        self.nested_item.moveTo(self.container)
         self.parent.addComposite(self.child)
         self.stacked1 = Thing(self.game, "tile")
         self.stacked2 = self.stacked1.copyThing()
         self.clothing = Clothing(self.game, "scarf")
         self.clothing1 = Clothing(self.game, "mitten")
         self.clothing2 = self.clothing1.copyThing()
+        self.clothing3 = Clothing(self.game, "hat")
 
         self.me.addThing(self.parent)
         self.me.addThing(self.child)
+        self.me.addThing(self.container)
         self.me.addThing(self.stacked1)
         self.me.addThing(self.stacked2)
         self.me.addThing(self.clothing)
         self.me.addThing(self.clothing1)
         self.me.addThing(self.clothing2)
+        self.me.addThing(self.clothing3)
 
         self.game.turnMain("wear scarf")
+        self.game.turnMain("wear hat")
         self.game.turnMain("wear mitten")
         self.game.turnMain("wear mitten")
 
@@ -61,25 +68,20 @@ class TestFullInventory(IFPTestCase):
         self.app.print_stack.pop()
         inv_desc = self.app.print_stack.pop()
 
-        parent_desc = self.parent.lowNameArticle()
+        self.assertIn("You have", inv_desc)
+
         stacked_desc = (
-            f"{len(self.me.contains[self.stacked1.ix])} " f"{self.stacked1.plural}"
+            f"{len(self.me.contains[self.stacked1.ix])} {self.stacked1.plural}"
         )
-
-        self.assertIn(
-            parent_desc, inv_desc, "Composite item description should be in inv desc"
-        )
-        inv_desc = inv_desc.replace(parent_desc, "")
-
         self.assertIn(
             stacked_desc, inv_desc, "Stacked item description should be in inv desc"
         )
-        inv_desc = inv_desc.replace(stacked_desc, "")
 
-        inv_desc = self.strip_desc(inv_desc)
-        self.assertEqual(
-            inv_desc, BASE_MSG, "Remaining inv desc should match base message"
+        self.assertIn(
+            "a cube", inv_desc,
         )
+
+        self.assertIn("a box (in the box is a bead.)", inv_desc)
 
     def test_inventory_wearing_desc(self):
         BASE_MSG = "You are wearing"
@@ -87,26 +89,14 @@ class TestFullInventory(IFPTestCase):
         self.game.turnMain("i")
         wearing_desc = self.app.print_stack.pop()
 
-        clothing_desc = self.clothing.lowNameArticle()
-        stacked_clothing_desc = (
-            f"{len(self.me.wearing[self.clothing1.ix])} " f"{self.clothing1.plural}"
-        )
-
         self.assertIn(
-            clothing_desc,
-            wearing_desc,
-            "Clothing item description should be in inv desc",
+            "a hat", wearing_desc, "Clothing item description should be in inv desc",
         )
-        wearing_desc = wearing_desc.replace(clothing_desc, "")
-
         self.assertIn(
-            stacked_clothing_desc,
+            "a scarf", wearing_desc, "Clothing item description should be in inv desc",
+        )
+        self.assertIn(
+            "mittens",
             wearing_desc,
             "Stacked clothing item description should be in inv desc",
-        )
-        wearing_desc = wearing_desc.replace(stacked_clothing_desc, "")
-
-        wearing_desc = self.strip_desc(wearing_desc)
-        self.assertEqual(
-            wearing_desc, BASE_MSG, "Remaining wearing desc should match base message"
         )

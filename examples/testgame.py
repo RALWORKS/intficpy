@@ -159,8 +159,8 @@ def beachArrival(game):
 beach.arriveFunc = beachArrival
 
 shackdoor = DoorConnector(game, startroom, "e", beach, "w")
-shackdoor.entranceA.description = "To the east, a door leads outside. "
-shackdoor.entranceB.description = "The door to the shack is directly west of you. "
+shackdoor.entrance_a.description = "To the east, a door leads outside. "
+shackdoor.entrance_b.description = "The door to the shack is directly west of you. "
 
 cabinlock = Lock(game, True, rustykey)
 shackdoor.setLock(cabinlock)
@@ -172,10 +172,7 @@ beach.entrance = shackdoor
 
 attic = Room(game, "Shack, attic", "You are in a dim, cramped attic. ")
 shackladder = LadderConnector(game, startroom, attic)
-shackladder.entranceA.description = (
-    "Against the north wall is a ladder leading up to the attic. "
-)
-shackladder.entranceA.x_description = (
+shackladder.entrance_a.description = (
     "Against the north wall is a ladder leading up to the attic. "
 )
 startroom.north = shackladder

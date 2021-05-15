@@ -1,5 +1,6 @@
 from ..helpers import IFPTestCase
 
+from intficpy.actor import Actor
 from intficpy.room import Room
 from intficpy.thing_base import Thing
 from intficpy.things import (
@@ -8,6 +9,7 @@ from intficpy.things import (
     UnderSpace,
     Readable,
     Book,
+    Transparent,
 )
 
 
@@ -44,7 +46,7 @@ class TestLookVerbs(IFPTestCase):
             f"Examine desc printed incorrectly. Expecting {item.xdesc}, got {examine_desc}",
         )
 
-    def test_look_in(self):
+    def test_look_in_container(self):
         parent = Container(self.game, "shoebox")
         child = Thing(self.game, "penny")
         parent.addThing(child)
@@ -60,6 +62,26 @@ class TestLookVerbs(IFPTestCase):
             f"Contains desc printed incorrectly. Expected {parent.contains_desc} got "
             f"{look_in_desc}",
         )
+
+    def test_look_in_closed_container(self):
+        parent = Container(self.game, "shoebox")
+        parent.giveLid()
+        parent.is_open = False
+        child = Thing(self.game, "penny")
+        parent.addThing(child)
+        parent.moveTo(self.start_room)
+
+        self.game.turnMain("look in shoebox")
+
+        self.assertIn("is closed", self.app.print_stack.pop())
+
+    def test_look_in_non_container(self):
+        parent = Thing(self.game, "cube")
+        parent.moveTo(self.start_room)
+
+        self.game.turnMain("look in cube")
+
+        self.assertIn("cannot look inside", self.app.print_stack.pop())
 
     def test_look_under(self):
         parent = UnderSpace(self.game, "table")
@@ -136,3 +158,23 @@ class TestLookVerbs(IFPTestCase):
         self.game.turnMain("read desk")
 
         self.assertIn("There's nothing written there. ", self.app.print_stack)
+
+
+class TestLookThrough(IFPTestCase):
+    def test_look_through_transparent_item(self):
+        item = Transparent(self.game, "glass")
+        item.moveTo(self.start_room)
+        self.game.turnMain("look through glass")
+        self.assertIn("nothing in particular", self.app.print_stack.pop())
+
+    def test_look_through_non_transparent_item(self):
+        item = Thing(self.game, "wood")
+        item.moveTo(self.start_room)
+        self.game.turnMain("look through wood")
+        self.assertIn("cannot look through", self.app.print_stack.pop())
+
+    def test_look_through_person(self):
+        item = Actor(self.game, "dude")
+        item.moveTo(self.start_room)
+        self.game.turnMain("look through dude")
+        self.assertIn("cannot look through a person", self.app.print_stack.pop())

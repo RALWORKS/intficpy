@@ -632,6 +632,8 @@ class Transparent(Thing):
 	Set the look_through_desc property to print the same string every time look through [instance as dobj] is used
 	Replace default lookThrough method for more complicated behaviour """
 
+    look_through_desc = "Looking through reveals nothing in particular. "
+
     def lookThrough(self, game):
         """Called when the Transparent instance is dobj for verb look through
 		Creators should overwrite for more complex behaviour """

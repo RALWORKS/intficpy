@@ -219,7 +219,7 @@ class HintNode(IFPObject):
             self.cur_hint += 1
         if self.cur_hint == len(self.hints):
             self.cur_hint -= 1
-        self.hints[self.cur_hint].giveHint(game.app)
+        self.hints[self.cur_hint].giveHint(game)
         t = "(Hint tier " + str(self.cur_hint + 1) + "/" + str(len(self.hints))
         if not self.cur_hint < len(self.hints) - 1:
             t += ")"

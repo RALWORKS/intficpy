@@ -71,18 +71,16 @@ class GameInfo:
         game.addTextToEvent(
             "turn", "<b>This game accepts the following basic verbs: </b>"
         )
-        verb_listing = [
-            verb.list_word
-            for name, verblist in self.verbs.items()
-            for verb in verblist
-            if verb.list_by_default
-        ]
-        self.verb_listing = sorted(set(self.verb_listing))
-
-        for verb in self.verbs:
-            verb_list = verb_list + verb
-            if verb != self.verbs[-1]:
-                verb_list = verb_list + ", "
+        verb_list = sorted(
+            set(
+                [
+                    verb.list_word or verb.word
+                    for name, verblist in game.verbs.items()
+                    for verb in verblist
+                    if verb.list_by_default
+                ]
+            )
+        )
 
         joined_verb_list = ", ".join(verb_list) + "."
 
