@@ -270,3 +270,38 @@ class TestSpecialTopic(IFPTestCase):
     def test_take_conversation_suggestion_without_verb_keyword(self):
         self.game.turnMain(self.subject_phrase)
         self.assertIn(self.text, self.app.print_stack)
+
+
+class TestTalkTo(IFPTestCase):
+    def setUp(self):
+        super().setUp()
+        self.actor = Actor(self.game, "girl")
+        self.actor.moveTo(self.start_room)
+
+    def test_talk_to_non_actor_thing(self):
+        item = Thing(self.game, "bit")
+        item.moveTo(self.start_room)
+        self.game.turnMain("talk to bit")
+        self.assertIn("cannot talk to", self.app.print_stack.pop())
+
+    def test_talk_to_actor_with_sticky_topic(self):
+        self.actor.sticky_topic = Topic(
+            self.game, "Weren't you that guy from yesterday?"
+        )
+        self.game.turnMain("hi girl")
+        self.assertIn(self.actor.sticky_topic.text, self.app.print_stack)
+
+    def test_talk_to_actor_with_hermit_topic(self):
+        self.actor.hermit_topic = Topic(self.game, "Go away.")
+        self.game.turnMain("hi girl")
+        self.assertIn(self.actor.hermit_topic.text, self.app.print_stack)
+
+    def test_talk_to_actor_with_hi_topic(self):
+        self.actor.hi_topic = Topic(self.game, "Oh. Hi.")
+        self.game.turnMain("hi girl")
+        self.assertIn(self.actor.hi_topic.text, self.app.print_stack)
+
+    def test_talk_to_actor_with_returning_hi_topic(self):
+        self.actor.return_hi_topic = Topic(self.game, "You're back. Great.")
+        self.game.turnMain("hi girl")
+        self.assertIn(self.actor.return_hi_topic.text, self.app.print_stack)
