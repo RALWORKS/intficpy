@@ -1033,20 +1033,13 @@ class TalkToVerb(DirectObjectVerb):
         if ret is not None:
             return ret
 
-        if isinstance(dobj, Actor):
-            if dobj.hermit_topic:
-                dobj.hermit_topic.func(game, False)
-            elif dobj.sticky_topic:
-                dobj.sticky_topic.func(game)
-            elif dobj.hi_topic and not dobj.said_hi:
-                dobj.hi_topic.func(game)
-                dobj.said_hi = True
-            elif dobj.return_hi_topic:
-                dobj.return_hi_topic.func(game)
-            else:
-                dobj.defaultTopic(game)
-        else:
+        try:
+            func = dobj.playerTalksTo
+        except AttributeError:
             game.addTextToEvent("turn", "You cannot talk to that. ")
+            return False
+
+        return func(event="turn")
 
 
 # ASK (Actor)

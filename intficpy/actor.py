@@ -343,6 +343,26 @@ class Actor(Thing):
                 self.game, item, currency, price, max_wanted
             )
 
+    def playerTalksTo(self, event="turn", **kwargs):
+        """
+        The result of the player trying to talk to this character
+
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hermit_topic:
+            self.hermit_topic.func(self.game, False)
+        elif self.sticky_topic:
+            self.sticky_topic.func(self.game)
+        elif self.hi_topic and not self.said_hi:
+            self.hi_topic.func(self.game)
+            self.said_hi = True
+        elif self.return_hi_topic:
+            self.return_hi_topic.func(self.game)
+        else:
+            self.defaultTopic(self.game)
+        return True
+
 
 class Player(Actor):
     """
