@@ -647,6 +647,24 @@ class UnderSpace(Holder):
             return False
         return super().playerAboutToAddItem(item, preposition, event=event, **kwargs)
 
+    def playerLooksUnder(self, event="turn", **kwargs):
+        """
+        The result of the player trying to look under this item
+
+        :param event: the key of the event to print text to
+        :type event: str
+        :rtype: bool
+        """
+        self.revealUnder()
+        if len(self.contains):
+            self.game.addTextToEvent(event, self.contains_desc)
+        else:
+            self.game.addTextToEvent(
+                event,
+                f"There is nothing {self.contains_preposition} {self.lowNameArticle(True)}. ",
+            )
+        return True
+
 
 class Transparent(Thing):
     """Transparent Things

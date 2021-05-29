@@ -948,36 +948,7 @@ class LookUnderVerb(DirectObjectVerb):
         if ret is not None:
             return ret
 
-        if isinstance(dobj, UnderSpace):
-            dobj.revealUnder()
-            list_version = list(dobj.contains.keys())
-            if len(list_version) > 0:
-                game.addTextToEvent("turn", dobj.contains_desc)
-                return True
-            else:
-                game.addTextToEvent(
-                    "turn",
-                    "There is nothing "
-                    + dobj.contains_preposition
-                    + " "
-                    + dobj.getArticle(True)
-                    + dobj.verbose_name
-                    + ". ",
-                )
-                return True
-        elif dobj.invItem:
-            GetVerb().verbFunc(game, dobj)
-            game.addTextToEvent("turn", "You find nothing underneath. ")
-            return False
-        else:
-            game.addTextToEvent(
-                "turn",
-                "There's no reason to look under "
-                + dobj.getArticle(True)
-                + dobj.verbose_name
-                + ". ",
-            )
-            return False
+        return dobj.playerLooksUnder(event="turn")
 
 
 # READ

@@ -504,6 +504,25 @@ class Thing(PhysicalEntity):
         self.moveTo(item)
         return True
 
+    def playerLooksUnder(self, event="turn", **kwargs):
+        """
+        The result of the player trying to look under this item
+
+        :param event: the key of the event to print text to
+        :type event: str
+        :rtype: bool
+        """
+        if self.invItem:
+            if not self.playerAboutToTake(event=event):
+                return False
+            self.playerTakes(event=event)
+            self.game.addTextToEvent(event, "You find nothing underneath. ")
+            return True
+        self.game.addTextToEvent(
+            event, f"There's no reason to look under {self.lowNameArticle(True)}. ",
+        )
+        return False
+
     def implicitAddItemToChild(self, item, preposition, event="turn", **kwargs):
         """
         Try to interpret the player's instruction to add an item to this item, as an
