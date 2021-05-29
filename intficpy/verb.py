@@ -966,16 +966,17 @@ class ReadVerb(DirectObjectVerb):
         if ret is not None:
             return ret
 
-        if isinstance(dobj, Book):
-            if not dobj.is_open:
-                OpenVerb().verbFunc(game, dobj)
-            dobj.readText(game)
-        elif isinstance(dobj, Readable):
-            dobj.readText(game)
-            return True
-        else:
+        try:
+            pre = getattr(dobj, "playerAboutToRead")
+            func = getattr(dobj, "playerReads")
+        except AttributeError:
             game.addTextToEvent("turn", "There's nothing written there. ")
             return False
+
+        if not pre(event="turn"):
+            return False
+
+        return func(event="turn")
 
 
 # TALK TO (Actor)

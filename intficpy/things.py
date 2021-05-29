@@ -699,6 +699,27 @@ class Readable(Thing):
 
         self.read_desc = text  # the default description for the examine command
 
+    def playerAboutToRead(self, event="turn"):
+        """
+        What happens before the player tries to read this?
+
+        :param event: the key of the event to print text to
+        :type event: str
+        :rtype: bool
+        """
+        return True
+
+    def playerReads(self, event="turn", **kwargs):
+        """
+        The result of the player trying to read this item
+
+        :param event: the key of the event to print text to
+        :type event: str
+        :rtype: bool
+        """
+        self.readText(self.game)
+        return True
+
     def readText(self, game):
         """Called when the Transparent instance is dobj for verb look through
 		Creators should overwrite for more complex behaviour """
@@ -714,6 +735,22 @@ class Book(Openable, Readable):
         """Sets essential properties for the Book instance """
         super().__init__(game, name, text)
         self.state_descriptors.append(self.IS_OPEN_DESC_KEY)
+
+    def playerAboutToRead(self, event="turn"):
+        """
+        What happens before the player tries to read this?
+        (In this case, the player tries to open the book first)
+
+        :param event: the key of the event to print text to
+        :type event: str
+        :rtype: bool
+        """
+        if not self.is_open:
+            if not self.playerAboutToOpen(event=event) or not self.playerOpens(
+                event=event
+            ):
+                return False
+        return True
 
 
 class Pressable(Thing):
