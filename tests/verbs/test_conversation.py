@@ -414,6 +414,9 @@ class TestGive(IFPTestCase):
         self.item.moveTo(self.start_room)
         self.CANNOT_TALK_MSG = "You cannot talk to that. "
         self.topic = Topic(self.game, '"Ah, yes," says the girl mysteriously. ')
+        self.sticky_topic = Topic(
+            self.game, '"But remember about the thing!" insists the girl. '
+        )
         self.game.turnMain("l")
 
     def test_give_no_defined_topic(self):
@@ -433,10 +436,47 @@ class TestGive(IFPTestCase):
             f"{default}, received {msg}",
         )
 
+    def test_give_with_topic_and_sticky_topic(self):
+        self.actor.addTopic("give", self.topic, self.item)
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("give girl mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.topic.text,
+            "Tried show verb for topic in show topics. Expected topic text "
+            f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Tried show verb for topic in show topics. Expected topic text "
+            f"{self.topic.text}, received {msg2}",
+        )
+
+    def test_give_actor_you(self):
+        self.game.turnMain("give girl me")
+        msg = self.app.print_stack.pop()
+
+        self.assertIn(
+            "cannot give yourself away", msg,
+        )
+
+    def test_give_actor_person(self):
+        self.game.turnMain("give girl to girl")
+        msg = self.app.print_stack.pop()
+
+        self.assertIn(
+            "cannot take a person", msg,
+        )
+
     def test_give_with_topic(self):
         self.actor.addTopic("give", self.topic, self.item)
 
-        GiveVerb()._runVerbFuncAndEvents(self.game, self.actor, self.item)
+        self.game.turnMain("give girl mess")
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -444,6 +484,71 @@ class TestGive(IFPTestCase):
             self.topic.text,
             "Tried give verb for topic in ask topics. Expected topic text "
             f"{self.topic.text}, received {msg}",
+        )
+
+    def test_give_with_topic_and_give_enabled(self):
+        self.actor.addTopic("give", self.topic, self.item)
+        self.item.give = True
+
+        self.game.turnMain("give girl mess")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried give verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
+        self.assertTrue(self.actor.containsItem(self.item))
+
+    def test_give_with_no_defined_topic_and_sticky_topic(self):
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("give girl mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.actor.default_topic,
+            "Expected topic text " f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg2}",
+        )
+
+    def test_give_with_hermit_topic(self):
+        self.actor.hermit_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.give_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("give girl mess")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg}",
+        )
+
+    def test_give_with_hi_topic(self):
+        self.actor.hi_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.give_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("give girl mess")
+        msg = self.app.print_stack.pop(-2)  # last response will be default_topic3
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg}",
         )
 
     def test_give_inanimate(self):

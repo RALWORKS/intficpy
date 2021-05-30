@@ -1174,9 +1174,6 @@ class GiveVerb(IndirectObjectVerb):
         if iobj is game.me:
             game.addTextToEvent("turn", "You cannot give yourself away. ")
             return False
-        elif isinstance(iobj, Actor):
-            game.addTextToEvent("turn", "You cannot give a person away. ")
-            return False
         if isinstance(dobj, Actor):
             if dobj.hi_topic and not dobj.said_hi:
                 dobj.hi_topic.func(game, False)
