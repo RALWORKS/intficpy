@@ -1139,39 +1139,23 @@ class GiveVerb(IndirectObjectVerb):
         """
         Give an Actor a Thing
         """
+        # DON'T block the check for overrides on missing playerAboutToGiveItem
+        # DO block overrides on failed playerAboutToGiveItem
+        pre = getattr(dobj, "playerAboutToGiveItem", None)
+        if pre and not pre(iobj, event="turn"):
+            return False
+
         ret = super().verbFunc(game, dobj, iobj, skip=skip)
         if ret is not None:
             return ret
 
-        if isinstance(dobj, Actor):
-            if dobj.hermit_topic:
-                dobj.hermit_topic.func(game, False)
-                return True
-        if iobj is game.me:
-            game.addTextToEvent("turn", "You cannot give yourself away. ")
-            return False
-        if isinstance(dobj, Actor):
-            if dobj.hi_topic and not dobj.said_hi:
-                dobj.hi_topic.func(game, False)
-                dobj.said_hi = True
-            if iobj.ix in dobj.give_topics:
-                if dobj.sticky_topic:
-                    dobj.give_topics[iobj.ix].func(game, False)
-                    dobj.sticky_topic.func(game)
-                else:
-                    dobj.give_topics[iobj.ix].func(game)
-                if iobj.give:
-                    game.me.removeThing(dobj)
-                    dobj.addThing(iobj)
-                return True
-            elif dobj.sticky_topic:
-                dobj.defaultTopic(game)
-                dobj.sticky_topic.func(game)
-            else:
-                dobj.defaultTopic(game)
-                return True
-        else:
+        try:
+            func = dobj.playerGivesItem
+        except AttributeError:
             game.addTextToEvent("turn", "You cannot talk to that. ")
+            return False
+
+        return func(iobj, event="turn")
 
 
 # SHOW (Actor)

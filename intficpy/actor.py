@@ -410,7 +410,7 @@ class Actor(Thing):
         Evaluated when the player is about to try to tell the actor about something
         + gives hermit topic if set, and returns False (blocks interaction)
 
-        :param item: the item the player asks about
+        :param item: the item the player tells about
         :type item: Thing
         :param event: the key for the event to print text to
         :type event: str
@@ -424,7 +424,7 @@ class Actor(Thing):
         """
         The result of the player trying to tell this character about an item
 
-        :param item: the item the player asks about
+        :param item: the item the player tells about
         :type item: Thing
         :param event: the key for the event to print text to
         :type event: str
@@ -452,7 +452,7 @@ class Actor(Thing):
         Evaluated when the player is about to try to show the actor something
         + gives hermit topic if set, and returns False (blocks interaction)
 
-        :param item: the item the player asks about
+        :param item: the item the player shows
         :type item: Thing
         :param event: the key for the event to print text to
         :type event: str
@@ -466,7 +466,7 @@ class Actor(Thing):
         """
         The result of the player trying to show this character about an item
 
-        :param item: the item the player asks about
+        :param item: the item the player shows
         :type item: Thing
         :param event: the key for the event to print text to
         :type event: str
@@ -479,6 +479,66 @@ class Actor(Thing):
 
         if item.ix in self.show_topics:
             self.show_topics[item.ix].func(self.game)
+            ret = True
+        else:
+            self.defaultTopic(self.game)
+            ret = False
+
+        if self.sticky_topic:
+            self.sticky_topic.func(self.game)
+
+        return ret
+
+    def playerAboutToGiveItem(self, item, event="turn", **kwargs):
+        """
+        Evaluated when the player is about to try to give the actor something
+        + gives hermit topic if set, and returns False (blocks interaction)
+
+        :param item: the item the player gives
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hermit_topic:
+            self.hermit_topic.func(self.game, False)
+            return False
+        return True
+
+    def playerAboutToGiveAway(self, event="turn", **kwargs):
+        """
+        Evaluated when the player is about to try to give this item away.
+        Gives some better dialog & logic for attempts to give away the current player
+
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.is_current_player:
+            self.game.addTextToEvent(event, "You cannot give yourself away. ")
+            return False
+        return True
+
+    def playerGivesItem(self, item, event="turn", **kwargs):
+        """
+        The result of the player trying to give this character about an item
+
+        :param item: the item the player gives
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if not item.playerAboutToGiveAway(event="turn"):
+            return False
+
+        if self.hi_topic and not self.said_hi:
+            self.hi_topic.func(self.game)
+            self.said_hi = True
+        elif self.return_hi_topic:
+            self.return_hi_topic.func(self.game)
+
+        if item.ix in self.give_topics:
+            self.give_topics[item.ix].func(self.game)
+            if item.give:
+                item.moveTo(self)
             ret = True
         else:
             self.defaultTopic(self.game)

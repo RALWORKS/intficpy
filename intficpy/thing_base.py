@@ -710,6 +710,15 @@ class Thing(PhysicalEntity):
         """
         return True
 
+    def playerAboutToGiveAway(self, event="turn", **kwargs):
+        """
+        Evaluated when the player is about to try to give this item away.
+
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        return True
+
     def playerExits(self, event="turn", **kwargs):
         """
         The result of the player leaving this item.
