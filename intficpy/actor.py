@@ -405,6 +405,90 @@ class Actor(Thing):
 
         return ret
 
+    def playerAboutToTellAbout(self, item, event="turn", **kwargs):
+        """
+        Evaluated when the player is about to try to tell the actor about something
+        + gives hermit topic if set, and returns False (blocks interaction)
+
+        :param item: the item the player asks about
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hermit_topic:
+            self.hermit_topic.func(self.game, False)
+            return False
+        return True
+
+    def playerTellsAbout(self, item, event="turn", **kwargs):
+        """
+        The result of the player trying to tell this character about an item
+
+        :param item: the item the player asks about
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hi_topic and not self.said_hi:
+            self.hi_topic.func(self.game)
+            self.said_hi = True
+        elif self.return_hi_topic:
+            self.return_hi_topic.func(self.game)
+
+        if item.ix in self.tell_topics:
+            self.tell_topics[item.ix].func(self.game)
+            ret = True
+        else:
+            self.defaultTopic(self.game)
+            ret = False
+
+        if self.sticky_topic:
+            self.sticky_topic.func(self.game)
+
+        return ret
+
+    def playerAboutToShow(self, item, event="turn", **kwargs):
+        """
+        Evaluated when the player is about to try to show the actor something
+        + gives hermit topic if set, and returns False (blocks interaction)
+
+        :param item: the item the player asks about
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hermit_topic:
+            self.hermit_topic.func(self.game, False)
+            return False
+        return True
+
+    def playerShows(self, item, event="turn", **kwargs):
+        """
+        The result of the player trying to show this character about an item
+
+        :param item: the item the player asks about
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hi_topic and not self.said_hi:
+            self.hi_topic.func(self.game)
+            self.said_hi = True
+        elif self.return_hi_topic:
+            self.return_hi_topic.func(self.game)
+
+        if item.ix in self.show_topics:
+            self.show_topics[item.ix].func(self.game)
+            ret = True
+        else:
+            self.defaultTopic(self.game)
+            ret = False
+
+        if self.sticky_topic:
+            self.sticky_topic.func(self.game)
+
+        return ret
+
 
 class Player(Actor):
     """
