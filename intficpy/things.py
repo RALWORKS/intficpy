@@ -170,10 +170,10 @@ class Container(Holder, Openable):
             return ""
         return super().contains_desc
 
-    def checkLidOpen(self, event="turn"):
+    def tryOpeningLid(self, event="turn"):
         """
-        If the lid is currently closed, print the closed message to the specified event,
-        and return False. Otherwise return True
+        If the lid is currently closed, try to open it, returning False on failure.
+        Otherwise return True
 
         :param event: the event name to print to
         :type event: str
@@ -199,7 +199,7 @@ class Container(Holder, Openable):
             (in/on/etc.)
         :type preposition: str
         """
-        if not self.checkLidOpen(event=event):
+        if not self.tryOpeningLid(event=event):
             return False
         if item.size > self.size:
             self.game.addTextToEvent(
@@ -223,7 +223,7 @@ class Container(Holder, Openable):
         :param event: the event name to print to
         :type event: str
         """
-        if not self.checkLidOpen(event=event):
+        if not self.tryOpeningLid(event=event):
             return False
         return True
 
@@ -248,7 +248,7 @@ class Container(Holder, Openable):
         :param event: the event name to print to
         :type event: str
         """
-        if not self.checkLidOpen(event=event):
+        if not self.tryOpeningLid(event=event):
             return False
         return True
 
