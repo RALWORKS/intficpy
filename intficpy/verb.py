@@ -1062,36 +1062,23 @@ class AskVerb(IndirectObjectVerb):
         Ask an Actor about a Thing
         """
 
-        if isinstance(dobj, Actor):
-            if dobj.hermit_topic:
-                dobj.hermit_topic.func(game, False)
-                return True
+        # DON'T block the check for overrides on missing playerAboutToAskAbout
+        # DO block overrides on failed playerAboutToAskAbout
+        pre = getattr(dobj, "playerAboutToAskAbout", None)
+        if pre and not pre(iobj, event="turn"):
+            return False
 
         ret = super().verbFunc(game, dobj, iobj, skip=skip)
         if ret is not None:
             return ret
 
-        if isinstance(dobj, Actor):
-            # try to find the ask topic for iobj
-            if dobj.hi_topic and not dobj.said_hi:
-                dobj.hi_topic.func(game, False)
-                dobj.said_hi = True
-            if iobj == game.reflexive:
-                iobj = dobj
-            if iobj.ix in dobj.ask_topics:
-                # call the ask function for iobj
-                if dobj.sticky_topic:
-                    dobj.ask_topics[iobj.ix].func(game, False)
-                    dobj.sticky_topic.func(game)
-                else:
-                    dobj.ask_topics[iobj.ix].func(game)
-            elif dobj.sticky_topic:
-                dobj.defaultTopic(game)
-                dobj.sticky_topic.func(game)
-            else:
-                dobj.defaultTopic(game)
-        else:
+        try:
+            func = dobj.playerAsksAbout
+        except AttributeError:
             game.addTextToEvent("turn", "You cannot talk to that. ")
+            return False
+
+        return func(iobj, event="turn")
 
 
 # TELL (Actor)

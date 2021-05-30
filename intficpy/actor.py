@@ -363,6 +363,48 @@ class Actor(Thing):
             self.defaultTopic(self.game)
         return True
 
+    def playerAboutToAskAbout(self, item, event="turn", **kwargs):
+        """
+        Evaluated when the player is about to try to ask the actor about something
+        + gives hermit topic if set, and returns False (blocks interaction)
+
+        :param item: the item the player asks about
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hermit_topic:
+            self.hermit_topic.func(self.game, False)
+            return False
+        return True
+
+    def playerAsksAbout(self, item, event="turn", **kwargs):
+        """
+        The result of the player trying to ask this character about an item
+
+        :param item: the item the player asks about
+        :type item: Thing
+        :param event: the key for the event to print text to
+        :type event: str
+        """
+        if self.hi_topic and not self.said_hi:
+            self.hi_topic.func(self.game)
+            self.said_hi = True
+        elif self.return_hi_topic:
+            self.return_hi_topic.func(self.game)
+
+        if item.ix in self.ask_topics:
+            self.ask_topics[item.ix].func(self.game)
+            ret = True
+        else:
+            self.defaultTopic(self.game)
+            ret = False
+
+        if self.sticky_topic:
+            self.sticky_topic.func(self.game)
+
+        return ret
+
 
 class Player(Actor):
     """

@@ -1350,6 +1350,13 @@ class Parser:
                 "iobj", self.command.iobj.tokens
             )
 
+        if (
+            self.command.dobj.target
+            and self.command.iobj.target
+            and self.command.iobj.target is self.game.reflexive
+        ):
+            self.command.iobj.target = self.command.dobj.target
+
     def _getObjectTarget(self, which_obj, obj_words):
         """
         Get the target IFPObject for a list of words, if applicable
