@@ -137,12 +137,49 @@ class TestAskAbout(IFPTestCase):
         self.item.moveTo(self.start_room)
         self.CANNOT_TALK_MSG = "You cannot talk to that. "
         self.topic = Topic(self.game, '"Ah, yes," says the girl mysteriously. ')
+        self.sticky_topic = Topic(
+            self.game, '"But remember about the thing!" insists the girl. '
+        )
         self.game.turnMain("l")
 
     def test_ask_with_topic(self):
         self.actor.addTopic("ask", self.topic, self.item)
 
         self.game.turnMain("ask girl about mess")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
+
+    def test_ask_with_topic_and_sticky_topic(self):
+        self.actor.addTopic("ask", self.topic, self.item)
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("ask girl about mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.topic.text,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg2}",
+        )
+
+    def test_ask_actor_about_themselves(self):
+        self.actor.addTopic("ask", self.topic, self.actor)
+
+        self.game.turnMain("ask girl about herself")
         msg = self.app.print_stack.pop()
 
         self.assertEqual(
@@ -167,6 +204,26 @@ class TestAskAbout(IFPTestCase):
             f"{self.actor.default_topic}, received {msg}",
         )
 
+    def test_ask_with_no_defined_topic_and_sticky_topic(self):
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("ask girl about mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.actor.default_topic,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg2}",
+        )
+
     def test_ask_inanimate(self):
         self.game.turnMain("ask mess about girl")
         msg = self.app.print_stack.pop()
@@ -175,6 +232,40 @@ class TestAskAbout(IFPTestCase):
             self.CANNOT_TALK_MSG,
             "Tried ask verb with an inanimate dobj. Expected msg "
             f"{self.CANNOT_TALK_MSG}, received {msg}",
+        )
+
+    def test_ask_with_hermit_topic(self):
+        self.actor.hermit_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.ask_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("ask girl about mess")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
+
+    def test_ask_with_hi_topic(self):
+        self.actor.hi_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.ask_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("ask girl about mess")
+        msg = self.app.print_stack.pop(-2)  # last response will be default_topic3
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried ask verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
         )
 
 

@@ -1086,7 +1086,7 @@ class AskVerb(IndirectObjectVerb):
                 else:
                     dobj.ask_topics[iobj.ix].func(game)
             elif dobj.sticky_topic:
-                dobj.defaultTopic(game, False)
+                dobj.defaultTopic(game)
                 dobj.sticky_topic.func(game)
             else:
                 dobj.defaultTopic(game)
@@ -1136,7 +1136,7 @@ class TellVerb(IndirectObjectVerb):
                 else:
                     dobj.tell_topics[iobj.ix].func(game)
             elif dobj.sticky_topic:
-                dobj.defaultTopic(game, False)
+                dobj.defaultTopic(game)
                 dobj.sticky_topic.func(game)
             else:
                 dobj.defaultTopic(game)
@@ -1192,7 +1192,7 @@ class GiveVerb(IndirectObjectVerb):
                     dobj.addThing(iobj)
                 return True
             elif dobj.sticky_topic:
-                dobj.defaultTopic(game, False)
+                dobj.defaultTopic(game)
                 dobj.sticky_topic.func(game)
             else:
                 dobj.defaultTopic(game)
@@ -1240,7 +1240,7 @@ class ShowVerb(IndirectObjectVerb):
                 else:
                     dobj.show_topics[iobj.ix].func(game)
             elif dobj.sticky_topic:
-                dobj.defaultTopic(game, False)
+                dobj.defaultTopic(game)
                 dobj.sticky_topic.func(game)
             else:
                 dobj.defaultTopic(game)
