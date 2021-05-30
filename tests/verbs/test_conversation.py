@@ -1,3 +1,5 @@
+import unittest
+
 from ..helpers import IFPTestCase
 from intficpy.actor import Actor, Topic, SpecialTopic
 from intficpy.thing_base import Thing
@@ -278,6 +280,9 @@ class TestTellAbout(IFPTestCase):
         self.item.moveTo(self.start_room)
         self.CANNOT_TALK_MSG = "You cannot talk to that. "
         self.topic = Topic(self.game, '"Ah, yes," says the girl mysteriously. ')
+        self.sticky_topic = Topic(
+            self.game, '"But remember about the thing!" insists the girl. '
+        )
         self.game.turnMain("l")
 
     def test_tell_with_topic(self):
@@ -293,6 +298,37 @@ class TestTellAbout(IFPTestCase):
             f"{self.topic.text}, received {msg}",
         )
 
+    def test_tell_with_topic_and_sticky_topic(self):
+        self.actor.addTopic("tell", self.topic, self.item)
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("tell girl about mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg2}",
+        )
+
+    def test_tell_actor_about_themselves(self):
+        self.actor.addTopic("tell", self.topic, self.actor)
+
+        self.game.turnMain("tell girl about herself")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg}",
+        )
+
     def test_tell_no_defined_topic(self):
         self.assertNotIn(
             self.item.ix, self.actor.tell_topics,
@@ -306,6 +342,56 @@ class TestTellAbout(IFPTestCase):
             self.actor.default_topic,
             "Tried tell verb for topic not in tell topics. Expected default topic "
             f"{self.actor.default_topic}, received {msg}",
+        )
+
+    def test_tell_with_no_defined_topic_and_sticky_topic(self):
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("tell girl about mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.actor.default_topic,
+            "Expected topic text " f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg2}",
+        )
+
+    def test_tell_with_hermit_topic(self):
+        self.actor.hermit_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.tell_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("tell girl about mess")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg}",
+        )
+
+    def test_tell_with_hi_topic(self):
+        self.actor.hi_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.tell_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("tell girl about mess")
+        msg = self.app.print_stack.pop(-2)  # last response will be default_topic3
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg}",
         )
 
     def test_tell_inanimate(self):
@@ -380,6 +466,9 @@ class TestShow(IFPTestCase):
         self.item.moveTo(self.start_room)
         self.CANNOT_TALK_MSG = "You cannot talk to that. "
         self.topic = Topic(self.game, '"Ah, yes," says the girl mysteriously. ')
+        self.sticky_topic = Topic(
+            self.game, '"But remember about the thing!" insists the girl. '
+        )
         self.game.turnMain("l")
 
     def test_show_with_topic(self):
@@ -392,6 +481,41 @@ class TestShow(IFPTestCase):
             msg,
             self.topic.text,
             "Tried show verb for topic in ask topics. Expected topic text "
+            f"{self.topic.text}, received {msg}",
+        )
+
+    def test_show_with_topic_and_sticky_topic(self):
+        self.actor.addTopic("show", self.topic, self.item)
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("show girl mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.topic.text,
+            "Tried show verb for topic in show topics. Expected topic text "
+            f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Tried show verb for topic in show topics. Expected topic text "
+            f"{self.topic.text}, received {msg2}",
+        )
+
+    @unittest.expectedFailure
+    def test_show_actor_themselves(self):
+        self.actor.addTopic("show", self.topic, self.actor)
+
+        self.game.turnMain("show girl herself")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Tried show verb for topic in show topics. Expected topic text "
             f"{self.topic.text}, received {msg}",
         )
 
@@ -410,6 +534,56 @@ class TestShow(IFPTestCase):
             default,
             "Tried show verb for topic not in show topics. Expected default topic "
             f"{default}, received {msg}",
+        )
+
+    def test_show_with_no_defined_topic_and_sticky_topic(self):
+        self.actor.sticky_topic = self.sticky_topic
+
+        self.game.turnMain("show girl mess")
+        msg2 = self.app.print_stack.pop()
+        msg1 = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg1,
+            self.actor.default_topic,
+            "Expected topic text " f"{self.topic.text}, received {msg1}",
+        )
+        self.assertEqual(
+            msg2,
+            self.sticky_topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg2}",
+        )
+
+    def test_show_with_hermit_topic(self):
+        self.actor.hermit_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.show_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("show girl mess")
+        msg = self.app.print_stack.pop()
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg}",
+        )
+
+    def test_show_with_hi_topic(self):
+        self.actor.hi_topic = self.topic
+
+        self.assertNotIn(
+            self.item.ix, self.actor.show_topics,
+        )  # make sure this topic isn't triggered because it was added for the item
+
+        self.game.turnMain("show girl mess")
+        msg = self.app.print_stack.pop(-2)  # last response will be default_topic3
+
+        self.assertEqual(
+            msg,
+            self.topic.text,
+            "Expected topic text " f"{self.topic.text}, received {msg}",
         )
 
     def test_show_inanimate(self):
