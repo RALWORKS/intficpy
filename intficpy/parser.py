@@ -765,7 +765,6 @@ class Parser:
         self.command.err = True
 
         if scope == "wearing":
-            self.game.addTextToEvent("turn",)
             self.command.err = True
             return f"You aren't wearing any {noun}."
 
