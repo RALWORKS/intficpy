@@ -1219,21 +1219,17 @@ class WearVerb(DirectObjectVerb):
         if ret is not None:
             return ret
 
-        if isinstance(dobj, Clothing):
-            game.addTextToEvent(
-                "turn", "You wear " + dobj.getArticle(True) + dobj.verbose_name + ". "
-            )
-            # game.me.contains.remove(dobj)
-            game.me.contains[dobj.ix].remove(dobj)
-            if game.me.contains[dobj.ix] == []:
-                del game.me.contains[dobj.ix]
-            # game.me.wearing.append(dobj)
-            if dobj.ix in game.me.wearing:
-                game.me.wearing[dobj.ix].append(dobj)
-            else:
-                game.me.wearing[dobj.ix] = [dobj]
-        else:
+        try:
+            pre = dobj.playerAboutToWear
+            func = dobj.playerWears
+        except AttributeError:
             game.addTextToEvent("turn", "You cannot wear that. ")
+            return False
+
+        if not pre(event="turn"):
+            return False
+
+        return func(event="turn")
 
 
 # TAKE OFF/DOFF
@@ -1258,18 +1254,17 @@ class DoffVerb(DirectObjectVerb):
         if ret is not None:
             return ret
 
-        game.addTextToEvent(
-            "turn", "You take off " + dobj.getArticle(True) + dobj.verbose_name + ". "
-        )
-        # game.me.contains.append(dobj)
-        if dobj.ix in game.me.contains:
-            game.me.contains[dobj.ix].append(dobj)
-        else:
-            game.me.contains[dobj.ix] = [dobj]
-        # game.me.wearing.remove(dobj)
-        game.me.wearing[dobj.ix].remove(dobj)
-        if game.me.wearing[dobj.ix] == []:
-            del game.me.wearing[dobj.ix]
+        try:
+            pre = dobj.playerAboutToDoff
+            func = dobj.playerDoffs
+        except AttributeError:
+            game.addTextToEvent("turn", "You cannot doff that. ")
+            return False
+
+        if not pre(event="turn"):
+            return False
+
+        return func(event="turn")
 
 
 # LIE DOWN

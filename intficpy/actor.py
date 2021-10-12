@@ -165,6 +165,34 @@ class Actor(Thing):
         """Set the Actor's position to lying"""
         self.position = "lying"
 
+    def makeWearing(self, item):
+        """
+        Make the Actor wear an item.
+
+        :param item: the item to wear
+        :type item: Thing
+        """
+        if item.location:
+            item.location.removeThing(item)
+        if item.ix in self.wearing:
+            self.wearing[item.ix].append(item)
+            return
+        self.wearing[item.ix] = [item]
+
+    def removeWearing(self, item):
+        """
+        Make the Actor wear an item.
+
+        :param item: the item to wear
+        :type item: Thing
+        """
+        if not item.ix in self.wearing:
+            return
+        self.wearing[item.ix].remove(item)
+        if not self.wearing[item.ix]:
+            del self.wearing[item.ix]
+        item.location = None
+
     def setHiTopics(self, hi_topic, return_hi_topic):
         """Set the hi topics for this Actor. Sets both the initial greeting, and the
         greeting to show at the start of subsequent interactions. To make both greetings

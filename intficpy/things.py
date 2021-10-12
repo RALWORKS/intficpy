@@ -313,6 +313,51 @@ class Clothing(Thing):
     # all clothing is wearable
     wearable = True
 
+    def playerAboutToWear(self, event="turn", **kwargs):
+        """
+        Actions carried out when the player is about to wear this item
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        return True
+
+    def playerWears(self, event="turn", **kwargs):
+        """
+        The result of a player trying to wear the item.
+
+        Returns True on success, else False.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        self.game.addTextToEvent(event, f"You wear {self.lowNameArticle(True)}. ")
+        self.game.me.makeWearing(self)
+        return True
+
+    def playerAboutToDoff(self, event="turn", **kwargs):
+        """
+        Actions carried out when the player is about to doff this item
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        return True
+
+    def playerDoffs(self, event="turn", **kwargs):
+        """
+        The result of a player trying to doff the item.
+
+        Returns True on success, else False.
+
+        :param event: the event name to print to
+        :type event: str
+        """
+        self.game.addTextToEvent(event, f"You take off {self.lowNameArticle(True)}. ")
+        self.game.me.removeWearing(self)
+        self.moveTo(self.game.me)
+        return True
+
 
 class LightSource(Thing):
     """Class for Things that are light sources """
