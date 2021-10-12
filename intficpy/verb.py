@@ -60,6 +60,8 @@ class Verb(ABC):
 
     allow_in_sequence = False
 
+    failure_msg = "You cannot do that"
+
     def verbFunc(self, game, skip=False):
         """
         The default verb function
@@ -158,6 +160,8 @@ class DirectObjectVerb(Verb):
     word = None
     hasDobj = True
     syntax = [[word, "<dobj>"]]
+    main_func_name = None
+    pre_func_name = None
 
     def verbFunc(self, game, dobj, skip=False):
         """
@@ -185,6 +189,12 @@ class DirectObjectVerb(Verb):
         # TODO(#126): skip parameter: rename? refactor? remove?
         # TODO(#126): API for verbFunc overrides causing main verb func to evaluate vs
         #             immediately return is unclear & arbitrary. refactor
+
+        pre = getattr(dobj, self.pre_func_name, None) if self.pre_func_name else None
+
+        if pre and not pre(event="turn"):
+            return False
+
         if not skip:
             abort_main_verb_func = False
             dfunc = getattr(
@@ -204,12 +214,24 @@ class DirectObjectVerb(Verb):
             game.addTextToEvent("turn", dobj.cannot_interact_msg)
             return False
 
+        if not self.main_func_name:
+            return
+
+        func = getattr(dobj, self.main_func_name, None)
+
+        if not func:
+            game.addTextToEvent("turn", self.failure_msg.format(dobj=dobj))
+            return False
+
+        return func(event="turn")
+
 
 class IndirectObjectVerb(DirectObjectVerb):
     word = None
     hasIobj = True
     preposition = ["with"]
     syntax = [[word, "<dobj>", "with", "<iobj>"]]
+    iobj_target = False
 
     def verbFunc(self, game, dobj, iobj, skip=True):
         """
@@ -236,6 +258,20 @@ class IndirectObjectVerb(DirectObjectVerb):
         direct object. The parser does not use skip, but skip=True may be useful for
         certain uses of the verbFunc by game authors
         """
+        if self.iobj_target:
+            pre = (
+                getattr(iobj, self.pre_func_name, None) if self.pre_func_name else None
+            )
+            item = dobj
+        else:
+            pre = (
+                getattr(dobj, self.pre_func_name, None) if self.pre_func_name else None
+            )
+            item = iobj
+
+        if pre and not pre(item, event="turn"):
+            return False
+
         if not skip:
             abort_main_verb_func = False
             dfunc = getattr(
@@ -267,6 +303,20 @@ class IndirectObjectVerb(DirectObjectVerb):
         ):
             game.addTextToEvent("turn", dobj.cannot_interact_msg)
             return False
+
+        if not self.main_func_name:
+            return
+
+        if self.iobj_target:
+            func = getattr(iobj, self.main_func_name, None)
+        else:
+            func = getattr(dobj, self.main_func_name, None)
+
+        if not func:
+            game.addTextToEvent("turn", self.failure_msg.format(dobj=dobj, iobj=iobj))
+            return False
+
+        return func(item, event="turn")
 
 
 # Below are .IFP's built in verbs
@@ -882,22 +932,8 @@ class LookThroughVerb(DirectObjectVerb):
     dscope = "near"
     preposition = ["through", "out"]
     dtype = "Transparent"
-
-    def verbFunc(self, game, dobj, skip=False):
-        """look through a Thing """
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            func = dobj.playerLooksThrough
-        except AttributeError:
-            game.addTextToEvent(
-                "turn", "You cannot look through " + dobj.lowNameArticle(True) + ". "
-            )
-            return False
-
-        return func(event="turn")
+    main_func_name = "playerLooksThrough"
+    failure_msg = "You cannot look through the {dobj.verbose_name}. "
 
 
 # LOOK IN
@@ -909,26 +945,9 @@ class LookInVerb(DirectObjectVerb):
     dscope = "near"
     dtype = "Container"
     preposition = ["in"]
-
-    def verbFunc(self, game, dobj, skip=False):
-        """Look inside a Thing """
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            pre = dobj.playerAboutToLookIn
-            func = dobj.playerLooksIn
-        except AttributeError:
-            game.addTextToEvent(
-                "turn", "You cannot look inside " + dobj.lowNameArticle(True) + ". "
-            )
-            return False
-
-        if not pre(event="turn"):
-            return False
-
-        return func(event="turn")
+    main_func_name = "playerLooksIn"
+    pre_func_name = "playerAboutToLookIn"
+    failure_msg = "You cannot look inside the {dobj.verbose_name}. "
 
 
 # LOOK UNDER
@@ -940,15 +959,7 @@ class LookUnderVerb(DirectObjectVerb):
     dscope = "near"
     dtype = "UnderSpace"
     preposition = ["under"]
-
-    def verbFunc(self, game, dobj, skip=False):
-        """Look under a Thing """
-
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        return dobj.playerLooksUnder(event="turn")
+    main_func_name = "playerLooksUnder"
 
 
 # READ
@@ -959,24 +970,9 @@ class ReadVerb(DirectObjectVerb):
     hasDobj = True
     dscope = "near"
     dtype = "Readable"
-
-    def verbFunc(self, game, dobj, skip=False):
-        """look through a Thing """
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            pre = getattr(dobj, "playerAboutToRead")
-            func = getattr(dobj, "playerReads")
-        except AttributeError:
-            game.addTextToEvent("turn", "There's nothing written there. ")
-            return False
-
-        if not pre(event="turn"):
-            return False
-
-        return func(event="turn")
+    main_func_name = "playerReads"
+    pre_func_name = "playerAboutToRead"
+    failure_msg = "There's nothing written there. "
 
 
 # TALK TO (Actor)
@@ -1001,6 +997,8 @@ class TalkToVerb(DirectObjectVerb):
     impDobj = True
     preposition = ["to", "with"]
     dtype = "Actor"
+    main_func_name = "playerTalksTo"
+    failure_msg = "You cannot talk to that. "
 
     def getImpDobj(self, game):
         """If no dobj is specified, try to guess the Actor
@@ -1024,23 +1022,6 @@ class TalkToVerb(DirectObjectVerb):
         game.parser.command.ambiguous = True
         return None
 
-    def verbFunc(self, game, dobj, skip=False):
-        """
-        Talk to an Actor
-        """
-
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            func = dobj.playerTalksTo
-        except AttributeError:
-            game.addTextToEvent("turn", "You cannot talk to that. ")
-            return False
-
-        return func(event="turn")
-
 
 # ASK (Actor)
 # transitive verb with indirect object
@@ -1053,32 +1034,12 @@ class AskVerb(IndirectObjectVerb):
     impDobj = True
     preposition = ["about"]
     dtype = "Actor"
+    main_func_name = "playerAsksAbout"
+    pre_func_name = "playerAboutToAskAbout"
+    failure_msg = "You cannot talk to that. "
 
     def getImpDobj(self, game):
         return self.getImpTalkTo(game)
-
-    def verbFunc(self, game, dobj, iobj, skip=False):
-        """
-        Ask an Actor about a Thing
-        """
-
-        # DON'T block the check for overrides on missing playerAboutToAskAbout
-        # DO block overrides on failed playerAboutToAskAbout
-        pre = getattr(dobj, "playerAboutToAskAbout", None)
-        if pre and not pre(iobj, event="turn"):
-            return False
-
-        ret = super().verbFunc(game, dobj, iobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            func = dobj.playerAsksAbout
-        except AttributeError:
-            game.addTextToEvent("turn", "You cannot talk to that. ")
-            return False
-
-        return func(iobj, event="turn")
 
 
 # TELL (Actor)
@@ -1092,32 +1053,12 @@ class TellVerb(IndirectObjectVerb):
     impDobj = True
     preposition = ["about"]
     dtype = "Actor"
+    main_func_name = "playerTellsAbout"
+    pre_func_name = "playerAboutToTellAbout"
+    failure_msg = "You cannot talk to that. "
 
     def getImpDobj(self, game):
         return self.getImpTalkTo(game)
-
-    def verbFunc(self, game, dobj, iobj, skip=False):
-        """
-        Tell an Actor about a Thing
-        """
-
-        # DON'T block the check for overrides on missing playerAboutToTellAbout
-        # DO block overrides on failed playerAboutToTellAbout
-        pre = getattr(dobj, "playerAboutToTellAbout", None)
-        if pre and not pre(iobj, event="turn"):
-            return False
-
-        ret = super().verbFunc(game, dobj, iobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            func = dobj.playerTellsAbout
-        except AttributeError:
-            game.addTextToEvent("turn", "You cannot talk to that. ")
-            return False
-
-        return func(iobj, event="turn")
 
 
 # GIVE (Actor)
@@ -1131,31 +1072,12 @@ class GiveVerb(IndirectObjectVerb):
     impDobj = True
     preposition = ["to"]
     dtype = "Actor"
+    main_func_name = "playerGivesItem"
+    pre_func_name = "playerAboutToGiveItem"
+    failure_msg = "You cannot talk to that. "
 
     def getImpDobj(self, game):
         return self.getImpTalkTo(game)
-
-    def verbFunc(self, game, dobj, iobj, skip=False):
-        """
-        Give an Actor a Thing
-        """
-        # DON'T block the check for overrides on missing playerAboutToGiveItem
-        # DO block overrides on failed playerAboutToGiveItem
-        pre = getattr(dobj, "playerAboutToGiveItem", None)
-        if pre and not pre(iobj, event="turn"):
-            return False
-
-        ret = super().verbFunc(game, dobj, iobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            func = dobj.playerGivesItem
-        except AttributeError:
-            game.addTextToEvent("turn", "You cannot talk to that. ")
-            return False
-
-        return func(iobj, event="turn")
 
 
 # SHOW (Actor)
@@ -1169,31 +1091,12 @@ class ShowVerb(IndirectObjectVerb):
     impDobj = True
     preposition = ["to"]
     dtype = "Actor"
+    main_func_name = "playerShows"
+    pre_func_name = "playerAboutToShow"
+    failure_msg = "You cannot talk to that. "
 
     def getImpDobj(self, game):
         return self.getImpTalkTo(game)
-
-    def verbFunc(self, game, dobj, iobj, skip=False):
-        """
-        Show an Actor a Thing
-        """
-        # DON'T block the check for overrides on missing playerAboutToShow
-        # DO block overrides on failed playerAboutToShow
-        pre = getattr(dobj, "playerAboutToShow", None)
-        if pre and not pre(iobj, event="turn"):
-            return False
-
-        ret = super().verbFunc(game, dobj, iobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            func = dobj.playerShows
-        except AttributeError:
-            game.addTextToEvent("turn", "You cannot talk to that. ")
-            return False
-
-        return func(iobj, event="turn")
 
 
 # WEAR/PUT ON
@@ -1210,26 +1113,9 @@ class WearVerb(DirectObjectVerb):
     dtype = "Clothing"
     dscope = "inv"
     preposition = ["on"]
-
-    def verbFunc(self, game, dobj, skip=False):
-        """
-        Wear a piece of clothing
-        """
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            pre = dobj.playerAboutToWear
-            func = dobj.playerWears
-        except AttributeError:
-            game.addTextToEvent("turn", "You cannot wear that. ")
-            return False
-
-        if not pre(event="turn"):
-            return False
-
-        return func(event="turn")
+    main_func_name = "playerWears"
+    pre_func_name = "playerAboutToWear"
+    failure_msg = "You cannot wear that. "
 
 
 # TAKE OFF/DOFF
@@ -1245,26 +1131,9 @@ class DoffVerb(DirectObjectVerb):
     ]
     dscope = "wearing"
     preposition = ["off"]
-
-    def verbFunc(self, game, dobj, skip=False):
-        """
-        Take off a piece of clothing
-        """
-        ret = super().verbFunc(game, dobj, skip=skip)
-        if ret is not None:
-            return ret
-
-        try:
-            pre = dobj.playerAboutToDoff
-            func = dobj.playerDoffs
-        except AttributeError:
-            game.addTextToEvent("turn", "You cannot doff that. ")
-            return False
-
-        if not pre(event="turn"):
-            return False
-
-        return func(event="turn")
+    main_func_name = "playerDoffs"
+    pre_func_name = "playerAboutDoff"
+    failure_msg = "You cannot doff that. "
 
 
 # LIE DOWN
