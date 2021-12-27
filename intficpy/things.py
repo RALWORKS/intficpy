@@ -446,6 +446,7 @@ class LightSource(Thing):
         if self.consumable and self.consumeLightSourceDaemon in game.daemons.active:
             game.daemons.remove(self.consumeLightSourceDaemon)
         self.is_lit = False
+        return True
 
     def consumeLightSourceDaemonFunc(self, game):
         """
