@@ -2651,7 +2651,7 @@ class GoVerb(DirectObjectVerb):
 
 # LIGHT (LightSource)
 # transitive verb, no indirect object
-class LightVerb(Verb):
+class LightVerb(DirectObjectVerb):
     word = "light"
     syntax = [["light", "<dobj>"]]
     dscope = "near"
