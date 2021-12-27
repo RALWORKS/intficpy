@@ -233,7 +233,7 @@ class IndirectObjectVerb(DirectObjectVerb):
     syntax = [[word, "<dobj>", "with", "<iobj>"]]
     iobj_target = False
 
-    def verbFunc(self, game, dobj, iobj, skip=True):
+    def verbFunc(self, game, dobj, iobj, skip=False):
         """
         Base verb function for verbs with a direct object and an indirect object
 
@@ -271,7 +271,6 @@ class IndirectObjectVerb(DirectObjectVerb):
 
         if pre and not pre(item, event="turn"):
             return False
-
         if not skip:
             abort_main_verb_func = False
             dfunc = getattr(
