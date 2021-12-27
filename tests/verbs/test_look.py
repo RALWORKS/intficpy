@@ -49,6 +49,7 @@ class TestLookVerbs(IFPTestCase):
     def test_look_in_container(self):
         parent = Container(self.game, "shoebox")
         child = Thing(self.game, "penny")
+        self.assertNotIn(child.ix, self.me.knows_about)
         parent.addThing(child)
         parent.moveTo(self.start_room)
 
@@ -62,6 +63,7 @@ class TestLookVerbs(IFPTestCase):
             f"Contains desc printed incorrectly. Expected {parent.contains_desc} got "
             f"{look_in_desc}",
         )
+        self.assertIn(child.ix, self.me.knows_about)
 
     def test_look_in_closed_container_implies_open_first(self):
         parent = Container(self.game, "shoebox")
@@ -86,6 +88,7 @@ class TestLookVerbs(IFPTestCase):
     def test_look_under(self):
         parent = UnderSpace(self.game, "table")
         child = Thing(self.game, "penny")
+        self.assertNotIn(child.ix, self.me.knows_about)
         parent.addThing(child)
         parent.moveTo(self.start_room)
 
@@ -99,6 +102,7 @@ class TestLookVerbs(IFPTestCase):
             f"Contains desc printed incorrectly. Expected {parent.contains_desc} got "
             f"{look_under_desc}",
         )
+        self.assertIn(child.ix, self.me.knows_about)
 
     def test_look_under_empty_underspace(self):
         parent = UnderSpace(self.game, "table")

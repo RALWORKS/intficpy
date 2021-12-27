@@ -15,6 +15,11 @@ class Holder(Thing):
 
     contains_preposition = "in"
 
+    def revealContents(self):
+        self.revealed = True
+        for item in self.topLevelContentsList:
+            item.makeKnown(self.game.me)
+
     def playerAboutToAddItem(self, item, preposition, event="turn", **kwargs):
         """
         The prepartations we make when the player is about to try to add an item
@@ -262,10 +267,8 @@ class Container(Holder, Openable):
         :type event: str
         """
         self.game.addTextToEvent(event, self.contains_desc)
+        self.revealContents()
         return True
-
-    def revealContents(self):
-        self.revealed = True
 
     def hideContents(self):
         self.desc_reveal = True
@@ -603,7 +606,7 @@ class UnderSpace(Holder):
         return self.desc if self.description is not None else ""
 
     def revealUnder(self):
-        self.revealed = True
+        super().revealContents()
 
     def moveContentsOut(self):
         contents = copy.copy(self.contains)

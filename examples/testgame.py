@@ -112,6 +112,8 @@ def takeOpalFunc(game):
         )
         me.opaltaken = True
         opalAchievement.award(game)
+        print(opal.ix)
+        print(opal.ix in me.knows_about)
 
 
 opal.getVerbDobj = takeOpalFunc
