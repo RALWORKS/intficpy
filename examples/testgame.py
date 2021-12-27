@@ -1,8 +1,3 @@
-# imports from other libraries
-import sys
-import random
-
-# imports from intficpy
 from intficpy.room import Room, OutdoorRoom
 from intficpy.things import (
     Surface,
