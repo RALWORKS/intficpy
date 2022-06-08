@@ -31,11 +31,15 @@ from .vocab import english
 
 
 class Sequence(IFPObject):
+    class _Completed(Exception):
+        pass
+
     class _Event:
         pass
 
     class _PauseEvent(_Event):
-        pass
+        def __init__(self, iterate=False):
+            self.iterate = iterate
 
     class _NodeComplete(_Event):
         pass
@@ -107,7 +111,7 @@ class Sequence(IFPObject):
 
     class Pause(ControlItem):
         def read(self, game, event):
-            return Sequence._PauseEvent()
+            return Sequence._PauseEvent(iterate=True)
 
     class Jump(ControlItem):
         """
@@ -162,23 +166,45 @@ class Sequence(IFPObject):
     def next(self, event):
         ret = self._read_item(self.current_item, event)
         if isinstance(ret, self._PauseEvent):
+            if ret.iterate:
+                self._iterate()
             return ret
         return self._iterate()
 
+    def handle_node_complete(self, event):
+
+        if len(self.position) == 1:
+            self.on_complete()
+            raise self._Completed()
+
+        self.position = self.position[:-2]  # pop out of the list and its parent dict
+        # self._iterate()
+        # self.next(event)
+
+        if self.node_ended:
+            # self._iterate()
+            # self.next(event)
+            return self.handle_node_complete(event)
+
+        self.position[-1] += 1
+
+        return self.play(event)
+
     def play(self, event="turn"):
         self.game.parser.command.sequence = self
-        while True:
-            ret = self.next(event)
-            if isinstance(ret, self._PauseEvent):
+
+        cur = self.next(event)
+
+        if isinstance(cur, self._PauseEvent):
+            return
+
+        if isinstance(cur, self._NodeComplete):
+            try:
+                return self.handle_node_complete(event)
+            except self._Completed:
                 return
-            while isinstance(ret, self._NodeComplete):
-                if len(self.position) == 1:
-                    self.on_complete()
-                    return
-                self.position = self.position[
-                    :-2
-                ]  # pop out of the list and its parent dict
-                ret = self._iterate()
+
+        return self.play(event)
 
     def jump_to(self, value):
         """
@@ -187,7 +213,7 @@ class Sequence(IFPObject):
         or an array specifying an index on the Sequence template
         """
         loc = self._normalize_location(value)
-        self.position = loc
+        self.position = list(loc)
 
     def on_complete(self):
         self.active = False
@@ -282,8 +308,12 @@ class Sequence(IFPObject):
             self.game.addTextToEvent(event, options)
             return self._PauseEvent()
 
+    @property
+    def node_ended(self):
+        return self.position[-1] >= len(self.current_node) - 1
+
     def _iterate(self):
-        if self.position[-1] >= len(self.current_node) - 1:
+        if self.node_ended:
             return self._NodeComplete()
         self.position[-1] += 1
 
