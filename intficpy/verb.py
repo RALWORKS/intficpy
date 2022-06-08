@@ -906,6 +906,7 @@ class ExamineVerb(DirectObjectVerb):
         ["examine", "<dobj>"],
         ["x", "<dobj>"],
         ["look", "at", "<dobj>"],
+        ["look", "on", "<dobj>"],
         ["look", "<dobj>"],
     ]
     dscope = "near"
