@@ -602,6 +602,13 @@ class Player(Actor):
         self.addSynonym("yourself")
         self.addSynonym("you")
 
+    def teleport(self, location):
+        """
+        Move the player to a new location, then describe the room
+        """
+        self.moveTo(location)
+        self.location.describe(self.game)
+
     @property
     def default_desc(self):
         """
