@@ -411,6 +411,7 @@ class TestGive(IFPTestCase):
         self.actor = Actor(self.game, "girl")
         self.actor.moveTo(self.start_room)
         self.item = Thing(self.game, "mess")
+        self.item.invItem = True
         self.item.moveTo(self.start_room)
         self.CANNOT_TALK_MSG = "You cannot talk to that. "
         self.topic = Topic(self.game, '"Ah, yes," says the girl mysteriously. ')
@@ -568,6 +569,7 @@ class TestShow(IFPTestCase):
         self.actor = Actor(self.game, "girl")
         self.actor.moveTo(self.start_room)
         self.item = Thing(self.game, "mess")
+        self.item.invItem = True
         self.item.moveTo(self.start_room)
         self.CANNOT_TALK_MSG = "You cannot talk to that. "
         self.topic = Topic(self.game, '"Ah, yes," says the girl mysteriously. ')

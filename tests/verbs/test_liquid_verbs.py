@@ -7,8 +7,10 @@ class TestPourIntoVerb(IFPTestCase):
     def setUp(self):
         super().setUp()
         self.old_container = Container(self.game, "bottle")
+        self.old_container.invItem = True
         self.old_container.holds_liquid = True
         self.new_container = Container(self.game, "bowl")
+        self.new_container.invItem = True
         self.new_container.size = 50
         self.new_container.holds_liquid = True
         self.liquid = Liquid(self.game, "wine", "wine")
@@ -18,6 +20,7 @@ class TestPourIntoVerb(IFPTestCase):
 
     def test_pour_out_non_liquid_non_container(self):
         item = Thing(self.game, "bead")
+        item.invItem = True
         item.moveTo(self.start_room)
         self.game.turnMain("pour bead into bowl")
         self.assertIn("has nothing on", self.app.print_stack.pop())
@@ -180,8 +183,10 @@ class TestFillFromVerb(IFPTestCase):
     def setUp(self):
         super().setUp()
         self.old_container = Container(self.game, "bottle")
+        self.old_container.invItem = True
         self.old_container.holds_liquid = True
         self.new_container = Container(self.game, "bowl")
+        self.new_container.invItem = True
         self.new_container.size = 50
         self.new_container.holds_liquid = True
         self.liquid = Liquid(self.game, "wine", "wine")
@@ -196,6 +201,7 @@ class TestFillFromVerb(IFPTestCase):
 
     def test_fill_non_container(self):
         item = Thing(self.game, "bead")
+        item.invItem = True
         item.moveTo(self.start_room)
         self.game.turnMain("fill bead from bottle")
         self.assertIn("can't fill that", self.app.print_stack.pop())

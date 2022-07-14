@@ -114,6 +114,7 @@ class TestLookVerbs(IFPTestCase):
 
     def test_look_under_non_underspace_inv_item(self):
         child = Thing(self.game, "penny")
+        child.invItem = True
         child.moveTo(self.start_room)
 
         self.game.turnMain("look under penny")

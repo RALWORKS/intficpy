@@ -45,6 +45,7 @@ class TestGetVerb(IFPTestCase):
 
     def test_get_item_when_pc_is_on_surface(self):
         loc = Surface(self.game, "desk")
+        loc.invItem = True
         loc.moveTo(self.start_room)
         loc.can_contain_standing_player = True
 
@@ -72,6 +73,7 @@ class TestGetVerb(IFPTestCase):
 
     def test_get_liquid_in_container_gets_container(self):
         container = Container(self.game, "cup")
+        container.invItem = True
         container.moveTo(self.start_room)
         item = Liquid(self.game, "broth", "broth")
         item.moveTo(container)
@@ -84,6 +86,7 @@ class TestGetVerb(IFPTestCase):
         container = Container(self.game, "cup")
         container.moveTo(self.start_room)
         item = Thing(self.game, "bead")
+        item.invItem = True
 
         container.moveTo(self.game.me)
         item.moveTo(container)
@@ -108,6 +111,7 @@ class TestGetVerb(IFPTestCase):
 
     def test_get_underspace_reveals_single_contained_item(self):
         parent = UnderSpace(self.game, "rug")
+        parent.invItem = True
         child = Thing(self.game, "penny")
         parent.moveTo(self.start_room)
         child.moveTo(parent)
@@ -117,6 +121,7 @@ class TestGetVerb(IFPTestCase):
 
     def test_get_underspace_reveals_multiple_contained_items(self):
         parent = UnderSpace(self.game, "rug")
+        parent.invItem = True
         child = Thing(self.game, "penny")
         child2 = Thing(self.game, "rock")
         parent.moveTo(self.start_room)
@@ -128,6 +133,7 @@ class TestGetVerb(IFPTestCase):
 
     def test_get_composite_underspace_reveals_contained_item(self):
         item = Container(self.game, "box")
+        item.invItem = True
         parent = UnderSpace(self.game, "space")
         child = Thing(self.game, "penny")
         item.addComposite(parent)
@@ -141,6 +147,7 @@ class TestGetVerb(IFPTestCase):
         box = Container(self.game, "box")
         box.giveLid()
         item = Thing(self.game, "bead")
+        item.invItem = True
         item.moveTo(box)
         box.makeOpen()
         box.moveTo(self.game.me)
@@ -157,6 +164,7 @@ class TestGetVerb(IFPTestCase):
         box = Container(self.game, "box")
         box.giveLid()
         item = Thing(self.game, "bead")
+        item.invItem = True
         item.moveTo(box)
         box.setLock(Lock(self.game, True, None))
         box.revealed = True
@@ -172,8 +180,10 @@ class TestGetVerb(IFPTestCase):
 class TestTakeAll(IFPTestCase):
     def test_take_all_takes_all_known_top_level_invitems(self):
         hat = Thing(self.game, "hat")
+        hat.invItem = True
         hat.moveTo(self.start_room)
         cat = Thing(self.game, "cat")
+        cat.invItem = True
         cat.moveTo(self.start_room)
 
         self.game.turnMain("l")
@@ -184,8 +194,10 @@ class TestTakeAll(IFPTestCase):
 
     def test_no_items_are_taken_unless_they_are_known(self):
         hat = Thing(self.game, "hat")
+        hat.invItem = True
         hat.moveTo(self.start_room)
         cat = Thing(self.game, "cat")
+        cat.invItem = True
         cat.moveTo(self.start_room)
 
         # self.game.turnMain("l") # we haven't looked, so we don't know
@@ -196,10 +208,10 @@ class TestTakeAll(IFPTestCase):
 
     def test_take_all_takes_known_objects_from_sub_locations(self):
         desk = Surface(self.game, "desk")
-        desk.inv_item = False
         desk.desc_reveal = True
         desk.moveTo(self.start_room)
         hat = Thing(self.game, "hat")
+        hat.invItem = True
         hat.moveTo(desk)
 
         self.game.turnMain("l")
@@ -209,16 +221,17 @@ class TestTakeAll(IFPTestCase):
 
     def test_take_all_does_not_take_items_that_are_not_discovered(self):
         desk = Surface(self.game, "desk")
-        desk.inv_item = False
+        desk.invItem = False
         desk.desc_reveal = False  # don't reveal the contents with "look"
         desk.moveTo(self.start_room)
         hat = Thing(self.game, "hat")
+        hat.invItem = True
         hat.moveTo(desk)
 
         self.game.turnMain("l")
         self.game.turnMain("take all")
 
-        self.assertTrue(self.game.me.containsItem(hat))
+        self.assertFalse(self.game.me.containsItem(hat))
 
 
 class TestRemoveFrom(IFPTestCase):
@@ -280,6 +293,7 @@ class TestRemoveFrom(IFPTestCase):
         pedestal = Surface(self.game, "pedestal")
         pedestal.moveTo(self.start_room)
         box = Container(self.game, "box")
+        box.invItem = True
         box.moveTo(pedestal)
         self.me.moveTo(box)
         self.game.turnMain("remove box from pedestal")
@@ -290,6 +304,7 @@ class TestRemoveFrom(IFPTestCase):
         box = Container(self.game, "box")
         box.moveTo(self.start_room)
         rug = UnderSpace(self.game, "rug")
+        rug.invItem = True
         rug.moveTo(box)
         self.game.turnMain("remove rug from box")
         msg = self.app.print_stack.pop()
@@ -299,6 +314,7 @@ class TestRemoveFrom(IFPTestCase):
         box = Container(self.game, "box")
         box.moveTo(self.start_room)
         rug = UnderSpace(self.game, "rug")
+        rug.invItem = True
         rug.moveTo(box)
         penny = Thing(self.game, "penny")
         bead = Thing(self.game, "bead")
@@ -316,6 +332,7 @@ class TestRemoveFrom(IFPTestCase):
         box = Container(self.game, "box")
         box.moveTo(self.start_room)
         mishmash = Thing(self.game, "mishmash")
+        mishmash.invItem = True
         rug = UnderSpace(self.game, "rug")
         mishmash.addComposite(rug)
         mishmash.moveTo(box)
