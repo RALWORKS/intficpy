@@ -70,7 +70,7 @@ class Thing(PhysicalEntity):
 
     # LOCATION & INVITEM STATUS
     location = None
-    invItem = True
+    invItem = False
 
     # ACTION MESSAGES
     cannotTakeMsg = "You cannot take that. "
