@@ -272,6 +272,9 @@ class Room(PhysicalEntity):
                 if item.known_ix not in game.me.knows_about:
                     # game.me.knows_about.append(item.known_ix)
                     item.makeKnown(game.me)
+                if item.desc_reveal:
+                    for sub_item in item.topLevelContentsList:
+                        sub_item.makeKnown(game.me)
             if desc_loc != key and key not in child_items and len(things) > 1:
                 self.fulldesc = (
                     self.fulldesc
