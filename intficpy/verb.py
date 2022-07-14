@@ -1145,25 +1145,25 @@ class LieDownVerb(Verb):
     preposition = ["down"]
 
     def verbFunc(self, game):
-        if game.me.position != "lying":
-            if isinstance(game.me.location, Thing):
-                if not game.me.location.can_contain_lying_player:
-                    game.addTextToEvent(
-                        "turn",
-                        "(First getting "
-                        + game.me.location.contains_preposition_inverse
-                        + " of "
-                        + game.me.location.getArticle(True)
-                        + game.me.location.verbose_name
-                        + ")",
-                    )
-                    outer_loc = game.me.getOutermostLocation()
-                    game.me.location.removeThing(game.me)
-                    outer_loc.addThing(game.me)
-            game.addTextToEvent("turn", "You lie down. ")
-            game.me.makeLying()
-        else:
+        if game.me.position == "lying":
             game.addTextToEvent("turn", "You are already lying down. ")
+            return True
+
+        climb_out = ClimbOutVerb()
+
+        while (
+            isinstance(game.me.location, Thing)
+            and not game.me.location.can_contain_lying_player
+        ):
+            success = climb_out.verbFunc(game)
+            if not success:
+                game.addText("You can't lie down here. ")
+                return False
+
+        game.addTextToEvent("turn", "You lie down. ")
+        game.me.makeLying()
+
+        return True
 
 
 # STAND UP
@@ -1899,6 +1899,7 @@ class ClimbOutVerb(Verb):
             outer_loc = game.me.location.location
             game.me.location.removeThing(game.me)
             outer_loc.addThing(game.me)
+            return True
         else:
             game.addTextToEvent("turn", "You cannot climb out of here. ")
 
