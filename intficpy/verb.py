@@ -1204,25 +1204,25 @@ class SitDownVerb(Verb):
     preposition = ["down"]
 
     def verbFunc(self, game):
-        if game.me.position != "sitting":
-            if isinstance(game.me.location, Thing):
-                if not game.me.location.can_contain_sitting_player:
-                    game.addTextToEvent(
-                        "turn",
-                        "(First getting "
-                        + game.me.location.contains_preposition_inverse
-                        + " of "
-                        + game.me.location.getArticle(True)
-                        + game.me.location.verbose_name
-                        + ")",
-                    )
-                    outer_loc = game.me.getOutermostLocation()
-                    game.me.location.removeThing(game.me)
-                    outer_loc.addThing(game.me)
-            game.addTextToEvent("turn", "You sit down. ")
-            game.me.makeSitting()
-        else:
+        if game.me.position == "sitting":
             game.addTextToEvent("turn", "You are already sitting. ")
+            return True
+
+        climb_out = ClimbOutVerb()
+
+        while (
+            isinstance(game.me.location, Thing)
+            and not game.me.location.can_contain_sitting_player
+        ):
+            success = climb_out.verbFunc(game)
+            if not success:
+                game.addText("You can't sit down here. ")
+                return False
+
+        game.addTextToEvent("turn", "You sit down. ")
+        game.me.makeSitting()
+
+        return True
 
 
 # STAND ON (SURFACE)
