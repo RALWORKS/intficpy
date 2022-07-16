@@ -1,0 +1,11 @@
+* Stability
+** TODO near 100% coverage for everything *except* verbs
+** TODO improve test coverage for verbs
+* Sequence
+** TODO 100% test coverage for sequence.py
+** TODO convert to list only templates (prerequisite for dynamic add/drop)
+** TODO dynamic option add/drop
+** TODO pop control item
+** TODO [BREAKING] any long text (ex room, item descriptions) can be a Sequence
+* Serialization Refactor Preparations
+** TODO ability to pass in any/all customizable IFPObject attributes at initialization
