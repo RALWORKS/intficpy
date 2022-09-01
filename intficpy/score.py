@@ -100,7 +100,7 @@ class HintSystem(IFPObject):
                 if not node.checkRequiredIncomplete():
                     remove_nodes.append(node)
                     node.complete = True  # not sure about this
-                elif self.setNode(node):
+                elif self.setNode(game, node):
                     remove_nodes.append(node)
             for node in remove_nodes:
                 self.pending.remove(node)
@@ -197,7 +197,7 @@ class HintNode(IFPObject):
     def checkRequiredIncomplete(self):
         if self.open_require_nodes_incomplete:
             nodes_incomplete = [
-                (not item.complete) for item in self.open_require_nodes_complete
+                (not item.complete) for item in self.open_require_nodes_incomplete
             ]
             return all(nodes_incomplete)
         return True
