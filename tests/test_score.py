@@ -16,3 +16,5 @@ class TestAchevement(IFPTestCase):
         self.game.turnMain("take disc")
 
         self.assertEqual(self.game.score.total, 3)
+        self.game.turnMain("score")
+        self.game.turnMain("fullscore")
